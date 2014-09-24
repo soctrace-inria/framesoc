@@ -202,7 +202,7 @@ public class ManageColorsDialog extends Dialog {
         	}
         });
         
-        tableViewer.setContentProvider(new ArrayContentProvider());
+        tableViewer.setContentProvider(ArrayContentProvider.getInstance());
         tableViewer.setLabelProvider(new RowLabelProvider());
         tableViewer.setSorter(new ViewerSorter());
         tableViewer.addFilter(new RowFilter());

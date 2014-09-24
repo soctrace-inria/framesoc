@@ -134,7 +134,7 @@ public class ManageToolsDialog extends Dialog {
         GridData gd_list = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
         gd_list.widthHint = 472;
         list.setLayoutData(gd_list);
-        listViewer.setContentProvider(new ArrayContentProvider());
+        listViewer.setContentProvider(ArrayContentProvider.getInstance());
         listViewer.setInput(toolsMap.values());
         listViewer.setLabelProvider(new LabelProvider() {
         	@Override

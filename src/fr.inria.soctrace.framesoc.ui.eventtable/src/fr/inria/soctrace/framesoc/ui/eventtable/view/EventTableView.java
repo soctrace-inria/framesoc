@@ -377,16 +377,11 @@ public final class EventTableView extends FramesocPart {
 
 	private void createProviders(Composite parent) {
 		// filters: a simple model with a single line.
-		filtersTableViewer.setContentProvider(new ArrayContentProvider());
+		filtersTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 		filtersTableViewer.setInput(getEmptyInput());
 
-		// events: a loader able to load pages of events from the DB
-		eventsTableViewer.setContentProvider(new ArrayContentProvider() {
-			@Override
-			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-				logger.debug("Input changed");
-			}
-		});
+		// events: event rows
+		eventsTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 		eventsTableViewer.setInput(null); // empty table at the beginning
 		eventsLoader = new EventTableLoader();
 	}
