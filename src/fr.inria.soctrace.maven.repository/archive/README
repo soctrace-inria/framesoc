@@ -50,9 +50,9 @@ Several alternatives are available.
 - Then follow the steps in "Option 1".
 
 # Option 3 #
-# Cloning the Framesoc git repository #
-- To clone the Framesoc git repository and access the source code please follow
-  the instruction in the REPOSITORY file, contained in this archive.
+# Cloning the Framesoc GitHub public repository #
+- Clone the repository:
+    git clone https://github.com/generoso/framesoc.git
 - Then follow the steps in "Option 1".
 
 ######################## Installing an Eclipse feature ######################## 
