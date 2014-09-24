@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Paje Dump Importer
+Bundle-SymbolicName: fr.inria.soctrace.tools.importer.pajedump;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.tools.importer.pajedump.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ fr.inria.soctrace.framesoc.core;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.model;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.slf4j;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.storage;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.utils;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.query,
+ org.eclipse.wb.core.lib
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: INRIA

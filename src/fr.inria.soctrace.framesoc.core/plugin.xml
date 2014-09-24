@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="fr.inria.soctrace.framesoc.core.tool" name="FrameSoc Tool" schema="schema/fr.inria.soctrace.framesoc.core.tool.exsd"/>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="fr.inria.soctrace.framesoc.core.FramesocStartup">
+      </startup>
+   </extension>
+</plugin>

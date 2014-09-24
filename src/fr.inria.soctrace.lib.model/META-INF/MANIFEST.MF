@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Model
+Bundle-SymbolicName: fr.inria.soctrace.lib.model
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.lib.model.Activator
+Bundle-Vendor: INRIA
+Require-Bundle: org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Export-Package: fr.inria.soctrace.lib.model,
+ fr.inria.soctrace.lib.model.utils

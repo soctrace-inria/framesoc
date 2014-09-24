@@ -1,0 +1,44 @@
+# Date: 7/11/2013
+# Author: Generoso Pagano <generoso.pagano@inria.fr>
+
+# Summary #
+
+This file describes how to configure a working Eclipse workspace for FrameSoC development.
+The instructions are written for a unix system, but they should be trivially adapted
+on a Windows system too.
+
+# Requirements #
+
+- Java JDK 7
+  You can download it from: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+# System setup
+
+After cloning the git repository in <clone_directory>, please follow these steps:
+
+- Install the latest version of 'Eclipse for RCP and RAP Developers':
+  - Download the package suitable for your architecture at http://www.eclipse.org/downloads/
+  - Extract it
+  - Go in the eclipse folder and launch the executable (eclipse)
+
+- Install the Tycho m2e connector:
+  - Window -> Preferences -> Maven -> Discovery
+  - Press the Open Catalog button
+  - Activate the Tycho Configurator
+  - Click on Finish and follow the installation instructions.
+  
+- Set the workspace folder contained in <clone_directory>/soctrace/framesoc as 
+  the Eclipse workspace and add the FrameSoC plugins.
+
+  More in details:
+  - Launching eclipse for the first time you will be asked to set a workspace: 
+    - set one provided in <clone_directory>/soctrace/framesoc/workspace
+  - Import the FrameSoC plugins:
+   - File -> Import -> General -> Existing Projects into Workspace
+   - Set the workspace chosen before as root directory
+   - Check that all projects folders are checked
+   - Press Finish
+
+- Build all the plugins
+  - Project -> Clean... (ensure that Build Automatically is checked)
+  - Clean all projects

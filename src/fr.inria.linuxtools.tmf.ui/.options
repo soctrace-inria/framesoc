@@ -1,0 +1,7 @@
+fr.inria.linuxtools.tmf.ui/error=false
+fr.inria.linuxtools.tmf.ui/warning=false
+fr.inria.linuxtools.tmf.ui/info=false
+
+fr.inria.linuxtools.tmf.ui/index=false
+fr.inria.linuxtools.tmf.ui/display=false
+fr.inria.linuxtools.tmf.ui/sorting=false

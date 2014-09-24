@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Utils
+Bundle-SymbolicName: fr.inria.soctrace.lib.utils
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.lib.utils.Activator
+Bundle-Vendor: INRIA
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ fr.inria.soctrace.lib.slf4j;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Export-Package: fr.inria.soctrace.lib.utils

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Framesoc
+Bundle-SymbolicName: fr.inria.soctrace.framesoc.brand
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: INRIA
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

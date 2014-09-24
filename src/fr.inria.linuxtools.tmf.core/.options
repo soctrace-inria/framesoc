@@ -1,0 +1,4 @@
+fr.inria.linuxtools.tmf.core/component=false
+fr.inria.linuxtools.tmf.core/request=false
+fr.inria.linuxtools.tmf.core/signal=false
+fr.inria.linuxtools.tmf.core/event=false

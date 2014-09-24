@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            category="fr.inria.soctrace.framesoc.ui.views.category"
+            class="fr.inria.soctrace.framesoc.ui.eventtable.view.EventTableView"
+            icon="icons/table.png"
+            id="fr.inria.soctrace.framesoc.ui.TABLE"
+            name="Events"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.eventtable.handler.ShowEventTableHandler"
+            id="fr.inria.soctrace.framesoc.ui.eventtable.command.showEventTable"
+            name="Show Event Table">
+      </command>
+   </extension>
+   <extension
+         point="fr.inria.soctrace.framesoc.ui.perspective.part">
+      <part
+            icon="icons/table.png"
+            launchCommand="fr.inria.soctrace.framesoc.ui.eventtable.command.showEventTable"
+            position="BOTTOM_RIGHT"
+            priority="0"
+            viewId="fr.inria.soctrace.framesoc.ui.TABLE">
+      </part>
+   </extension>
+
+</plugin>

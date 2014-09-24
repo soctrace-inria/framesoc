@@ -1,0 +1,7 @@
+The file logback.xml contained in this folder is the default 
+being used and included in the Maven release.
+
+           YOU MUST NOT MODIFY THIS FILE!
+
+On the contrary, create a logback-test.xml file, taking 
+inspiration from the logback_example.xml.

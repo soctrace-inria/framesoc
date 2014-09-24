@@ -1,0 +1,91 @@
+----------------------
+- New Framesoc Model -
+----------------------
+
+- 1 - General description -
+
+The Framesoc datamodel has been enriched in order to support the 
+concepts of State, Link, Variable and PunctualEvent.
+
+In the old model all the events were considered as punctual event,
+that is something happening at a given time. 
+
+In the enriched model, in addition to punctual events there are also:
+
+* State: Anything that has a beginning and ending timestamp. 
+  It can be used to describe a period of time where a given event producer 
+  stays at the same state.
+  A state has also an imbrication level, to model a state inside another state:
+  (e.g. state with imbrication = 1 is contained in state with imbrication = 0...)
+  Note that a given producer, at a given time, can be in only one state of the 
+  same imbrication level.
+
+* Link: It is used to represent a directed relation between two event producer, 
+  having a beginning and ending timestamps (which represent the start and end 
+  of the relation). It can be used to represent point-to-point or collective 
+  communications between processes.
+
+* Variable: It represents the evolution of the value of a variable along time. 
+  A variable has a value and an identifier.
+
+
+- 2 - Implementation details -
+
+- Database level:
+
+In order to support the above concepts, the following modification have been done.
+
+A field CATEGORY (INT) has been added to the EVENT_TYPE table.
+This is an enumeration to distinguish among the 4 event categories (punctual event, link, state, variable)
+
+Three fields have been added to the EVENT table:
+* CATEGORY (INT) : replication of the category in the EVENT_TYPE, added for performance reasons.
+* LPAR (BIGINT) : a long parameter, storing an information that depends on the category
+* DPAR (DOUBLE) : a double parameter, storing an information that depends on the category
+
+The following table summarize the information stored in LPAR and DPAR for the various category:
+
+                LPAR         DPAR
+PunctualEvent   -            - 
+State           end time     imbrication level
+Link            end time     end event producer id
+Variable        id           value 
+
+- Software API level (fr.inria.soctrace.lib.model plugin)
+
+The class EventCategory (in fr.inria.soctrace.lib.model.utils.ModelConstants) contains
+the constants corresponding to the various categories.
+
+The category must be passed to the constructor of the EventType class.
+
+The three fields category, lpar and dpar have been added to the Event class,
+with the corresponding getter/setter.
+
+Four classes, inheriting from Event, have been added:
+* PunctualEvent
+* State
+* Link
+* Variable
+These classes provide appropriate names for the getter/setter according to the category:
+For example, the Variable class provide a getId() and getValue() that wrap the corresponding
+getLongPar() and getDoublePar().
+The complete documentation of the various setter/getter can be found in the source code.
+
+Note that the methods setCategory() and setType() in the class Event check that the categories
+in the Event and in the EventType are the same.
+
+The pjdump parser (in the Framesoc archive) provides an example of usage of this API.
+
+- 3 - Note
+
+The imbrication level (in the State) and the variable id (in the Variable) are stored in the
+database, but the are not currently used by Framesoc, since none of the SoC-Trace partners 
+has provide feedback yet on these two fields.
+Therefore these two details may change in future versions, according to possible future needs.
+
+
+
+
+
+
+

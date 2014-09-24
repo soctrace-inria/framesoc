@@ -1,0 +1,78 @@
+<HTML> 
+<BODY> 
+
+This Developer Guide provides an overall description of Framesoc software architecture,
+and a detailed API documentation automatically generated from source code comments.
+
+<p>
+Framesoc is structured as a set of Eclipse plugins.
+Each plugin <b>plugin.name</b> contains all the packages named <b>plugin.name.*</b>.
+</p>
+
+<p>
+The basic block of Framesoc is the <i>soctrace</i> library, which provides a software
+API to easily interact with the databases where traces are stored.
+The relational schema of these databases is available <a href="doc-files/schema.pdf"> here </a>.
+Note that the tables TRACE, TRACE_TYPE, TRACE_PARAM, TRACE_PARAM_TYPE and TOOL are physically 
+stored in a single <i>SystemDB</i>. All the other tables are replicated for each trace and stored 
+in different <i>TraceDB</i>s.  
+</p>
+
+<p> 
+The <i>soctrace</i> library is composed by the by the following plugins.
+
+<dl>
+
+<dt><b>fr.inria.soctrace.lib.model</b></dt>
+<dd>- It provides an object oriented representation of the DB schema.</dd>
+
+<dt><b>fr.inria.soctrace.lib.storage</b></dt>
+<dd>- It provides basic functionalities for interacting with the DBs 
+(e.g., create a new DB, open an existing one, save model elements in the DB, perform SQL queries, etc.).</dd>
+
+<dt><b>fr.inria.soctrace.lib.query</b></dt>
+<dd>- It provides classes to perform generic queries abstracting from SQL, and some utility classes to 
+iterate over trace events, compute distributions, and interact with {@link fr.inria.soctrace.lib.model.EventProducer}
+hierarchy.</dd>
+
+<dt><b>fr.inria.soctrace.lib.search</b></dt>
+<dd>- It provides a simplified interface to perform predefined requests to the databases.</dd>
+
+<dt><b>fr.inria.soctrace.lib.utils</b></dt>
+<dd>- It provides utility classes to help the development of other Framesoc modules and client applications 
+(e.g., manage DB identifiers, manage the configuration file, measuring times, ensure path portability over 
+different OSs, etc.).</dd>
+
+</dl>
+</p>
+
+<p>
+On top of the <i>soctrace</i> library, there are the <i>framesoc</i> plugins, which provide the core Framesoc mechanisms 
+and the graphical user interface.
+
+<dl>
+<dt><b>fr.inria.soctrace.framesoc.core</b></dt>
+<dd>- It provides the <a href="doc-files/tool_ext_point.html">extension point</a> for adding new tools to Framesoc, some utility classes to help the creation of new 
+tools, a Publish-Subscribe mechanism for decoupled module communication, and some management functionalities 
+(e.g., register a tool, delete a Trace, etc.).</dd>
+
+<dt><b>fr.inria.soctrace.framesoc.ui</b></dt>
+<dd>- It provides all the classes supporting the Framesoc Eclipse perspective (e.g., views, graphical objects, graphical data 
+model, etc.), and the <a href="doc-files/view_ext_point.html">extension point</a> to add new Framesoc analysis views. The following Framesoc <b>*.ui.*</b> plugins extend 
+this extension point to provide their analysis views.</dd>
+
+<dt><b>fr.inria.soctrace.framesoc.ui.histogram</b></dt>
+<dd>- It provides a view to visualize the trace event density histogram.</dd>
+
+<dt><b>fr.inria.soctrace.framesoc.ui.piechart</b></dt>
+<dd>- It provides a view to visualize a statistics pie chart.</dd>
+
+<dt><b>fr.inria.soctrace.framesoc.ui.eventtable</b></dt>
+<dd>- It provides a view to visualize trace events in an interactive table viewer.</dd>
+
+</dl>
+</p>
+
+</BODY> 
+</HTML>
+

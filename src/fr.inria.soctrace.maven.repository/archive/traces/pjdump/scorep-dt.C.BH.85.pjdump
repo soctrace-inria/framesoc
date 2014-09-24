@@ -1,0 +1,765 @@
+Container, 0, 0, 0, 313.874, 313.874, 0
+Container, 0, ROOT, 0, 313.874, 313.874, root
+Container, root, PROCESS, 0, 313.874, 313.874, rank9
+State, rank9, STATE, 0.0608198, 3.23869, 3.17787, 0, MPI_Init
+State, rank9, STATE, 3.23869, 3.23869, 2.25e-07, 0, MPI_Comm_rank
+State, rank9, STATE, 3.23869, 3.23869, 2.63e-07, 0, MPI_Comm_size
+State, rank9, STATE, 6.35205, 6.40891, 0.0568633, 0, MPI_Send
+State, rank9, STATE, 6.40892, 46.3234, 39.9145, 0, MPI_Send
+State, rank9, STATE, 46.3234, 313.87, 267.546, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank84
+State, rank84, STATE, 1.26758, 3.30514, 2.03756, 0, MPI_Init
+State, rank84, STATE, 3.30515, 3.30515, 3.34e-07, 0, MPI_Comm_rank
+State, rank84, STATE, 3.30515, 3.30515, 1.17e-07, 0, MPI_Comm_size
+State, rank84, STATE, 3.30537, 257.723, 254.417, 0, MPI_Recv
+State, rank84, STATE, 257.723, 265.472, 7.74967, 0, MPI_Recv
+State, rank84, STATE, 271.688, 271.688, 6.973e-06, 0, MPI_Recv
+State, rank84, STATE, 271.688, 278.457, 6.76985, 0, MPI_Recv
+State, rank84, STATE, 284.56, 284.56, 6.424e-06, 0, MPI_Recv
+State, rank84, STATE, 284.56, 293.158, 8.59802, 0, MPI_Recv
+State, rank84, STATE, 299.25, 299.25, 6.893e-06, 0, MPI_Recv
+State, rank84, STATE, 299.25, 307.592, 8.34145, 0, MPI_Recv
+State, rank84, STATE, 313.782, 313.782, 2.8488e-05, 0, MPI_Send
+State, rank84, STATE, 313.782, 313.871, 0.0886144, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank83
+State, rank83, STATE, 1.28233, 3.26333, 1.98099, 0, MPI_Init
+State, rank83, STATE, 3.26333, 3.26333, 4.39e-07, 0, MPI_Comm_rank
+State, rank83, STATE, 3.26333, 3.26333, 1.3e-07, 0, MPI_Comm_size
+State, rank83, STATE, 3.26355, 140.333, 137.069, 0, MPI_Recv
+State, rank83, STATE, 140.333, 147.908, 7.57454, 0, MPI_Recv
+State, rank83, STATE, 168.291, 168.291, 6.973e-06, 0, MPI_Recv
+State, rank83, STATE, 168.291, 174.527, 6.23602, 0, MPI_Recv
+State, rank83, STATE, 195.32, 195.32, 7.17e-06, 0, MPI_Recv
+State, rank83, STATE, 195.32, 202.324, 7.00417, 0, MPI_Recv
+State, rank83, STATE, 223.14, 223.14, 7.03e-06, 0, MPI_Recv
+State, rank83, STATE, 223.14, 231.58, 8.4397, 0, MPI_Recv
+State, rank83, STATE, 256.509, 256.509, 1.4995e-05, 0, MPI_Send
+State, rank83, STATE, 256.509, 307.593, 51.0842, 0, MPI_Send
+State, rank83, STATE, 307.593, 313.87, 6.27723, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank82
+State, rank82, STATE, 1.2789, 3.28387, 2.00497, 0, MPI_Init
+State, rank82, STATE, 3.28387, 3.28387, 2.57e-07, 0, MPI_Comm_rank
+State, rank82, STATE, 3.28387, 3.28387, 1.14e-07, 0, MPI_Comm_size
+State, rank82, STATE, 3.28408, 148.736, 145.452, 0, MPI_Recv
+State, rank82, STATE, 148.736, 155.143, 6.40731, 0, MPI_Recv
+State, rank82, STATE, 175.869, 175.869, 7.357e-06, 0, MPI_Recv
+State, rank82, STATE, 175.869, 180.968, 5.09943, 0, MPI_Recv
+State, rank82, STATE, 201.646, 201.646, 7.379e-06, 0, MPI_Recv
+State, rank82, STATE, 201.646, 210.235, 8.58931, 0, MPI_Recv
+State, rank82, STATE, 231.071, 231.071, 7e-06, 0, MPI_Recv
+State, rank82, STATE, 231.071, 237.339, 6.26742, 0, MPI_Recv
+State, rank82, STATE, 262.149, 262.149, 2.1189e-05, 0, MPI_Send
+State, rank82, STATE, 262.149, 293.161, 31.0119, 0, MPI_Send
+State, rank82, STATE, 293.161, 313.793, 20.6316, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank81
+State, rank81, STATE, 1.23573, 3.27545, 2.03972, 0, MPI_Init
+State, rank81, STATE, 3.27546, 3.27546, 4.39e-07, 0, MPI_Comm_rank
+State, rank81, STATE, 3.27546, 3.27546, 1.07e-07, 0, MPI_Comm_size
+State, rank81, STATE, 3.27568, 138.242, 134.966, 0, MPI_Recv
+State, rank81, STATE, 138.242, 141.164, 2.92261, 0, MPI_Recv
+State, rank81, STATE, 162.296, 162.296, 6.802e-06, 0, MPI_Recv
+State, rank81, STATE, 162.296, 164.933, 2.63661, 0, MPI_Recv
+State, rank81, STATE, 185.715, 185.715, 6.538e-06, 0, MPI_Recv
+State, rank81, STATE, 185.715, 188.405, 2.69023, 0, MPI_Recv
+State, rank81, STATE, 209.949, 209.949, 6.589e-06, 0, MPI_Recv
+State, rank81, STATE, 209.949, 212.619, 2.67034, 0, MPI_Recv
+State, rank81, STATE, 238.113, 238.159, 0.0455263, 0, MPI_Send
+State, rank81, STATE, 238.159, 278.457, 40.2986, 0, MPI_Send
+State, rank81, STATE, 278.457, 313.872, 35.4149, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank80
+State, rank80, STATE, 1.22413, 3.2836, 2.05947, 0, MPI_Init
+State, rank80, STATE, 3.2836, 3.2836, 2.52e-07, 0, MPI_Comm_rank
+State, rank80, STATE, 3.2836, 3.2836, 1.15e-07, 0, MPI_Comm_size
+State, rank80, STATE, 3.28381, 140.203, 136.919, 0, MPI_Recv
+State, rank80, STATE, 140.203, 147.782, 7.57967, 0, MPI_Recv
+State, rank80, STATE, 168.371, 168.371, 6.638e-06, 0, MPI_Recv
+State, rank80, STATE, 168.371, 176.262, 7.89088, 0, MPI_Recv
+State, rank80, STATE, 196.881, 196.881, 7.05e-06, 0, MPI_Recv
+State, rank80, STATE, 196.881, 203.819, 6.93842, 0, MPI_Recv
+State, rank80, STATE, 224.922, 224.923, 6.655e-06, 0, MPI_Recv
+State, rank80, STATE, 224.923, 232.973, 8.04999, 0, MPI_Recv
+State, rank80, STATE, 257.722, 257.722, 2.5628e-05, 0, MPI_Send
+State, rank80, STATE, 257.722, 265.473, 7.75108, 0, MPI_Send
+State, rank80, STATE, 265.473, 313.789, 48.3156, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank8
+State, rank8, STATE, 0.055908, 3.25539, 3.19949, 0, MPI_Init
+State, rank8, STATE, 3.2554, 3.2554, 4.73e-07, 0, MPI_Comm_rank
+State, rank8, STATE, 3.2554, 3.2554, 1.19e-07, 0, MPI_Comm_size
+State, rank8, STATE, 6.41247, 6.41791, 0.00543743, 0, MPI_Send
+State, rank8, STATE, 6.41791, 16.4469, 10.0289, 0, MPI_Send
+State, rank8, STATE, 16.4469, 313.872, 297.425, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank79
+State, rank79, STATE, 1.30093, 3.26544, 1.96451, 0, MPI_Init
+State, rank79, STATE, 3.26544, 3.26544, 4.42e-07, 0, MPI_Comm_rank
+State, rank79, STATE, 3.26544, 3.26544, 1.37e-07, 0, MPI_Comm_size
+State, rank79, STATE, 3.26567, 6.48801, 3.22234, 0, MPI_Recv
+State, rank79, STATE, 6.48801, 20.4765, 13.9885, 0, MPI_Recv
+State, rank79, STATE, 44.1257, 44.1257, 6.115e-06, 0, MPI_Recv
+State, rank79, STATE, 44.1258, 57.7633, 13.6376, 0, MPI_Recv
+State, rank79, STATE, 80.1955, 80.1955, 6.382e-06, 0, MPI_Recv
+State, rank79, STATE, 80.1956, 91.4658, 11.2703, 0, MPI_Recv
+State, rank79, STATE, 114.356, 114.356, 6.578e-06, 0, MPI_Recv
+State, rank79, STATE, 114.356, 124.517, 10.1609, 0, MPI_Recv
+State, rank79, STATE, 149.589, 149.589, 2.6312e-05, 0, MPI_Send
+State, rank79, STATE, 149.589, 231.576, 81.9867, 0, MPI_Send
+State, rank79, STATE, 231.576, 313.873, 82.2973, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank78
+State, rank78, STATE, 1.23382, 3.26954, 2.03572, 0, MPI_Init
+State, rank78, STATE, 3.26955, 3.26955, 3.07e-07, 0, MPI_Comm_rank
+State, rank78, STATE, 3.26955, 3.26955, 1.16e-07, 0, MPI_Comm_size
+State, rank78, STATE, 3.26977, 6.39489, 3.12513, 0, MPI_Recv
+State, rank78, STATE, 6.3949, 16.872, 10.4771, 0, MPI_Recv
+State, rank78, STATE, 40.0413, 40.0413, 6.975e-06, 0, MPI_Recv
+State, rank78, STATE, 40.0413, 49.7213, 9.67998, 0, MPI_Recv
+State, rank78, STATE, 71.2239, 71.2239, 6.726e-06, 0, MPI_Recv
+State, rank78, STATE, 71.2239, 80.5494, 9.32551, 0, MPI_Recv
+State, rank78, STATE, 102.198, 102.198, 6.955e-06, 0, MPI_Recv
+State, rank78, STATE, 102.198, 111.171, 8.97362, 0, MPI_Recv
+State, rank78, STATE, 137.099, 137.127, 0.0283131, 0, MPI_Send
+State, rank78, STATE, 137.127, 202.326, 65.1986, 0, MPI_Send
+State, rank78, STATE, 202.326, 313.794, 111.468, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank77
+State, rank77, STATE, 1.24302, 3.23822, 1.9952, 0, MPI_Init
+State, rank77, STATE, 3.23822, 3.23822, 5.14e-07, 0, MPI_Comm_rank
+State, rank77, STATE, 3.23822, 3.23822, 1.3e-07, 0, MPI_Comm_size
+State, rank77, STATE, 3.23851, 6.29634, 3.05783, 0, MPI_Recv
+State, rank77, STATE, 6.29634, 12.2895, 5.99318, 0, MPI_Recv
+State, rank77, STATE, 36.4085, 36.4085, 7.444e-06, 0, MPI_Recv
+State, rank77, STATE, 36.4085, 39.6246, 3.21613, 0, MPI_Recv
+State, rank77, STATE, 63.308, 63.308, 7.25e-06, 0, MPI_Recv
+State, rank77, STATE, 63.308, 66.008, 2.69992, 0, MPI_Recv
+State, rank77, STATE, 89.7023, 89.7023, 6.988e-06, 0, MPI_Recv
+State, rank77, STATE, 89.7023, 92.467, 2.76466, 0, MPI_Recv
+State, rank77, STATE, 119.913, 120.047, 0.133369, 0, MPI_Send
+State, rank77, STATE, 120.047, 174.53, 54.483, 0, MPI_Send
+State, rank77, STATE, 174.53, 313.871, 139.342, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank76
+State, rank76, STATE, 1.21603, 3.28546, 2.06943, 0, MPI_Init
+State, rank76, STATE, 3.28547, 3.28547, 4.33e-07, 0, MPI_Comm_rank
+State, rank76, STATE, 3.28547, 3.28547, 1.18e-07, 0, MPI_Comm_size
+State, rank76, STATE, 3.2857, 6.4879, 3.2022, 0, MPI_Recv
+State, rank76, STATE, 6.4879, 19.3577, 12.8698, 0, MPI_Recv
+State, rank76, STATE, 40.5209, 40.5209, 6.331e-06, 0, MPI_Recv
+State, rank76, STATE, 40.5209, 51.7974, 11.2765, 0, MPI_Recv
+State, rank76, STATE, 73.4652, 73.4652, 2.025e-05, 0, MPI_Recv
+State, rank76, STATE, 73.4652, 83.5696, 10.1044, 0, MPI_Recv
+State, rank76, STATE, 105.376, 105.376, 6.866e-06, 0, MPI_Recv
+State, rank76, STATE, 105.376, 114.915, 9.53833, 0, MPI_Recv
+State, rank76, STATE, 140.306, 140.332, 0.0265327, 0, MPI_Send
+State, rank76, STATE, 140.332, 147.908, 7.57542, 0, MPI_Send
+State, rank76, STATE, 147.908, 313.792, 165.884, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank75
+State, rank75, STATE, 1.25974, 3.26915, 2.00941, 0, MPI_Init
+State, rank75, STATE, 3.26916, 3.26916, 2.71e-07, 0, MPI_Comm_rank
+State, rank75, STATE, 3.26916, 3.26916, 1.22e-07, 0, MPI_Comm_size
+State, rank75, STATE, 3.26938, 6.40594, 3.13656, 0, MPI_Recv
+State, rank75, STATE, 6.40594, 21.5506, 15.1446, 0, MPI_Recv
+State, rank75, STATE, 46.2864, 46.2864, 6.841e-06, 0, MPI_Recv
+State, rank75, STATE, 46.2864, 58.425, 12.1386, 0, MPI_Recv
+State, rank75, STATE, 82.225, 82.225, 6.344e-06, 0, MPI_Recv
+State, rank75, STATE, 82.225, 91.6653, 9.44032, 0, MPI_Recv
+State, rank75, STATE, 114.726, 114.726, 6.358e-06, 0, MPI_Recv
+State, rank75, STATE, 114.726, 123.953, 9.22604, 0, MPI_Recv
+State, rank75, STATE, 149.371, 149.375, 0.00326411, 0, MPI_Send
+State, rank75, STATE, 149.375, 237.342, 87.9678, 0, MPI_Send
+State, rank75, STATE, 237.342, 313.871, 76.5285, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank74
+State, rank74, STATE, 1.25609, 3.33311, 2.07703, 0, MPI_Init
+State, rank74, STATE, 3.33312, 3.33312, 2.586e-06, 0, MPI_Comm_rank
+State, rank74, STATE, 3.33312, 3.33312, 4.1e-07, 0, MPI_Comm_size
+State, rank74, STATE, 3.33334, 6.41388, 3.08053, 0, MPI_Recv
+State, rank74, STATE, 6.41388, 20.34, 13.9262, 0, MPI_Recv
+State, rank74, STATE, 42.1141, 42.1141, 6.964e-06, 0, MPI_Recv
+State, rank74, STATE, 42.1141, 54.0562, 11.9421, 0, MPI_Recv
+State, rank74, STATE, 76.479, 76.479, 7.093e-06, 0, MPI_Recv
+State, rank74, STATE, 76.479, 87.0705, 10.5915, 0, MPI_Recv
+State, rank74, STATE, 109.658, 109.658, 7.014e-06, 0, MPI_Recv
+State, rank74, STATE, 109.658, 119.718, 10.0605, 0, MPI_Recv
+State, rank74, STATE, 145.446, 145.446, 2.4739e-05, 0, MPI_Send
+State, rank74, STATE, 145.446, 210.235, 64.7898, 0, MPI_Send
+State, rank74, STATE, 210.235, 313.792, 103.557, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank73
+State, rank73, STATE, 1.22723, 3.31716, 2.08992, 0, MPI_Init
+State, rank73, STATE, 3.31717, 3.31717, 4.23e-07, 0, MPI_Comm_rank
+State, rank73, STATE, 3.31717, 3.31717, 1.43e-07, 0, MPI_Comm_size
+State, rank73, STATE, 3.31739, 6.4256, 3.10821, 0, MPI_Recv
+State, rank73, STATE, 6.42561, 12.3715, 5.94594, 0, MPI_Recv
+State, rank73, STATE, 38.4412, 38.4412, 7.047e-06, 0, MPI_Recv
+State, rank73, STATE, 38.4412, 41.3372, 2.89594, 0, MPI_Recv
+State, rank73, STATE, 67.2497, 67.2497, 6.892e-06, 0, MPI_Recv
+State, rank73, STATE, 67.2497, 69.995, 2.74525, 0, MPI_Recv
+State, rank73, STATE, 94.9481, 94.9481, 6.714e-06, 0, MPI_Recv
+State, rank73, STATE, 94.9481, 97.6546, 2.70649, 0, MPI_Recv
+State, rank73, STATE, 126.151, 126.184, 0.0324297, 0, MPI_Send
+State, rank73, STATE, 126.184, 180.971, 54.7875, 0, MPI_Send
+State, rank73, STATE, 180.971, 313.87, 132.899, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank72
+State, rank72, STATE, 1.14449, 3.30114, 2.15665, 0, MPI_Init
+State, rank72, STATE, 3.30114, 3.30114, 4.46e-07, 0, MPI_Comm_rank
+State, rank72, STATE, 3.30114, 3.30114, 1.14e-07, 0, MPI_Comm_size
+State, rank72, STATE, 3.30136, 6.38612, 3.08476, 0, MPI_Recv
+State, rank72, STATE, 6.38613, 20.6611, 14.275, 0, MPI_Recv
+State, rank72, STATE, 45.1564, 45.1564, 2.2577e-05, 0, MPI_Recv
+State, rank72, STATE, 45.1565, 58.0049, 12.8484, 0, MPI_Recv
+State, rank72, STATE, 81.2294, 81.2294, 6.469e-06, 0, MPI_Recv
+State, rank72, STATE, 81.2294, 91.1518, 9.9224, 0, MPI_Recv
+State, rank72, STATE, 113.862, 113.862, 6.964e-06, 0, MPI_Recv
+State, rank72, STATE, 113.862, 123.257, 9.39577, 0, MPI_Recv
+State, rank72, STATE, 148.652, 148.736, 0.0848028, 0, MPI_Send
+State, rank72, STATE, 148.736, 155.144, 6.40759, 0, MPI_Send
+State, rank72, STATE, 155.144, 313.79, 158.646, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank71
+State, rank71, STATE, 1.22057, 3.26728, 2.04671, 0, MPI_Init
+State, rank71, STATE, 3.26729, 3.26729, 4.6e-07, 0, MPI_Comm_rank
+State, rank71, STATE, 3.26729, 3.26729, 1.28e-07, 0, MPI_Comm_size
+State, rank71, STATE, 3.26751, 6.40814, 3.14063, 0, MPI_Recv
+State, rank71, STATE, 6.40815, 17.0592, 10.6511, 0, MPI_Recv
+State, rank71, STATE, 38.1756, 38.1756, 6.875e-06, 0, MPI_Recv
+State, rank71, STATE, 38.1756, 49.1555, 10.9798, 0, MPI_Recv
+State, rank71, STATE, 70.7675, 70.7675, 6.467e-06, 0, MPI_Recv
+State, rank71, STATE, 70.7675, 81.238, 10.4704, 0, MPI_Recv
+State, rank71, STATE, 103.204, 103.204, 6.239e-06, 0, MPI_Recv
+State, rank71, STATE, 103.204, 113.055, 9.85159, 0, MPI_Recv
+State, rank71, STATE, 139.07, 139.07, 1.7814e-05, 0, MPI_Send
+State, rank71, STATE, 139.07, 212.619, 73.5484, 0, MPI_Send
+State, rank71, STATE, 212.619, 313.872, 101.253, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank70
+State, rank70, STATE, 1.24291, 3.28331, 2.0404, 0, MPI_Init
+State, rank70, STATE, 3.28331, 3.28331, 3.94e-07, 0, MPI_Comm_rank
+State, rank70, STATE, 3.28331, 3.28331, 1.15e-07, 0, MPI_Comm_size
+State, rank70, STATE, 3.28353, 6.49495, 3.21142, 0, MPI_Recv
+State, rank70, STATE, 6.49496, 21.3918, 14.8968, 0, MPI_Recv
+State, rank70, STATE, 43.0054, 43.0054, 6.541e-06, 0, MPI_Recv
+State, rank70, STATE, 43.0054, 55.7497, 12.7443, 0, MPI_Recv
+State, rank70, STATE, 77.8485, 77.8485, 6.846e-06, 0, MPI_Recv
+State, rank70, STATE, 77.8485, 87.9132, 10.0647, 0, MPI_Recv
+State, rank70, STATE, 109.587, 109.587, 7.371e-06, 0, MPI_Recv
+State, rank70, STATE, 109.587, 119.495, 9.90827, 0, MPI_Recv
+State, rank70, STATE, 144.242, 144.242, 2.8808e-05, 0, MPI_Send
+State, rank70, STATE, 144.242, 188.405, 44.1631, 0, MPI_Send
+State, rank70, STATE, 188.405, 313.794, 125.389, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank7
+State, rank7, STATE, 0.829928, 3.3014, 2.47148, 0, MPI_Init
+State, rank7, STATE, 3.30141, 3.30141, 3.14e-07, 0, MPI_Comm_rank
+State, rank7, STATE, 3.30141, 3.30141, 1.51e-07, 0, MPI_Comm_size
+State, rank7, STATE, 6.33404, 6.33406, 1.9288e-05, 0, MPI_Send
+State, rank7, STATE, 6.33406, 77.6392, 71.3052, 0, MPI_Send
+State, rank7, STATE, 77.6392, 313.872, 236.232, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank69
+State, rank69, STATE, 1.29033, 3.23846, 1.94813, 0, MPI_Init
+State, rank69, STATE, 3.23846, 3.23846, 4.69e-07, 0, MPI_Comm_rank
+State, rank69, STATE, 3.23846, 3.23846, 1.28e-07, 0, MPI_Comm_size
+State, rank69, STATE, 3.23869, 6.32355, 3.08486, 0, MPI_Recv
+State, rank69, STATE, 6.32356, 11.9173, 5.59375, 0, MPI_Recv
+State, rank69, STATE, 34.8585, 34.8585, 7.04e-06, 0, MPI_Recv
+State, rank69, STATE, 34.8586, 37.4696, 2.61104, 0, MPI_Recv
+State, rank69, STATE, 61.1771, 61.1771, 6.572e-06, 0, MPI_Recv
+State, rank69, STATE, 61.1772, 63.8632, 2.68606, 0, MPI_Recv
+State, rank69, STATE, 87.2085, 87.2086, 6.839e-06, 0, MPI_Recv
+State, rank69, STATE, 87.2086, 90.8801, 3.67153, 0, MPI_Recv
+State, rank69, STATE, 117.838, 117.838, 6.4463e-05, 0, MPI_Send
+State, rank69, STATE, 117.838, 164.932, 47.0946, 0, MPI_Send
+State, rank69, STATE, 164.933, 313.871, 148.938, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank68
+State, rank68, STATE, 1.22875, 3.29931, 2.07056, 0, MPI_Init
+State, rank68, STATE, 3.29932, 3.29932, 4.53e-07, 0, MPI_Comm_rank
+State, rank68, STATE, 3.29932, 3.29932, 1.15e-07, 0, MPI_Comm_size
+State, rank68, STATE, 3.29954, 6.42391, 3.12437, 0, MPI_Recv
+State, rank68, STATE, 6.42392, 17.3743, 10.9504, 0, MPI_Recv
+State, rank68, STATE, 38.4394, 38.4394, 6.973e-06, 0, MPI_Recv
+State, rank68, STATE, 38.4394, 48.5503, 10.1108, 0, MPI_Recv
+State, rank68, STATE, 70.4692, 70.4692, 6.647e-06, 0, MPI_Recv
+State, rank68, STATE, 70.4692, 80.3887, 9.91949, 0, MPI_Recv
+State, rank68, STATE, 102.41, 102.41, 6.837e-06, 0, MPI_Recv
+State, rank68, STATE, 102.41, 112.293, 9.88227, 0, MPI_Recv
+State, rank68, STATE, 138.241, 138.241, 3.6103e-05, 0, MPI_Send
+State, rank68, STATE, 138.241, 141.164, 2.92301, 0, MPI_Send
+State, rank68, STATE, 141.164, 313.791, 172.627, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank67
+State, rank67, STATE, 1.28826, 3.26574, 1.97748, 0, MPI_Init
+State, rank67, STATE, 3.26574, 3.26574, 3.07e-07, 0, MPI_Comm_rank
+State, rank67, STATE, 3.26574, 3.26574, 1.26e-07, 0, MPI_Comm_size
+State, rank67, STATE, 3.26595, 6.50761, 3.24165, 0, MPI_Recv
+State, rank67, STATE, 6.50761, 20.4611, 13.9535, 0, MPI_Recv
+State, rank67, STATE, 43.9941, 43.9941, 6.523e-06, 0, MPI_Recv
+State, rank67, STATE, 43.9941, 57.0759, 13.0817, 0, MPI_Recv
+State, rank67, STATE, 79.0555, 79.0556, 6.276e-06, 0, MPI_Recv
+State, rank67, STATE, 79.0556, 90.9431, 11.8875, 0, MPI_Recv
+State, rank67, STATE, 113.886, 113.886, 6.29e-06, 0, MPI_Recv
+State, rank67, STATE, 113.886, 124.498, 10.6117, 0, MPI_Recv
+State, rank67, STATE, 149.811, 168.372, 18.5609, 0, MPI_Send
+State, rank67, STATE, 168.372, 232.972, 64.6005, 0, MPI_Send
+State, rank67, STATE, 232.972, 313.87, 80.8979, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank66
+State, rank66, STATE, 1.2849, 3.28948, 2.00458, 0, MPI_Init
+State, rank66, STATE, 3.28948, 3.28948, 3.43e-07, 0, MPI_Comm_rank
+State, rank66, STATE, 3.28948, 3.28948, 1.23e-07, 0, MPI_Comm_size
+State, rank66, STATE, 3.2897, 6.41827, 3.12857, 0, MPI_Recv
+State, rank66, STATE, 6.41829, 16.4519, 10.0336, 0, MPI_Recv
+State, rank66, STATE, 37.7858, 37.7858, 6.818e-06, 0, MPI_Recv
+State, rank66, STATE, 37.7858, 46.3279, 8.54201, 0, MPI_Recv
+State, rank66, STATE, 68.616, 68.616, 7.125e-06, 0, MPI_Recv
+State, rank66, STATE, 68.6161, 76.3368, 7.72073, 0, MPI_Recv
+State, rank66, STATE, 98.8371, 98.8371, 6.809e-06, 0, MPI_Recv
+State, rank66, STATE, 98.8371, 107.19, 8.35286, 0, MPI_Recv
+State, rank66, STATE, 134.037, 134.042, 0.00443068, 0, MPI_Send
+State, rank66, STATE, 134.042, 203.823, 69.7813, 0, MPI_Send
+State, rank66, STATE, 203.823, 313.794, 109.97, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank65
+State, rank65, STATE, 1.19001, 3.2815, 2.09149, 0, MPI_Init
+State, rank65, STATE, 3.28151, 3.28151, 4.93e-07, 0, MPI_Comm_rank
+State, rank65, STATE, 3.28151, 3.28151, 1.15e-07, 0, MPI_Comm_size
+State, rank65, STATE, 3.28173, 6.35829, 3.07656, 0, MPI_Recv
+State, rank65, STATE, 6.3583, 12.5112, 6.15288, 0, MPI_Recv
+State, rank65, STATE, 36.745, 36.745, 6.765e-06, 0, MPI_Recv
+State, rank65, STATE, 36.745, 40.43, 3.68495, 0, MPI_Recv
+State, rank65, STATE, 46.2056, 46.2056, 7.596e-06, 0, MPI_Recv
+State, rank65, STATE, 46.2056, 50.8368, 4.63118, 0, MPI_Recv
+State, rank65, STATE, 72.4298, 72.4299, 6.654e-06, 0, MPI_Recv
+State, rank65, STATE, 72.4299, 77.6395, 5.20964, 0, MPI_Recv
+State, rank65, STATE, 104.485, 104.567, 0.0821635, 0, MPI_Send
+State, rank65, STATE, 104.567, 176.257, 71.6899, 0, MPI_Send
+State, rank65, STATE, 176.257, 313.871, 137.614, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank64
+State, rank64, STATE, 1.22519, 3.32145, 2.09626, 0, MPI_Init
+State, rank64, STATE, 3.32146, 3.32146, 2.71e-07, 0, MPI_Comm_rank
+State, rank64, STATE, 3.32146, 3.32146, 1.13e-07, 0, MPI_Comm_size
+State, rank64, STATE, 3.32168, 6.42997, 3.10829, 0, MPI_Recv
+State, rank64, STATE, 6.42999, 20.2099, 13.7799, 0, MPI_Recv
+State, rank64, STATE, 41.3208, 41.3208, 6.237e-06, 0, MPI_Recv
+State, rank64, STATE, 41.3208, 52.3189, 10.9981, 0, MPI_Recv
+State, rank64, STATE, 73.903, 73.903, 6.712e-06, 0, MPI_Recv
+State, rank64, STATE, 73.903, 83.7085, 9.80553, 0, MPI_Recv
+State, rank64, STATE, 105.507, 105.507, 6.719e-06, 0, MPI_Recv
+State, rank64, STATE, 105.507, 114.969, 9.46208, 0, MPI_Recv
+State, rank64, STATE, 140.202, 140.202, 2.3492e-05, 0, MPI_Send
+State, rank64, STATE, 140.202, 147.784, 7.58155, 0, MPI_Send
+State, rank64, STATE, 147.784, 313.786, 166.003, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank63
+State, rank63, STATE, 1.22333, 3.28107, 2.05774, 0, MPI_Init
+State, rank63, STATE, 3.28107, 3.28108, 4.31e-07, 0, MPI_Comm_rank
+State, rank63, STATE, 3.28108, 3.28108, 1.15e-07, 0, MPI_Comm_size
+State, rank63, STATE, 6.47222, 6.47224, 1.8776e-05, 0, MPI_Send
+State, rank63, STATE, 6.47224, 124.521, 118.049, 0, MPI_Send
+State, rank63, STATE, 124.521, 313.871, 189.35, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank62
+State, rank62, STATE, 1.24095, 3.28914, 2.04818, 0, MPI_Init
+State, rank62, STATE, 3.28914, 3.28914, 4.75e-07, 0, MPI_Comm_rank
+State, rank62, STATE, 3.28914, 3.28914, 1.13e-07, 0, MPI_Comm_size
+State, rank62, STATE, 6.46508, 6.48829, 0.0232064, 0, MPI_Send
+State, rank62, STATE, 6.48829, 91.4658, 84.9775, 0, MPI_Send
+State, rank62, STATE, 91.4658, 313.795, 222.329, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank61
+State, rank61, STATE, 1.24904, 3.30143, 2.05239, 0, MPI_Init
+State, rank61, STATE, 3.30143, 3.30143, 4.78e-07, 0, MPI_Comm_rank
+State, rank61, STATE, 3.30143, 3.30143, 1.15e-07, 0, MPI_Comm_size
+State, rank61, STATE, 6.45229, 6.4854, 0.0331119, 0, MPI_Send
+State, rank61, STATE, 6.4854, 57.7685, 51.2831, 0, MPI_Send
+State, rank61, STATE, 57.7685, 313.873, 256.104, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank60
+State, rank60, STATE, 1.20385, 3.2971, 2.09325, 0, MPI_Init
+State, rank60, STATE, 3.2971, 3.2971, 5.06e-07, 0, MPI_Comm_rank
+State, rank60, STATE, 3.2971, 3.29711, 1.41e-07, 0, MPI_Comm_size
+State, rank60, STATE, 6.38522, 6.48781, 0.10259, 0, MPI_Send
+State, rank60, STATE, 6.48781, 20.4797, 13.9919, 0, MPI_Send
+State, rank60, STATE, 20.4797, 313.791, 293.311, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank6
+State, rank6, STATE, 0.562672, 3.31739, 2.75472, 0, MPI_Init
+State, rank6, STATE, 3.3174, 3.3174, 5.81e-07, 0, MPI_Comm_rank
+State, rank6, STATE, 3.3174, 3.3174, 1.25e-07, 0, MPI_Comm_size
+State, rank6, STATE, 6.40976, 6.40977, 1.6624e-05, 0, MPI_Send
+State, rank6, STATE, 6.40977, 50.8365, 44.4267, 0, MPI_Send
+State, rank6, STATE, 50.8365, 313.871, 263.035, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank59
+State, rank59, STATE, 1.24663, 3.27934, 2.03271, 0, MPI_Init
+State, rank59, STATE, 3.27934, 3.27934, 3.39e-07, 0, MPI_Comm_rank
+State, rank59, STATE, 3.27934, 3.27934, 1.27e-07, 0, MPI_Comm_size
+State, rank59, STATE, 6.39775, 6.40358, 0.00582706, 0, MPI_Send
+State, rank59, STATE, 6.40358, 111.168, 104.764, 0, MPI_Send
+State, rank59, STATE, 111.168, 313.871, 202.703, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank58
+State, rank58, STATE, 1.25397, 3.30728, 2.05331, 0, MPI_Init
+State, rank58, STATE, 3.30728, 3.30728, 4.17e-07, 0, MPI_Comm_rank
+State, rank58, STATE, 3.30728, 3.30728, 1.18e-07, 0, MPI_Comm_size
+State, rank58, STATE, 6.40933, 6.41424, 0.00491168, 0, MPI_Send
+State, rank58, STATE, 6.41424, 80.5495, 74.1353, 0, MPI_Send
+State, rank58, STATE, 80.5495, 313.794, 233.244, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank57
+State, rank57, STATE, 1.18733, 3.26761, 2.08027, 0, MPI_Init
+State, rank57, STATE, 3.26761, 3.26761, 2.07e-07, 0, MPI_Comm_rank
+State, rank57, STATE, 3.26761, 3.26761, 1.16e-07, 0, MPI_Comm_size
+State, rank57, STATE, 6.37064, 6.40941, 0.038767, 0, MPI_Send
+State, rank57, STATE, 6.40941, 49.7212, 43.3118, 0, MPI_Send
+State, rank57, STATE, 49.7212, 313.871, 264.15, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank56
+State, rank56, STATE, 1.2708, 3.29533, 2.02453, 0, MPI_Init
+State, rank56, STATE, 3.29533, 3.29533, 3.8e-07, 0, MPI_Comm_rank
+State, rank56, STATE, 3.29533, 3.29533, 1.2e-07, 0, MPI_Comm_size
+State, rank56, STATE, 6.34796, 6.39443, 0.0464729, 0, MPI_Send
+State, rank56, STATE, 6.39443, 16.8668, 10.4723, 0, MPI_Send
+State, rank56, STATE, 16.8668, 313.789, 296.922, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank55
+State, rank55, STATE, 1.27351, 3.25348, 1.97998, 0, MPI_Init
+State, rank55, STATE, 3.25349, 3.25349, 4.59e-07, 0, MPI_Comm_rank
+State, rank55, STATE, 3.25349, 3.25349, 1.14e-07, 0, MPI_Comm_size
+State, rank55, STATE, 6.30275, 6.30277, 1.8572e-05, 0, MPI_Send
+State, rank55, STATE, 6.30277, 92.4668, 86.164, 0, MPI_Send
+State, rank55, STATE, 92.4668, 313.873, 221.407, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank54
+State, rank54, STATE, 1.26417, 3.26599, 2.00182, 0, MPI_Init
+State, rank54, STATE, 3.26599, 3.266, 2.24e-07, 0, MPI_Comm_rank
+State, rank54, STATE, 3.266, 3.266, 1.24e-07, 0, MPI_Comm_size
+State, rank54, STATE, 6.35431, 6.35432, 1.4924e-05, 0, MPI_Send
+State, rank54, STATE, 6.35432, 66.0077, 59.6534, 0, MPI_Send
+State, rank54, STATE, 66.0077, 313.793, 247.786, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank53
+State, rank53, STATE, 1.15034, 3.24952, 2.09918, 0, MPI_Init
+State, rank53, STATE, 3.24953, 3.24953, 3.41e-07, 0, MPI_Comm_rank
+State, rank53, STATE, 3.24953, 3.24953, 1.14e-07, 0, MPI_Comm_size
+State, rank53, STATE, 6.34265, 6.34266, 1.6877e-05, 0, MPI_Send
+State, rank53, STATE, 6.34266, 39.6244, 33.2818, 0, MPI_Send
+State, rank53, STATE, 39.6244, 313.871, 274.246, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank52
+State, rank52, STATE, 1.27719, 3.28181, 2.00462, 0, MPI_Init
+State, rank52, STATE, 3.28181, 3.28181, 1.98e-07, 0, MPI_Comm_rank
+State, rank52, STATE, 3.28181, 3.28181, 1.26e-07, 0, MPI_Comm_size
+State, rank52, STATE, 6.29616, 6.29618, 1.9741e-05, 0, MPI_Send
+State, rank52, STATE, 6.29618, 12.2893, 5.99314, 0, MPI_Send
+State, rank52, STATE, 12.2893, 313.79, 301.501, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank51
+State, rank51, STATE, 1.23573, 3.2493, 2.01357, 0, MPI_Init
+State, rank51, STATE, 3.2493, 3.2493, 5e-07, 0, MPI_Comm_rank
+State, rank51, STATE, 3.2493, 3.2493, 1.41e-07, 0, MPI_Comm_size
+State, rank51, STATE, 6.44393, 6.50156, 0.0576348, 0, MPI_Send
+State, rank51, STATE, 6.50156, 114.919, 108.417, 0, MPI_Send
+State, rank51, STATE, 114.919, 313.87, 198.951, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank50
+State, rank50, STATE, 1.20982, 3.27323, 2.06342, 0, MPI_Init
+State, rank50, STATE, 3.27324, 3.27324, 2.79e-07, 0, MPI_Comm_rank
+State, rank50, STATE, 3.27324, 3.27324, 1.23e-07, 0, MPI_Comm_size
+State, rank50, STATE, 6.45533, 6.48233, 0.0269939, 0, MPI_Send
+State, rank50, STATE, 6.48233, 83.5635, 77.0812, 0, MPI_Send
+State, rank50, STATE, 83.5635, 313.794, 230.23, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank5
+State, rank5, STATE, 0.0668337, 3.23861, 3.17177, 0, MPI_Init
+State, rank5, STATE, 3.23861, 3.23861, 2.25e-07, 0, MPI_Comm_rank
+State, rank5, STATE, 3.23861, 3.23861, 1.18e-07, 0, MPI_Comm_size
+State, rank5, STATE, 6.28923, 6.28926, 3.2922e-05, 0, MPI_Send
+State, rank5, STATE, 6.28926, 40.4297, 34.1405, 0, MPI_Send
+State, rank5, STATE, 40.4297, 313.87, 273.441, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank49
+State, rank49, STATE, 1.19922, 3.25715, 2.05792, 0, MPI_Init
+State, rank49, STATE, 3.25715, 3.25715, 3.79e-07, 0, MPI_Comm_rank
+State, rank49, STATE, 3.25715, 3.25715, 1.17e-07, 0, MPI_Comm_size
+State, rank49, STATE, 6.44896, 6.5131, 0.0641418, 0, MPI_Send
+State, rank49, STATE, 6.5131, 51.7957, 45.2826, 0, MPI_Send
+State, rank49, STATE, 51.7957, 313.871, 262.075, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank48
+State, rank48, STATE, 1.16226, 3.32908, 2.16682, 0, MPI_Init
+State, rank48, STATE, 3.32908, 3.32909, 3.95e-07, 0, MPI_Comm_rank
+State, rank48, STATE, 3.32909, 3.32909, 1.34e-07, 0, MPI_Comm_size
+State, rank48, STATE, 6.47961, 6.48799, 0.00838123, 0, MPI_Send
+State, rank48, STATE, 6.48799, 19.3568, 12.8688, 0, MPI_Send
+State, rank48, STATE, 19.3568, 313.789, 294.432, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank47
+State, rank47, STATE, 1.20185, 3.24328, 2.04143, 0, MPI_Init
+State, rank47, STATE, 3.24328, 3.24328, 4.48e-07, 0, MPI_Comm_rank
+State, rank47, STATE, 3.24328, 3.24328, 1.23e-07, 0, MPI_Comm_size
+State, rank47, STATE, 6.23543, 6.39252, 0.157091, 0, MPI_Send
+State, rank47, STATE, 6.39252, 123.95, 117.558, 0, MPI_Send
+State, rank47, STATE, 123.95, 313.873, 189.923, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank46
+State, rank46, STATE, 1.20801, 3.28402, 2.07601, 0, MPI_Init
+State, rank46, STATE, 3.28403, 3.28403, 2.86e-07, 0, MPI_Comm_rank
+State, rank46, STATE, 3.28403, 3.28403, 1.16e-07, 0, MPI_Comm_size
+State, rank46, STATE, 6.3342, 6.38987, 0.0556746, 0, MPI_Send
+State, rank46, STATE, 6.38988, 91.6663, 85.2764, 0, MPI_Send
+State, rank46, STATE, 91.6663, 313.794, 222.128, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank45
+State, rank45, STATE, 1.18009, 3.25134, 2.07125, 0, MPI_Init
+State, rank45, STATE, 3.25135, 3.25135, 6.59e-07, 0, MPI_Comm_rank
+State, rank45, STATE, 3.25135, 3.25135, 1.25e-07, 0, MPI_Comm_size
+State, rank45, STATE, 6.3451, 6.41959, 0.0744851, 0, MPI_Send
+State, rank45, STATE, 6.41959, 58.4269, 52.0073, 0, MPI_Send
+State, rank45, STATE, 58.4269, 313.872, 255.445, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank44
+State, rank44, STATE, 1.26191, 3.29127, 2.02935, 0, MPI_Init
+State, rank44, STATE, 3.29127, 3.29127, 3.57e-07, 0, MPI_Comm_rank
+State, rank44, STATE, 3.29127, 3.29127, 1.3e-07, 0, MPI_Comm_size
+State, rank44, STATE, 6.37503, 6.40127, 0.0262442, 0, MPI_Send
+State, rank44, STATE, 6.40127, 21.5536, 15.1523, 0, MPI_Send
+State, rank44, STATE, 21.5536, 313.791, 292.237, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank43
+State, rank43, STATE, 1.30461, 3.27352, 1.96891, 0, MPI_Init
+State, rank43, STATE, 3.27353, 3.27353, 3.57e-07, 0, MPI_Comm_rank
+State, rank43, STATE, 3.27353, 3.27353, 1.26e-07, 0, MPI_Comm_size
+State, rank43, STATE, 6.32987, 6.37382, 0.0439529, 0, MPI_Send
+State, rank43, STATE, 6.37382, 119.714, 113.34, 0, MPI_Send
+State, rank43, STATE, 119.714, 313.871, 194.157, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank42
+State, rank42, STATE, 1.25667, 3.29742, 2.04075, 0, MPI_Init
+State, rank42, STATE, 3.29742, 3.29742, 3.83e-07, 0, MPI_Comm_rank
+State, rank42, STATE, 3.29742, 3.29742, 1.52e-07, 0, MPI_Comm_size
+State, rank42, STATE, 6.36173, 6.36176, 2.7543e-05, 0, MPI_Send
+State, rank42, STATE, 6.36176, 87.0639, 80.7022, 0, MPI_Send
+State, rank42, STATE, 87.0639, 313.793, 226.729, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank41
+State, rank41, STATE, 1.29724, 3.27756, 1.98032, 0, MPI_Init
+State, rank41, STATE, 3.27757, 3.27757, 3.07e-07, 0, MPI_Comm_rank
+State, rank41, STATE, 3.27757, 3.27757, 1.07e-07, 0, MPI_Comm_size
+State, rank41, STATE, 6.33854, 6.37015, 0.0316124, 0, MPI_Send
+State, rank41, STATE, 6.37015, 54.0547, 47.6846, 0, MPI_Send
+State, rank41, STATE, 54.0547, 313.869, 259.815, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank40
+State, rank40, STATE, 1.20595, 3.28576, 2.07981, 0, MPI_Init
+State, rank40, STATE, 3.28577, 3.28577, 1.98e-07, 0, MPI_Comm_rank
+State, rank40, STATE, 3.28577, 3.28577, 1.19e-07, 0, MPI_Comm_size
+State, rank40, STATE, 6.34714, 6.41378, 0.0666422, 0, MPI_Send
+State, rank40, STATE, 6.41378, 20.3395, 13.9258, 0, MPI_Send
+State, rank40, STATE, 20.3395, 313.873, 293.533, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank4
+State, rank4, STATE, 0.0629086, 3.26141, 3.1985, 0, MPI_Init
+State, rank4, STATE, 3.26142, 3.26142, 4.23e-07, 0, MPI_Comm_rank
+State, rank4, STATE, 3.26142, 3.26142, 1.59e-07, 0, MPI_Comm_size
+State, rank4, STATE, 6.35809, 6.3581, 1.6941e-05, 0, MPI_Send
+State, rank4, STATE, 6.35811, 12.511, 6.15288, 0, MPI_Send
+State, rank4, STATE, 12.511, 313.872, 301.361, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank39
+State, rank39, STATE, 1.03925, 3.29311, 2.25386, 0, MPI_Init
+State, rank39, STATE, 3.29311, 3.29311, 2.74e-07, 0, MPI_Comm_rank
+State, rank39, STATE, 3.29311, 3.29311, 1.16e-07, 0, MPI_Comm_size
+State, rank39, STATE, 6.45912, 6.45913, 1.811e-05, 0, MPI_Send
+State, rank39, STATE, 6.45913, 97.6542, 91.1951, 0, MPI_Send
+State, rank39, STATE, 97.6542, 313.872, 216.217, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank38
+State, rank38, STATE, 1.17704, 3.30909, 2.13206, 0, MPI_Init
+State, rank38, STATE, 3.3091, 3.3091, 2.89e-07, 0, MPI_Comm_rank
+State, rank38, STATE, 3.3091, 3.3091, 1.16e-07, 0, MPI_Comm_size
+State, rank38, STATE, 6.43925, 6.43927, 1.9457e-05, 0, MPI_Send
+State, rank38, STATE, 6.43927, 69.9947, 63.5554, 0, MPI_Send
+State, rank38, STATE, 69.9947, 313.871, 243.877, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank37
+State, rank37, STATE, 1.15737, 3.23829, 2.08092, 0, MPI_Init
+State, rank37, STATE, 3.2383, 3.2383, 4.78e-07, 0, MPI_Comm_rank
+State, rank37, STATE, 3.2383, 3.2383, 2.05e-07, 0, MPI_Comm_size
+State, rank37, STATE, 6.47403, 6.47404, 1.5683e-05, 0, MPI_Send
+State, rank37, STATE, 6.47404, 41.3369, 34.8628, 0, MPI_Send
+State, rank37, STATE, 41.3369, 313.87, 272.533, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank36
+State, rank36, STATE, 1.19191, 3.24537, 2.05346, 0, MPI_Init
+State, rank36, STATE, 3.24538, 3.24538, 5.03e-07, 0, MPI_Comm_rank
+State, rank36, STATE, 3.24538, 3.24538, 1.17e-07, 0, MPI_Comm_size
+State, rank36, STATE, 6.42129, 6.42132, 2.9284e-05, 0, MPI_Send
+State, rank36, STATE, 6.42132, 12.3704, 5.94908, 0, MPI_Send
+State, rank36, STATE, 12.3704, 313.871, 301.501, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank35
+State, rank35, STATE, 1.19181, 3.27567, 2.08386, 0, MPI_Init
+State, rank35, STATE, 3.27567, 3.27567, 3.12e-07, 0, MPI_Comm_rank
+State, rank35, STATE, 3.27567, 3.27567, 1.16e-07, 0, MPI_Comm_size
+State, rank35, STATE, 6.32942, 6.41071, 0.0812818, 0, MPI_Send
+State, rank35, STATE, 6.41071, 123.258, 116.847, 0, MPI_Send
+State, rank35, STATE, 123.258, 313.869, 190.611, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank34
+State, rank34, STATE, 1.19808, 3.28726, 2.08918, 0, MPI_Init
+State, rank34, STATE, 3.28726, 3.28726, 3.43e-07, 0, MPI_Comm_rank
+State, rank34, STATE, 3.28726, 3.28726, 1.08e-07, 0, MPI_Comm_size
+State, rank34, STATE, 6.37228, 6.39004, 0.0177659, 0, MPI_Send
+State, rank34, STATE, 6.39005, 91.151, 84.7609, 0, MPI_Send
+State, rank34, STATE, 91.151, 313.874, 222.723, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank33
+State, rank33, STATE, 1.13687, 3.24723, 2.11036, 0, MPI_Init
+State, rank33, STATE, 3.24724, 3.24724, 3.169e-06, 0, MPI_Comm_rank
+State, rank33, STATE, 3.24724, 3.24724, 1.26e-07, 0, MPI_Comm_size
+State, rank33, STATE, 6.38161, 6.41055, 0.0289313, 0, MPI_Send
+State, rank33, STATE, 6.41056, 58.0059, 51.5953, 0, MPI_Send
+State, rank33, STATE, 58.0059, 313.87, 255.864, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank32
+State, rank32, STATE, 1.01009, 3.25921, 2.24912, 0, MPI_Init
+State, rank32, STATE, 3.25922, 3.25922, 4.38e-07, 0, MPI_Comm_rank
+State, rank32, STATE, 3.25922, 3.25922, 1.05e-07, 0, MPI_Comm_size
+State, rank32, STATE, 6.30734, 6.38615, 0.0788088, 0, MPI_Send
+State, rank32, STATE, 6.38615, 20.6623, 14.2761, 0, MPI_Send
+State, rank32, STATE, 20.6623, 313.871, 293.209, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank31
+State, rank31, STATE, 1.29372, 3.29343, 1.99971, 0, MPI_Init
+State, rank31, STATE, 3.29344, 3.29344, 3.27e-07, 0, MPI_Comm_rank
+State, rank31, STATE, 3.29344, 3.29344, 1.23e-07, 0, MPI_Comm_size
+State, rank31, STATE, 6.3697, 6.38911, 0.0194044, 0, MPI_Send
+State, rank31, STATE, 6.38911, 113.054, 106.665, 0, MPI_Send
+State, rank31, STATE, 113.054, 313.873, 200.818, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank30
+State, rank30, STATE, 1.20038, 3.30939, 2.10901, 0, MPI_Init
+State, rank30, STATE, 3.3094, 3.3094, 3.63e-07, 0, MPI_Comm_rank
+State, rank30, STATE, 3.3094, 3.3094, 1.28e-07, 0, MPI_Comm_size
+State, rank30, STATE, 6.38254, 6.40225, 0.0197045, 0, MPI_Send
+State, rank30, STATE, 6.40225, 81.2456, 74.8434, 0, MPI_Send
+State, rank30, STATE, 81.2457, 313.87, 232.625, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank3
+State, rank3, STATE, 1.17279, 3.31307, 2.14028, 0, MPI_Init
+State, rank3, STATE, 3.31308, 3.31308, 3.65e-07, 0, MPI_Comm_rank
+State, rank3, STATE, 3.31308, 3.31308, 1.28e-07, 0, MPI_Comm_size
+State, rank3, STATE, 6.47764, 6.5248, 0.0471598, 0, MPI_Send
+State, rank3, STATE, 6.5248, 114.964, 108.439, 0, MPI_Send
+State, rank3, STATE, 114.964, 313.87, 198.906, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank29
+State, rank29, STATE, 1.10352, 3.24563, 2.14211, 0, MPI_Init
+State, rank29, STATE, 3.24564, 3.24564, 3.94e-07, 0, MPI_Comm_rank
+State, rank29, STATE, 3.24564, 3.24564, 1.84e-07, 0, MPI_Comm_size
+State, rank29, STATE, 6.36521, 6.39279, 0.0275844, 0, MPI_Send
+State, rank29, STATE, 6.39279, 49.1536, 42.7608, 0, MPI_Send
+State, rank29, STATE, 49.1536, 313.871, 264.718, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank28
+State, rank28, STATE, 1.16314, 3.25746, 2.09432, 0, MPI_Init
+State, rank28, STATE, 3.25746, 3.25746, 6.63e-07, 0, MPI_Comm_rank
+State, rank28, STATE, 3.25746, 3.25746, 1.25e-07, 0, MPI_Comm_size
+State, rank28, STATE, 6.32375, 6.40777, 0.0840178, 0, MPI_Send
+State, rank28, STATE, 6.40777, 17.058, 10.6503, 0, MPI_Send
+State, rank28, STATE, 17.058, 313.871, 296.813, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank27
+State, rank27, STATE, 1.18076, 3.26144, 2.08068, 0, MPI_Init
+State, rank27, STATE, 3.26145, 3.26145, 4.08e-07, 0, MPI_Comm_rank
+State, rank27, STATE, 3.26145, 3.26145, 1.2e-07, 0, MPI_Comm_size
+State, rank27, STATE, 6.36859, 6.48547, 0.116884, 0, MPI_Send
+State, rank27, STATE, 6.48549, 119.5, 113.014, 0, MPI_Send
+State, rank27, STATE, 119.5, 313.871, 194.372, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank26
+State, rank26, STATE, 1.18456, 3.27717, 2.09261, 0, MPI_Init
+State, rank26, STATE, 3.27718, 3.27718, 4.24e-07, 0, MPI_Comm_rank
+State, rank26, STATE, 3.27718, 3.27718, 1.17e-07, 0, MPI_Comm_size
+State, rank26, STATE, 6.39587, 6.49411, 0.0982362, 0, MPI_Send
+State, rank26, STATE, 6.49412, 87.9144, 81.4202, 0, MPI_Send
+State, rank26, STATE, 87.9144, 313.873, 225.959, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank25
+State, rank25, STATE, 1.13336, 3.26515, 2.13178, 0, MPI_Init
+State, rank25, STATE, 3.26515, 3.26515, 3.56e-07, 0, MPI_Comm_rank
+State, rank25, STATE, 3.26515, 3.26515, 1.2e-07, 0, MPI_Comm_size
+State, rank25, STATE, 6.43368, 6.47985, 0.0461628, 0, MPI_Send
+State, rank25, STATE, 6.47985, 55.7508, 49.2709, 0, MPI_Send
+State, rank25, STATE, 55.7508, 313.871, 258.12, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank24
+State, rank24, STATE, 1.0718, 3.28509, 2.21329, 0, MPI_Init
+State, rank24, STATE, 3.28509, 3.28509, 3.37e-07, 0, MPI_Comm_rank
+State, rank24, STATE, 3.2851, 3.2851, 1.15e-07, 0, MPI_Comm_size
+State, rank24, STATE, 6.46761, 6.49331, 0.0256953, 0, MPI_Send
+State, rank24, STATE, 6.49331, 21.3929, 14.8996, 0, MPI_Send
+State, rank24, STATE, 21.3929, 313.873, 292.48, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank23
+State, rank23, STATE, 1.18181, 3.32156, 2.13975, 0, MPI_Init
+State, rank23, STATE, 3.32157, 3.32157, 3.68e-07, 0, MPI_Comm_rank
+State, rank23, STATE, 3.32157, 3.32157, 1.19e-07, 0, MPI_Comm_size
+State, rank23, STATE, 6.38876, 6.38877, 1.5384e-05, 0, MPI_Send
+State, rank23, STATE, 6.38878, 90.8791, 84.4903, 0, MPI_Send
+State, rank23, STATE, 90.8791, 313.873, 222.994, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank22
+State, rank22, STATE, 1.04506, 3.3273, 2.28225, 0, MPI_Init
+State, rank22, STATE, 3.32731, 3.32731, 5.36e-07, 0, MPI_Comm_rank
+State, rank22, STATE, 3.32731, 3.32731, 1.59e-07, 0, MPI_Comm_size
+State, rank22, STATE, 6.36332, 6.36334, 2.2539e-05, 0, MPI_Send
+State, rank22, STATE, 6.36334, 63.8629, 57.4995, 0, MPI_Send
+State, rank22, STATE, 63.8629, 313.872, 250.009, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank21
+State, rank21, STATE, 1.08922, 3.26364, 2.17441, 0, MPI_Init
+State, rank21, STATE, 3.26364, 3.26364, 2.17e-07, 0, MPI_Comm_rank
+State, rank21, STATE, 3.26364, 3.26364, 1.13e-07, 0, MPI_Comm_size
+State, rank21, STATE, 6.35608, 6.3561, 2.0395e-05, 0, MPI_Send
+State, rank21, STATE, 6.3561, 37.4693, 31.1132, 0, MPI_Send
+State, rank21, STATE, 37.4693, 313.869, 276.4, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank20
+State, rank20, STATE, 0.836677, 3.27126, 2.43459, 0, MPI_Init
+State, rank20, STATE, 3.27127, 3.27127, 2.93e-07, 0, MPI_Comm_rank
+State, rank20, STATE, 3.27127, 3.27127, 1.31e-07, 0, MPI_Comm_size
+State, rank20, STATE, 6.32331, 6.32334, 3.0172e-05, 0, MPI_Send
+State, rank20, STATE, 6.32334, 11.9165, 5.59317, 0, MPI_Send
+State, rank20, STATE, 11.9165, 313.87, 301.953, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank2
+State, rank2, STATE, 0.67072, 3.31738, 2.64666, 0, MPI_Init
+State, rank2, STATE, 3.31738, 3.31738, 2.468e-06, 0, MPI_Comm_rank
+State, rank2, STATE, 3.31738, 3.31738, 1.24e-07, 0, MPI_Comm_size
+State, rank2, STATE, 6.4701, 6.51323, 0.0431281, 0, MPI_Send
+State, rank2, STATE, 6.51323, 83.7135, 77.2002, 0, MPI_Send
+State, rank2, STATE, 83.7135, 313.873, 230.16, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank19
+State, rank19, STATE, 1.19395, 3.28966, 2.09571, 0, MPI_Init
+State, rank19, STATE, 3.28967, 3.28967, 2.29e-07, 0, MPI_Comm_rank
+State, rank19, STATE, 3.28967, 3.28967, 1.26e-07, 0, MPI_Comm_size
+State, rank19, STATE, 6.3271, 6.36777, 0.0406729, 0, MPI_Send
+State, rank19, STATE, 6.36777, 112.295, 105.928, 0, MPI_Send
+State, rank19, STATE, 112.295, 313.87, 201.575, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank18
+State, rank18, STATE, 0.959116, 3.31344, 2.35432, 0, MPI_Init
+State, rank18, STATE, 3.31344, 3.31345, 4.01e-07, 0, MPI_Comm_rank
+State, rank18, STATE, 3.31345, 3.31345, 1.24e-07, 0, MPI_Comm_size
+State, rank18, STATE, 6.35257, 6.3936, 0.0410368, 0, MPI_Send
+State, rank18, STATE, 6.3936, 80.3877, 73.9941, 0, MPI_Send
+State, rank18, STATE, 80.3877, 313.872, 233.484, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank17
+State, rank17, STATE, 1.05236, 3.26979, 2.21742, 0, MPI_Init
+State, rank17, STATE, 3.26979, 3.26979, 2.35e-07, 0, MPI_Comm_rank
+State, rank17, STATE, 3.26979, 3.26979, 1.23e-07, 0, MPI_Comm_size
+State, rank17, STATE, 6.31241, 6.36777, 0.0553629, 0, MPI_Send
+State, rank17, STATE, 6.36778, 48.5499, 42.1821, 0, MPI_Send
+State, rank17, STATE, 48.5499, 313.871, 265.322, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank16
+State, rank16, STATE, 0.84235, 3.30539, 2.46304, 0, MPI_Init
+State, rank16, STATE, 3.30539, 3.30539, 3.23e-07, 0, MPI_Comm_rank
+State, rank16, STATE, 3.30539, 3.30539, 1.69e-07, 0, MPI_Comm_size
+State, rank16, STATE, 6.30862, 6.42375, 0.11513, 0, MPI_Send
+State, rank16, STATE, 6.42376, 17.3709, 10.9472, 0, MPI_Send
+State, rank16, STATE, 17.371, 313.87, 296.5, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank15
+State, rank15, STATE, 0.989371, 3.32506, 2.33569, 0, MPI_Init
+State, rank15, STATE, 3.32506, 3.32506, 3.52e-07, 0, MPI_Comm_rank
+State, rank15, STATE, 3.32506, 3.32506, 1.16e-07, 0, MPI_Comm_size
+State, rank15, STATE, 6.46214, 6.50008, 0.0379355, 0, MPI_Send
+State, rank15, STATE, 6.50008, 124.501, 118.001, 0, MPI_Send
+State, rank15, STATE, 124.501, 313.873, 189.372, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank14
+State, rank14, STATE, 1.09696, 3.33335, 2.23639, 0, MPI_Init
+State, rank14, STATE, 3.33335, 3.33335, 2e-07, 0, MPI_Comm_rank
+State, rank14, STATE, 3.33335, 3.33335, 1.26e-07, 0, MPI_Comm_size
+State, rank14, STATE, 6.40086, 6.49302, 0.0921636, 0, MPI_Send
+State, rank14, STATE, 6.49302, 90.9461, 84.4531, 0, MPI_Send
+State, rank14, STATE, 90.9461, 313.869, 222.923, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank13
+State, rank13, STATE, 1.16597, 3.30536, 2.13939, 0, MPI_Init
+State, rank13, STATE, 3.30536, 3.30536, 2.56e-07, 0, MPI_Comm_rank
+State, rank13, STATE, 3.30536, 3.30536, 3.08e-07, 0, MPI_Comm_size
+State, rank13, STATE, 6.35163, 6.50973, 0.158107, 0, MPI_Send
+State, rank13, STATE, 6.50974, 57.0765, 50.5667, 0, MPI_Send
+State, rank13, STATE, 57.0765, 313.871, 256.795, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank12
+State, rank12, STATE, 0.94491, 3.3211, 2.37619, 0, MPI_Init
+State, rank12, STATE, 3.32111, 3.32111, 4.16e-07, 0, MPI_Comm_rank
+State, rank12, STATE, 3.32111, 3.32111, 1.82e-07, 0, MPI_Comm_size
+State, rank12, STATE, 6.48521, 6.50675, 0.0215406, 0, MPI_Send
+State, rank12, STATE, 6.50676, 20.4714, 13.9646, 0, MPI_Send
+State, rank12, STATE, 20.4714, 313.87, 293.398, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank11
+State, rank11, STATE, 0.814358, 3.29957, 2.48521, 0, MPI_Init
+State, rank11, STATE, 3.29957, 3.29957, 2.15e-07, 0, MPI_Comm_rank
+State, rank11, STATE, 3.29957, 3.29957, 1.16e-07, 0, MPI_Comm_size
+State, rank11, STATE, 6.36754, 6.41594, 0.0484016, 0, MPI_Send
+State, rank11, STATE, 6.41594, 107.185, 100.769, 0, MPI_Send
+State, rank11, STATE, 107.185, 313.871, 206.686, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank10
+State, rank10, STATE, 0.189521, 3.30322, 3.1137, 0, MPI_Init
+State, rank10, STATE, 3.30323, 3.30323, 4.3e-07, 0, MPI_Comm_rank
+State, rank10, STATE, 3.30323, 3.30323, 1.22e-07, 0, MPI_Comm_size
+State, rank10, STATE, 6.39239, 6.4409, 0.0485105, 0, MPI_Send
+State, rank10, STATE, 6.44091, 76.3344, 69.8935, 0, MPI_Send
+State, rank10, STATE, 76.3344, 313.873, 237.538, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank1
+State, rank1, STATE, 0, 3.25309, 3.25309, 0, MPI_Init
+State, rank1, STATE, 3.25309, 3.25309, 3.47e-07, 0, MPI_Comm_rank
+State, rank1, STATE, 3.25309, 3.25309, 1.3e-07, 0, MPI_Comm_size
+State, rank1, STATE, 6.48185, 6.49002, 0.00816794, 0, MPI_Send
+State, rank1, STATE, 6.49002, 52.3265, 45.8365, 0, MPI_Send
+State, rank1, STATE, 52.3265, 313.871, 261.544, 0, MPI_Finalize
+Container, root, PROCESS, 0, 313.874, 313.874, rank0
+State, rank0, STATE, 0.557269, 3.26948, 2.71221, 0, MPI_Init
+State, rank0, STATE, 3.26948, 3.26948, 3.19e-07, 0, MPI_Comm_rank
+State, rank0, STATE, 3.26948, 3.26948, 1.15e-07, 0, MPI_Comm_size
+State, rank0, STATE, 6.42902, 6.42904, 2.8088e-05, 0, MPI_Send
+State, rank0, STATE, 6.42904, 20.2118, 13.7828, 0, MPI_Send
+State, rank0, STATE, 20.2119, 313.783, 293.571, 0, MPI_Recv
+State, rank0, STATE, 313.783, 313.87, 0.0866677, 0, MPI_Finalize

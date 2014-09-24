@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="fr.inria.soctrace.framesoc.ui.perspective.part" name="Framesoc Part" schema="schema/fr.inria.soctrace.framesoc.ui.perspective.part.exsd"/>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective"
+            icon="icons/releng_gears.gif"
+            id="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective"
+            name="Framesoc">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="fr.inria.soctrace.framesoc.ui.views.category"
+            name="Framesoc">
+      </category>
+      <view
+            allowMultiple="false"
+            category="fr.inria.soctrace.framesoc.ui.views.category"
+            class="fr.inria.soctrace.framesoc.ui.views.TraceTreeView"
+            id="fr.inria.soctrace.framesoc.ui.TRACE_EXPLORER"
+            name="Traces"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="fr.inria.soctrace.framesoc.ui.views.category"
+            class="fr.inria.soctrace.framesoc.ui.views.TraceDetailsView"
+            icon="icons/trace_details.png"
+            id="fr.inria.soctrace.framesoc.ui.TRACE_METADATA"
+            name="Trace Details"
+            restorable="true">
+      </view>
+      <!--
+      <view
+            allowMultiple="true"
+            category="fr.inria.soctrace.framesoc.ui.views.category"
+            class="fr.inria.soctrace.framesoc.ui.views.DebugView"
+            id="fr.inria.soctrace.framesoc.ui.views.DebugView"
+            name="Debug View"
+            restorable="true">
+      </view>
+      -->
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.InitializeSystem"
+            id="fr.inria.soctrace.framesoc.ui.commands.initSystem"
+            name="Initialize System">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ManageToolsHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
+            name="Manage Tools">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ImportTraceHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.ImportTrace"
+            name="Import Trace">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.LaunchAnalysisToolHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.LaunchAnalysisTool"
+            name="Launch Analysis Tool">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.NotImplementedHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.BrowseAnalysisResult"
+            name="Browse Analysis Result">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.CopyToClipboardHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.CopyToClipboard"
+            name="Copy DB name to clipboard">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.EditAliasHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.EditAlias"
+            name="Edit Trace Alias">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ExportTraceHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.ExportTrace"
+            name="Export Trace">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.DeleteTraceHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.deleteDB"
+            name="Delete Trace">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.DropDownLaunchHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.dropdown"
+            name="DropDown Launch">
+         <commandParameter
+               id="fr.inria.soctrace.framesoc.ui.commands.dropdown.toolName"
+               name="toolName"
+               optional="false">
+         </commandParameter>
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ManageColorsHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
+            name="Manage Colors">
+      </command>      
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.main.menu">
+         <menu
+               icon="icons/releng_gears.gif"
+               id="soctrace"
+               label="Framesoc"
+               mnemonic="S">
+            <menu
+                  icon="icons/trace.png"
+                  id="traceAnalysis"
+                  label="Trace Analysis">
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.ImportTrace"
+                     icon="icons/import_trace.png"
+                     style="push">
+               </command>
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.LaunchAnalysisTool"
+                     icon="icons/launch.png"
+                     style="push">
+               </command>
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.ExportTrace"
+                     icon="icons/export.png"
+                     style="push">
+               </command>
+            </menu>
+            <menu
+                  icon="icons/management.png"
+                  id="management"
+                  label="Management">
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.initSystem"
+                     icon="icons/init.png"
+                     style="push">
+               </command>
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
+                     icon="icons/manage_tools.png"
+                     style="push">
+               </command>
+               <command
+                     commandId="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
+                     icon="icons/colors.png"
+                     id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
+                     style="push">
+               </command>
+            </menu>
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="activeWorkbenchWindow.activePerspective">
+                  <equals
+                        value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                  </equals>
+               </with>
+            </visibleWhen>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:fr.inria.soctrace.framesoc.ui.TRACE_EXPLORER">
+         <dynamic
+               class="fr.inria.soctrace.framesoc.ui.perspective.FramesocPartContributionItem"
+               id="fr.inria.soctrace.framesoc.ui.popup.parts">
+         </dynamic>
+         <separator
+               name="fr.inria.soctrace.framesoc.ui.separator2"
+               visible="true">
+         </separator>
+         <command
+               commandId="fr.inria.soctrace.framesoc.ui.commands.CopyToClipboard"
+               icon="icons/copy.png"
+               style="push">
+         </command>
+         <separator
+               name="fr.inria.soctrace.framesoc.ui.separator3"
+               visible="true">
+         </separator>
+         <command
+               commandId="fr.inria.soctrace.framesoc.ui.commands.deleteDB"
+               icon="icons/delete.png"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar">
+         <toolbar
+               id="fr.inria.soctrace.framesoc.ui.main.toolbar"
+               label="Framesoc">
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.ImportTrace"
+                  icon="icons/import_trace.png"
+                  id="importers"
+                  label="Import Trace"
+                  style="pulldown"
+                  tooltip="Import Trace">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.LaunchAnalysisTool"
+                  icon="icons/launch.png"
+                  id="analysis"
+                  label="Analyse Trace"
+                  style="pulldown"
+                  tooltip="Analyse Trace">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.ExportTrace"
+                  icon="icons/export.png"
+                  id="exporters"
+                  label="Export Trace"
+                  style="pulldown"
+                  tooltip="Export Trace">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.initSystem"
+                  icon="icons/init.png"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
+                  icon="icons/manage_tools.png"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
+                  icon="icons/colors.png"
+                  id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+         </toolbar>   
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            class="fr.inria.soctrace.framesoc.ui.toolbar.ImportersMenuContribution"
+            locationURI="menu:importers">
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            class="fr.inria.soctrace.framesoc.ui.toolbar.AnalysisMenuContribution"
+            locationURI="menu:analysis">
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            class="fr.inria.soctrace.framesoc.ui.toolbar.ExportersMenuContribution"
+            locationURI="menu:exporters">
+      </menuContribution>
+      
+      
+      <!-- START -->
+      
+   </extension>  
+  <!-- END -->
+   
+   
+   
+   
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="fr.inria.soctrace.framesoc.ui.FramesocUiStartup">
+      </startup>
+   </extension>
+   
+
+</plugin>
