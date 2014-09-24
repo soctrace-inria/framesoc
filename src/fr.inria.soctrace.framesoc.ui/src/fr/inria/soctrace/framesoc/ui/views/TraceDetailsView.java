@@ -136,7 +136,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		final Table table = viewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
-		viewer.setContentProvider(new ArrayContentProvider());
+		viewer.setContentProvider(ArrayContentProvider.getInstance());
 		viewer.setInput(traceDetailsLoader.getProperties());
 
 		// build toolbar
