@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="fr.inria.soctrace.framesoc.ui.gantt.adapter" name="adapter" schema="schema/fr.inria.soctrace.framesoc.ui.gantt.adapter.exsd"/>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            category="fr.inria.soctrace.framesoc.ui.views.category"
+            class="fr.inria.soctrace.framesoc.ui.gantt.GanttView"
+            icon="icons/gantt.png"
+            id="fr.inria.soctrace.framesoc.ui.GANTT"
+            name="Gantt Chart"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.gantt.handler.ShowGanttChartHandler"
+            id="fr.inria.soctrace.framesoc.ui.gantt.command.ShowGantt"
+            name="Show Gantt Chart">
+      </command>
+   </extension>
+   <extension
+         point="fr.inria.soctrace.framesoc.ui.perspective.part">
+      <part
+            icon="icons/gantt.png"
+            launchCommand="fr.inria.soctrace.framesoc.ui.gantt.command.ShowGantt"
+            position="BOTTOM_RIGHT"
+            priority="1"
+            viewId="fr.inria.soctrace.framesoc.ui.GANTT">
+      </part>
+   </extension>
+   <extension
+         point="fr.inria.soctrace.framesoc.ui.gantt.adapter">
+      <ganttAdapter
+            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
+            traceTypeName="pjdump">
+      </ganttAdapter>
+      <ganttAdapter
+            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
+            traceTypeName="CTFTrace.0.0">
+      </ganttAdapter>
+   </extension>
+
+</plugin>

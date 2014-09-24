@@ -1,0 +1,9 @@
+This test suite is designed to work with a well know configuration,
+in order to be able to verify the correctness of test results.
+
+This configuration is stored in:
+- fr.inria.soctrace.test.junit.utils.TestConfiguration
+- fr.inria.soctrace.test.junit.utils.TestConstants
+- fr.inria.soctrace.test.junit.utils.importer.VirtualImporter
+
+

@@ -1,0 +1,24 @@
+<!-- 
+#############################################################
+#
+#          YOU MUST NOT MODIFY THIS FILE!
+#
+#
+# See the README in this folder for further explanation
+#
+#############################################################
+-->
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level{36} %logger{50} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- Default -->
+	<root level="off">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>

@@ -1,0 +1,39 @@
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level{36} %logger{50} - %msg%n</pattern>
+			<!-- <pattern>[%-5level] [%30.-30logger{0}] - %msg%n </pattern> -->
+		</encoder>
+	</appender>
+
+	<!-- Model -->
+	<logger name="fr.inria.soctrace.lib.model" level="off" />
+
+	<!-- Query -->
+	<logger name="fr.inria.soctrace.lib.query" level="off" />
+
+	<!-- Search -->
+	<logger name="fr.inria.soctrace.lib.search" level="off" />
+
+	<!-- Storage -->
+	<logger name="fr.inria.soctrace.lib.storage" level="off" />
+
+	<!-- Utils -->
+	<logger name="fr.inria.soctrace.lib.utils" level="off" />
+
+	<!-- Core -->
+	<logger name="fr.inria.soctrace.framesoc.core" level="off" />
+
+	<!-- Ui -->
+	<logger name="fr.inria.soctrace.framesoc.ui" level="off" />
+
+	<!-- Tools -->
+	<logger name="fr.inria.soctrace.tools" level="off" />
+
+	<!-- Default -->
+	<root level="off">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="fr.inria.soctrace.framesoc.core.tool">
+      <tool
+            class="fr.inria.soctrace.tools.importer.pajedump.PajeDumpImporter"
+            doc="Trace file(s) produced dumping a Paje trace with pj_dump."
+            name="Paje Dump Importer"
+            type="IMPORT">
+      </tool>
+   </extension>
+
+</plugin>

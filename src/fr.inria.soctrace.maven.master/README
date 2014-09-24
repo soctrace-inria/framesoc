@@ -1,0 +1,4 @@
+Master project for Framesoc Maven management.
+
+Minor issues:
+- SNAPSHOT values different from SNAPSHOT make build fail

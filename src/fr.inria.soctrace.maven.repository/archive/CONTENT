@@ -1,0 +1,55 @@
+# Archive content
+
+This archive contains:
+1. The Framesoc features: fr.inria.soctrace.maven.repository-*.zip
+2. A README file
+3. A REPOSITORY file
+4. Some documentation: ./doc
+5. Some test traces: ./traces/
+
+1. Framesoc features
+
+  The archive fr.inria.soctrace.maven.repository-*.zip contains all the 
+  Eclipse features needed to have a working Framesoc SDK. 
+
+  In details, the feature contained are:
+  - Framesoc binary feature
+  - Framesoc source feature
+  - Framesoc Tools feature
+  - Framesoc Tools source feature 
+
+  The tools features contain three simple importer tools for the following formats:
+  - gstreamer  
+  - pjdump
+  These features contain also two tools enabling the import/export of traces already
+  in Framesoc DB format:
+  - Framesoc DB Exporter
+  - Framesoc DB Importer
+
+  All the license files are included in the feature, as specified by the 
+  Eclipse guidelines: http://www.eclipse.org/legal/guidetolegaldoc.php
+
+2. Readme
+
+   The README file gives some guidelines about using Framesoc and developing 
+   Framesoc plugins.
+   
+3. Repository
+
+   The REPOSITORY file contains information about getting the access to 
+   Framesoc codebase.
+ 
+4. Documentation
+
+   The ./doc folder contains:
+   - a document describing the new Framesoc data model
+   - the Framesoc user guide
+   - the javadoc documentation
+  
+5. Test Traces 
+
+   The ./traces folder contains one trace for each of the following formats:
+   - gstreamer
+   - pjdump
+   These traces are for testing the importers and start playing with Framesoc.
+   

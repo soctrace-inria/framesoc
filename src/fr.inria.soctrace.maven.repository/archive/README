@@ -1,0 +1,80 @@
+## README ##
+
+# Intro #
+
+This file is a small guide about using Framesoc and developing external 
+Framesoc plugins.
+
+############################### Framesoc Usage ################################ 
+
+# Requirements #
+- Java JDK 7
+- MySQL server (optional, since Framesoc uses by default SQLite, which
+  is an embedded DBMS)
+
+# System Setup #
+- download Eclipse Kepler and extract the corresponding archive
+- install Framesoc features (fr.inria.soctrace.maven.repository-*.zip) 
+  as explained below in "Installing an Eclipse feature" 
+  (pay attention to install source features if you want to develop 
+   Framesoc plugins)
+
+# Using Framesoc #
+- Please refer to the Framesoc user guide, contained in this archive.
+
+######################### Framesoc Plugin Development ######################### 
+
+To develop Framesoc plugins familiarity with Eclipse plugin development [1]
+is assumed.
+Several alternatives are available.
+
+# Option 1 #
+# Using the Eclipse instance where Framesoc is installed #
+- create a plugin project
+- put all soctrace plugins (*.lib.* and *.framesoc.*, not *.tools.*) as 
+  dependencies in the Dependecies tab of the plugin manifest
+- create an Extension for the extension point: 
+  fr.inria.soctrace.framesoc.core.tool.
+- implement the tool class (see source doc)
+
+# Option 2 #
+# Using a virgin Eclipse for Java development #
+- Extract the fr.inria.soctrace.maven.repository-*.zip archive.
+- File -> Import -> Plugins and Fragments -> Next
+- Import From: Directory.
+- Browse to the 'plugins' directory contained in the archive extracted above.
+- Import As: 'Binary projects' or 'Projects with source folders' depending if
+  you want to see the source code or not.
+- Add all. 
+- Finish.
+- Then follow the steps in "Option 1".
+
+# Option 3 #
+# Cloning the Framesoc git repository #
+- To clone the Framesoc git repository and access the source code please follow
+  the instruction in the REPOSITORY file, contained in this archive.
+- Then follow the steps in "Option 1".
+
+######################## Installing an Eclipse feature ######################## 
+
+The following explains how to install an eclipse feature contained
+in an archive.
+
+From the Eclipse main menu:
+- Help -> Install new software
+- Press "Add".
+- Press "Archive".
+- Select the archive containing the feature.
+- Press "Ok".
+- Select the feature(s) you want to install.
+- Press "Next" and follow the wizard (accept the license and finish 
+  the installation).
+
+##
+
+Enjoy :)
+
+Please, send feedback to: generoso.pagano@inria.fr
+
+[1] Information on plugin development: 
+    http://www.vogella.com/articles/EclipsePlugIn/article.html

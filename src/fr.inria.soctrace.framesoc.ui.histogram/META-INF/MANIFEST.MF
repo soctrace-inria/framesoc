@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Histogram
+Bundle-SymbolicName: fr.inria.soctrace.framesoc.ui.histogram;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.framesoc.ui.histogram.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ fr.inria.soctrace.framesoc.core;bundle-version="1.0.0",
+ fr.inria.soctrace.framesoc.ui;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.model;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.slf4j;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.storage;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.utils;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: INRIA

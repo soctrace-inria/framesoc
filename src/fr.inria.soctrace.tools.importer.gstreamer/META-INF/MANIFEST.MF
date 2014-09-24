@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: GStreamer Importer
+Bundle-SymbolicName: fr.inria.soctrace.tools.importer.gstreamer;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.tools.importer.gstreamer.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ fr.inria.soctrace.framesoc.core,
+ fr.inria.soctrace.lib.utils,
+ fr.inria.soctrace.lib.storage,
+ fr.inria.soctrace.lib.search,
+ fr.inria.soctrace.lib.model,
+ fr.inria.soctrace.lib.query,
+ fr.inria.soctrace.lib.slf4j
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: INRIA

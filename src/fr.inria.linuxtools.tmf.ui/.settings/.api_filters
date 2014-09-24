@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<component id="fr.inria.linuxtools.tmf.ui" version="2">
+    <resource path="src/fr/inria/linuxtools/tmf/ui/editors/UnsortedPropertySheetPage.java" type="fr.inria.linuxtools.tmf.ui.editors.UnsortedPropertySheetPage">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="PropertySheetPage"/>
+                <message_argument value="UnsortedPropertySheetPage"/>
+            </message_arguments>
+        </filter>
+    </resource>
+    <resource path="src/fr/inria/linuxtools/tmf/ui/widgets/timegraph/dialogs/FilteredCheckboxTree.java" type="fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree$FilterableCheckboxTreeViewer">
+        <filter id="571473929">
+            <message_arguments>
+                <message_argument value="CheckboxTreeViewer"/>
+                <message_argument value="FilterableCheckboxTreeViewer"/>
+            </message_arguments>
+        </filter>
+    </resource>
+</component>

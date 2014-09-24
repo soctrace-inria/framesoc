@@ -1,0 +1,25 @@
+## ignore ##
+
+# bin folders
+bin/
+
+# ext point doc folders
+doc/
+
+# javadoc folders
+javadoc/
+
+# maven target folders
+target/
+
+# logback file
+fr.inria.soctrace.lib.slf4j/logback-test.xml
+
+## keep ##
+
+# maven repository archive doc
+!fr.inria.soctrace.maven.repository/archive/doc
+
+
+
+

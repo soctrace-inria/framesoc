@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.inria.soctrace.maven</groupId>
+	<artifactId>fr.inria.soctrace.maven.master</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Framesoc Maven Master</name>
+	<description>Maven master project for Framesoc. It contains the parent pom.xml.	</description>
+
+	<properties>
+		<tycho-version>0.18.1</tycho-version>
+		<tycho-extras-version>0.18.0</tycho-extras-version>
+	</properties>
+
+	<build>
+		<plugins>
+
+			<!-- tycho -->
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
+
+			<!-- Generate bundles source http://wiki.eclipse.org/Tycho/Reference_Card -->
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>plugin-source</id>
+						<goals>
+							<goal>plugin-source</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Generate features source http://wiki.eclipse.org/Tycho/Reference_Card -->
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-source-feature-plugin</artifactId>
+				<version>${tycho-extras-version}</version>
+				<executions>
+					<execution>
+						<id>source-feature</id>
+						<phase>package</phase>
+						<goals>
+							<goal>source-feature</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludes>
+						<plugin id="fr.inria.soctrace.lib.slf4j" />
+						<plugin id="fr.inria.soctrace.framesoc.brand" />
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-p2-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>attach-p2-metadata</id>
+						<phase>package</phase>
+						<goals>
+							<goal>p2-metadata</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>			
+		</plugins>
+
+	</build>
+
+	<repositories>
+		<repository>
+			<id>eclipse-kepler</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/kepler</url>
+		</repository>
+	</repositories>
+
+	<modules>
+
+		<!-- Framesoc feature and plugins -->
+		<module>../fr.inria.soctrace.features.framesoc</module>
+		<module>../fr.inria.soctrace.framesoc.core</module>
+		<module>../fr.inria.soctrace.framesoc.ui</module>
+		<module>../fr.inria.soctrace.framesoc.ui.histogram</module>
+		<module>../fr.inria.soctrace.framesoc.ui.piechart</module>
+		<module>../fr.inria.soctrace.framesoc.ui.eventtable</module>
+		<module>../fr.inria.soctrace.framesoc.ui.gantt</module>
+		<module>../fr.inria.soctrace.lib.model</module>
+		<module>../fr.inria.soctrace.lib.query</module>
+		<module>../fr.inria.soctrace.lib.search</module>
+		<module>../fr.inria.soctrace.lib.storage</module>
+		<module>../fr.inria.soctrace.lib.utils</module>
+		<module>../fr.inria.soctrace.lib.slf4j</module>
+		
+		<!-- Tools feature and plugins -->		
+		<module>../fr.inria.soctrace.features.tools</module>
+		<module>../fr.inria.soctrace.tools.importer.gstreamer</module>
+		<module>../fr.inria.soctrace.tools.importer.pajedump</module>
+		<module>../fr.inria.soctrace.tools.framesoc.exporter</module>		
+				
+		<!-- Repository configuration -->
+		<module>../fr.inria.soctrace.maven.repository</module>
+		
+		<!-- JUnit tests -->
+		<module>../fr.inria.soctrace.test.junit</module>
+
+		<!-- Trace Compass -->
+		<module>../fr.inria.linuxtools.statesystem.core</module>
+		<module>../fr.inria.linuxtools.tmf.core</module>
+		<module>../fr.inria.linuxtools.tmf.ui</module>
+		
+		<!-- Branding -->
+		<module>../fr.inria.soctrace.framesoc.brand</module>
+
+	</modules>
+	
+</project>
