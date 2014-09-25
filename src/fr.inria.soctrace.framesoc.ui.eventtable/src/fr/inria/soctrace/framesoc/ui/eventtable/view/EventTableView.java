@@ -39,8 +39,8 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
+import org.eclipse.jface.viewers.deferred.IConcurrentModelListener;
 import org.eclipse.jface.viewers.deferred.SetModel;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
@@ -67,7 +67,7 @@ import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventTableLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
-import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
+import fr.inria.soctrace.framesoc.ui.eventtable.view.EventTableRowFilter.IFilterListener;
 import fr.inria.soctrace.framesoc.ui.model.ITableRow;
 import fr.inria.soctrace.framesoc.ui.model.LoadDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -76,7 +76,6 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.FilterTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
-import fr.inria.soctrace.framesoc.ui.utils.RowFilter;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
@@ -89,7 +88,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public final class EventTableView extends FramesocPart {
+public final class EventTableView extends FramesocPart implements IFilterListener {
 
 	/**
 	 * Logger
@@ -120,7 +119,7 @@ public final class EventTableView extends FramesocPart {
 	 * Column comparator
 	 */
 	private EventTableColumnComparator comparator;
-	
+
 	/**
 	 * Row filter
 	 */
@@ -169,7 +168,7 @@ public final class EventTableView extends FramesocPart {
 	/**
 	 * Concurrent input
 	 */
-	private SetModel input;
+	private EventSetModel input;
 
 	// // Uncomment this to use the window builder
 	// @Override
@@ -197,6 +196,11 @@ public final class EventTableView extends FramesocPart {
 		gl_table.horizontalSpacing = 0;
 		gl_table.marginHeight = 0;
 		tableComposite.setLayout(gl_table);
+
+		// create comparator and filter
+		comparator = new EventTableColumnComparator();
+		filter = new EventTableRowFilter();
+		filter.addListener(this);
 
 		// viewers and tables
 		createViewers(tableComposite);
@@ -359,15 +363,10 @@ public final class EventTableView extends FramesocPart {
 			elemsTableCol.setWidth(col.getWidth());
 			eventColumns.put(col, elemsTableCol);
 
-			// add a filter for this column in the elements viewer
-			RowFilter rowFilter = new RowFilter(col);
-			eventsTableViewer.addFilter(rowFilter);
-
 			// filter table column
 			TableViewerColumn filterViewerCol = new TableViewerColumn(filtersTableViewer, SWT.NONE);
 			filterViewerCol.setLabelProvider(new FilterTableRowLabelProvider(col));
-			filterViewerCol.setEditingSupport(new FilterEditingSupport(filtersTableViewer,
-					eventsTableViewer, col, rowFilter));
+			filterViewerCol.setEditingSupport(new FilterEditingSupport(col));
 			TableColumn filterTableCol = filterViewerCol.getColumn();
 			filterTableCol.addControlListener(new TableColumnResizeListener(elemsTableCol));
 			filterTableCol.setWidth(col.getWidth());
@@ -383,11 +382,12 @@ public final class EventTableView extends FramesocPart {
 		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				matchedRows = 0;
 				comparator.setColumn(col);
 				// update on events table
 				eventsTableViewer.getTable().setSortDirection(comparator.getDirection());
 				eventsTableViewer.getTable().setSortColumn(eventsCol);
-				eventsTableViewer.refresh();
+				input.requestUpdate(input.getListener());
 				// update also on filter table to update header icon
 				filtersTableViewer.getTable().setSortDirection(comparator.getDirection());
 				filtersTableViewer.getTable().setSortColumn(filtersCol);
@@ -402,16 +402,16 @@ public final class EventTableView extends FramesocPart {
 		filtersTableViewer.setInput(getEmptyInput());
 
 		// events: event rows
-		comparator = new EventTableColumnComparator();
-		filter = new EventTableRowFilter();
 		DeferredContentProvider contentProvider = new DeferredContentProvider(comparator);
 		contentProvider.setFilter(filter);
 		eventsTableViewer.setContentProvider(contentProvider);
-		input = new SetModel();
+		input = new EventSetModel();
 		eventsTableViewer.setInput(input);
 		eventsLoader = new EventTableLoader();
 	}
 
+	final int max = 1000000;
+	
 	private void dummyFill() {
 		Job fillJob = new Job("fill") {
 			@Override
@@ -421,9 +421,10 @@ public final class EventTableView extends FramesocPart {
 				ModelFactory factory = new ModelFactory();
 				Event e = factory.createEvent();
 				int elem = 0;
-				int delta = 2;
-				while (!monitor.isCanceled()) {
-					input.addAll(getElements(e, delta, elem));
+				int delta = 100000;
+				while (!monitor.isCanceled() && elem<max) {
+					List<EventTableRow> elems = getElements(e, delta, elem);
+					input.addAll(elems);
 					elem += delta;
 					System.out.println("Elem: " + elem);
 					try {
@@ -622,8 +623,6 @@ public final class EventTableView extends FramesocPart {
 
 	private void clearFilters() {
 		filtersTableViewer.setInput(getEmptyInput());
-		for (ViewerFilter filter : eventsTableViewer.getFilters())
-			((RowFilter) filter).setSearchText("");
 	}
 
 	/**
@@ -631,42 +630,27 @@ public final class EventTableView extends FramesocPart {
 	 */
 	public class FilterEditingSupport extends EditingSupport {
 
-		private TableViewer filterViewer;
-		private TableViewer elementsViewer;
-		private ITableColumn col;
-		private RowFilter filter;
+		// private TableViewer filterViewer;
+		private EventTableColumn col;
 
 		/**
 		 * Constructor.
 		 * 
-		 * @param filterViewer
-		 *            filter table viewer
-		 * @param elementsViewer
-		 *            elements table viewer
 		 * @param col
 		 *            column on the elements table
-		 * @param filter
-		 *            filter for a given column of the elements viewer
 		 */
-		public FilterEditingSupport(TableViewer filterViewer, TableViewer elementsViewer,
-				ITableColumn col, RowFilter filter) {
-			super(filterViewer);
-			this.filterViewer = filterViewer;
-			this.elementsViewer = elementsViewer;
+		public FilterEditingSupport(EventTableColumn col) {
+			super(filtersTableViewer);
 			this.col = col;
-			this.filter = filter;
 		}
 
 		@Override
 		protected void setValue(Object element, Object value) {
 			((ITableRow) element).set(this.col, value.toString());
-			this.filterViewer.update(element, null);
-			this.filter.setSearchText(value.toString());
-			this.elementsViewer.refresh();
-			if (eventsLoader.getEvents() != null) {
-				statusText.setText(getStatus(eventsLoader.getEvents().size(), elementsViewer
-						.getTable().getItemCount()));
-			}
+			filtersTableViewer.update(element, null);
+			filter.setSearchText(this.col, value.toString());
+			matchedRows = 0;
+			input.requestUpdate(input.getListener());
 		}
 
 		@Override
@@ -681,7 +665,7 @@ public final class EventTableView extends FramesocPart {
 
 		@Override
 		protected CellEditor getCellEditor(Object element) {
-			return new TextCellEditor(this.filterViewer.getTable());
+			return new TextCellEditor(filtersTableViewer.getTable());
 		}
 
 		@Override
@@ -789,4 +773,31 @@ public final class EventTableView extends FramesocPart {
 		logger.debug("nothing to do here");
 	}
 
+	// TODO do it better...
+	private class EventSetModel extends SetModel {
+		public IConcurrentModelListener getListener() {
+			return getListeners()[0];
+		}
+	}
+
+	/**
+	 * Number of rows that matched the last set filter
+	 */
+	private int matchedRows = 0;
+
+	@Override
+	public void matched(final boolean matched) {
+//		Display.getDefault().asyncExec(new Runnable() {
+//			@Override
+//			public void run() {
+//				if (matched) {
+//					matchedRows++;
+//					if (eventsLoader.getEvents() != null) {
+//						statusText.setText(getStatus(eventsLoader.getEvents().size(), matchedRows));
+//					}
+//					statusText.setText(getStatus(max, matchedRows));
+//				}
+//			}
+//		});
+	}
 }

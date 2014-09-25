@@ -30,7 +30,12 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class EventTableRowFilter implements IFilter {
 
+	public interface IFilterListener {
+		void matched(boolean matched);
+	}
+
 	private Map<EventTableColumn, String> searchStrings;
+	private IFilterListener listener;
 
 	public EventTableRowFilter() {
 		searchStrings = new HashMap<>();
@@ -47,6 +52,7 @@ public class EventTableRowFilter implements IFilter {
 	@Override
 	public boolean select(Object toTest) {
 		EventTableRow row = (EventTableRow) toTest;
+		boolean matched = true;
 		for (EventTableColumn col : EventTableColumn.values()) {
 			String searchString = searchStrings.get(col);
 			if (searchString == null || searchString.length() == 0) {
@@ -54,19 +60,28 @@ public class EventTableRowFilter implements IFilter {
 			}
 			try {
 				if (!row.get(col).matches(searchString)) {
-					return false;
+					matched = false;
+					break;
 				}
 			} catch (PatternSyntaxException e) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),
 						"Wrong search string",
 						"The expression used as search string is not valid: " + searchString);
 				searchStrings.put(col, "");
-				return false;
+				matched = false;
+				break;
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
-				return false;
+				matched = false;
+				break;
 			}
 		}
-		return true;
+		if (listener != null)
+			listener.matched(matched);
+		return matched;
+	}
+
+	public void addListener(IFilterListener listener) {
+		this.listener = listener;
 	}
 }
