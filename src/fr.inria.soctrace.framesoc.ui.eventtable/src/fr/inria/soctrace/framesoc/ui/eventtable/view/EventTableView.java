@@ -13,6 +13,8 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,9 +39,9 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.viewers.deferred.DeferredContentProvider;
+import org.eclipse.jface.viewers.deferred.SetModel;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -76,6 +78,7 @@ import fr.inria.soctrace.framesoc.ui.providers.FilterTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.RowFilter;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
+import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.search.utils.IntervalDesc;
@@ -117,6 +120,11 @@ public final class EventTableView extends FramesocPart {
 	 * Column comparator
 	 */
 	private EventTableColumnComparator comparator;
+	
+	/**
+	 * Row filter
+	 */
+	private EventTableRowFilter filter;
 
 	/**
 	 * Events Columns
@@ -124,7 +132,7 @@ public final class EventTableView extends FramesocPart {
 	private Map<EventTableColumn, TableColumn> eventColumns = new HashMap<EventTableColumn, TableColumn>();
 
 	/**
-	 * Filters Colums
+	 * Filters Columns
 	 */
 	private Map<EventTableColumn, TableColumn> filterColumns = new HashMap<EventTableColumn, TableColumn>();
 
@@ -158,11 +166,16 @@ public final class EventTableView extends FramesocPart {
 	 */
 	private long endTimestamp;
 
-	//	// Uncomment this to use the window builder	
-	//	@Override
-	//	public void createPartControl(Composite parent) {
-	//		createFramesocPartControl(parent);
-	//	}
+	/**
+	 * Concurrent input
+	 */
+	private SetModel input;
+
+	// // Uncomment this to use the window builder
+	// @Override
+	// public void createPartControl(Composite parent) {
+	// createFramesocPartControl(parent);
+	// }
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -194,18 +207,19 @@ public final class EventTableView extends FramesocPart {
 		// content providers
 		createProviders(tableComposite);
 
-		//----------
+		// ----------
 		// TOOLBAR
-		//----------
+		// ----------
 
 		getViewSite().getActionBars().getToolBarManager().add(createColumnAction());
-		if (FramesocPartManager.getInstance().isFramesocPartExisting(FramesocViews.GANTT_CHART_VIEW_ID))
+		if (FramesocPartManager.getInstance().isFramesocPartExisting(
+				FramesocViews.GANTT_CHART_VIEW_ID))
 			getViewSite().getActionBars().getToolBarManager().add(createGanttAction());
 		enableActions(false);
 
-		//-------------
+		// -------------
 		// STATUS BAR
-		//-------------
+		// -------------
 
 		Composite statusBar = new Composite(parent, SWT.BORDER);
 		GridLayout statusBarLayout = new GridLayout();
@@ -216,13 +230,13 @@ public final class EventTableView extends FramesocPart {
 		statusBarLayout.numColumns = 1;
 		statusBar.setLayout(statusBarLayout);
 		// text
-		statusText = new Text(statusBar,SWT.NONE);
+		statusText = new Text(statusBar, SWT.NONE);
 		statusText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		statusText.setText(getStatus(0, 0));
 
-		//-------------------------------
+		// -------------------------------
 		// TIME MANAGEMENT BAR
-		//-------------------------------
+		// -------------------------------
 
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
 		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -250,12 +264,14 @@ public final class EventTableView extends FramesocPart {
 		// provide our selection for other viewers
 		getSite().setSelectionProvider(eventsTableViewer);
 
+		dummyFill();
 	}
 
 	class DrawListener extends SelectionAdapter {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			showSelectedWindow(currentShownTrace, timeBar.getStartTimestamp(), timeBar.getEndTimestamp(), EventTableLoader.NO_LIMIT);
+			showSelectedWindow(currentShownTrace, timeBar.getStartTimestamp(),
+					timeBar.getEndTimestamp(), EventTableLoader.NO_LIMIT);
 		}
 	}
 
@@ -279,7 +295,8 @@ public final class EventTableView extends FramesocPart {
 	}
 
 	private IAction createGanttAction() {
-		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID, "icons/gantt.png");
+		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/gantt.png");
 		Action showGantt = new Action("Show in Gantt Chart", img) {
 			@Override
 			public void run() {
@@ -288,7 +305,8 @@ public final class EventTableView extends FramesocPart {
 				des.setStartTimestamp(startTimestamp);
 				des.setEndTimestamp(endTimestamp);
 				logger.debug(des.toString());
-				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
+				FramesocBus.getInstance().send(
+						FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
 			}
 		};
 		return showGantt;
@@ -297,9 +315,9 @@ public final class EventTableView extends FramesocPart {
 	private void enableActions(boolean enabled) {
 		IActionBars actionBars = getViewSite().getActionBars();
 		IToolBarManager toolBar = actionBars.getToolBarManager();
-		for (IContributionItem item: toolBar.getItems()) {
+		for (IContributionItem item : toolBar.getItems()) {
 			if (item instanceof ActionContributionItem) {
-				((ActionContributionItem)item).getAction().setEnabled(enabled);
+				((ActionContributionItem) item).getAction().setEnabled(enabled);
 			}
 		}
 	}
@@ -311,8 +329,8 @@ public final class EventTableView extends FramesocPart {
 				refreshColumnSize();
 			}
 		};
-		colAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/adjust_h.png"));
+		colAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/adjust_h.png"));
 		colAction.setToolTipText("Adjust column size to content");
 		return colAction;
 	}
@@ -324,15 +342,15 @@ public final class EventTableView extends FramesocPart {
 			EventTableColumn col = entry.getKey();
 			TableColumn tc = entry.getValue();
 			tc.pack();
-			if (tc.getWidth()<col.getWidth())
+			if (tc.getWidth() < col.getWidth())
 				tc.setWidth(col.getWidth());
 			filterColumns.get(col).setWidth(tc.getWidth());
-		}				
+		}
 	}
 
 	private void createColumns() {
 
-		for (EventTableColumn col: EventTableColumn.values()) {
+		for (EventTableColumn col : EventTableColumn.values()) {
 
 			// elements table column
 			TableViewerColumn elemsViewerCol = new TableViewerColumn(eventsTableViewer, SWT.NONE);
@@ -348,17 +366,20 @@ public final class EventTableView extends FramesocPart {
 			// filter table column
 			TableViewerColumn filterViewerCol = new TableViewerColumn(filtersTableViewer, SWT.NONE);
 			filterViewerCol.setLabelProvider(new FilterTableRowLabelProvider(col));
-			filterViewerCol.setEditingSupport(new FilterEditingSupport(filtersTableViewer, eventsTableViewer, col, rowFilter));
+			filterViewerCol.setEditingSupport(new FilterEditingSupport(filtersTableViewer,
+					eventsTableViewer, col, rowFilter));
 			TableColumn filterTableCol = filterViewerCol.getColumn();
 			filterTableCol.addControlListener(new TableColumnResizeListener(elemsTableCol));
 			filterTableCol.setWidth(col.getWidth());
 			filterTableCol.setText(col.getHeader());
-			filterTableCol.addSelectionListener(getSelectionAdapter(elemsTableCol, filterTableCol, col));	
+			filterTableCol.addSelectionListener(getSelectionAdapter(elemsTableCol, filterTableCol,
+					col));
 			filterColumns.put(col, filterTableCol);
-		}	
+		}
 	}
 
-	private SelectionAdapter getSelectionAdapter(final TableColumn eventsCol, final TableColumn filtersCol, final EventTableColumn col) {
+	private SelectionAdapter getSelectionAdapter(final TableColumn eventsCol,
+			final TableColumn filtersCol, final EventTableColumn col) {
 		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -381,9 +402,53 @@ public final class EventTableView extends FramesocPart {
 		filtersTableViewer.setInput(getEmptyInput());
 
 		// events: event rows
-		eventsTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-		eventsTableViewer.setInput(null); // empty table at the beginning
+		comparator = new EventTableColumnComparator();
+		filter = new EventTableRowFilter();
+		DeferredContentProvider contentProvider = new DeferredContentProvider(comparator);
+		contentProvider.setFilter(filter);
+		eventsTableViewer.setContentProvider(contentProvider);
+		input = new SetModel();
+		eventsTableViewer.setInput(input);
 		eventsLoader = new EventTableLoader();
+	}
+
+	private void dummyFill() {
+		Job fillJob = new Job("fill") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				DeltaManager dm = new DeltaManager();
+				dm.start();
+				ModelFactory factory = new ModelFactory();
+				Event e = factory.createEvent();
+				int elem = 0;
+				int delta = 2;
+				while (!monitor.isCanceled()) {
+					input.addAll(getElements(e, delta, elem));
+					elem += delta;
+					System.out.println("Elem: " + elem);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
+					}
+				}
+				dm.end("stopped");
+				return Status.OK_STATUS;
+			}
+		};
+		fillJob.setPriority(Job.DECORATE);
+		fillJob.schedule();
+	}
+
+	private List<EventTableRow> getElements(Event e, int n, long start) {
+		long timestamp = start;
+		List<EventTableRow> l = new ArrayList<>();
+		for (int i = 0; i < n; i++) {
+			e.setTimestamp(timestamp++);
+			e.getType().setName("type_" + (long) (Math.random() * 9));
+			l.add(new EventTableRow(e));
+		}
+		return l;
 	}
 
 	private List<EventTableRow> getEmptyInput() {
@@ -395,72 +460,76 @@ public final class EventTableView extends FramesocPart {
 	private void createViewers(Composite parent) {
 		setContentDescription("Trace: <no trace displayed>");
 
-		filtersTableViewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.NO_SCROLL);
+		filtersTableViewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL
+				| SWT.NO_SCROLL);
 		Table filterTable = filtersTableViewer.getTable();
 		filterTable.setLinesVisible(true);
 		filterTable.setHeaderVisible(true);
 		GridData gdFiltersData = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 		filterTable.setLayoutData(gdFiltersData);
-		ColumnViewerToolTipSupport.enableFor(filtersTableViewer, ToolTip.NO_RECREATE); 
+		ColumnViewerToolTipSupport.enableFor(filtersTableViewer, ToolTip.NO_RECREATE);
 
-		eventsTableViewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+		eventsTableViewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
+				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		Table elemsTable = eventsTableViewer.getTable();
 		elemsTable.setHeaderVisible(false);
 		elemsTable.setLinesVisible(true);
 		GridData gdEvensData = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gdEvensData.widthHint = 300;
 		elemsTable.setLayoutData(gdEvensData);
-
-		comparator = new EventTableColumnComparator();
-		eventsTableViewer.setComparator(comparator);
 	}
 
 	@Override
 	public void setFocus() {
-		eventsTableViewer.getControl().setFocus();
+		if (eventsTableViewer != null)
+			eventsTableViewer.getControl().setFocus();
 		super.setFocus();
 	}
 
 	@Override
 	public void dispose() {
-		eventsTableViewer = null; 
+		eventsTableViewer = null;
 		filtersTableViewer = null;
 		comparator = null;
-		if (eventsLoader!=null)
+		if (eventsLoader != null)
 			eventsLoader.dispose();
 		eventsLoader = null;
-		if (eventColumns!=null)
+		if (eventColumns != null)
 			eventColumns.clear();
 		eventColumns = null;
-		if (filterColumns!=null)
+		if (filterColumns != null)
 			filterColumns.clear();
 		filterColumns = null;
-		if (timeBar!=null)
+		if (timeBar != null)
 			timeBar.dispose();
 		timeBar = null;
 		super.dispose();
 	}
 
 	/**
-	 * Main method: show the table representation of the 
-	 * given time window.
+	 * Main method: show the table representation of the given time window.
 	 * 
-	 * @param trace trace to show
-	 * @param start start timestamp to show
-	 * @param end end timestamp to show
-	 * @param limit max number of events to load in the window
+	 * @param trace
+	 *            trace to show
+	 * @param start
+	 *            start timestamp to show
+	 * @param end
+	 *            end timestamp to show
+	 * @param limit
+	 *            max number of events to load in the window
 	 */
-	private void showSelectedWindow(final Trace trace, final long start, final long end, final int limit) {
+	private void showSelectedWindow(final Trace trace, final long start, final long end,
+			final int limit) {
 
 		Job job = new Job("Loading Events table...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				boolean closeIfCancelled = (currentShownTrace==null);
+				boolean closeIfCancelled = (currentShownTrace == null);
 				try {
 
 					monitor.beginTask("Loading Events table", IProgressMonitor.UNKNOWN);
 					// update trace selection
-					if (trace==null) {
+					if (trace == null) {
 						handleCancel(closeIfCancelled);
 						return Status.CANCEL_STATUS;
 					}
@@ -470,7 +539,7 @@ public final class EventTableView extends FramesocPart {
 					// activate the view after setting the current shown trace
 					activateView(); // TODO check if needed
 
-					if (monitor.isCanceled()) { 
+					if (monitor.isCanceled()) {
 						handleCancel(closeIfCancelled);
 						return Status.CANCEL_STATUS;
 					}
@@ -479,15 +548,16 @@ public final class EventTableView extends FramesocPart {
 					IntervalDesc intervalToLoad = new IntervalDesc(start, end);
 
 					// load events from DB
-					final LoadDescriptor des = eventsLoader.loadTimeWindow(trace, intervalToLoad.t1, intervalToLoad.t2, limit, monitor);
+					final LoadDescriptor des = eventsLoader.loadTimeWindow(trace,
+							intervalToLoad.t1, intervalToLoad.t2, limit, monitor);
 					logger.debug(des.getMessage());
-					if (monitor.isCanceled()) { 
+					if (monitor.isCanceled()) {
 						handleCancel(closeIfCancelled);
 						return Status.CANCEL_STATUS;
-					}						
+					}
 
 					// refresh table and page selector UI
-					Display.getDefault().syncExec(new Runnable() {						
+					Display.getDefault().syncExec(new Runnable() {
 						@Override
 						public void run() {
 							setContentDescription("Trace: " + currentShownTrace.getAlias());
@@ -496,9 +566,11 @@ public final class EventTableView extends FramesocPart {
 							btnDraw.setEnabled(true);
 							timeBar.setEnabled(true);
 							timeBar.setMinTimestamp(currentShownTrace.getMinTimestamp());
-							timeBar.setMaxTimestamp(currentShownTrace.getMaxTimestamp()); 
-							startTimestamp = Math.max(currentShownTrace.getMinTimestamp(), des.getActualStartTimestamp());
-							endTimestamp = Math.min(currentShownTrace.getMaxTimestamp(), des.getActualEndTimestamp());
+							timeBar.setMaxTimestamp(currentShownTrace.getMaxTimestamp());
+							startTimestamp = Math.max(currentShownTrace.getMinTimestamp(),
+									des.getActualStartTimestamp());
+							endTimestamp = Math.min(currentShownTrace.getMaxTimestamp(),
+									des.getActualEndTimestamp());
 							timeBar.setSelection(startTimestamp, endTimestamp);
 							logger.debug(timeBar.toString());
 							setInput();
@@ -515,7 +587,7 @@ public final class EventTableView extends FramesocPart {
 			}
 		};
 		job.setUser(true);
-		job.schedule(); 		
+		job.schedule();
 
 	}
 
@@ -528,7 +600,7 @@ public final class EventTableView extends FramesocPart {
 				timeBar.setSelection(startTimestamp, endTimestamp);
 				if (closeIfCancelled) {
 					FramesocPartManager.getInstance().disposeFramesocPart(EventTableView.this);
-					EventTableView.this.hideView();									
+					EventTableView.this.hideView();
 				}
 			}
 		});
@@ -538,10 +610,11 @@ public final class EventTableView extends FramesocPart {
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 		eventsTableViewer.setInput(eventsLoader.getEvents());
-		statusText.setText(getStatus(eventsLoader.getEvents().size(), eventsLoader.getEvents().size()));
+		statusText.setText(getStatus(eventsLoader.getEvents().size(), eventsLoader.getEvents()
+				.size()));
 		Trace t = eventsLoader.getCurrentTrace();
-		if (t!=null) {
-			logger.debug(dm.endMessage("## refresh input: trace={}"+t.getAlias()));
+		if (t != null) {
+			logger.debug(dm.endMessage("## refresh input: trace={}" + t.getAlias()));
 		} else {
 			logger.debug(dm.endMessage("## refresh input"));
 		}
@@ -549,8 +622,8 @@ public final class EventTableView extends FramesocPart {
 
 	private void clearFilters() {
 		filtersTableViewer.setInput(getEmptyInput());
-		for (ViewerFilter filter: eventsTableViewer.getFilters())
-			((RowFilter) filter).setSearchText("");		
+		for (ViewerFilter filter : eventsTableViewer.getFilters())
+			((RowFilter) filter).setSearchText("");
 	}
 
 	/**
@@ -560,17 +633,23 @@ public final class EventTableView extends FramesocPart {
 
 		private TableViewer filterViewer;
 		private TableViewer elementsViewer;
-		private ITableColumn col; 
+		private ITableColumn col;
 		private RowFilter filter;
 
 		/**
 		 * Constructor.
-		 * @param filterViewer filter table viewer
-		 * @param elementsViewer elements table viewer
-		 * @param col column on the elements table
-		 * @param filter filter for a given column of the elements viewer
+		 * 
+		 * @param filterViewer
+		 *            filter table viewer
+		 * @param elementsViewer
+		 *            elements table viewer
+		 * @param col
+		 *            column on the elements table
+		 * @param filter
+		 *            filter for a given column of the elements viewer
 		 */
-		public FilterEditingSupport(TableViewer filterViewer, TableViewer elementsViewer, ITableColumn col, RowFilter filter) {
+		public FilterEditingSupport(TableViewer filterViewer, TableViewer elementsViewer,
+				ITableColumn col, RowFilter filter) {
 			super(filterViewer);
 			this.filterViewer = filterViewer;
 			this.elementsViewer = elementsViewer;
@@ -584,8 +663,9 @@ public final class EventTableView extends FramesocPart {
 			this.filterViewer.update(element, null);
 			this.filter.setSearchText(value.toString());
 			this.elementsViewer.refresh();
-			if (eventsLoader.getEvents()!=null) {
-				statusText.setText(getStatus(eventsLoader.getEvents().size(), elementsViewer.getTable().getItemCount()));
+			if (eventsLoader.getEvents() != null) {
+				statusText.setText(getStatus(eventsLoader.getEvents().size(), elementsViewer
+						.getTable().getItemCount()));
 			}
 		}
 
@@ -611,21 +691,22 @@ public final class EventTableView extends FramesocPart {
 	}
 
 	/**
-	 * Resize listener used to synchronize column size in
-	 * filters and elements table. It must be added to the 
-	 * filter viewer.
+	 * Resize listener used to synchronize column size in filters and elements
+	 * table. It must be added to the filter viewer.
 	 */
 	public class TableColumnResizeListener extends ControlAdapter {
 
 		/**
-		 * Column to resize when the column this listener 
-		 * is connected to is resized.
+		 * Column to resize when the column this listener is connected to is
+		 * resized.
 		 */
 		private TableColumn destColumn;
 
 		/**
 		 * Constructor
-		 * @param dest column to resize 
+		 * 
+		 * @param dest
+		 *            column to resize
 		 */
 		public TableColumnResizeListener(TableColumn dest) {
 			this.destColumn = dest;
@@ -633,12 +714,13 @@ public final class EventTableView extends FramesocPart {
 
 		@Override
 		public void controlResized(ControlEvent e) {
-			TableColumn column = (TableColumn)e.getSource();
+			TableColumn column = (TableColumn) e.getSource();
 			this.destColumn.setWidth(column.getWidth());
 		}
 	}
 
-	public class EventTableColumnComparator extends ViewerComparator {
+	// move in another file
+	public class EventTableColumnComparator implements Comparator<EventTableRow> {
 		private EventTableColumn col = EventTableColumn.TIMESTAMP;
 		private int direction = SWT.UP;
 
@@ -658,12 +740,11 @@ public final class EventTableView extends FramesocPart {
 		}
 
 		@Override
-		public int compare(Viewer viewer, Object e1, Object e2) {
-			EventTableRow r1 = (EventTableRow) e1;
-			EventTableRow r2 = (EventTableRow) e2;
+		public int compare(EventTableRow r1, EventTableRow r2) {
 			int rc = 0;
 			try {
-				if (this.col.equals(EventTableColumn.TIMESTAMP) || this.col.equals(EventTableColumn.CPU)) {
+				if (this.col.equals(EventTableColumn.TIMESTAMP)
+						|| this.col.equals(EventTableColumn.CPU)) {
 					// long comparison
 					Long v1 = Long.valueOf(r1.get(this.col));
 					Long v2 = Long.valueOf(r2.get(this.col));
@@ -691,20 +772,15 @@ public final class EventTableView extends FramesocPart {
 		return ID;
 	}
 
-
-	/**
-	 * @param data if null, the first page must be loaded. Otherwise
-	 * it is a HistogramBinDisplay. This may change in future, with 
-	 * a more generic data structure, to be used when the page will 
-	 * be no longer used in the table.
-	 */
 	@Override
 	public void showTrace(final Trace trace, final Object data) {
 		if (data == null)
-			showSelectedWindow(trace, trace.getMinTimestamp(),trace.getMaxTimestamp(), EventTableLoader.NO_LIMIT);
+			showSelectedWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp(),
+					EventTableLoader.NO_LIMIT);
 		else {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-			showSelectedWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp(), EventTableLoader.NO_LIMIT);
+			showSelectedWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp(),
+					EventTableLoader.NO_LIMIT);
 		}
 	}
 
@@ -714,4 +790,3 @@ public final class EventTableView extends FramesocPart {
 	}
 
 }
-
