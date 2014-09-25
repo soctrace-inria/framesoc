@@ -406,11 +406,12 @@ public final class EventTableView extends FramesocPart implements IFilterListene
 		contentProvider.setFilter(filter);
 		eventsTableViewer.setContentProvider(contentProvider);
 		input = new EventSetModel();
+		eventsTableViewer.setUseHashlookup(true);
 		eventsTableViewer.setInput(input);
 		eventsLoader = new EventTableLoader();
 	}
 
-	final int max = 1000000;
+	final int max = 1000;
 	
 	private void dummyFill() {
 		Job fillJob = new Job("fill") {
@@ -421,7 +422,7 @@ public final class EventTableView extends FramesocPart implements IFilterListene
 				ModelFactory factory = new ModelFactory();
 				Event e = factory.createEvent();
 				int elem = 0;
-				int delta = 100000;
+				int delta = 100;
 				while (!monitor.isCanceled() && elem<max) {
 					List<EventTableRow> elems = getElements(e, delta, elem);
 					input.addAll(elems);
