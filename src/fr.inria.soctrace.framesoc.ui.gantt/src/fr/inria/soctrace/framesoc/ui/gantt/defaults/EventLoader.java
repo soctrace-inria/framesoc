@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
-import fr.inria.soctrace.framesoc.ui.gantt.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;

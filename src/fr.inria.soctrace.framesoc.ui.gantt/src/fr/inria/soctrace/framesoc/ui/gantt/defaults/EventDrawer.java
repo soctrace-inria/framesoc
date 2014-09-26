@@ -24,7 +24,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeLinkEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
-import fr.inria.soctrace.framesoc.ui.gantt.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.utils.DeltaManager;

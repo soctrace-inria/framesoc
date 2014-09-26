@@ -18,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+
 /**
  * Queue for streaming operations between one loader thread and one consumer
  * thread. The elements being queued are lists of objects of a generic type.

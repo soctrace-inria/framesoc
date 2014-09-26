@@ -26,11 +26,14 @@ import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
  */
 public class EventTableRow extends TableRow {
 
+	private long timestamp;
+
 	/**
 	 * Constructor used to create a table row related to a given event.
 	 * @param event the event
 	 */
 	public EventTableRow(Event event) {
+		timestamp = event.getTimestamp();
 		fields.put(EventTableColumn.TIMESTAMP, String.valueOf(event.getTimestamp()));
 		fields.put(EventTableColumn.CPU, String.valueOf(event.getCpu()));
 		fields.put(EventTableColumn.PRODUCER_NAME, event.getEventProducer().getName());
@@ -88,6 +91,21 @@ public class EventTableRow extends TableRow {
 		fields.put(EventTableColumn.CATEGORY, "");
 		fields.put(EventTableColumn.TYPE_NAME, "");
 		fields.put(EventTableColumn.PARAMS, "");
+	}
+
+	/**
+	 * @return the timestamp
+	 */
+	public long getTimestamp() {
+		return timestamp;
+	}
+	
+	/**
+	 * 
+	 * @param timestamp the timestamp to set
+	 */
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
 	}
 
 }

@@ -11,7 +11,7 @@
 /**
  * 
  */
-package fr.inria.soctrace.framesoc.ui.gantt.model;
+package fr.inria.soctrace.framesoc.ui.model;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
