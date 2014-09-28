@@ -1,7 +1,7 @@
 Framesoc
 ========
 
-Framesoc is a generic trace and tool management and analysis infrastructure.
+Framesoc is a generic trace management and analysis infrastructure.
 
 Take a look at the [Framesoc wiki](https://github.com/generoso/framesoc/wiki/) for more information. 
 
