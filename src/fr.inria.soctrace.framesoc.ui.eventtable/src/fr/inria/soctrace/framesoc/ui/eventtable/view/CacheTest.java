@@ -62,7 +62,7 @@ public class CacheTest {
 	private static void print(EventTableCache cache, int n) {
 		for (int i = 0; i < n; i++) {
 			EventTableRow r = cache.get(i);
-			//System.out.println("r: " + r.getTimestamp());
+			System.out.println("r: " + r.getTimestamp());
 		}
 	}
 }

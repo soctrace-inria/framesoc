@@ -14,9 +14,14 @@
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
@@ -46,7 +51,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -63,17 +67,21 @@ import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
+import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventTableLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
+import fr.inria.soctrace.framesoc.ui.eventtable.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
+import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * Class for the Event table view
@@ -156,6 +164,10 @@ public final class EventTableView extends FramesocPart {
 	private EventTableRowFilter rowFilter = new EventTableRowFilter();
 	private final Object filterSyncObj = new Object();
 
+	// loading
+	private Job loaderJob;
+	private Thread drawerThread;
+
 	public interface Key {
 		/** Column object, set on a column */
 		String COLUMN_OBJ = "$field_id"; //$NON-NLS-1$
@@ -204,6 +216,172 @@ public final class EventTableView extends FramesocPart {
 	}
 
 	// ************************************************************
+
+	private void showWindow(Trace trace, long start, long end) {
+
+		if (trace == null) {
+			return;
+		}
+
+		// create the queue
+		LoaderQueue<Event> queue = new LoaderQueue<>();
+
+		// create the event loader
+		IEventLoader loader = new EventLoader(); // TODO initialize
+		loader.setTrace(trace);
+		loader.setQueue(queue);
+
+		// compute the actual time interval to load
+		TimeInterval interval = new TimeInterval(start, end);
+
+		// check for contained interval
+		if (checkReuse(trace, interval)) {
+			cache.index(interval);
+			table.refresh();
+			timeBar.setMinTimestamp(interval.startTimestamp);
+			timeBar.setMaxTimestamp(interval.endTimestamp);
+			return;
+		}
+
+		// launch the job loading the queue
+		launchLoaderJob(loader, interval);
+
+		// update the viewer
+		launchDrawerThread(interval, trace, queue);
+	}
+
+	private boolean checkReuse(Trace trace, TimeInterval interval) {
+		if (trace.equals(currentShownTrace) && cache.contains(interval)) {
+			return true;
+		}
+		return false;
+	}
+
+	private void launchLoaderJob(final IEventLoader loader, final TimeInterval interval) {
+		loaderJob = new Job("Loading Event Table...") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				DeltaManager all = new DeltaManager();
+				all.start();
+				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
+				logger.debug(all.endMessage("Loader Job: loaded everything"));
+				if (monitor.isCanceled())
+					return Status.CANCEL_STATUS;
+				return Status.OK_STATUS;
+			}
+		};
+		loaderJob.setUser(false);
+		loaderJob.schedule();
+	}
+
+	private void launchDrawerThread(final TimeInterval requestedInterval, final Trace trace,
+			final LoaderQueue<Event> queue) {
+
+		setContentDescription("Trace: " + trace.getAlias());
+		timeBar.setMinTimestamp(trace.getMinTimestamp());
+		timeBar.setMaxTimestamp(trace.getMaxTimestamp());
+		table.clearAll();
+
+		drawerThread = new Thread() {
+
+			private boolean refreshBusy = false;
+			private boolean refreshPending = false;
+			private Object syncObj = new Object();
+
+			@Override
+			public void run() {
+
+				DeltaManager all = new DeltaManager();
+				all.start();
+
+				currentShownTrace = trace;
+				endTimestamp = Long.MIN_VALUE;
+				startTimestamp = Long.MAX_VALUE;
+				cache.clear();
+
+				//TimeInterval partial = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
+				while (!queue.done()) {
+					try {
+						List<Event> events = queue.pop();
+						if (events.isEmpty())
+							continue;
+						// put the events in the cache
+						for (Event e : events) {
+							cache.put(new EventTableRow(e));
+							startTimestamp = Math.max(requestedInterval.startTimestamp,
+									Math.min(e.getTimestamp(), startTimestamp));
+							endTimestamp = Math.min(requestedInterval.endTimestamp,
+									Math.max(e.getTimestamp(), endTimestamp));
+							refreshTable();
+						}
+					} catch (InterruptedException e) {
+						logger.debug("Interrupted while taking the queue head");
+					}
+				}
+
+				// TimeInterval queueInterval = queue.getTimeInterval();
+				if (queue.isComplete()) {
+					// // the whole requested interval has been loaded
+					// startTimestamp = Math.max(requestedInterval.startTimestamp,
+					// queueInterval.startTimestamp);
+					// endTimestamp = Math.min(requestedInterval.endTimestamp,
+					// queueInterval.endTimestamp);
+				} else {
+					// something has not been loaded
+					// if (partial != null && queueInterval != null) {
+					// // something has been loaded
+					// startTimestamp = Math.max(requestedInterval.startTimestamp,
+					// queueInterval.startTimestamp);
+					// endTimestamp = Math.min(partial.endTimestamp, Math.min(
+					// requestedInterval.endTimestamp, queueInterval.endTimestamp));
+					// }
+					handleCancel(cache.getActiveRowCount() > 0);
+				}
+
+				// refresh one last time
+				refreshTable();
+
+				logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
+				logger.debug("start: {}", startTimestamp);
+				logger.debug("end: {}", endTimestamp);
+			}
+
+			/**
+			 * Refresh the filter.
+			 */
+			public void refreshTable() {
+				synchronized (syncObj) {
+					if (refreshBusy) {
+						refreshPending = true;
+						return;
+					}
+					refreshBusy = true;
+				}
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (table.isDisposed()) {
+							return;
+						}
+						int events = cache.getActiveRowCount();
+						table.setItemCount(events + 1); // +1 for header row
+						table.refresh();
+						timeBar.setSelection(startTimestamp, endTimestamp);
+						statusText.setText(getStatus(events, events));
+						synchronized (syncObj) {
+							refreshBusy = false;
+							if (refreshPending) {
+								refreshPending = false;
+								refreshTable();
+							}
+						}
+					}
+				});
+			}
+
+		};
+		drawerThread.start();
+	}
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -254,7 +432,7 @@ public final class EventTableView extends FramesocPart {
 		table.addListener(SWT.SetData, new Listener() {
 
 			@Override
-			public void handleEvent(final Event event) {
+			public void handleEvent(final org.eclipse.swt.widgets.Event event) {
 
 				final TableItem item = (TableItem) event.item;
 				int index = event.index - 1; // -1 for the header row
@@ -766,21 +944,21 @@ public final class EventTableView extends FramesocPart {
 		return ID;
 	}
 
+
 	/**
+	 * Show the trace.
+	 * 
 	 * @param data
-	 *            if null, the first page must be loaded. Otherwise it is a HistogramBinDisplay.
-	 *            This may change in future, with a more generic data structure, to be used when the
-	 *            page will be no longer used in the table.
+	 *            if null, all the trace must be loaded. Otherwise data is a
+	 *            TraceIntervalDescriptor.
 	 */
 	@Override
 	public void showTrace(final Trace trace, final Object data) {
-		if (data == null)
-			showSelectedWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp(),
-					EventTableLoader.NO_LIMIT);
-		else {
+		if (data == null) {
+			showWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp());
+		} else {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-			showSelectedWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp(),
-					EventTableLoader.NO_LIMIT);
+			showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
 		}
 	}
 
@@ -796,7 +974,7 @@ public final class EventTableView extends FramesocPart {
 	/**
 	 * Wrapper Thread object for the filtering thread.
 	 */
-	protected class FilterThread extends Thread {
+	private class FilterThread extends Thread {
 
 		private volatile boolean stop = false;
 		private EventTableRowFilter filter;
