@@ -148,11 +148,18 @@ public class EventTableCache {
 	 * @param interval
 	 */
 	public synchronized void index(TimeInterval interval) {
-		fIndex = new HashMap<>();
-		fCurrentIndex = 0;
 		FROM.setTimestamp(interval.startTimestamp);
 		TO.setTimestamp(interval.endTimestamp + 1);
 		fActiveRows = fRows.subSet(FROM, TO);
+		index();
+	}
+
+	/**
+	 * Re-index the cache, considering all the active rows.
+	 */
+	public synchronized void index() {
+		fIndex = new HashMap<>();
+		fCurrentIndex = 0;		
 		for (EventTableRow row: fActiveRows) {
 			fIndex.put(fCurrentIndex, row);
 			fCurrentIndex++;

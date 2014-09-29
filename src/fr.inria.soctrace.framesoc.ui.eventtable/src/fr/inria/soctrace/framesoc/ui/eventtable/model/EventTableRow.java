@@ -85,10 +85,10 @@ public class EventTableRow extends TableRow {
 	 * Empty table row, to be used for filters.
 	 */
 	public EventTableRow() {
-		fields.put(EventTableColumn.TIMESTAMP, "a");
+		fields.put(EventTableColumn.TIMESTAMP, "a"+((long)(Math.random()*100)));
 		fields.put(EventTableColumn.CPU, "a");
-		fields.put(EventTableColumn.PRODUCER_NAME, "a");
-		fields.put(EventTableColumn.CATEGORY, "a");
+		fields.put(EventTableColumn.PRODUCER_NAME, "ddddddddddddddddddddddddddddddddddddddddddddddddddddda"+((long)(Math.random()*100)));
+		fields.put(EventTableColumn.CATEGORY, "asssssssssssssssssssssssssssssssssssssssssssss");
 		fields.put(EventTableColumn.TYPE_NAME, "a");
 		fields.put(EventTableColumn.PARAMS, "a");
 	}

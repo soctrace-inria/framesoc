@@ -13,6 +13,7 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
+import java.util.Iterator;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -26,16 +27,8 @@ import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.EditingSupport;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
@@ -65,15 +58,6 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.inria.linuxtools.tmf.core.component.ITmfEventProvider;
-import fr.inria.linuxtools.tmf.core.event.ITmfEvent;
-import fr.inria.linuxtools.tmf.core.filter.model.ITmfFilterTreeNode;
-import fr.inria.linuxtools.tmf.core.filter.model.TmfFilterMatchesNode;
-import fr.inria.linuxtools.tmf.core.request.TmfEventRequest;
-import fr.inria.linuxtools.tmf.core.request.ITmfEventRequest.ExecutionType;
-import fr.inria.linuxtools.tmf.core.timestamp.TmfTimeRange;
-import fr.inria.linuxtools.tmf.ui.viewers.events.TmfEventsTable.FilterThread;
-import fr.inria.linuxtools.tmf.ui.viewers.events.TmfEventsTable.Key;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
@@ -82,14 +66,11 @@ import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventTableLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
-import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
-import fr.inria.soctrace.framesoc.ui.model.ITableRow;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
-import fr.inria.soctrace.framesoc.ui.utils.RowFilter;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -162,17 +143,30 @@ public final class EventTableView extends FramesocPart {
 	private long endTimestamp;
 
 	// SWT resources
-	private LocalResourceManager fResourceManager = new LocalResourceManager(
+	private LocalResourceManager resourceManager = new LocalResourceManager(
 			JFaceResources.getResources());
-	private Color fGrayColor;
-	private Color fBlackColor;
-	private Font fBoldFont;
+	private Color grayColor;
+	private Color blackColor;
+	private Font boldFont;
 
 	// Filtering
-    private FilterThread fFilterThread;
-    private boolean fFilterThreadResume = false;
-    private final Object fFilterSyncObj = new Object();
-    
+	private int filterMatchCount;
+	private int filterCheckCount;
+	private FilterThread filterThread;
+	private EventTableRowFilter rowFilter = new EventTableRowFilter();
+	private final Object filterSyncObj = new Object();
+
+	public interface Key {
+		/** Column object, set on a column */
+		String COLUMN_OBJ = "$field_id"; //$NON-NLS-1$
+
+		/** Filter text, set on a column */
+		String FILTER_TXT = "$fltr_txt"; //$NON-NLS-1$
+
+		/** Filter object, set on the table */
+		String FILTER_OBJ = "$fltr_obj"; //$NON-NLS-1$
+	}
+
 	// // Uncomment this to use the window builder
 	// @Override
 	// public void createPartControl(Composite parent) {
@@ -181,9 +175,12 @@ public final class EventTableView extends FramesocPart {
 
 	// ************************************************************
 	// Dummy stuff
+	// ************************************************************
+
 	private int n = 1;
 
 	private void dummyFillCache() {
+		currentShownTrace = new Trace(0);
 		n *= 2;
 		int N = n;
 		System.out.println("Loading");
@@ -253,17 +250,6 @@ public final class EventTableView extends FramesocPart {
 		// Create the header row cell editor
 		createHeaderEditor();
 
-		// Handle the table item selection
-		table.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(final SelectionEvent e) {
-				if (e.item == null) {
-					return;
-				}
-				System.out.println("line select");
-			}
-		});
-
 		// Handle the table item requests
 		table.addListener(SWT.SetData, new Listener() {
 
@@ -271,7 +257,6 @@ public final class EventTableView extends FramesocPart {
 			public void handleEvent(final Event event) {
 
 				final TableItem item = (TableItem) event.item;
-				System.out.println(event.index);
 				int index = event.index - 1; // -1 for the header row
 
 				if (event.index == 0) {
@@ -290,18 +275,18 @@ public final class EventTableView extends FramesocPart {
 			}
 		});
 
-		table.setItemCount(1); // the header
+		table.setItemCount(1); // only the header at the beginning
 
 		// ----------
 		// TOOLBAR
 		// ----------
 
 		getViewSite().getActionBars().getToolBarManager().add(fillCacheAction());
+		getViewSite().getActionBars().getToolBarManager().add(createColumnAction());
 		if (FramesocPartManager.getInstance().isFramesocPartExisting(
 				FramesocViews.GANTT_CHART_VIEW_ID))
 			getViewSite().getActionBars().getToolBarManager().add(createGanttAction());
-		// XXX
-		// enableActions(false);
+		enableActions(false);
 
 		// -------------
 		// STATUS BAR
@@ -349,8 +334,7 @@ public final class EventTableView extends FramesocPart {
 
 	}
 
-	// TODO maybe optimize
-	public String[] getItemStrings(EventTableRow row) {
+	private String[] getItemStrings(EventTableRow row) {
 		String values[] = new String[EventTableColumn.values().length];
 		int i = 0;
 		for (EventTableColumn col : EventTableColumn.values()) {
@@ -366,20 +350,23 @@ public final class EventTableView extends FramesocPart {
 		return values;
 	}
 
-	protected void setColumnHeaders() {
-		// Set the columns
+	private void setColumnHeaders() {
 		ColumnData columnData[] = new ColumnData[EventTableColumn.values().length];
 		int i = 0;
 		for (EventTableColumn col : EventTableColumn.values()) {
 			columnData[i++] = new ColumnData(col.getHeader(), col.getWidth(), SWT.LEFT);
 		}
 		table.setColumnHeaders(columnData);
+		i = 0;
+		for (EventTableColumn col : EventTableColumn.values()) {
+			table.getColumns()[i++].setData(Key.COLUMN_OBJ, col);
+		}
 	}
 
 	/**
 	 * Create an editor for the header.
 	 */
-	protected void createHeaderEditor() {
+	private void createHeaderEditor() {
 		final TableEditor tableEditor = table.createTableEditor();
 		tableEditor.horizontalAlignment = SWT.LEFT;
 		tableEditor.verticalAlignment = SWT.CENTER;
@@ -457,29 +444,20 @@ public final class EventTableView extends FramesocPart {
 			}
 
 			/*
-			 * returns true is value was changed
+			 * returns true if the value was changed
 			 */
 			private boolean updateHeader(final String text) {
-				String objKey = Key.FILTER_OBJ;
-				String txtKey = Key.FILTER_TXT;
-
 				if (text.trim().length() > 0) {
 					try {
-						final String regex = TmfFilterMatchesNode.regexFix(text);
+						final String regex = regexFix(text);
 						Pattern.compile(regex);
-						if (regex.equals(column.getData(txtKey))) {
+						if (regex.equals(column.getData(Key.FILTER_TXT))) {
 							tableEditor.getEditor().dispose();
 							return false;
 						}
-						final TmfFilterMatchesNode filter = new TmfFilterMatchesNode(null);
-						String fieldId = (String) column.getData(Key.FIELD_ID);
-						if (fieldId == null) {
-							fieldId = column.getText();
-						}
-						filter.setField(fieldId);
-						filter.setRegex(regex);
-						column.setData(objKey, filter);
-						column.setData(txtKey, regex);
+						EventTableColumn col = (EventTableColumn) column.getData(Key.COLUMN_OBJ);
+						rowFilter.setSearchText(col, regex);
+						column.setData(Key.FILTER_TXT, regex);
 					} catch (final PatternSyntaxException ex) {
 						tableEditor.getEditor().dispose();
 						MessageDialog.openError(PlatformUI.getWorkbench()
@@ -488,18 +466,35 @@ public final class EventTableView extends FramesocPart {
 						return false;
 					}
 				} else {
-					if (column.getData(txtKey) == null) {
+					if (column.getData(Key.FILTER_TXT) == null) {
 						tableEditor.getEditor().dispose();
 						return false;
 					}
-					column.setData(objKey, null);
-					column.setData(txtKey, null);
+					column.setData(Key.FILTER_TXT, null);
 				}
 				return true;
 			}
 
+			public String regexFix(String pattern) {
+				String ret = pattern;
+				// if the pattern does not contain one of the expressions .* !^
+				// (at the beginning) $ (at the end), then a .* is added at the
+				// beginning and at the end of the pattern
+				if (!(ret.indexOf(".*") >= 0 || ret.charAt(0) == '^' || ret.charAt(ret.length() - 1) == '$')) { //$NON-NLS-1$
+					ret = ".*" + ret + ".*"; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+				return ret;
+			}
+
 			private void applyHeader() {
-				System.out.println("apply");
+				System.out.println("apply header");
+				stopFilterThread();
+				filterMatchCount = 0;
+				filterCheckCount = 0;
+				table.clearAll();
+				table.setData(Key.FILTER_OBJ, rowFilter);
+				table.setItemCount(1); // +1 for header row
+				startFilterThread();
 				tableEditor.getEditor().dispose();
 				table.refresh();
 			}
@@ -510,30 +505,53 @@ public final class EventTableView extends FramesocPart {
 			public void keyPressed(final KeyEvent e) {
 				e.doit = false;
 				if (e.character == SWT.ESC) {
-					System.out.println("esc");
-					// stopFilterThread();
+					stopFilterThread();
 					table.refresh();
 				} else if (e.character == SWT.DEL) {
-					// clearFilters();
-					System.out.println("del");
+					clearFilters();
 				}
 			}
 		});
 	}
 
-	protected void setHeaderRowItemData(final TableItem item) {
-		item.setForeground(fGrayColor);
+	/**
+	 * Clear all currently active filters.
+	 */
+	private void clearFilters() {
+		if (table.getData(Key.FILTER_OBJ) == null) {
+			return;
+		}
+		stopFilterThread();
+		table.clearAll();
+		for (final TableColumn column : table.getColumns()) {
+			column.setData(Key.FILTER_TXT, null);
+		}
+		table.setData(Key.FILTER_OBJ, null);
+		if (currentShownTrace != null) {
+			cache.index();
+			table.setItemCount(cache.getActiveRowCount() + 1); // +1 for header row
+		} else {
+			table.setItemCount(1); // +1 for header row
+		}
+		filterMatchCount = 0;
+		filterCheckCount = 0;
+		table.setSelection(0);
+		statusText.setText(getStatus(cache.getActiveRowCount(), cache.getActiveRowCount()));
+	}
+
+	private void setHeaderRowItemData(final TableItem item) {
+		item.setForeground(grayColor);
 		for (int i = 0; i < table.getColumns().length; i++) {
 			final TableColumn column = table.getColumns()[i];
 			final String filter = (String) column.getData(Key.FILTER_TXT);
 			if (filter == null) {
 				item.setText(i, FILTER_HINT);
-				item.setForeground(i, fGrayColor);
+				item.setForeground(i, grayColor);
 				item.setFont(i, table.getFont());
 			} else {
 				item.setText(i, filter);
-				item.setForeground(i, fBlackColor);
-				item.setFont(i, fBoldFont);
+				item.setForeground(i, blackColor);
+				item.setFont(i, boldFont);
 			}
 		}
 	}
@@ -541,12 +559,12 @@ public final class EventTableView extends FramesocPart {
 	/**
 	 * Create the SWT resources.
 	 */
-	protected void createResources() {
-		fGrayColor = fResourceManager.createColor(ColorUtil.blend(table.getBackground().getRGB(),
+	private void createResources() {
+		grayColor = resourceManager.createColor(ColorUtil.blend(table.getBackground().getRGB(),
 				table.getForeground().getRGB()));
-		fBlackColor = table.getDisplay().getSystemColor(SWT.COLOR_BLACK);
-		fBoldFont = fResourceManager.createFont(FontDescriptor.createFrom(table.getFont())
-				.setStyle(SWT.BOLD));
+		blackColor = table.getDisplay().getSystemColor(SWT.COLOR_BLACK);
+		boldFont = resourceManager.createFont(FontDescriptor.createFrom(table.getFont()).setStyle(
+				SWT.BOLD));
 	}
 
 	class DrawListener extends SelectionAdapter {
@@ -604,31 +622,23 @@ public final class EventTableView extends FramesocPart {
 		}
 	}
 
-	// private IAction createColumnAction() {
-	// IAction colAction = new Action("Adjust Columns", Action.AS_PUSH_BUTTON) {
-	// @Override
-	// public void run() {
-	// // refreshColumnSize();
-	// }
-	// };
-	// colAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-	// "icons/adjust_h.png"));
-	// colAction.setToolTipText("Adjust column size to content");
-	// return colAction;
-	// }
-
-	// private void refreshColumnSize() {
-	// Iterator<Entry<EventTableColumn, TableColumn>> it = eventColumns.entrySet().iterator();
-	// while (it.hasNext()) {
-	// Entry<EventTableColumn, TableColumn> entry = it.next();
-	// EventTableColumn col = entry.getKey();
-	// TableColumn tc = entry.getValue();
-	// tc.pack();
-	// if (tc.getWidth() < col.getWidth())
-	// tc.setWidth(col.getWidth());
-	// filterColumns.get(col).setWidth(tc.getWidth());
-	// }
-	// }
+	private IAction createColumnAction() {
+		IAction colAction = new Action("Adjust Columns", Action.AS_PUSH_BUTTON) {
+			@Override
+			public void run() {
+				for (TableColumn column : table.getColumns()) {
+					EventTableColumn col = (EventTableColumn) column.getData(Key.COLUMN_OBJ);
+					column.pack();
+					if (column.getWidth() < col.getWidth())
+						column.setWidth(col.getWidth());
+				}
+			}
+		};
+		colAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/adjust_h.png"));
+		colAction.setToolTipText("Adjust column size to content");
+		return colAction;
+	}
 
 	@Override
 	public void setFocus() {
@@ -639,18 +649,12 @@ public final class EventTableView extends FramesocPart {
 
 	@Override
 	public void dispose() {
-		// TODO kill jobs
+		stopFilterThread();
 		if (table != null)
 			table.dispose();
 		if (eventsLoader != null)
 			eventsLoader.dispose();
 		eventsLoader = null;
-		// if (eventColumns != null)
-		// eventColumns.clear();
-		// eventColumns = null;
-		// if (filterColumns != null)
-		// filterColumns.clear();
-		// filterColumns = null;
 		if (timeBar != null)
 			timeBar.dispose();
 		timeBar = null;
@@ -784,151 +788,123 @@ public final class EventTableView extends FramesocPart {
 	public void partHandle(String topic, Object data) {
 		logger.debug("nothing to do here");
 	}
-	
+
 	/*
 	 * Filtering
 	 */
 
-    /**
-     * Wrapper Thread object for the filtering thread.
-     */
-    protected class FilterThread extends Thread {
-    	
-        private boolean refreshBusy = false;
-        private boolean refreshPending = false;
-        private final Object syncObj = new Object();
+	/**
+	 * Wrapper Thread object for the filtering thread.
+	 */
+	protected class FilterThread extends Thread {
 
-        /**
-         * Constructor.
-         *
-         * @param filter
-         *            The filter this thread will be processing
-         */
-        public FilterThread(final ITmfFilterTreeNode filter) {
-            super("Filter Thread"); //$NON-NLS-1$
-            this.filter = filter;
-        }
+		private volatile boolean stop = false;
+		private EventTableRowFilter filter;
+		private boolean refreshBusy = false;
+		private boolean refreshPending = false;
+		private final Object syncObj = new Object();
 
-        @Override
-        public void run() {
-            if (fTrace == null) {
-                return;
-            }
-            final int nbRequested = (int) (fTrace.getNbEvents() - fFilterCheckCount);
-            if (nbRequested <= 0) {
-                return;
-            }
-            request = new TmfEventRequest(ITmfEvent.class, TmfTimeRange.ETERNITY,
-                    (int) fFilterCheckCount, nbRequested, ExecutionType.BACKGROUND) {
-                @Override
-                public void handleData(final ITmfEvent event) {
-                    super.handleData(event);
-                    if (request.isCancelled()) {
-                        return;
-                    }
-                    if (filter.matches(event)) {
-                        final long rank = fFilterCheckCount;
-                        final int index = (int) fFilterMatchCount;
-                        fFilterMatchCount++;
-                        fCache.storeEvent(event, rank, index);
-                        refreshTable();
-                    } else if ((fFilterCheckCount % 100) == 0) {
-                        refreshTable();
-                    }
-                    fFilterCheckCount++;
-                }
-            };
-            ((ITmfEventProvider) fTrace).sendRequest(request);
-            try {
-                request.waitForCompletion();
-            } catch (final InterruptedException e) {
-            }
-            refreshTable();
-            synchronized (fFilterSyncObj) {
-                fFilterThread = null;
-                if (fFilterThreadResume) {
-                    fFilterThreadResume = false;
-                    fFilterThread = new FilterThread(filter);
-                    fFilterThread.start();
-                }
-            }
-        }
+		/**
+		 * Constructor.
+		 */
+		public FilterThread(EventTableRowFilter filter) {
+			super("Filter Thread"); //$NON-NLS-1$
+			this.filter = filter;
+		}
 
-        /**
-         * Refresh the filter.
-         */
-        public void refreshTable() {
-            synchronized (syncObj) {
-                if (refreshBusy) {
-                    refreshPending = true;
-                    return;
-                }
-                refreshBusy = true;
-            }
-            Display.getDefault().asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    if (request.isCancelled()) {
-                        return;
-                    }
-                    if (fTable.isDisposed()) {
-                        return;
-                    }
-                    fTable.setItemCount((int) fFilterMatchCount + 3); // +1 for header row, +2 for top and bottom filter status rows
-                    fTable.refresh();
-                    synchronized (syncObj) {
-                        refreshBusy = false;
-                        if (refreshPending) {
-                            refreshPending = false;
-                            refreshTable();
-                        }
-                    }
-                }
-            });
-        }
+		@Override
+		public void run() {
+			if (currentShownTrace == null) {
+				return;
+			}
+			cache.clearIndex();
+			Iterator<EventTableRow> it = cache.activeRowIterator();
+			while (it.hasNext()) {
+				if (stop) {
+					break;
+				}
+				EventTableRow r = it.next();
+				if (filter.matches(r)) {
+					filterMatchCount++;
+					cache.put(r);
+					refreshTable();
+				} else if ((filterCheckCount % 100) == 0) {
+					refreshTable();
+				}
+				filterCheckCount++;
+			}
+			refreshTable();
+			synchronized (filterSyncObj) {
+				filterThread = null;
+			}
+		}
 
-        /**
-         * Cancel this filtering thread.
-         */
-        public void cancel() {
-            if (request != null) {
-                request.cancel();
-            }
-        }
-    }
-    
-    /**
-     * Start the filtering thread.
-     */
-    protected void startFilterThread() {
-        synchronized (fFilterSyncObj) {
-            final ITmfFilterTreeNode filter = (ITmfFilterTreeNode) fTable.getData(Key.FILTER_OBJ);
-            if (fFilterThread == null || fFilterThread.filter != filter) {
-                if (fFilterThread != null) {
-                    fFilterThread.cancel();
-                    fFilterThreadResume = false;
-                }
-                fFilterThread = new FilterThread(filter);
-                fFilterThread.start();
-            } else {
-                fFilterThreadResume = true;
-            }
-        }
-    }
+		/**
+		 * Refresh the filter.
+		 */
+		public void refreshTable() {
+			synchronized (syncObj) {
+				if (refreshBusy) {
+					refreshPending = true;
+					return;
+				}
+				refreshBusy = true;
+			}
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					if (stop) {
+						return;
+					}
+					if (table.isDisposed()) {
+						return;
+					}
+					table.setItemCount(filterMatchCount + 1); // +1 for header row
+					table.refresh();
+					statusText.setText(getStatus(filterCheckCount, filterMatchCount));
+					synchronized (syncObj) {
+						refreshBusy = false;
+						if (refreshPending) {
+							refreshPending = false;
+							refreshTable();
+						}
+					}
+				}
+			});
+		}
 
-    /**
-     * Stop the filtering thread.
-     */
-    protected void stopFilterThread() {
-        synchronized (fFilterSyncObj) {
-            if (fFilterThread != null) {
-                fFilterThread.cancel();
-                fFilterThread = null;
-                fFilterThreadResume = false;
-            }
-        }
-    }
+		/**
+		 * Cancel this filtering thread.
+		 */
+		public void cancel() {
+			stop = true;
+		}
+	}
 
+	/**
+	 * Start the filtering thread.
+	 */
+	protected void startFilterThread() {
+		synchronized (filterSyncObj) {
+			if (filterThread != null) {
+				filterThread.cancel();
+				filterThread = null;
+			}
+			filterThread = new FilterThread(rowFilter);
+			filterThread.start();
+		}
+	}
 
+	/**
+	 * Stop the filtering thread.
+	 */
+	protected void stopFilterThread() {
+		synchronized (filterSyncObj) {
+			if (filterThread != null) {
+				filterThread.cancel();
+				filterThread = null;
+			}
+		}
+	}
 
 }
