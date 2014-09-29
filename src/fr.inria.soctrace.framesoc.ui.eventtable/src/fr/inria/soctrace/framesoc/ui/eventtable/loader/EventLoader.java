@@ -30,6 +30,8 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventQuery;
 import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
+import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.LogicalOperation;
+import fr.inria.soctrace.lib.query.conditions.LogicalCondition;
 import fr.inria.soctrace.lib.query.conditions.SimpleCondition;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
@@ -157,10 +159,27 @@ public class EventLoader implements IEventLoader {
 
 	private List<Event> loadInterval(boolean first, long t0, long t1, IProgressMonitor monitor) {
 		try {
-			// XXX TEST
 			EventQuery query = getQueryObject();
-			query.setElementWhere(new SimpleCondition("TIMESTAMP", ComparisonOperation.BETWEEN, t0
-					+ " AND " + t1));
+			query.clear();
+			if (first) {
+				LogicalCondition or = new LogicalCondition(LogicalOperation.OR);
+				LogicalCondition andPunct = new LogicalCondition(LogicalOperation.AND);
+				andPunct.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.EQ, "0"));
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String.valueOf(t0)));
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
+				LogicalCondition andDuration = new LogicalCondition(LogicalOperation.AND);
+				andDuration.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN, "(1, 2)"));
+				andDuration.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
+				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GT, String.valueOf(t0)));
+				or.addCondition(andPunct);
+				or.addCondition(andDuration);				
+				query.setElementWhere(or);
+			} else {
+				LogicalCondition and = new LogicalCondition(LogicalOperation.AND);
+				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String.valueOf(t0)));
+				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
+				query.setElementWhere(and);
+			}
 			return fQuery.getList();
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
