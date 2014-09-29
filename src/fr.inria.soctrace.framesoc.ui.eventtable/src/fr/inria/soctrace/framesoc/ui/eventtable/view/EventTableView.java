@@ -52,6 +52,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TableColumn;
@@ -64,7 +65,14 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.linuxtools.tmf.core.component.ITmfEventProvider;
+import fr.inria.linuxtools.tmf.core.event.ITmfEvent;
+import fr.inria.linuxtools.tmf.core.filter.model.ITmfFilterTreeNode;
 import fr.inria.linuxtools.tmf.core.filter.model.TmfFilterMatchesNode;
+import fr.inria.linuxtools.tmf.core.request.TmfEventRequest;
+import fr.inria.linuxtools.tmf.core.request.ITmfEventRequest.ExecutionType;
+import fr.inria.linuxtools.tmf.core.timestamp.TmfTimeRange;
+import fr.inria.linuxtools.tmf.ui.viewers.events.TmfEventsTable.FilterThread;
 import fr.inria.linuxtools.tmf.ui.viewers.events.TmfEventsTable.Key;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
@@ -160,6 +168,11 @@ public final class EventTableView extends FramesocPart {
 	private Color fBlackColor;
 	private Font fBoldFont;
 
+	// Filtering
+    private FilterThread fFilterThread;
+    private boolean fFilterThreadResume = false;
+    private final Object fFilterSyncObj = new Object();
+    
 	// // Uncomment this to use the window builder
 	// @Override
 	// public void createPartControl(Composite parent) {
@@ -771,5 +784,151 @@ public final class EventTableView extends FramesocPart {
 	public void partHandle(String topic, Object data) {
 		logger.debug("nothing to do here");
 	}
+	
+	/*
+	 * Filtering
+	 */
+
+    /**
+     * Wrapper Thread object for the filtering thread.
+     */
+    protected class FilterThread extends Thread {
+    	
+        private boolean refreshBusy = false;
+        private boolean refreshPending = false;
+        private final Object syncObj = new Object();
+
+        /**
+         * Constructor.
+         *
+         * @param filter
+         *            The filter this thread will be processing
+         */
+        public FilterThread(final ITmfFilterTreeNode filter) {
+            super("Filter Thread"); //$NON-NLS-1$
+            this.filter = filter;
+        }
+
+        @Override
+        public void run() {
+            if (fTrace == null) {
+                return;
+            }
+            final int nbRequested = (int) (fTrace.getNbEvents() - fFilterCheckCount);
+            if (nbRequested <= 0) {
+                return;
+            }
+            request = new TmfEventRequest(ITmfEvent.class, TmfTimeRange.ETERNITY,
+                    (int) fFilterCheckCount, nbRequested, ExecutionType.BACKGROUND) {
+                @Override
+                public void handleData(final ITmfEvent event) {
+                    super.handleData(event);
+                    if (request.isCancelled()) {
+                        return;
+                    }
+                    if (filter.matches(event)) {
+                        final long rank = fFilterCheckCount;
+                        final int index = (int) fFilterMatchCount;
+                        fFilterMatchCount++;
+                        fCache.storeEvent(event, rank, index);
+                        refreshTable();
+                    } else if ((fFilterCheckCount % 100) == 0) {
+                        refreshTable();
+                    }
+                    fFilterCheckCount++;
+                }
+            };
+            ((ITmfEventProvider) fTrace).sendRequest(request);
+            try {
+                request.waitForCompletion();
+            } catch (final InterruptedException e) {
+            }
+            refreshTable();
+            synchronized (fFilterSyncObj) {
+                fFilterThread = null;
+                if (fFilterThreadResume) {
+                    fFilterThreadResume = false;
+                    fFilterThread = new FilterThread(filter);
+                    fFilterThread.start();
+                }
+            }
+        }
+
+        /**
+         * Refresh the filter.
+         */
+        public void refreshTable() {
+            synchronized (syncObj) {
+                if (refreshBusy) {
+                    refreshPending = true;
+                    return;
+                }
+                refreshBusy = true;
+            }
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    if (request.isCancelled()) {
+                        return;
+                    }
+                    if (fTable.isDisposed()) {
+                        return;
+                    }
+                    fTable.setItemCount((int) fFilterMatchCount + 3); // +1 for header row, +2 for top and bottom filter status rows
+                    fTable.refresh();
+                    synchronized (syncObj) {
+                        refreshBusy = false;
+                        if (refreshPending) {
+                            refreshPending = false;
+                            refreshTable();
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Cancel this filtering thread.
+         */
+        public void cancel() {
+            if (request != null) {
+                request.cancel();
+            }
+        }
+    }
+    
+    /**
+     * Start the filtering thread.
+     */
+    protected void startFilterThread() {
+        synchronized (fFilterSyncObj) {
+            final ITmfFilterTreeNode filter = (ITmfFilterTreeNode) fTable.getData(Key.FILTER_OBJ);
+            if (fFilterThread == null || fFilterThread.filter != filter) {
+                if (fFilterThread != null) {
+                    fFilterThread.cancel();
+                    fFilterThreadResume = false;
+                }
+                fFilterThread = new FilterThread(filter);
+                fFilterThread.start();
+            } else {
+                fFilterThreadResume = true;
+            }
+        }
+    }
+
+    /**
+     * Stop the filtering thread.
+     */
+    protected void stopFilterThread() {
+        synchronized (fFilterSyncObj) {
+            if (fFilterThread != null) {
+                fFilterThread.cancel();
+                fFilterThread = null;
+                fFilterThreadResume = false;
+            }
+        }
+    }
+
+
 
 }
