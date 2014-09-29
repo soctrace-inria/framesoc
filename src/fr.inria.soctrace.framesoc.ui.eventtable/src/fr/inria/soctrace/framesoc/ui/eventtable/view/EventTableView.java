@@ -281,6 +281,7 @@ public final class EventTableView extends FramesocPart {
 		timeBar.setMinTimestamp(trace.getMinTimestamp());
 		timeBar.setMaxTimestamp(trace.getMaxTimestamp());
 		table.clearAll();
+		// TODO disable filter
 
 		drawerThread = new Thread() {
 
@@ -299,7 +300,7 @@ public final class EventTableView extends FramesocPart {
 				startTimestamp = Long.MAX_VALUE;
 				cache.clear();
 
-				//TimeInterval partial = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
+				// TimeInterval partial = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 				while (!queue.done()) {
 					try {
 						List<Event> events = queue.pop();
@@ -340,6 +341,7 @@ public final class EventTableView extends FramesocPart {
 
 				// refresh one last time
 				refreshTable();
+				activate();
 
 				logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
 				logger.debug("start: {}", startTimestamp);
@@ -379,7 +381,19 @@ public final class EventTableView extends FramesocPart {
 				});
 			}
 
+			public void activate() {
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						// TODO enable filter
+						btnSynch.setEnabled(true);
+						btnDraw.setEnabled(true);
+						timeBar.setEnabled(true);
+					}
+				});
+			}
 		};
+		
 		drawerThread.start();
 	}
 
@@ -943,7 +957,6 @@ public final class EventTableView extends FramesocPart {
 	public String getId() {
 		return ID;
 	}
-
 
 	/**
 	 * Show the trace.

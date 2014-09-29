@@ -48,7 +48,7 @@ public class EventLoader implements IEventLoader {
 	private static final Logger logger = LoggerFactory.getLogger(EventLoader.class);
 
 	// constants
-	private final int EVENTS_PER_QUERY = 100000;
+	private final int EVENTS_PER_QUERY = 10;
 
 	// set by the user
 	private Trace fTrace = null;
@@ -70,21 +70,6 @@ public class EventLoader implements IEventLoader {
 	@Override
 	public void setQueue(LoaderQueue<Event> queue) {
 		fQueue = queue;
-	}
-
-	public void release() {
-		fTrace = null;
-		fQueue = null;
-		fQuery = null;
-		clean();
-	}
-
-	public boolean checkCancel(IProgressMonitor monitor) {
-		if (monitor.isCanceled()) {
-			fQueue.setStop();
-			return true;
-		}
-		return false;
 	}
 
 	@Override
@@ -154,6 +139,7 @@ public class EventLoader implements IEventLoader {
 				fQueue.setStop();
 			}
 			monitor.done();
+			clean();
 		}
 	}
 
@@ -165,19 +151,26 @@ public class EventLoader implements IEventLoader {
 				LogicalCondition or = new LogicalCondition(LogicalOperation.OR);
 				LogicalCondition andPunct = new LogicalCondition(LogicalOperation.AND);
 				andPunct.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.EQ, "0"));
-				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String.valueOf(t0)));
-				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE,
+						String.valueOf(t0)));
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT,
+						String.valueOf(t1)));
 				LogicalCondition andDuration = new LogicalCondition(LogicalOperation.AND);
-				andDuration.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN, "(1, 2)"));
-				andDuration.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
-				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GT, String.valueOf(t0)));
+				andDuration.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN,
+						"(1, 2)"));
+				andDuration.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT,
+						String.valueOf(t1)));
+				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GT, String
+						.valueOf(t0)));
 				or.addCondition(andPunct);
-				or.addCondition(andDuration);				
+				or.addCondition(andDuration);
 				query.setElementWhere(or);
 			} else {
 				LogicalCondition and = new LogicalCondition(LogicalOperation.AND);
-				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String.valueOf(t0)));
-				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String.valueOf(t1)));
+				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String
+						.valueOf(t0)));
+				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String
+						.valueOf(t1)));
 				query.setElementWhere(and);
 			}
 			return fQuery.getList();
@@ -188,8 +181,16 @@ public class EventLoader implements IEventLoader {
 		return new ArrayList<>();
 	}
 
+	private boolean checkCancel(IProgressMonitor monitor) {
+		if (monitor.isCanceled()) {
+			fQueue.setStop();
+			return true;
+		}
+		return false;
+	}
+
 	private long getNextTimestampAfter(long end) {
-		long next = end;
+		long next = end+1;
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
@@ -207,7 +208,7 @@ public class EventLoader implements IEventLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-		return next;
+		return Math.max(next, end+1);
 	}
 
 	private void clean() {
