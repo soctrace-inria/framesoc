@@ -59,13 +59,12 @@ public interface IEventLoader {
 	Map<Integer, EventType> getTypes();
 
 	/**
-	 * Load a time window for the trace set using {@link #setTrace}, filling the
-	 * queue set using {@link #setQueue()}. It has to be called in a Job, whose
-	 * progress monitor is passed.
+	 * Load a time window for the trace set using {@link #setTrace}, filling the queue set using
+	 * {@link #setQueue()}. It has to be called in a Job, whose progress monitor is passed.
 	 * 
-	 * The contract is that the loader pushes a list in the queue at least once,
-	 * setting the queue complete flag to true, even if it is an empty list.
-	 * This prevents any thread waiting for data to wait indefinitely.
+	 * The contract is that the loader must call either {@link LoaderQueue#setComplete()} or
+	 * {@link LoaderQueue#setStop()} at the end of its operations. This prevents any thread waiting
+	 * for data to wait indefinitely.
 	 * 
 	 * @param start
 	 *            start timestamp
@@ -77,8 +76,8 @@ public interface IEventLoader {
 	void loadWindow(long start, long end, IProgressMonitor monitor);
 
 	/**
-	 * Release all the loader resources and clean all internal data structures.
-	 * This method should be called when we are finished using the loader.
+	 * Release all the loader resources and clean all internal data structures. This method should
+	 * be called when we are finished using the loader.
 	 */
 	void release();
 

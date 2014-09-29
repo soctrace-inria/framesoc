@@ -185,9 +185,9 @@ public class EventLoader implements IEventLoader {
 
 				fQueue.push(events, new TimeInterval(fTimeInterval));
 			}
-			
+
 			fQueue.setComplete();
-			
+
 		} finally {
 			if (!fQueue.isStop() && !fQueue.isComplete()) {
 				// something went wrong, respect the queue contract anyway
@@ -236,7 +236,7 @@ public class EventLoader implements IEventLoader {
 	}
 
 	private long getNextTimestampAfter(long end) {
-		long next = end;
+		long next = end + 1;
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
@@ -254,7 +254,7 @@ public class EventLoader implements IEventLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-		return next;
+		return Math.max(next, end + 1); // TODO check this...
 	}
 
 	private String getQuery(long start, long end, boolean first) {
