@@ -11,7 +11,7 @@
 /**
  * 
  */
-package fr.inria.soctrace.framesoc.ui.eventtable.model;
+package fr.inria.soctrace.framesoc.ui.eventtable.loader;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

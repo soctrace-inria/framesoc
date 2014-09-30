@@ -9,7 +9,7 @@
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
 
-package fr.inria.soctrace.framesoc.ui.eventtable.view;
+package fr.inria.soctrace.framesoc.ui.eventtable.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,8 +18,6 @@ import java.util.regex.PatternSyntaxException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
-import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
-import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**

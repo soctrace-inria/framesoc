@@ -22,8 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.inria.soctrace.framesoc.ui.eventtable.model.LoaderQueue;
-import fr.inria.soctrace.framesoc.ui.eventtable.view.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;

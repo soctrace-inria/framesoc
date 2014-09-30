@@ -68,10 +68,11 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
-import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventTableLoader;
+import fr.inria.soctrace.framesoc.ui.eventtable.loader.IEventLoader;
+import fr.inria.soctrace.framesoc.ui.eventtable.loader.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
-import fr.inria.soctrace.framesoc.ui.eventtable.model.LoaderQueue;
+import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
@@ -116,11 +117,6 @@ public final class EventTableView extends FramesocPart {
 	private TmfVirtualTable table;
 
 	/**
-	 * Data loader
-	 */
-	private EventTableLoader eventsLoader;
-
-	/**
 	 * Status text
 	 */
 	private Text statusText;
@@ -149,6 +145,11 @@ public final class EventTableView extends FramesocPart {
 	 * End timestamp currently loaded
 	 */
 	private long endTimestamp;
+	
+	/**
+	 * Flag for enabling/disabling the filter
+	 */
+	private boolean filterEnabled = false;
 
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
@@ -184,38 +185,6 @@ public final class EventTableView extends FramesocPart {
 	// public void createPartControl(Composite parent) {
 	// createFramesocPartControl(parent);
 	// }
-
-	// ************************************************************
-	// Dummy stuff
-	// ************************************************************
-
-	private int n = 1;
-
-	private void dummyFillCache() {
-		currentShownTrace = new Trace(0);
-		n *= 2;
-		int N = n;
-		System.out.println("Loading");
-		for (int i = 0; i < N; i++) {
-			EventTableRow r = new EventTableRow();
-			r.setTimestamp(i);
-			cache.put(r);
-		}
-		cache.setRequestedInterval(new TimeInterval(0, N - 1));
-		table.setItemCount(N + 1); // +1 for the header
-	}
-
-	private IAction fillCacheAction() {
-		Action showGantt = new Action("Fill cache") {
-			@Override
-			public void run() {
-				dummyFillCache();
-			}
-		};
-		return showGantt;
-	}
-
-	// ************************************************************
 
 	private void showWindow(Trace trace, long start, long end) {
 
@@ -281,10 +250,10 @@ public final class EventTableView extends FramesocPart {
 		timeBar.setMinTimestamp(trace.getMinTimestamp());
 		timeBar.setMaxTimestamp(trace.getMaxTimestamp());
 		table.clearAll();
-		// TODO disable filter
 
 		drawerThread = new Thread() {
 
+			
 			private boolean refreshBusy = false;
 			private boolean refreshPending = false;
 			private Object syncObj = new Object();
@@ -298,6 +267,7 @@ public final class EventTableView extends FramesocPart {
 				currentShownTrace = trace;
 				endTimestamp = Long.MIN_VALUE;
 				startTimestamp = Long.MAX_VALUE;
+				filterEnabled = false;
 				cache.clear();
 
 				// TimeInterval partial = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
@@ -385,7 +355,7 @@ public final class EventTableView extends FramesocPart {
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
 					public void run() {
-						// TODO enable filter
+						filterEnabled = true;
 						btnSynch.setEnabled(true);
 						btnDraw.setEnabled(true);
 						timeBar.setEnabled(true);
@@ -393,7 +363,7 @@ public final class EventTableView extends FramesocPart {
 				});
 			}
 		};
-		
+
 		drawerThread.start();
 	}
 
@@ -473,7 +443,6 @@ public final class EventTableView extends FramesocPart {
 		// TOOLBAR
 		// ----------
 
-		getViewSite().getActionBars().getToolBarManager().add(fillCacheAction());
 		getViewSite().getActionBars().getToolBarManager().add(createColumnAction());
 		if (FramesocPartManager.getInstance().isFramesocPartExisting(
 				FramesocViews.GANTT_CHART_VIEW_ID))
@@ -573,7 +542,7 @@ public final class EventTableView extends FramesocPart {
 
 			@Override
 			public void mouseDown(final MouseEvent event) {
-				if (event.button != 1) {
+				if (event.button != 1 || !filterEnabled) {
 					return;
 				}
 				// Identify the selected row
@@ -762,8 +731,7 @@ public final class EventTableView extends FramesocPart {
 	class DrawListener extends SelectionAdapter {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			showSelectedWindow(currentShownTrace, timeBar.getStartTimestamp(),
-					timeBar.getEndTimestamp(), EventTableLoader.NO_LIMIT);
+			showWindow(currentShownTrace, timeBar.getStartTimestamp(), timeBar.getEndTimestamp());
 		}
 	}
 
@@ -842,115 +810,13 @@ public final class EventTableView extends FramesocPart {
 	@Override
 	public void dispose() {
 		stopFilterThread();
+		// TODO stop other threads
 		if (table != null)
 			table.dispose();
-		if (eventsLoader != null)
-			eventsLoader.dispose();
-		eventsLoader = null;
 		if (timeBar != null)
 			timeBar.dispose();
 		timeBar = null;
 		super.dispose();
-	}
-
-	/**
-	 * Main method: show the table representation of the given time window.
-	 * 
-	 * @param trace
-	 *            trace to show
-	 * @param start
-	 *            start timestamp to show
-	 * @param end
-	 *            end timestamp to show
-	 * @param limit
-	 *            max number of events to load in the window
-	 */
-	private void showSelectedWindow(final Trace trace, final long start, final long end,
-			final int limit) {
-
-		// Job job = new Job("Loading Events table...") {
-		// @Override
-		// protected IStatus run(IProgressMonitor monitor) {
-		// boolean closeIfCancelled = (currentShownTrace == null);
-		// try {
-		//
-		// monitor.beginTask("Loading Events table", IProgressMonitor.UNKNOWN);
-		// // update trace selection
-		// if (trace == null) {
-		// handleCancel(closeIfCancelled);
-		// return Status.CANCEL_STATUS;
-		// }
-		//
-		// currentShownTrace = trace;
-		//
-		// // activate the view after setting the current shown trace
-		// activateView(); // TODO check if needed
-		//
-		// if (monitor.isCanceled()) {
-		// handleCancel(closeIfCancelled);
-		// return Status.CANCEL_STATUS;
-		// }
-		//
-		// // Manage start/end timestamp
-		// IntervalDesc intervalToLoad = new IntervalDesc(start, end);
-		//
-		// // load events from DB
-		// final LoadDescriptor des = eventsLoader.loadTimeWindow(trace,
-		// intervalToLoad.t1, intervalToLoad.t2, limit, monitor);
-		// logger.debug(des.getMessage());
-		// if (monitor.isCanceled()) {
-		// handleCancel(closeIfCancelled);
-		// return Status.CANCEL_STATUS;
-		// }
-		//
-		// // refresh table and page selector UI
-		// Display.getDefault().syncExec(new Runnable() {
-		// @Override
-		// public void run() {
-		// setContentDescription("Trace: " + currentShownTrace.getAlias());
-		// clearFilters();
-		// btnSynch.setEnabled(true);
-		// btnDraw.setEnabled(true);
-		// timeBar.setEnabled(true);
-		// timeBar.setMinTimestamp(currentShownTrace.getMinTimestamp());
-		// timeBar.setMaxTimestamp(currentShownTrace.getMaxTimestamp());
-		// startTimestamp = Math.max(currentShownTrace.getMinTimestamp(),
-		// des.getActualStartTimestamp());
-		// endTimestamp = Math.min(currentShownTrace.getMaxTimestamp(),
-		// des.getActualEndTimestamp());
-		// timeBar.setSelection(startTimestamp, endTimestamp);
-		// logger.debug(timeBar.toString());
-		// setInput();
-		// enableActions(true);
-		// }
-		// });
-		// monitor.done();
-		// return Status.OK_STATUS;
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// handleCancel(closeIfCancelled);
-		// return Status.CANCEL_STATUS;
-		// }
-		// }
-		// };
-		// job.setUser(true);
-		// job.schedule();
-
-	}
-
-	// Utilities
-
-	private void handleCancel(final boolean closeIfCancelled) {
-		// Display.getDefault().syncExec(new Runnable() {
-		// @Override
-		// public void run() {
-		// timeBar.setSelection(startTimestamp, endTimestamp);
-		// if (closeIfCancelled) {
-		// FramesocPartManager.getInstance().disposeFramesocPart(EventTableView.this);
-		// EventTableView.this.hideView();
-		// }
-		// }
-		// });
 	}
 
 	@Override
@@ -1096,6 +962,21 @@ public final class EventTableView extends FramesocPart {
 				filterThread = null;
 			}
 		}
+	}
+
+	// Utilities
+
+	private void handleCancel(final boolean closeIfCancelled) {
+		// Display.getDefault().syncExec(new Runnable() {
+		// @Override
+		// public void run() {
+		// timeBar.setSelection(startTimestamp, endTimestamp);
+		// if (closeIfCancelled) {
+		// FramesocPartManager.getInstance().disposeFramesocPart(EventTableView.this);
+		// EventTableView.this.hideView();
+		// }
+		// }
+		// });
 	}
 
 }
