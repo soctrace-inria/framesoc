@@ -155,7 +155,7 @@ public class EventLoader implements IEventLoader {
 			boolean first = true;
 			long t0 = start;
 			long tstart=start;
-			while (t0 <= intervalDuration) {
+			while (t0 <= end) {
 				// check if cancelled
 				if (checkCancel(monitor)) {
 					return;
