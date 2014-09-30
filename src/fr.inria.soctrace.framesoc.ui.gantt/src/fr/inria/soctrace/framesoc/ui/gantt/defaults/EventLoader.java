@@ -177,7 +177,7 @@ public class EventLoader implements IEventLoader {
 				}
 
 				// update progress monitor
-				int worked = (int) ((double) (fLatestStart - start) / (intervalDuration + 1));
+				int worked = (int) ((double) (fLatestStart - start) / (intervalDuration));
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
 				t0 = t1 + 1;
@@ -205,7 +205,7 @@ public class EventLoader implements IEventLoader {
 			DeltaManager dm = new DeltaManager();
 			dm.start();
 			ResultSet rs;
-			if (first){
+			if (!first){
 				rs = stm.executeQuery(getQuery(t0, t1));
 			}
 			else{

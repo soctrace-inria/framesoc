@@ -42,6 +42,10 @@
             eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
             traceTypeName="CTFTrace.0.0">
       </ganttAdapter>
+      <ganttAdapter
+            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
+            traceTypeName="KPtrace CSV cat">
+      </ganttAdapter>
    </extension>
 
 </plugin>
