@@ -5,7 +5,6 @@ package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -22,9 +21,6 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventTableCache {
-
-	// logger
-	// private static final Logger logger = LoggerFactory.getLogger(EventTableCache.class);
 
 	private final EventTableRow FROM = new EventTableRow();
 	private final EventTableRow TO = new EventTableRow();
@@ -50,11 +46,6 @@ public class EventTableCache {
 	private SortedSet<EventTableRow> fActiveRows;
 
 	/**
-	 * Active row iterator
-	 */
-	private Iterator<EventTableRow> fActiveRowIterator;
-
-	/**
 	 * Map between the table index and the row
 	 */
 	private Map<Integer, EventTableRow> fIndex;
@@ -69,52 +60,6 @@ public class EventTableCache {
 	}
 
 	/**
-	 * Put a new row in the cache.
-	 * 
-	 * @param row
-	 *            the row to put in the cache
-	 */
-	public synchronized void put(EventTableRow row) {
-		updateInterval(row.getTimestamp(), fLoadededInterval);
-		fRows.add(row);
-		fIndex.put(fCurrentIndex, row);
-		// logger.debug("index: {}, row: {}", fCurrentIndex, row);
-		// logger.debug("frows: {}", fRows.size());
-		// logger.debug("factiverows: {}", fActiveRows.size());
-		// logger.debug("findex: {}", fIndex.size());
-		fCurrentIndex++;
-	}
-
-	/**
-	 * Get the active row iterator. This method is called only by the filter. It is not possible to
-	 * filter during loading. Note that each call to this method resets the active row iterator.
-	 * 
-	 * @return the active row iterator
-	 */
-	public Iterator<EventTableRow> activeRowIterator() {
-		fActiveRowIterator = fActiveRows.iterator();
-		return fActiveRowIterator;
-	}
-
-	/**
-	 * Get the next active row, using the active iterator.
-	 * 
-	 * @return the next active row
-	 */
-	public EventTableRow getNextActive() {
-		return fActiveRowIterator.next();
-	}
-
-	/**
-	 * Check if there is another active row.
-	 * 
-	 * @return true if there is another active row
-	 */
-	public boolean hasNextActive() {
-		return fActiveRowIterator.hasNext();
-	}
-
-	/**
 	 * Get the table row for the given index
 	 * 
 	 * @param index
@@ -126,11 +71,43 @@ public class EventTableCache {
 	}
 
 	/**
-	 * Clear the index
+	 * Put a new row in the cache, assigning a new index.
+	 * 
+	 * @param row
+	 *            the row to put in the cache
 	 */
-	public synchronized void clearIndex() {
-		fIndex = new HashMap<>();
-		fCurrentIndex = 0;
+	public synchronized void put(EventTableRow row) {
+		updateInterval(row.getTimestamp(), fLoadededInterval);
+		fRows.add(row);
+		fIndex.put(fCurrentIndex, row);
+		fCurrentIndex++;
+	}
+
+	/**
+	 * Re-map an existing row in the cache to the given index.
+	 * 
+	 * @param row
+	 *            the row to put in the cache
+	 */
+	public synchronized void remap(EventTableRow row, int index) {
+		fIndex.put(index, row);
+	}
+
+	/**
+	 * Remove all the entry of the index starting from the passed value.
+	 * 
+	 * @param index
+	 *            the the last index to keep
+	 */
+	public synchronized void cleanIndex(int index) {
+		int removeIndex = index;
+		while (fIndex.containsKey(removeIndex)) {
+			fIndex.remove(removeIndex);
+			removeIndex++;
+		}
+		System.out.println("index: " + fIndex.size());
+		System.out.println("rows: " + fRows.size());
+		System.out.println("active: " + fActiveRows.size());
 	}
 
 	/**
@@ -142,7 +119,7 @@ public class EventTableCache {
 	 *            interval to check
 	 * @return true if the passed interval has already been loaded
 	 */
-	public boolean contains(TimeInterval interval) {
+	public synchronized boolean contains(TimeInterval interval) {
 		if (interval.startTimestamp >= fRequestedInterval.startTimestamp
 				&& interval.endTimestamp <= fRequestedInterval.endTimestamp)
 			return true;
@@ -185,7 +162,7 @@ public class EventTableCache {
 	/**
 	 * @return the requestedInterval
 	 */
-	public TimeInterval getRequestedInterval() {
+	public synchronized TimeInterval getRequestedInterval() {
 		return fRequestedInterval;
 	}
 
@@ -193,7 +170,7 @@ public class EventTableCache {
 	 * @param requestedInterval
 	 *            the requestedInterval to set
 	 */
-	public void setRequestedInterval(TimeInterval requestedInterval) {
+	public synchronized void setRequestedInterval(TimeInterval requestedInterval) {
 		fRequestedInterval = requestedInterval;
 	}
 

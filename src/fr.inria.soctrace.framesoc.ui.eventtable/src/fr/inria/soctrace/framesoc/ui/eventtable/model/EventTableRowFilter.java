@@ -12,7 +12,9 @@
 package fr.inria.soctrace.framesoc.ui.eventtable.model;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -30,10 +32,7 @@ public class EventTableRowFilter {
 	private Map<EventTableColumn, String> searchStrings;
 
 	public EventTableRowFilter() {
-		searchStrings = new HashMap<>();
-		for (EventTableColumn col : EventTableColumn.values()) {
-			searchStrings.put(col, "");
-		}
+		clean();
 	}
 
 	public void setSearchText(EventTableColumn col, String s) {
@@ -41,7 +40,6 @@ public class EventTableRowFilter {
 	}
 
 	public boolean matches(EventTableRow row) {
-		System.out.println(row);
 		boolean matched = true;
 		for (EventTableColumn col : EventTableColumn.values()) {
 			String searchString = searchStrings.get(col);
@@ -66,8 +64,33 @@ public class EventTableRowFilter {
 				break;
 			}
 		}
-		System.out.println("matched: " + matched);
 		return matched;
 	}
+	
+	public void clean() {
+		searchStrings = null;
+		searchStrings = new HashMap<>();
+		for (EventTableColumn col : EventTableColumn.values()) {
+			searchStrings.put(col, "");
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[Filters] ");
+		Iterator<Entry<EventTableColumn, String>> it = searchStrings.entrySet().iterator();
+		boolean first = true;
+		while (it.hasNext()) {
+			if (!first) {
+				sb.append(", ");
+			}
+			first = false;
+			Entry<EventTableColumn, String> e = it.next();
+			sb.append(e.getKey().getHeader());
+			sb.append(": ");
+			sb.append(e.getValue());
+		}
+		return sb.toString();
+	}	
 
 }

@@ -3,8 +3,6 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
-import java.util.Iterator;
-
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.utils.DeltaManager;
@@ -17,7 +15,7 @@ public class CacheTest {
 	public static void main(String[] args) {
 
 		EventTableCache cache = new EventTableCache();
-		int N = 1000000;
+		int N = 100;
 		DeltaManager dm = new DeltaManager();
 		
 		System.out.println("Loading");
@@ -44,16 +42,15 @@ public class CacheTest {
 
 		System.out.println("Filtering all even lines");
 		dm.start();
+		int activeRows = cache.getActiveRowCount();
 		int matched = 0;
-		cache.clearIndex();
-		Iterator<EventTableRow> it = cache.activeRowIterator();
-		while (it.hasNext()) {
-			EventTableRow r = it.next();
+		for (int i=0; i< activeRows; i++) {
+			EventTableRow r = cache.get(i);
 			if (r.getTimestamp() % 2 == 0) {
-				cache.put(r);
-				matched++;
+				cache.remap(r, matched++);
 			}
 		}
+		cache.cleanIndex(matched);
 		dm.end("filter");
 		print(cache, matched);
 

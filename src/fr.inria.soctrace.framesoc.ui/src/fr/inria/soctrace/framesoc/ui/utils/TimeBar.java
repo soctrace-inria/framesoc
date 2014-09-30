@@ -43,7 +43,7 @@ public class TimeBar {
 
 	private boolean customWindowSize = false;
 	private long windowSize;
-	
+
 	private Composite parent;
 	private Button prev;
 	private Button next;
@@ -51,9 +51,9 @@ public class TimeBar {
 	private RangeSlider range;
 
 	public TimeBar(Composite parent, int style) {
-					
+
 		this.parent = parent;
-		
+
 		// Time slider bar
 		Composite sliderBar = new Composite(parent, style);
 		sliderBar.setLayout(new GridLayout(5, false));
@@ -77,8 +77,9 @@ public class TimeBar {
 		btnSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSettings.addSelectionListener(new EditListener(parent.getShell()));
 		btnSettings.setToolTipText("Manual editing");
-		btnSettings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
-		
+		btnSettings
+				.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
+
 	}
 
 	class NextWindowListener extends SelectionAdapter {
@@ -90,7 +91,7 @@ public class TimeBar {
 			long newEnd = Math.min(range.getUpperValue() + actualWindowSize, range.getMaximum());
 			long newStart = Math.max(newEnd - actualWindowSize, range.getMinimum());
 			range.setSelection(newStart, newEnd, true);
-		}		
+		}
 	}
 
 	class PreviousWindowListener extends SelectionAdapter {
@@ -99,27 +100,29 @@ public class TimeBar {
 			long actualWindowSize = windowSize;
 			if (!customWindowSize)
 				actualWindowSize = range.getUpperValue() - range.getLowerValue();
-			long newStart = Math.max(range.getLowerValue()-actualWindowSize, range.getMinimum());
-			long newEnd = Math.min(newStart+actualWindowSize, range.getMaximum());
-			range.setSelection(newStart, newEnd, true);			
-		}		
+			long newStart = Math.max(range.getLowerValue() - actualWindowSize, range.getMinimum());
+			long newEnd = Math.min(newStart + actualWindowSize, range.getMaximum());
+			range.setSelection(newStart, newEnd, true);
+		}
 	}
-	
+
 	class EditListener extends SelectionAdapter {
 		private Shell shell;
+
 		public EditListener(Shell parent) {
 			this.shell = parent;
 		}
+
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			TimeBarSettingsDialog dlg = new TimeBarSettingsDialog(shell);
 			dlg.setStartTimestamp(range.getLowerValue());
 			dlg.setEndTimestamp(range.getUpperValue());
 			dlg.setCustomWindow(customWindowSize);
-			
+
 			if (customWindowSize)
 				dlg.setWindowSize(windowSize);
-			else 
+			else
 				dlg.setWindowSize(range.getUpperValue() - range.getLowerValue());
 
 			if (dlg.open() == Window.OK) {
@@ -141,15 +144,16 @@ public class TimeBar {
 			}
 		}
 	}
-	
+
 	/**
 	 * Add a selection listener to the range slider
+	 * 
 	 * @param listener
 	 */
 	public void addSelectionListener(SelectionListener listener) {
 		range.addSelectionListener(listener);
 	}
-	
+
 	/**
 	 * @return the startTimestamp
 	 */
@@ -172,51 +176,62 @@ public class TimeBar {
 	}
 
 	/**
-	 * @param windowSize the windowSize to set
+	 * @param windowSize
+	 *            the windowSize to set
 	 */
 	public void setWindowSize(long windowSize) {
 		this.windowSize = windowSize;
 	}
-	
+
 	public void setMaxTimestamp(long max) {
-		logger.debug("set max:"+max);
+		logger.debug("set max:" + max);
 		this.range.setMaximum(max);
 	}
-	
+
 	public void setMinTimestamp(long min) {
-		logger.debug("set min:"+min);
+		logger.debug("set min:" + min);
 		this.range.setMinimum(min);
 	}
-	
+
 	public void setEnabled(boolean enabled) {
 		prev.setEnabled(enabled);
 		next.setEnabled(enabled);
 		btnSettings.setEnabled(enabled);
 		range.setEnabled(enabled);
 	}
-	
+
 	/**
 	 * Set the selection without notifying listeners
 	 * 
-	 * @param startTimestamp start timestamp
-	 * @param endTimestamp end timestamp
+	 * @param startTimestamp
+	 *            start timestamp
+	 * @param endTimestamp
+	 *            end timestamp
 	 */
 	public void setSelection(long startTimestamp, long endTimestamp) {
 		range.setSelection(startTimestamp, endTimestamp, false);
 	}
 
 	/**
-	 * Explicitly dispose the parent, since this
-	 * class does not extend composite.
+	 * Explicitly dispose the parent, since this class does not extend composite.
 	 */
 	public void dispose() {
 		parent.dispose();
 	}
 
+	/**
+	 * Returns true if any of the graphical objects has been disposed
+	 * @return true if disposed
+	 */
+	public boolean isDisposed() {
+		return parent.isDisposed() || prev.isDisposed() || next.isDisposed()
+				|| btnSettings.isDisposed() || range.isDisposed();
+	}
+
 	@Override
 	public String toString() {
-		return "TimeBar [start="+range.getLowerValue()+", end="+range.getUpperValue()+", "
-				+ "min="+range.getMinimum()+", max="+range.getMaximum()+"]";
+		return "TimeBar [start=" + range.getLowerValue() + ", end=" + range.getUpperValue() + ", "
+				+ "min=" + range.getMinimum() + ", max=" + range.getMaximum() + "]";
 	}
-	
+
 }
