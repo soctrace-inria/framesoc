@@ -155,17 +155,11 @@ public class EventLoader implements IEventLoader {
 			boolean first = true;
 			long t0 = start;
 			long tstart=start;
-			while (t0 <= (end +intervalDuration)) {
+			while (t0 <= intervalDuration) {
 				// check if cancelled
 				if (checkCancel(monitor)) {
 					return;
 				}
-				if (t0 > end){
-					long t1 = Math.min(end, tstart + intervalDuration);
-					List<ReducedEvent> events = loadInterval(true, tstart, t1, monitor);
-					debug(events);
-				}
-
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
 				List<ReducedEvent> events = loadInterval(false, t0, t1, monitor);
