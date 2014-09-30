@@ -154,15 +154,21 @@ public class EventLoader implements IEventLoader {
 
 			boolean first = true;
 			long t0 = start;
-			while (t0 <= end) {
+			long tstart=start;
+			while (t0 <= (end +intervalDuration)) {
 				// check if cancelled
 				if (checkCancel(monitor)) {
 					return;
 				}
+				if (t0 > end){
+					long t1 = Math.min(end, tstart + intervalDuration);
+					List<ReducedEvent> events = loadInterval(true, tstart, t1, monitor);
+					debug(events);
+				}
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				List<ReducedEvent> events = loadInterval(first, t0, t1, monitor);
+				List<ReducedEvent> events = loadInterval(false, t0, t1, monitor);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
@@ -177,7 +183,7 @@ public class EventLoader implements IEventLoader {
 				}
 
 				// update progress monitor
-				int worked = (int) ((double) (fLatestStart - start) / intervalDuration);
+				int worked = (int) ((double) (fLatestStart - start) / (intervalDuration + 1));
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
 				t0 = t1 + 1;
@@ -204,7 +210,13 @@ public class EventLoader implements IEventLoader {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			ResultSet rs = stm.executeQuery(getQuery(t0, t1, first));
+			ResultSet rs;
+			if (first){
+				rs = stm.executeQuery(getQuery(t0, t1));
+			}
+			else{
+				rs = stm.executeQuery(getFirstQuery(t0,t1));
+			}
 			logger.debug(dm.endMessage("exec query"));
 			dm.start();
 			while (rs.next()) {
@@ -257,18 +269,20 @@ public class EventLoader implements IEventLoader {
 		return next;
 	}
 
-	private String getQuery(long start, long end, boolean first) {
+	private String getQuery(long start, long end) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT " + ReducedEvent.SELECT_COLUMNS + " FROM " + FramesocTable.EVENT
 				+ " WHERE ");
-		if (first) {
-			// TODO try to optimize this request
-			sb.append(" (CATEGORY=0 AND TIMESTAMP >= " + start + " AND TIMESTAMP < " + end + ") ");
-			sb.append(" OR ");
-			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP<" + end + " AND LPAR>" + start + ")) ");
-		} else {
 			sb.append(" (TIMESTAMP >= " + start + " AND TIMESTAMP < " + end + ") ");
-		}
+		logger.debug("Query: " + sb.toString());
+		return sb.toString();
+	}
+	
+	private String getFirstQuery(long start, long end) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT " + ReducedEvent.SELECT_COLUMNS + " FROM " + FramesocTable.EVENT
+				+ " WHERE ");
+			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP<" + start + " AND LPAR>" + start + ")) ");
 		logger.debug("Query: " + sb.toString());
 		return sb.toString();
 	}
