@@ -29,6 +29,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventQuery;
 import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.LogicalOperation;
+import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.OrderBy;
 import fr.inria.soctrace.lib.query.conditions.LogicalCondition;
 import fr.inria.soctrace.lib.query.conditions.SimpleCondition;
 import fr.inria.soctrace.lib.storage.DBObject;
@@ -46,7 +47,7 @@ public class EventLoader implements IEventLoader {
 	private static final Logger logger = LoggerFactory.getLogger(EventLoader.class);
 
 	// constants
-	private final int EVENTS_PER_QUERY = 10;
+	private final int EVENTS_PER_QUERY = 100000;
 
 	// set by the user
 	private Trace fTrace = null;
@@ -103,7 +104,7 @@ public class EventLoader implements IEventLoader {
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				List<Event> events = loadInterval(first, t0, t1, monitor);
+				List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
@@ -141,36 +142,47 @@ public class EventLoader implements IEventLoader {
 		}
 	}
 
-	private List<Event> loadInterval(boolean first, long t0, long t1, IProgressMonitor monitor) {
+	private List<Event> loadInterval(boolean first, boolean last, long t0, long t1,
+			IProgressMonitor monitor) {
+		
+		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
+		
 		try {
 			EventQuery query = getQueryObject();
 			query.clear();
 			if (first) {
+				// first interval
 				LogicalCondition or = new LogicalCondition(LogicalOperation.OR);
+				// punctual events and variables: t0 <= t < t1 (last interval: t0 <= t <= t1)
 				LogicalCondition andPunct = new LogicalCondition(LogicalOperation.AND);
-				andPunct.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.EQ, "0"));
+				andPunct.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN,
+						"(0, 3)"));
 				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE,
 						String.valueOf(t0)));
-				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT,
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", endComp,
 						String.valueOf(t1)));
+				// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >= t0)
 				LogicalCondition andDuration = new LogicalCondition(LogicalOperation.AND);
 				andDuration.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN,
 						"(1, 2)"));
-				andDuration.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT,
+				andDuration.addCondition(new SimpleCondition("TIMESTAMP", endComp,
 						String.valueOf(t1)));
-				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GT, String
+				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GE, String
 						.valueOf(t0)));
 				or.addCondition(andPunct);
 				or.addCondition(andDuration);
 				query.setElementWhere(or);
 			} else {
+				// other intervals
+				// all events: t0 <= t < t1 (last interval: t0 <= t <= t1)
 				LogicalCondition and = new LogicalCondition(LogicalOperation.AND);
 				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String
 						.valueOf(t0)));
-				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.LT, String
-						.valueOf(t1)));
+				ComparisonOperation end = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
+				and.addCondition(new SimpleCondition("TIMESTAMP", end, String.valueOf(t1)));
 				query.setElementWhere(and);
 			}
+			query.setOrderBy("TIMESTAMP", OrderBy.ASC);
 			return fQuery.getList();
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
@@ -188,7 +200,7 @@ public class EventLoader implements IEventLoader {
 	}
 
 	private long getNextTimestampAfter(long end) {
-		long next = end+1;
+		long next = end + 1;
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
@@ -206,7 +218,7 @@ public class EventLoader implements IEventLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-		return Math.max(next, end+1);
+		return Math.max(next, end + 1);
 	}
 
 	private void clean() {

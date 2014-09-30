@@ -209,7 +209,8 @@ public class EventQuery extends SelfDefiningElementQuery {
 			logger.debug(steps.endMessage("Rebuilds events"));
 
 			logger.debug(dm.endMessage("EventQuery.getList()"));
-
+			logger.debug("Results: {}", elist.size());
+			
 			stm.close();
 			return elist;
 

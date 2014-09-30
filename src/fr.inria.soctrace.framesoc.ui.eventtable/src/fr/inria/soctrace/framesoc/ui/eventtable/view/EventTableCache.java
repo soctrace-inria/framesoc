@@ -14,30 +14,31 @@ import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 
 /**
- * Event table row cache. It is used concurrently by the 
- * virtual table listener for new item retrieval and the 
- * drawer thread, which populates it.
+ * Event table row cache. It is used concurrently by the virtual table listener for new item
+ * retrieval and the drawer thread, which populates it.
  * 
- * The filter thread, which re-index the cache, cannot 
- * update the index concurrently to the loading.
+ * The filter thread, which re-index the cache, cannot update the index concurrently to the loading.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventTableCache {
 
+	// logger
+	// private static final Logger logger = LoggerFactory.getLogger(EventTableCache.class);
+
 	private final EventTableRow FROM = new EventTableRow();
 	private final EventTableRow TO = new EventTableRow();
-	
+
 	/**
 	 * Largest requested interval so far
 	 */
 	private TimeInterval fRequestedInterval;
-	
+
 	/**
 	 * Currently loaded interval
 	 */
 	private TimeInterval fLoadededInterval;
-	
+
 	/**
 	 * Cached event table rows
 	 */
@@ -47,7 +48,7 @@ public class EventTableCache {
 	 * View of the above rows in the active interval
 	 */
 	private SortedSet<EventTableRow> fActiveRows;
-	
+
 	/**
 	 * Active row iterator
 	 */
@@ -57,7 +58,7 @@ public class EventTableCache {
 	 * Map between the table index and the row
 	 */
 	private Map<Integer, EventTableRow> fIndex;
-	
+
 	/**
 	 * Current value for the index, while indexing
 	 */
@@ -70,19 +71,23 @@ public class EventTableCache {
 	/**
 	 * Put a new row in the cache.
 	 * 
-	 * @param row the row to put in the cache
+	 * @param row
+	 *            the row to put in the cache
 	 */
 	public synchronized void put(EventTableRow row) {
 		updateInterval(row.getTimestamp(), fLoadededInterval);
 		fRows.add(row);
 		fIndex.put(fCurrentIndex, row);
+		// logger.debug("index: {}, row: {}", fCurrentIndex, row);
+		// logger.debug("frows: {}", fRows.size());
+		// logger.debug("factiverows: {}", fActiveRows.size());
+		// logger.debug("findex: {}", fIndex.size());
 		fCurrentIndex++;
 	}
 
 	/**
-	 * Get the active row iterator. This method is called only by the filter.
-	 * It is not possible to filter during loading.
-	 * Note that each call to this method resets the active row iterator.
+	 * Get the active row iterator. This method is called only by the filter. It is not possible to
+	 * filter during loading. Note that each call to this method resets the active row iterator.
 	 * 
 	 * @return the active row iterator
 	 */
@@ -90,15 +95,16 @@ public class EventTableCache {
 		fActiveRowIterator = fActiveRows.iterator();
 		return fActiveRowIterator;
 	}
-	
+
 	/**
 	 * Get the next active row, using the active iterator.
+	 * 
 	 * @return the next active row
 	 */
 	public EventTableRow getNextActive() {
 		return fActiveRowIterator.next();
 	}
-	
+
 	/**
 	 * Check if there is another active row.
 	 * 
@@ -107,11 +113,12 @@ public class EventTableCache {
 	public boolean hasNextActive() {
 		return fActiveRowIterator.hasNext();
 	}
-	
+
 	/**
 	 * Get the table row for the given index
 	 * 
-	 * @param index table index
+	 * @param index
+	 *            table index
 	 * @return the table row corresponding to the index
 	 */
 	public synchronized EventTableRow get(int index) {
@@ -127,12 +134,12 @@ public class EventTableCache {
 	}
 
 	/**
-	 * Check if the passed intervals is contained in the currently largest
-	 * requested interval. Note that a requested interval can be larger
-	 * than the loaded one, since the loaded one correspond to the actual
-	 * events actually present in the requested interval.
+	 * Check if the passed intervals is contained in the currently largest requested interval. Note
+	 * that a requested interval can be larger than the loaded one, since the loaded one correspond
+	 * to the actual events actually present in the requested interval.
 	 * 
-	 * @param interval interval to check
+	 * @param interval
+	 *            interval to check
 	 * @return true if the passed interval has already been loaded
 	 */
 	public boolean contains(TimeInterval interval) {
@@ -159,8 +166,8 @@ public class EventTableCache {
 	 */
 	public synchronized void index() {
 		fIndex = new HashMap<>();
-		fCurrentIndex = 0;		
-		for (EventTableRow row: fActiveRows) {
+		fCurrentIndex = 0;
+		for (EventTableRow row : fActiveRows) {
 			fIndex.put(fCurrentIndex, row);
 			fCurrentIndex++;
 		}
@@ -174,7 +181,7 @@ public class EventTableCache {
 	public synchronized int getActiveRowCount() {
 		return fActiveRows.size();
 	}
-	
+
 	/**
 	 * @return the requestedInterval
 	 */
@@ -189,31 +196,34 @@ public class EventTableCache {
 	public void setRequestedInterval(TimeInterval requestedInterval) {
 		fRequestedInterval = requestedInterval;
 	}
-	
+
 	/**
 	 * Clear the cache
 	 */
 	public synchronized void clear() {
 		internalClear();
 	}
-	
+
 	/*
 	 * Utils
 	 */
-	
+
 	private void internalClear() {
 		fRows = new TreeSet<>(new Comparator<EventTableRow>() {
 			public int compare(EventTableRow r1, EventTableRow r2) {
-				return Long.compare(r1.getTimestamp(), r2.getTimestamp());
+				// never return 0 to have different events with the same timestamp
+				if (r1.getTimestamp() > r2.getTimestamp())
+					return 1;
+				return -1;
 			}
 		});
 		FROM.setTimestamp(Long.MIN_VALUE);
-		TO.setTimestamp( Long.MAX_VALUE);
+		TO.setTimestamp(Long.MAX_VALUE);
 		fActiveRows = fRows.subSet(FROM, TO);
 		fIndex = new HashMap<>();
 		fRequestedInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 		fLoadededInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
-		fCurrentIndex = 0;		
+		fCurrentIndex = 0;
 	}
 
 	private void updateInterval(long timestamp, TimeInterval interval) {
@@ -222,7 +232,7 @@ public class EventTableCache {
 		}
 		if (timestamp > interval.endTimestamp) {
 			interval.endTimestamp = timestamp;
-		}		
+		}
 	}
 
 }

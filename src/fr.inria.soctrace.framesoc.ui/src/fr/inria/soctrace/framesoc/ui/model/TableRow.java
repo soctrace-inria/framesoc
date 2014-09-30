@@ -11,7 +11,9 @@
 package fr.inria.soctrace.framesoc.ui.model;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -43,5 +45,23 @@ public abstract class TableRow implements ITableRow {
 	public void set(ITableColumn col, String value) {
 		fields.put(col, value);
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[Fields] ");
+		Iterator<Entry<ITableColumn, String>> it = fields.entrySet().iterator();
+		boolean first = true;
+		while (it.hasNext()) {
+			if (!first) {
+				sb.append(", ");
+			}
+			first = false;
+			Entry<ITableColumn, String> e = it.next();
+			sb.append(e.getKey().getHeader());
+			sb.append(": ");
+			sb.append(e.getValue());
+		}
+		return sb.toString();
+	}	
 	
 }

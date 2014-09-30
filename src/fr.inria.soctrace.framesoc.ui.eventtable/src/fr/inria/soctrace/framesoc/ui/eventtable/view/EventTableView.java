@@ -145,7 +145,7 @@ public final class EventTableView extends FramesocPart {
 	 * End timestamp currently loaded
 	 */
 	private long endTimestamp;
-	
+
 	/**
 	 * Flag for enabling/disabling the filter
 	 */
@@ -196,12 +196,14 @@ public final class EventTableView extends FramesocPart {
 		LoaderQueue<Event> queue = new LoaderQueue<>();
 
 		// create the event loader
-		IEventLoader loader = new EventLoader(); // TODO initialize
+		IEventLoader loader = new EventLoader();
 		loader.setTrace(trace);
 		loader.setQueue(queue);
 
-		// compute the actual time interval to load
+		// compute the actual time interval to load (trim with trace min and max)
 		TimeInterval interval = new TimeInterval(start, end);
+		interval.startTimestamp = Math.max(trace.getMinTimestamp(), interval.startTimestamp);
+		interval.endTimestamp = Math.min(trace.getMaxTimestamp(), interval.endTimestamp);
 
 		// check for contained interval
 		if (checkReuse(trace, interval)) {
@@ -226,13 +228,14 @@ public final class EventTableView extends FramesocPart {
 		return false;
 	}
 
-	private void launchLoaderJob(final IEventLoader loader, final TimeInterval interval) {
+	private void launchLoaderJob(final IEventLoader loader, final TimeInterval requestedInterval) {
 		loaderJob = new Job("Loading Event Table...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				DeltaManager all = new DeltaManager();
 				all.start();
-				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
+				loader.loadWindow(requestedInterval.startTimestamp, requestedInterval.endTimestamp,
+						monitor);
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
 				if (monitor.isCanceled())
 					return Status.CANCEL_STATUS;
@@ -253,7 +256,6 @@ public final class EventTableView extends FramesocPart {
 
 		drawerThread = new Thread() {
 
-			
 			private boolean refreshBusy = false;
 			private boolean refreshPending = false;
 			private Object syncObj = new Object();
@@ -270,10 +272,10 @@ public final class EventTableView extends FramesocPart {
 				filterEnabled = false;
 				cache.clear();
 
-				// TimeInterval partial = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 				while (!queue.done()) {
 					try {
 						List<Event> events = queue.pop();
+						//logger.debug("Events: {}", events.size());
 						if (events.isEmpty())
 							continue;
 						// put the events in the cache
@@ -290,28 +292,25 @@ public final class EventTableView extends FramesocPart {
 					}
 				}
 
-				// TimeInterval queueInterval = queue.getTimeInterval();
-				if (queue.isComplete()) {
-					// // the whole requested interval has been loaded
-					// startTimestamp = Math.max(requestedInterval.startTimestamp,
-					// queueInterval.startTimestamp);
-					// endTimestamp = Math.min(requestedInterval.endTimestamp,
-					// queueInterval.endTimestamp);
+				if (!queue.isStop()) {
+					// we have not been stopped: the requested interval has been displayed
+					startTimestamp = requestedInterval.startTimestamp;
+					endTimestamp = requestedInterval.endTimestamp;
+					// refresh one last time
+					refreshTable();
+					activate();
 				} else {
-					// something has not been loaded
-					// if (partial != null && queueInterval != null) {
-					// // something has been loaded
-					// startTimestamp = Math.max(requestedInterval.startTimestamp,
-					// queueInterval.startTimestamp);
-					// endTimestamp = Math.min(partial.endTimestamp, Math.min(
-					// requestedInterval.endTimestamp, queueInterval.endTimestamp));
-					// }
-					handleCancel(cache.getActiveRowCount() > 0);
+					// we have been stopped: something has not been displayed in the table
+					startTimestamp = Math.max(requestedInterval.startTimestamp, startTimestamp);
+					endTimestamp = Math.min(requestedInterval.endTimestamp, endTimestamp);
+					if (cache.getActiveRowCount() > 0) {
+						// refresh one last time
+						refreshTable();
+						activate();
+					} else {
+						closeView();
+					}
 				}
-
-				// refresh one last time
-				refreshTable();
-				activate();
 
 				logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
 				logger.debug("start: {}", startTimestamp);
@@ -966,17 +965,14 @@ public final class EventTableView extends FramesocPart {
 
 	// Utilities
 
-	private void handleCancel(final boolean closeIfCancelled) {
-		// Display.getDefault().syncExec(new Runnable() {
-		// @Override
-		// public void run() {
-		// timeBar.setSelection(startTimestamp, endTimestamp);
-		// if (closeIfCancelled) {
-		// FramesocPartManager.getInstance().disposeFramesocPart(EventTableView.this);
-		// EventTableView.this.hideView();
-		// }
-		// }
-		// });
+	private void closeView() {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				FramesocPartManager.getInstance().disposeFramesocPart(EventTableView.this);
+				EventTableView.this.hideView();
+			}
+		});
 	}
 
 }

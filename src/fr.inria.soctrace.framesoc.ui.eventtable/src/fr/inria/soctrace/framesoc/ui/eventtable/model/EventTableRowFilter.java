@@ -41,6 +41,7 @@ public class EventTableRowFilter {
 	}
 
 	public boolean matches(EventTableRow row) {
+		System.out.println(row);
 		boolean matched = true;
 		for (EventTableColumn col : EventTableColumn.values()) {
 			String searchString = searchStrings.get(col);
@@ -65,6 +66,7 @@ public class EventTableRowFilter {
 				break;
 			}
 		}
+		System.out.println("matched: " + matched);
 		return matched;
 	}
 
