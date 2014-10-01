@@ -15,23 +15,27 @@ public class CacheTest {
 	public static void main(String[] args) {
 
 		EventTableCache cache = new EventTableCache();
-		int N = 100;
+		int N = 10;
 		DeltaManager dm = new DeltaManager();
 		
-		System.out.println("Loading");
+		System.out.println("Loading " + N + " elements");
 		dm.start();
 		for (int i = 0; i < N; i++) {
-			EventTableRow r = new EventTableRow();
+			EventTableRow r;
+			r = new EventTableRow();
+			r.setTimestamp(i);
+			cache.put(r);
+			r = new EventTableRow();
 			r.setTimestamp(i);
 			cache.put(r);
 		}
-		cache.setRequestedInterval(new TimeInterval(0, N - 1));
+		cache.setRequestedInterval(new TimeInterval(0, 2*N - 1));
 		dm.end("load");
-		print(cache, N);
+		print(cache, 2*N);
 
-		System.out.println("Sub interval");
+		System.out.println("Sub interval: " + 1 + ", " + ((2*N - 1) / 2));
 		dm.start();
-		TimeInterval interval = new TimeInterval(1, (N - 1) / 2);
+		TimeInterval interval = new TimeInterval(1, (2*N - 1) / 2);
 		if (!cache.contains(interval)) {
 			System.out.println("Interval not contained");
 			return;

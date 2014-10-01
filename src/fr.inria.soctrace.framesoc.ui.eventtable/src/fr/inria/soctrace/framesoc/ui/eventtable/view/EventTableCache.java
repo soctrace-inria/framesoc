@@ -6,8 +6,10 @@ package fr.inria.soctrace.framesoc.ui.eventtable.view;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+
+import com.google.common.collect.BoundType;
+import com.google.common.collect.SortedMultiset;
+import com.google.common.collect.TreeMultiset;
 
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -38,12 +40,12 @@ public class EventTableCache {
 	/**
 	 * Cached event table rows
 	 */
-	private SortedSet<EventTableRow> fRows;
+	private SortedMultiset<EventTableRow> fRows;
 
 	/**
 	 * View of the above rows in the active interval
 	 */
-	private SortedSet<EventTableRow> fActiveRows;
+	private SortedMultiset<EventTableRow> fActiveRows;
 
 	/**
 	 * Map between the table index and the row
@@ -132,9 +134,14 @@ public class EventTableCache {
 	 * @param interval
 	 */
 	public synchronized void index(TimeInterval interval) {
-		FROM.setTimestamp(interval.startTimestamp);
+		interval.startTimestamp = Math.max(interval.startTimestamp, Long.MIN_VALUE + 1);
+		interval.endTimestamp = Math.min(interval.endTimestamp, Long.MAX_VALUE - 1);
+		// start time is at least Long.MIN_VALUE + 1, so it is safe to remove 1
+		FROM.setTimestamp(interval.startTimestamp - 1);
+		// end time is at most Long.MAX_VALUE - 1, so it is safe to add 1
 		TO.setTimestamp(interval.endTimestamp + 1);
-		fActiveRows = fRows.subSet(FROM, TO);
+		// get the rows excluding the extremes, that have been enlarged by 1
+		fActiveRows = fRows.subMultiset(FROM, BoundType.OPEN, TO, BoundType.OPEN);
 		index();
 	}
 
@@ -186,17 +193,15 @@ public class EventTableCache {
 	 */
 
 	private void internalClear() {
-		fRows = new TreeSet<>(new Comparator<EventTableRow>() {
+		fRows = TreeMultiset.create(new Comparator<EventTableRow>() {
+			@Override
 			public int compare(EventTableRow r1, EventTableRow r2) {
-				// never return 0 to have different events with the same timestamp
-				if (r1.getTimestamp() > r2.getTimestamp())
-					return 1;
-				return -1;
+				return Long.compare(r1.getTimestamp(), r2.getTimestamp());
 			}
 		});
 		FROM.setTimestamp(Long.MIN_VALUE);
 		TO.setTimestamp(Long.MAX_VALUE);
-		fActiveRows = fRows.subSet(FROM, TO);
+		fActiveRows = fRows.subMultiset(FROM, BoundType.CLOSED, TO, BoundType.CLOSED);
 		fIndex = new HashMap<>();
 		fRequestedInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 		fLoadededInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);

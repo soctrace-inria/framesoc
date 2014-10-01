@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.ui,
  fr.inria.soctrace.lib.storage;bundle-version="1.0.0",
  fr.inria.soctrace.lib.utils;bundle-version="1.0.0",
  fr.inria.linuxtools.tmf.ui,
- fr.inria.linuxtools.tmf.core
+ fr.inria.linuxtools.tmf.core,
+ fr.inria.linuxtools.statesystem.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: INRIA
