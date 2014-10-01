@@ -505,19 +505,6 @@ public final class EventTableView extends FramesocPart {
 			}
 		});
 	}
-
-	private void debugFilter() {
-		Display.getDefault().syncExec(new Runnable() {			
-			@Override
-			public void run() {
-				System.out.println("Filter object in table: " + table.getData(Key.FILTER_OBJ));
-				System.out.println("Filter text in columns:");
-				for (TableColumn column : table.getColumns()) {
-					System.out.println("Filter text in column " + column.getText() + ": " + column.getData(Key.FILTER_TXT));
-				}
-			}
-		});
-	}
 	
 	private void setHeaderRowItemData(final TableItem item) {
 		item.setForeground(grayColor);
@@ -678,6 +665,8 @@ public final class EventTableView extends FramesocPart {
 			cache.index(interval);
 			table.refresh();
 			table.setSelection(0);
+			startTimestamp = interval.startTimestamp;
+			endTimestamp = interval.endTimestamp;
 			statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
 			timeBar.setSelection(interval.startTimestamp, interval.endTimestamp);
 			return;
@@ -744,14 +733,6 @@ public final class EventTableView extends FramesocPart {
 			this.requestedInterval = requestedInterval;
 			this.queue = queue;
 		}
-
-		// private void sleep() {
-		// try {
-		// Thread.sleep(0);
-		// } catch (InterruptedException e) {
-		// e.printStackTrace();
-		// }
-		// }
 
 		@Override
 		public void run() {
@@ -900,8 +881,6 @@ public final class EventTableView extends FramesocPart {
 		@Override
 		public void run() {
 			
-			debugFilter();
-			
 			if (currentShownTrace == null) {
 				return;
 			}
@@ -1022,7 +1001,6 @@ public final class EventTableView extends FramesocPart {
 		filterCheckCount = 0;
 		table.setSelection(0);
 		statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
-		debugFilter();
 	}
 
 }

@@ -96,8 +96,6 @@ public class EventTableCache {
 			fIndex.remove(removeIndex);
 			removeIndex++;
 		}
-		System.out.println("index: " + fIndex.size());
-		System.out.println("rows: " + fRows.size());
 	}
 
 	/**
