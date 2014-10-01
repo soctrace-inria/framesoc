@@ -491,7 +491,7 @@ public final class EventTableView extends FramesocPart {
 				table.refresh();
 			}
 		});
-		
+
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(final KeyEvent e) {
@@ -505,7 +505,7 @@ public final class EventTableView extends FramesocPart {
 			}
 		});
 	}
-	
+
 	private void setHeaderRowItemData(final TableItem item) {
 		item.setForeground(grayColor);
 		for (int i = 0; i < table.getColumns().length; i++) {
@@ -598,6 +598,8 @@ public final class EventTableView extends FramesocPart {
 	public void dispose() {
 		stopFilterThread();
 		stopDrawerThread();
+		if (loaderJob != null)
+			loaderJob.cancel();
 		if (table != null)
 			table.dispose();
 		table = null;
@@ -880,7 +882,7 @@ public final class EventTableView extends FramesocPart {
 
 		@Override
 		public void run() {
-			
+
 			if (currentShownTrace == null) {
 				return;
 			}
