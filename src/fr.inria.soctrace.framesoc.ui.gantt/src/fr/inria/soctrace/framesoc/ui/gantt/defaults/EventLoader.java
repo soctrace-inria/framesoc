@@ -130,7 +130,6 @@ public class EventLoader implements IEventLoader {
 		return false;
 	}
 
-	int ev = 0;
 	@Override
 	public void loadWindow(long start, long end, IProgressMonitor monitor) {
 
@@ -165,8 +164,6 @@ public class EventLoader implements IEventLoader {
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
 				List<ReducedEvent> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
-				ev += events.size();
-				System.out.println("ev: "+ev);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
@@ -258,7 +255,7 @@ public class EventLoader implements IEventLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-		return Math.max(next, end + 1); // TODO check this...
+		return Math.max(next, end + 1);
 	}
 
 	private String getQuery(long t0, long t1, boolean first, boolean last) {
@@ -268,10 +265,12 @@ public class EventLoader implements IEventLoader {
 		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
 		if (first && t0 != fTrace.getMinTimestamp()) {
 			// punctual events and variables: t0 <= t < t1 (last interval: t0 <= t <= t1)
-			sb.append(" (CATEGORY IN (0,4) AND TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp + t1 + ") ");
+			sb.append(" (CATEGORY IN (0,4) AND TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp
+					+ t1 + ") ");
 			sb.append(" OR ");
 			// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >= t0)
-			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP" + endComp + t1 + " AND LPAR>" + t0 + ")) ");
+			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP" + endComp + t1 + " AND LPAR>" + t0
+					+ ")) ");
 		} else {
 			sb.append(" (TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp + t1 + ") ");
 		}
