@@ -22,7 +22,7 @@ import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
  * Model element for a row in the Event table
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class EventTableRow extends TableRow {
 
@@ -30,7 +30,9 @@ public class EventTableRow extends TableRow {
 
 	/**
 	 * Constructor used to create a table row related to a given event.
-	 * @param event the event
+	 * 
+	 * @param event
+	 *            the event
 	 */
 	public EventTableRow(Event event) {
 		timestamp = event.getTimestamp();
@@ -42,8 +44,7 @@ public class EventTableRow extends TableRow {
 		StringBuilder tmp = new StringBuilder();
 		boolean first = true;
 
-
-		switch(event.getCategory()) {
+		switch (event.getCategory()) {
 		case EventCategory.PUNCTUAL_EVENT:
 			break;
 		case EventCategory.STATE:
@@ -65,18 +66,17 @@ public class EventTableRow extends TableRow {
 			Variable var = (Variable) event;
 			tmp.append("ID='" + var.getId() + "'");
 			tmp.append(", ");
-			tmp.append("VALUE='" + var.getValue() + "'");				
-			break;				
+			tmp.append("VALUE='" + var.getValue() + "'");
+			break;
 		}
 
-
-		for (EventParam ep: event.getEventParams()) {
-			if (first) { 
+		for (EventParam ep : event.getEventParams()) {
+			if (first) {
 				first = false;
 			} else {
 				tmp.append(", ");
 			}
-			tmp.append(ep.getEventParamType().getName() + "='" + ep.getValue()+"'");
+			tmp.append(ep.getEventParamType().getName() + "='" + ep.getValue() + "'");
 		}
 		fields.put(EventTableColumn.PARAMS, tmp.toString());
 	}
@@ -99,10 +99,11 @@ public class EventTableRow extends TableRow {
 	public long getTimestamp() {
 		return timestamp;
 	}
-	
+
 	/**
 	 * 
-	 * @param timestamp the timestamp to set
+	 * @param timestamp
+	 *            the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
 		this.timestamp = timestamp;

@@ -3,13 +3,9 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.collect.BoundType;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -24,28 +20,21 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
  */
 public class EventTableCache {
 
-	private final EventTableRow FROM = new EventTableRow();
-	private final EventTableRow TO = new EventTableRow();
-
 	/**
 	 * Largest requested interval so far
 	 */
 	private TimeInterval fRequestedInterval;
 
 	/**
-	 * Currently loaded interval
+	 * Active interval
 	 */
-	private TimeInterval fLoadededInterval;
-
+	private TimeInterval fActiveInterval;
+		
 	/**
 	 * Cached event table rows
+	 * TODO use sorted array
 	 */
-	private SortedMultiset<EventTableRow> fRows;
-
-	/**
-	 * View of the above rows in the active interval
-	 */
-	private SortedMultiset<EventTableRow> fActiveRows;
+	private ArrayList<EventTableRow> fRows;
 
 	/**
 	 * Map between the table index and the row
@@ -79,7 +68,7 @@ public class EventTableCache {
 	 *            the row to put in the cache
 	 */
 	public synchronized void put(EventTableRow row) {
-		updateInterval(row.getTimestamp(), fLoadededInterval);
+		updateInterval(row.getTimestamp(), fActiveInterval);
 		fRows.add(row);
 		fIndex.put(fCurrentIndex, row);
 		fCurrentIndex++;
@@ -109,7 +98,6 @@ public class EventTableCache {
 		}
 		System.out.println("index: " + fIndex.size());
 		System.out.println("rows: " + fRows.size());
-		System.out.println("active: " + fActiveRows.size());
 	}
 
 	/**
@@ -134,14 +122,7 @@ public class EventTableCache {
 	 * @param interval
 	 */
 	public synchronized void index(TimeInterval interval) {
-		interval.startTimestamp = Math.max(interval.startTimestamp, Long.MIN_VALUE + 1);
-		interval.endTimestamp = Math.min(interval.endTimestamp, Long.MAX_VALUE - 1);
-		// start time is at least Long.MIN_VALUE + 1, so it is safe to remove 1
-		FROM.setTimestamp(interval.startTimestamp - 1);
-		// end time is at most Long.MAX_VALUE - 1, so it is safe to add 1
-		TO.setTimestamp(interval.endTimestamp + 1);
-		// get the rows excluding the extremes, that have been enlarged by 1
-		fActiveRows = fRows.subMultiset(FROM, BoundType.OPEN, TO, BoundType.OPEN);
+		fActiveInterval = new TimeInterval(interval);
 		index();
 	}
 
@@ -151,19 +132,23 @@ public class EventTableCache {
 	public synchronized void index() {
 		fIndex = new HashMap<>();
 		fCurrentIndex = 0;
-		for (EventTableRow row : fActiveRows) {
+		for (EventTableRow row : fRows) {
+			if (row.getTimestamp()<fActiveInterval.startTimestamp)
+				continue;
+			if (row.getTimestamp()>fActiveInterval.endTimestamp)
+				continue;
 			fIndex.put(fCurrentIndex, row);
 			fCurrentIndex++;
 		}
 	}
 
 	/**
-	 * Get the total number of active lines
+	 * Get the total number of indexed rows
 	 * 
-	 * @return the number of active lines
+	 * @return the number of indexed rows
 	 */
-	public synchronized int getActiveRowCount() {
-		return fActiveRows.size();
+	public synchronized int getIndexedRowCount() {
+		return fIndex.size();
 	}
 
 	/**
@@ -193,19 +178,11 @@ public class EventTableCache {
 	 */
 
 	private void internalClear() {
-		fRows = TreeMultiset.create(new Comparator<EventTableRow>() {
-			@Override
-			public int compare(EventTableRow r1, EventTableRow r2) {
-				return Long.compare(r1.getTimestamp(), r2.getTimestamp());
-			}
-		});
-		FROM.setTimestamp(Long.MIN_VALUE);
-		TO.setTimestamp(Long.MAX_VALUE);
-		fActiveRows = fRows.subMultiset(FROM, BoundType.CLOSED, TO, BoundType.CLOSED);
+		fRows = new ArrayList<>();
 		fIndex = new HashMap<>();
-		fRequestedInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
-		fLoadededInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 		fCurrentIndex = 0;
+		fRequestedInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
+		fActiveInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 	}
 
 	private void updateInterval(long timestamp, TimeInterval interval) {

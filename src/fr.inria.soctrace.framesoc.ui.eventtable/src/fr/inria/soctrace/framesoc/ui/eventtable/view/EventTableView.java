@@ -491,7 +491,7 @@ public final class EventTableView extends FramesocPart {
 				table.refresh();
 			}
 		});
-
+		
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(final KeyEvent e) {
@@ -506,6 +506,19 @@ public final class EventTableView extends FramesocPart {
 		});
 	}
 
+	private void debugFilter() {
+		Display.getDefault().syncExec(new Runnable() {			
+			@Override
+			public void run() {
+				System.out.println("Filter object in table: " + table.getData(Key.FILTER_OBJ));
+				System.out.println("Filter text in columns:");
+				for (TableColumn column : table.getColumns()) {
+					System.out.println("Filter text in column " + column.getText() + ": " + column.getData(Key.FILTER_TXT));
+				}
+			}
+		});
+	}
+	
 	private void setHeaderRowItemData(final TableItem item) {
 		item.setForeground(grayColor);
 		for (int i = 0; i < table.getColumns().length; i++) {
@@ -665,7 +678,7 @@ public final class EventTableView extends FramesocPart {
 			cache.index(interval);
 			table.refresh();
 			table.setSelection(0);
-			statusText.setText(getStatus(cache.getActiveRowCount(), cache.getActiveRowCount()));
+			statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
 			timeBar.setSelection(interval.startTimestamp, interval.endTimestamp);
 			return;
 		}
@@ -784,7 +797,7 @@ public final class EventTableView extends FramesocPart {
 				// we have been stopped: something has not been displayed in the table
 				startTimestamp = Math.max(requestedInterval.startTimestamp, startTimestamp);
 				endTimestamp = Math.min(requestedInterval.endTimestamp, endTimestamp);
-				if (cache.getActiveRowCount() > 0) {
+				if (cache.getIndexedRowCount() > 0) {
 					// refresh one last time
 					refreshTable();
 					enableWidgets(true);
@@ -828,7 +841,7 @@ public final class EventTableView extends FramesocPart {
 					if (table.isDisposed() || statusText.isDisposed() || timeBar.isDisposed()) {
 						return;
 					}
-					int events = cache.getActiveRowCount();
+					int events = cache.getIndexedRowCount();
 					table.setItemCount(events + 1); // +1 for header row
 					table.refresh();
 					timeBar.setSelection(startTimestamp, endTimestamp);
@@ -886,13 +899,16 @@ public final class EventTableView extends FramesocPart {
 
 		@Override
 		public void run() {
+			
+			debugFilter();
+			
 			if (currentShownTrace == null) {
 				return;
 			}
 			filterMatchCount = 0;
 			filterCheckCount = 0;
 			cache.index();
-			int activeRows = cache.getActiveRowCount();
+			int activeRows = cache.getIndexedRowCount();
 			for (int i = 0; i < activeRows; i++) {
 				if (stop) {
 					break;
@@ -998,14 +1014,15 @@ public final class EventTableView extends FramesocPart {
 		table.setData(Key.FILTER_OBJ, null);
 		if (currentShownTrace != null) {
 			cache.index();
-			table.setItemCount(cache.getActiveRowCount() + 1); // +1 for header row
+			table.setItemCount(cache.getIndexedRowCount() + 1); // +1 for header row
 		} else {
 			table.setItemCount(1); // +1 for header row
 		}
 		filterMatchCount = 0;
 		filterCheckCount = 0;
 		table.setSelection(0);
-		statusText.setText(getStatus(cache.getActiveRowCount(), cache.getActiveRowCount()));
+		statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
+		debugFilter();
 	}
 
 }

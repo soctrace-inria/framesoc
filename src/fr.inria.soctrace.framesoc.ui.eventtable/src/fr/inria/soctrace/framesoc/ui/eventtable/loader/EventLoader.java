@@ -150,7 +150,7 @@ public class EventLoader implements IEventLoader {
 		try {
 			EventQuery query = getQueryObject();
 			query.clear();
-			if (first) {
+			if (first && t0 != fTrace.getMinTimestamp()) {
 				// first interval
 				LogicalCondition or = new LogicalCondition(LogicalOperation.OR);
 				// punctual events and variables: t0 <= t < t1 (last interval: t0 <= t <= t1)
