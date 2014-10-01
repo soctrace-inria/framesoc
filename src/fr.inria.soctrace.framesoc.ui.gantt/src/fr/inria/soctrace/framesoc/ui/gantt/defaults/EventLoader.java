@@ -34,6 +34,7 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventProducerQuery;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
+import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
@@ -129,6 +130,7 @@ public class EventLoader implements IEventLoader {
 		return false;
 	}
 
+	int ev = 0;
 	@Override
 	public void loadWindow(long start, long end, IProgressMonitor monitor) {
 
@@ -162,7 +164,9 @@ public class EventLoader implements IEventLoader {
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				List<ReducedEvent> events = loadInterval(first, t0, t1, monitor);
+				List<ReducedEvent> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
+				ev += events.size();
+				System.out.println("ev: "+ev);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
@@ -197,14 +201,14 @@ public class EventLoader implements IEventLoader {
 		}
 	}
 
-	private List<ReducedEvent> loadInterval(boolean first, long t0, long t1,
+	private List<ReducedEvent> loadInterval(boolean first, boolean last, long t0, long t1,
 			IProgressMonitor monitor) {
 		List<ReducedEvent> events = new LinkedList<>();
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			ResultSet rs = stm.executeQuery(getQuery(t0, t1, first));
+			ResultSet rs = stm.executeQuery(getQuery(t0, t1, first, last));
 			logger.debug(dm.endMessage("exec query"));
 			dm.start();
 			while (rs.next()) {
@@ -257,17 +261,19 @@ public class EventLoader implements IEventLoader {
 		return Math.max(next, end + 1); // TODO check this...
 	}
 
-	private String getQuery(long start, long end, boolean first) {
+	private String getQuery(long t0, long t1, boolean first, boolean last) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT " + ReducedEvent.SELECT_COLUMNS + " FROM " + FramesocTable.EVENT
 				+ " WHERE ");
-		if (first) {
-			// TODO try to optimize this request
-			sb.append(" (CATEGORY=0 AND TIMESTAMP >= " + start + " AND TIMESTAMP < " + end + ") ");
+		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
+		if (first && t0 != fTrace.getMinTimestamp()) {
+			// punctual events and variables: t0 <= t < t1 (last interval: t0 <= t <= t1)
+			sb.append(" (CATEGORY IN (0,4) AND TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp + t1 + ") ");
 			sb.append(" OR ");
-			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP<" + end + " AND LPAR>" + start + ")) ");
+			// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >= t0)
+			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP" + endComp + t1 + " AND LPAR>" + t0 + ")) ");
 		} else {
-			sb.append(" (TIMESTAMP >= " + start + " AND TIMESTAMP < " + end + ") ");
+			sb.append(" (TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp + t1 + ") ");
 		}
 		logger.debug("Query: " + sb.toString());
 		return sb.toString();
