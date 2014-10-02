@@ -153,6 +153,8 @@ public class EventLoader implements IEventLoader {
 			monitor.beginTask("Loading Gantt Chart", totalWork);
 			int oldWorked = 0;
 
+			int totalEvents = 0;
+			TimeInterval firstInterval = null;
 			boolean first = true;
 			long t0 = start;
 			while (t0 <= end) {
@@ -163,8 +165,13 @@ public class EventLoader implements IEventLoader {
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				List<ReducedEvent> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
-				debug(events);
+				if (first) {
+					// store the first time interval for later loading
+					firstInterval = new TimeInterval(t0, t1);
+					first = false;
+				}
+				List<ReducedEvent> events = loadInterval(false, (t1 >= end), t0, t1, monitor);
+				totalEvents = debug(events, totalEvents);
 				if (checkCancel(monitor)) {
 					return;
 				}
@@ -182,8 +189,18 @@ public class EventLoader implements IEventLoader {
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
 				t0 = t1 + 1;
-				first = false;
 
+				fQueue.push(events, new TimeInterval(fTimeInterval));
+			}
+
+			// load states and links intersecting the start of the first interval
+			if (firstInterval != null && firstInterval.startTimestamp != fTrace.getMinTimestamp()) {
+				List<ReducedEvent> events = loadInterval(true, (firstInterval.endTimestamp >= end),
+						firstInterval.startTimestamp, firstInterval.endTimestamp, monitor);
+				totalEvents = debug(events, totalEvents);
+				if (checkCancel(monitor)) {
+					return;
+				}
 				fQueue.push(events, new TimeInterval(fTimeInterval));
 			}
 
@@ -263,15 +280,11 @@ public class EventLoader implements IEventLoader {
 		sb.append("SELECT " + ReducedEvent.SELECT_COLUMNS + " FROM " + FramesocTable.EVENT
 				+ " WHERE ");
 		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
-		if (first && t0 != fTrace.getMinTimestamp()) {
-			// punctual events and variables: t0 <= t < t1 (last interval: t0 <= t <= t1)
-			sb.append(" (CATEGORY IN (0,4) AND TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp
-					+ t1 + ") ");
-			sb.append(" OR ");
-			// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >= t0)
-			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP" + endComp + t1 + " AND LPAR>" + t0
-					+ ")) ");
+		if (first) {
+			// states and links: start < t0 and end >= t0
+			sb.append(" (CATEGORY IN (1,2) AND (TIMESTAMP < " + t0 + " AND LPAR >= " + t0 + ")) ");
 		} else {
+			// all events: start >= t0 and start < t1 (last interval start >= t0 and start <= t1)
 			sb.append(" (TIMESTAMP >= " + t0 + " AND TIMESTAMP " + endComp + t1 + ") ");
 		}
 		logger.debug("Query: " + sb.toString());
@@ -295,10 +308,14 @@ public class EventLoader implements IEventLoader {
 		return fTraceDB;
 	}
 
-	private void debug(List<ReducedEvent> events) {
+	private int debug(List<ReducedEvent> events, int totalEvents) {
+		totalEvents += events.size();
+		logger.debug("events read : {}", events.size());
+		logger.debug("total events: {}", totalEvents);
 		for (ReducedEvent event : events) {
 			logger.trace(event.toString());
 		}
+		return totalEvents;
 	}
 
 }
