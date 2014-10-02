@@ -94,7 +94,12 @@ public class EventLoader implements IEventLoader {
 			monitor.beginTask("Loading Event Table", totalWork);
 			int oldWorked = 0;
 
-			boolean first = true;
+			/*
+			 * XXX Current solution (may change).
+			 * The table only loads the events with timestamp contained in the interval.
+			 * So there is no difference between the first interval and the other.
+			 */
+			//boolean first = true;
 			long t0 = start;
 			while (t0 <= end) {
 				// check if cancelled
@@ -104,7 +109,8 @@ public class EventLoader implements IEventLoader {
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
+				//List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
+				List<Event> events = loadInterval(false, (t1 >= end), t0, t1, monitor);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
@@ -127,7 +133,7 @@ public class EventLoader implements IEventLoader {
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
 				t0 = t1 + 1;
-				first = false;
+				//first = false;
 			}
 
 			fQueue.setComplete();
