@@ -25,7 +25,6 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.ResourceManager;
@@ -432,14 +431,8 @@ public class GanttView extends AbstractGanttView {
 
 		super.fillLocalToolBar(manager);
 
-		IDialogSettings settings = Activator.getDefault().getDialogSettings();
-		IDialogSettings section = settings.getSection(getClass().getName());
-		if (section == null) {
-			section = settings.addNewSection(getClass().getName());
-		}
-
 		// Links
-		hideArrowsAction = createHideArrowsAction(section);
+		hideArrowsAction = createHideArrowsAction();
 		ActionContributionItem hideArrowCI = new ActionContributionItem(hideArrowsAction);
 		hideArrowCI.setMode(ActionContributionItem.MODE_FORCE_TEXT);
 		manager.add(hideArrowCI);
@@ -480,9 +473,10 @@ public class GanttView extends AbstractGanttView {
 		return showTable;
 	}
 
-	private IAction createHideArrowsAction(final IDialogSettings section) {
+	private IAction createHideArrowsAction() {
+		// ignore dialog settings (null is passed)
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
-				section);
+				null);
 		hideArrowsAction = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
