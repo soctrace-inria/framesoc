@@ -924,16 +924,15 @@ public class TimeGraphCombo extends Composite {
 
     /**
      * Refreshes this time graph completely with information freshly obtained
-     * from its model.
+     * from its model, keeping track of the tree expand/collapse status.
      *
      * @param expanded
-     *            expanded entries before changing the model. This parameter is
-     *            updated adding to the set all the new entries that can be
-     *            expanded (because their parent is expanded).
+     *            expanded entries before the model refresh
      * @param newEntries
      *            the entries before the model refresh
      * @param roots
-     *            model root entries
+     *            refreshed model root entries
+     * @Framesoc
      */
     public void refresh(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries, List<ITimeGraphEntry> roots) {
         fInhibitTreeSelection = true;
@@ -951,21 +950,23 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = false;
     }
 
+    /*
+     * Expands all the entries that were expanded before and all the new entries
+     * that can be expanded (whose parent is expanded or can be expanded).
+     * @Framesoc
+     */
     private void expand(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries, ITimeGraphEntry entry) {
         if (newEntries.contains(entry)) {
             expanded.add(entry);
         }
         if (expanded.contains(entry)) {
-            System.out.println("expanding " + entry);
-            fTreeViewer.setExpandedState(entry, false);
-            fTimeGraphViewer.setExpandedState(entry, false);
+            if (entry.getParent() != null) {
+                fTreeViewer.setExpandedState(entry.getParent(), true);
+                fTimeGraphViewer.setExpandedState(entry.getParent(), true);
+            }
             for (ITimeGraphEntry e : entry.getChildren()) {
                 expand(expanded, newEntries, e);
             }
-        } else {
-            System.out.println("not expanding " + entry);
-            fTreeViewer.setExpandedState(entry, false);
-            fTimeGraphViewer.setExpandedState(entry, false);
         }
     }
 

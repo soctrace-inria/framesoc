@@ -71,8 +71,8 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 /**
  * An abstract view all time graph views can inherit
  * 
- * This view contains a time graph combo which is divided between a tree viewer on the left and a
- * time graph viewer on the right.
+ * This view contains a time graph combo which is divided between a tree viewer
+ * on the left and a time graph viewer on the right.
  * 
  */
 public abstract class AbstractGanttView extends FramesocPart {
@@ -105,7 +105,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** The end time */
 	private long fEndTime;
 
-	/** Flag indicating if the user changed the selection (via the timebar or the viewer) */
+	/**
+	 * Flag indicating if the user changed the selection (via the timebar or the
+	 * viewer)
+	 */
 	private boolean fUserChangedTimeRange = false;
 
 	/** Flag indicating if the user changed the time range (zooming or panning) */
@@ -135,7 +138,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** A comparator class */
 	private Comparator<ITimeGraphEntry> fEntryComparator = null;
 
-	/** The redraw state used to prevent unnecessary queuing of display runnables */
+	/**
+	 * The redraw state used to prevent unnecessary queuing of display runnables
+	 */
 	private State fRedrawState = State.IDLE;
 
 	/** The redraw synchronization object */
@@ -342,8 +347,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Base class to provide the labels for the tree viewer. Views extending this class typically
-	 * need to override the getColumnText method if they have more than one column to display
+	 * Base class to provide the labels for the tree viewer. Views extending
+	 * this class typically need to override the getColumnText method if they
+	 * have more than one column to display
 	 */
 	protected static class TreeLabelProvider implements ITableLabelProvider, ILabelProvider {
 
@@ -407,14 +413,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		@Override
 		public void run() {
-//			logger.debug("Zoom thread run");
-//			/* Refresh the arrows when zooming */
-//			List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution,
-//					fMonitor);
-//			if (events != null) {
-//				fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
-//				redraw();
-//			}
+			logger.debug("Zoom thread run");
+			/* Refresh the arrows when zooming */
+			List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution,
+					fMonitor);
+			if (events != null) {
+				fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
+				redraw();
+			}
 		}
 
 		public void cancel() {
@@ -498,18 +504,20 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the relative weight of each part of the time graph combo. This should be called from the
-	 * constructor.
+	 * Sets the relative weight of each part of the time graph combo. This
+	 * should be called from the constructor.
 	 * 
 	 * @param weights
-	 *            The array (length 2) of relative weights of each part of the combo
+	 *            The array (length 2) of relative weights of each part of the
+	 *            combo
 	 */
 	protected void setWeight(final int[] weights) {
 		fWeight = weights;
 	}
 
 	/**
-	 * Sets the filter column labels. This should be called from the constructor.
+	 * Sets the filter column labels. This should be called from the
+	 * constructor.
 	 * 
 	 * @param filterColumns
 	 *            The array of filter column labels
@@ -519,7 +527,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the filter label provider. This should be called from the constructor.
+	 * Sets the filter label provider. This should be called from the
+	 * constructor.
 	 * 
 	 * @param labelProvider
 	 *            The filter label provider
@@ -875,8 +884,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Gets the list of links (displayed as arrows) for a trace in a given time range. Default
-	 * implementation returns an empty list.
+	 * Gets the list of links (displayed as arrows) for a trace in a given time
+	 * range. Default implementation returns an empty list.
 	 * 
 	 * @param startTime
 	 *            Start of the time range
@@ -923,22 +932,19 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fTimeGraphWrapper.setInput(fEntryList);
 				} else {
 					Set<ITimeGraphEntry> newEntries = new HashSet<>();
+					Set<ITimeGraphEntry> expanded = new HashSet<>();
+					List<ITimeGraphEntry> roots = new ArrayList<>();
 					if (fOldEntrySet == null) {
 						fOldEntrySet = new HashSet<>();
 					}
 					for (ITimeGraphEntry e : fEntryList) {
+						roots.add(e);
 						updateOldEntries(newEntries, e);
 					}
-
 					TimeGraphViewer viewer = fTimeGraphWrapper.getTimeGraphViewer();
-					Set<ITimeGraphEntry> expanded = new HashSet<>();
-					List<ITimeGraphEntry> roots = new ArrayList<>();
 					ITimeGraphEntry exp[] = viewer.getExpandedElements();
 					for (ITimeGraphEntry e : exp) {
 						expanded.add(e);
-					}
-					for (ITimeGraphEntry e : fEntryList) {
-						roots.add(e);
 					}
 					fTimeGraphWrapper.refresh(expanded, newEntries, roots);
 				}
@@ -1042,7 +1048,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Refresh only the passed interval after a request to show a part of an already loaded window.
+	 * Refresh only the passed interval after a request to show a part of an
+	 * already loaded window.
 	 * 
 	 * @param interval
 	 *            time interval to show
