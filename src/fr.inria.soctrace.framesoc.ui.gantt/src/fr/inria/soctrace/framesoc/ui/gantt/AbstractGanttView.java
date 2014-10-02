@@ -69,8 +69,8 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 /**
  * An abstract view all time graph views can inherit
  * 
- * This view contains a time graph combo which is divided between a tree viewer
- * on the left and a time graph viewer on the right.
+ * This view contains a time graph combo which is divided between a tree viewer on the left and a
+ * time graph viewer on the right.
  * 
  */
 public abstract class AbstractGanttView extends FramesocPart {
@@ -101,8 +101,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private long fEndTime;
 
 	/**
-	 * Flag indicating if the user changed the selection (via the timebar or the
-	 * viewer)
+	 * Flag indicating if the user changed the selection (via the timebar or the viewer)
 	 */
 	private boolean fUserChangedTimeRange = false;
 
@@ -120,9 +119,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The display width */
 	private final int fDisplayWidth;
-	
-    /** The zoom thread */
-    private ZoomThread fZoomThread;
+
+	/** The zoom thread */
+	private ZoomThread fZoomThread;
 
 	/** The next resource action */
 	private Action fNextResourceAction;
@@ -334,9 +333,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Base class to provide the labels for the tree viewer. Views extending
-	 * this class typically need to override the getColumnText method if they
-	 * have more than one column to display
+	 * Base class to provide the labels for the tree viewer. Views extending this class typically
+	 * need to override the getColumnText method if they have more than one column to display
 	 */
 	protected static class TreeLabelProvider implements ITableLabelProvider, ILabelProvider {
 
@@ -384,35 +382,36 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	}
 
-    private class ZoomThread extends Thread {
-        private final long fZoomStartTime;
-        private final long fZoomEndTime;
-        private final long fResolution;
-        private final IProgressMonitor fMonitor;
+	private class ZoomThread extends Thread {
+		private final long fZoomStartTime;
+		private final long fZoomEndTime;
+		private final long fResolution;
+		private final IProgressMonitor fMonitor;
 
-        public ZoomThread(List<TimeGraphEntry> entryList, long startTime, long endTime) {
-            super("Zoom Thread"); //$NON-NLS-1$
-            fZoomStartTime = startTime;
-            fZoomEndTime = endTime;
-            fResolution = Math.max(1, (fZoomEndTime - fZoomStartTime) / fDisplayWidth);
-            fMonitor = new NullProgressMonitor();
-        }
+		public ZoomThread(List<TimeGraphEntry> entryList, long startTime, long endTime) {
+			super("Zoom Thread"); //$NON-NLS-1$
+			fZoomStartTime = startTime;
+			fZoomEndTime = endTime;
+			fResolution = Math.max(1, (fZoomEndTime - fZoomStartTime) / fDisplayWidth);
+			fMonitor = new NullProgressMonitor();
+		}
 
-        @Override
-        public void run() {
-    		logger.debug("Zoom thread run");
-            /* Refresh the arrows when zooming */
-            List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution, fMonitor);
-            if (events != null) {
-                fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
-                redraw();
-            }
-        }
+		@Override
+		public void run() {
+			logger.debug("Zoom thread run");
+			/* Refresh the arrows when zooming */
+			List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution,
+					fMonitor);
+			if (events != null) {
+				fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
+				redraw();
+			}
+		}
 
-        public void cancel() {
-            fMonitor.setCanceled(true);
-        }
-    }
+		public void cancel() {
+			fMonitor.setCanceled(true);
+		}
+	}
 
 	// ------------------------------------------------------------------------
 	// Constructors
@@ -490,20 +489,18 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the relative weight of each part of the time graph combo. This
-	 * should be called from the constructor.
+	 * Sets the relative weight of each part of the time graph combo. This should be called from the
+	 * constructor.
 	 * 
 	 * @param weights
-	 *            The array (length 2) of relative weights of each part of the
-	 *            combo
+	 *            The array (length 2) of relative weights of each part of the combo
 	 */
 	protected void setWeight(final int[] weights) {
 		fWeight = weights;
 	}
 
 	/**
-	 * Sets the filter column labels. This should be called from the
-	 * constructor.
+	 * Sets the filter column labels. This should be called from the constructor.
 	 * 
 	 * @param filterColumns
 	 *            The array of filter column labels
@@ -513,8 +510,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the filter label provider. This should be called from the
-	 * constructor.
+	 * Sets the filter label provider. This should be called from the constructor.
 	 * 
 	 * @param labelProvider
 	 *            The filter label provider
@@ -749,12 +745,12 @@ public abstract class AbstractGanttView extends FramesocPart {
 				// visible start and end time changed by the user
 				// (range updated after zoom or pan)
 				fUserChangedTimeRange = true;
-                final long startTime = event.getStartTime();
-                final long endTime = event.getEndTime();
-                if (fZoomThread != null) {
-                    fZoomThread.cancel();
-                }
-                startZoomThread(startTime, endTime);
+				final long startTime = event.getStartTime();
+				final long endTime = event.getEndTime();
+				if (fZoomThread != null) {
+					fZoomThread.cancel();
+				}
+				startZoomThread(startTime, endTime);
 			}
 		});
 
@@ -869,26 +865,26 @@ public abstract class AbstractGanttView extends FramesocPart {
 	// Internal
 	// ------------------------------------------------------------------------
 
-    /**
-     * Gets the list of links (displayed as arrows) for a trace in a given
-     * time range.  Default implementation returns an empty list.
-     *
-     * @param startTime
-     *            Start of the time range
-     * @param endTime
-     *            End of the time range
-     * @param resolution
-     *            The resolution
-     * @param monitor
-     *            The progress monitor object
-     * @return The list of link events
-     * @since 2.1
-     */
-    protected List<ILinkEvent> getLinkList(long startTime, long endTime,
-            long resolution, IProgressMonitor monitor) {
-        return new ArrayList<>();
-    }
-    
+	/**
+	 * Gets the list of links (displayed as arrows) for a trace in a given time range. Default
+	 * implementation returns an empty list.
+	 * 
+	 * @param startTime
+	 *            Start of the time range
+	 * @param endTime
+	 *            End of the time range
+	 * @param resolution
+	 *            The resolution
+	 * @param monitor
+	 *            The progress monitor object
+	 * @return The list of link events
+	 * @since 2.1
+	 */
+	protected List<ILinkEvent> getLinkList(long startTime, long endTime, long resolution,
+			IProgressMonitor monitor) {
+		return new ArrayList<>();
+	}
+
 	/**
 	 * Refresh the display
 	 */
@@ -950,7 +946,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				timeBar.setEnabled(true);
 				btnSynch.setEnabled(true);
 				btnDraw.setEnabled(true);
-			
+
 				if (!fUserChangedTimeRange) {
 					startZoomThread(fStartTime, fEndTime);
 				}
@@ -959,8 +955,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		});
 	}
 
-	protected abstract void manageLinks();
-	
 	/**
 	 * Redraw the canvas
 	 */
@@ -998,20 +992,21 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/**
 	 * Start the zoom thread.
 	 * 
-	 * @param startTime current visible start time
-	 * @param endTime current visible end time
+	 * @param startTime
+	 *            current visible start time
+	 * @param endTime
+	 *            current visible end time
 	 */
-    private void startZoomThread(long startTime, long endTime) {
-        if (fZoomThread != null) {
-            fZoomThread.cancel();
-        }
-        fZoomThread = new ZoomThread(fEntryList, startTime, endTime);
-        fZoomThread.start();
-    }
+	private void startZoomThread(long startTime, long endTime) {
+		if (fZoomThread != null) {
+			fZoomThread.cancel();
+		}
+		fZoomThread = new ZoomThread(fEntryList, startTime, endTime);
+		fZoomThread.start();
+	}
 
 	/**
-	 * Refresh only the passed interval after a request to show a part of an
-	 * already loaded window.
+	 * Refresh only the passed interval after a request to show a part of an already loaded window.
 	 * 
 	 * @param interval
 	 *            time interval to show

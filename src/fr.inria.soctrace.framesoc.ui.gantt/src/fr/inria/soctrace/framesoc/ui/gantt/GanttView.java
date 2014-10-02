@@ -415,34 +415,6 @@ public class GanttView extends AbstractGanttView {
 		return actualLinks;
 	}
 
-	@Override
-	protected void manageLinks() {
-		if (links == null)
-			return;
-		long zoom0 = getTimeGraphViewer().getTime0();
-		long zoom1 = getTimeGraphViewer().getTime1();
-		long resolution = Math.max(1, (zoom1 - zoom0) / getDisplayWidth());
-		Collections.sort(links, new Comparator<ILinkEvent>() {
-			@Override
-			public int compare(ILinkEvent e1, ILinkEvent e2) {
-				if (e1.getTime() > e2.getTime())
-					return 1;
-				if (e1.getTime() == e2.getTime())
-					return 0;
-				return -1;
-			}
-		});
-		long actualStart = zoom0;
-		List<ILinkEvent> actualLinks = new ArrayList<>();
-		for (ILinkEvent link : links) {
-			if (link.getTime() < actualStart)
-				continue;
-			actualLinks.add(link);
-			actualStart += resolution;
-		}
-		getTimeGraphViewer().setLinks(actualLinks);
-	}
-
 	private void handleCancel(final boolean closeIfCancelled) {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
