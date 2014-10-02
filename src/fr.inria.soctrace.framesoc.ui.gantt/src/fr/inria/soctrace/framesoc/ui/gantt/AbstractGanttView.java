@@ -13,7 +13,9 @@ package fr.inria.soctrace.framesoc.ui.gantt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -94,15 +96,16 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** The timegraph entry list */
 	private List<TimeGraphEntry> fEntryList;
 
+	/** The timegraph old entry set */
+	private Set<ITimeGraphEntry> fOldEntrySet;
+
 	/** The start time */
 	private long fStartTime;
 
 	/** The end time */
 	private long fEndTime;
 
-	/**
-	 * Flag indicating if the user changed the selection (via the timebar or the viewer)
-	 */
+	/** Flag indicating if the user changed the selection (via the timebar or the viewer) */
 	private boolean fUserChangedTimeRange = false;
 
 	/** Flag indicating if the user changed the time range (zooming or panning) */
@@ -132,9 +135,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** A comparator class */
 	private Comparator<ITimeGraphEntry> fEntryComparator = null;
 
-	/**
-	 * The redraw state used to prevent unnecessary queuing of display runnables
-	 */
+	/** The redraw state used to prevent unnecessary queuing of display runnables */
 	private State fRedrawState = State.IDLE;
 
 	/** The redraw synchronization object */
@@ -198,6 +199,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		void update();
 
+		void refresh(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries,
+				List<ITimeGraphEntry> fEntryList);
 	}
 
 	private class TimeGraphComboWrapper implements ITimeGraphWrapper {
@@ -272,6 +275,12 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		IAction getShowFilterAction() {
 			return combo.getShowFilterAction();
+		}
+
+		@Override
+		public void refresh(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries,
+				List<ITimeGraphEntry> roots) {
+			combo.refresh(expanded, newEntries, roots);
 		}
 	}
 
@@ -398,14 +407,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		@Override
 		public void run() {
-			logger.debug("Zoom thread run");
-			/* Refresh the arrows when zooming */
-			List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution,
-					fMonitor);
-			if (events != null) {
-				fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
-				redraw();
-			}
+//			logger.debug("Zoom thread run");
+//			/* Refresh the arrows when zooming */
+//			List<ILinkEvent> events = getLinkList(fZoomStartTime, fZoomEndTime, fResolution,
+//					fMonitor);
+//			if (events != null) {
+//				fTimeGraphWrapper.getTimeGraphViewer().setLinks(events);
+//				redraw();
+//			}
 		}
 
 		public void cancel() {
@@ -900,7 +909,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				fTimeGraphWrapper.getTimeGraphViewer().getTimeGraphControl()
 						.colorSettingsChanged(fPresentation.getStateTable());
 
-				boolean hasEntries = false;
 				if (fEntryList == null) {
 					fEntryList = new CopyOnWriteArrayList<>();
 				} else if (fEntryComparator != null) {
@@ -909,12 +917,30 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fEntryList.clear();
 					fEntryList.addAll(list);
 				}
-				hasEntries = fEntryList.size() != 0;
+				boolean hasEntries = fEntryList.size() != 0;
 
 				if (fEntryList != fTimeGraphWrapper.getInput()) {
 					fTimeGraphWrapper.setInput(fEntryList);
 				} else {
-					fTimeGraphWrapper.refresh();
+					Set<ITimeGraphEntry> newEntries = new HashSet<>();
+					if (fOldEntrySet == null) {
+						fOldEntrySet = new HashSet<>();
+					}
+					for (ITimeGraphEntry e : fEntryList) {
+						updateOldEntries(newEntries, e);
+					}
+
+					TimeGraphViewer viewer = fTimeGraphWrapper.getTimeGraphViewer();
+					Set<ITimeGraphEntry> expanded = new HashSet<>();
+					List<ITimeGraphEntry> roots = new ArrayList<>();
+					ITimeGraphEntry exp[] = viewer.getExpandedElements();
+					for (ITimeGraphEntry e : exp) {
+						expanded.add(e);
+					}
+					for (ITimeGraphEntry e : fEntryList) {
+						roots.add(e);
+					}
+					fTimeGraphWrapper.refresh(expanded, newEntries, roots);
 				}
 
 				// set timebar bounds (min, max)
@@ -949,6 +975,16 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 				if (!fUserChangedTimeRange) {
 					startZoomThread(fStartTime, fEndTime);
+				}
+			}
+
+			private void updateOldEntries(Set<ITimeGraphEntry> newEntries, ITimeGraphEntry e) {
+				if (!fOldEntrySet.contains(e)) {
+					newEntries.add(e);
+					fOldEntrySet.add(e);
+					for (ITimeGraphEntry c : e.getChildren()) {
+						updateOldEntries(newEntries, c);
+					}
 				}
 			}
 
