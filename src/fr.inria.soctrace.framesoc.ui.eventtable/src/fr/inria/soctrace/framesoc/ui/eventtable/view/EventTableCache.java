@@ -16,6 +16,9 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
  * 
  * The filter thread, which re-index the cache, cannot update the index concurrently to the loading.
  * 
+ * The rows are supposed to be stored sorted by timestamp. The sorting is done externally to this
+ * cache.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventTableCache {
@@ -29,10 +32,9 @@ public class EventTableCache {
 	 * Active interval
 	 */
 	private TimeInterval fActiveInterval;
-		
+
 	/**
 	 * Cached event table rows
-	 * TODO use sorted array
 	 */
 	private ArrayList<EventTableRow> fRows;
 
@@ -131,9 +133,9 @@ public class EventTableCache {
 		fIndex = new HashMap<>();
 		fCurrentIndex = 0;
 		for (EventTableRow row : fRows) {
-			if (row.getTimestamp()<fActiveInterval.startTimestamp)
+			if (row.getTimestamp() < fActiveInterval.startTimestamp)
 				continue;
-			if (row.getTimestamp()>fActiveInterval.endTimestamp)
+			if (row.getTimestamp() > fActiveInterval.endTimestamp)
 				continue;
 			fIndex.put(fCurrentIndex, row);
 			fCurrentIndex++;
