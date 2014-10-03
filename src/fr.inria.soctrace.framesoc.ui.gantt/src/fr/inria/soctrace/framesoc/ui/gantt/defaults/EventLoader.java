@@ -129,15 +129,6 @@ public class EventLoader implements IEventLoader {
 		}
 		return false;
 	}
-
-	private void sleep() {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	
 	@Override
 	public void loadWindow(long start, long end, IProgressMonitor monitor) {
@@ -172,8 +163,6 @@ public class EventLoader implements IEventLoader {
 					return;
 				}
 
-				sleep();
-				
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
 				if (first) {

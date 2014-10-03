@@ -931,22 +931,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				if (fEntryList != fTimeGraphWrapper.getInput()) {
 					fTimeGraphWrapper.setInput(fEntryList);
 				} else {
-					Set<ITimeGraphEntry> newEntries = new HashSet<>();
-					Set<ITimeGraphEntry> expanded = new HashSet<>();
-					List<ITimeGraphEntry> roots = new ArrayList<>();
-					if (fOldEntrySet == null) {
-						fOldEntrySet = new HashSet<>();
-					}
-					for (ITimeGraphEntry e : fEntryList) {
-						roots.add(e);
-						updateOldEntries(newEntries, e);
-					}
-					TimeGraphViewer viewer = fTimeGraphWrapper.getTimeGraphViewer();
-					ITimeGraphEntry exp[] = viewer.getExpandedElements();
-					for (ITimeGraphEntry e : exp) {
-						expanded.add(e);
-					}
-					fTimeGraphWrapper.refresh(expanded, newEntries, roots);
+					refreshViewer();
 				}
 
 				// set timebar bounds (min, max)
@@ -984,6 +969,25 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 			}
 
+			private void refreshViewer() {
+				Set<ITimeGraphEntry> newEntries = new HashSet<>();
+				Set<ITimeGraphEntry> expanded = new HashSet<>();
+				List<ITimeGraphEntry> roots = new ArrayList<>();
+				if (fOldEntrySet == null) {
+					fOldEntrySet = new HashSet<>();
+				}
+				for (ITimeGraphEntry e : fEntryList) {
+					roots.add(e);
+					updateOldEntries(newEntries, e);
+				}
+				TimeGraphViewer viewer = fTimeGraphWrapper.getTimeGraphViewer();
+				ITimeGraphEntry exp[] = viewer.getExpandedElements();
+				for (ITimeGraphEntry e : exp) {
+					expanded.add(e);
+				}
+				fTimeGraphWrapper.refresh(expanded, newEntries, roots);
+			}
+			
 			private void updateOldEntries(Set<ITimeGraphEntry> newEntries, ITimeGraphEntry e) {
 				if (!fOldEntrySet.contains(e)) {
 					newEntries.add(e);

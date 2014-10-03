@@ -940,47 +940,69 @@ public class TimeGraphCombo extends Composite {
         tree.setRedraw(false);
         fTreeViewer.refresh();
         fTimeGraphViewer.refresh();
-        fTreeViewer.collapseAll();
-        fTimeGraphViewer.collapseAll();
+        fTreeViewer.expandAll();
+        fTimeGraphViewer.expandAll();
         Map<ITimeGraphEntry, Boolean> toExpand = new HashMap<>();
         for (ITimeGraphEntry entry : roots) {
-            expand(expanded, newEntries, entry, toExpand);
+            computeExpanded(expanded, newEntries, entry, toExpand);
         }
-        System.out.println(toExpand);
         for (ITimeGraphEntry entry : roots) {
-            realExpand(toExpand, entry);
+            collapse(toExpand, entry);
         }
         tree.setRedraw(true);
         alignTreeItems(true);
         fInhibitTreeSelection = false;
     }
 
-    /*
-     * Actually expands the entries navigating them from parent to children.
-     * Only children with expanded parent are visited.
+    /**
+     * Collapse the entries not present in the passed map or present but marked
+     * as not expanded, navigating entries them from parent to children. Only
+     * children with expanded parent are visited.
      *
+     * @param toExpand
+     *            map associating each entry with the expand status. This map is
+     *            guaranteed to contain all the entries to leave expanded but
+     *            not necessary all the entries to collapse
+     * @param entry
+     *            entry being visited
      * @Framesoc
      */
-    private void realExpand(Map<ITimeGraphEntry, Boolean> toExpand, ITimeGraphEntry entry) {
-        if (toExpand.containsKey(entry) && toExpand.get(entry).booleanValue()) {
-            if (entry.getChildren().size() == 0) {
-                return;
+    private void collapse(Map<ITimeGraphEntry, Boolean> toExpand, ITimeGraphEntry entry) {
+        if (toExpand.containsKey(entry)) {
+            if (toExpand.get(entry).booleanValue()) {
+                for (ITimeGraphEntry e : entry.getChildren()) {
+                    collapse(toExpand, e);
+                }
+            } else {
+                fTreeViewer.setExpandedState(entry, false);
+                fTimeGraphViewer.setExpandedState(entry, false);
             }
-            fTreeViewer.setExpandedState(entry, true);
-            fTimeGraphViewer.setExpandedState(entry, true);
-            for (ITimeGraphEntry e : entry.getChildren()) {
-                realExpand(toExpand, e);
-            }
+        } else {
+            fTreeViewer.setExpandedState(entry, false);
+            fTimeGraphViewer.setExpandedState(entry, false);
         }
     }
 
-    /*
+    /**
      * Compute the entries that can potentially be expanded, if the parent is
      * expanded.
      *
+     * @param expanded
+     *            entries expanded before the model refresh
+     * @param newEntries
+     *            entries added after the model refresh
+     * @param entry
+     *            entry being visited
+     * @param toExpand
+     *            map where the link between entries and their expand status is
+     *            stored A non expanded entry may be not present in the map at
+     *            the end.
+     * @return true if the parent entry can be expanded according to the current
+     *         entry. Note that a parent is finally displayed only if all the
+     *         children are visible.
      * @Framesoc
      */
-    private boolean expand(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries, ITimeGraphEntry entry, Map<ITimeGraphEntry, Boolean> toExpand) {
+    private boolean computeExpanded(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries, ITimeGraphEntry entry, Map<ITimeGraphEntry, Boolean> toExpand) {
         if (newEntries.contains(entry)) {
             expanded.add(entry);
         }
@@ -988,9 +1010,9 @@ public class TimeGraphCombo extends Composite {
             boolean ret = true;
             toExpand.put(entry, ret);
             for (ITimeGraphEntry e : entry.getChildren()) {
-                System.out.println(e);
-                ret = ret && expand(expanded, newEntries, e, toExpand);
+                ret = ret && computeExpanded(expanded, newEntries, e, toExpand);
                 if (ret == false) {
+                    // avoid checking the other children (which finally wont be in the map)
                     break;
                 }
             }
