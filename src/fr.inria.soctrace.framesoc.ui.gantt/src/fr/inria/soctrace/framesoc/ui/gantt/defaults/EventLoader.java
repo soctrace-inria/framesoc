@@ -51,7 +51,7 @@ public class EventLoader implements IEventLoader {
 	private static final Logger logger = LoggerFactory.getLogger(EventLoader.class);
 
 	// constants
-	private final int EVENTS_PER_QUERY = 10;
+	private final int EVENTS_PER_QUERY = 100000;
 
 	// set by the user
 	private Trace fTrace = null;

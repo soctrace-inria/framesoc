@@ -98,7 +98,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The timegraph old entry set */
 	private Set<ITimeGraphEntry> fOldEntrySet;
-
+	
 	/** The start time */
 	private long fStartTime;
 
