@@ -988,9 +988,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 				if (!fOldEntrySet.contains(e)) {
 					newEntries.add(e);
 					fOldEntrySet.add(e);
-					for (ITimeGraphEntry c : e.getChildren()) {
-						updateOldEntries(newEntries, c);
-					}
+				}
+				for (ITimeGraphEntry c : e.getChildren()) {
+					updateOldEntries(newEntries, c);
 				}
 			}
 

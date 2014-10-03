@@ -953,19 +953,27 @@ public class TimeGraphCombo extends Composite {
     /*
      * Expands all the entries that were expanded before and all the new entries
      * that can be expanded (whose parent is expanded or can be expanded).
+     *
      * @Framesoc
      */
     private void expand(Set<ITimeGraphEntry> expanded, Set<ITimeGraphEntry> newEntries, ITimeGraphEntry entry) {
-        if (newEntries.contains(entry)) {
-            expanded.add(entry);
-        }
+        System.out.println(entry); // TODO first case: expanded empty and new entries not empty
         if (expanded.contains(entry)) {
+            // entry its an old expanded child
             if (entry.getParent() != null) {
+                // expand the parent
                 fTreeViewer.setExpandedState(entry.getParent(), true);
                 fTimeGraphViewer.setExpandedState(entry.getParent(), true);
             }
-            for (ITimeGraphEntry e : entry.getChildren()) {
-                expand(expanded, newEntries, e);
+            if (entry.getChildren().size() == 0) {
+                // we have no child, we restore our expanded (visible) state
+                fTreeViewer.setExpandedState(entry, true);
+                fTimeGraphViewer.setExpandedState(entry, true);
+            } else {
+                // our old expanded children will say if we are expanded
+                for (ITimeGraphEntry e : entry.getChildren()) {
+                    expand(expanded, newEntries, e);
+                }
             }
         }
     }
