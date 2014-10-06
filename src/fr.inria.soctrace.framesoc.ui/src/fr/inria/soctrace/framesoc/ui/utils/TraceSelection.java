@@ -18,12 +18,13 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
+import fr.inria.soctrace.framesoc.ui.model.FolderNode;
 import fr.inria.soctrace.framesoc.ui.model.TraceNode;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
- * Utility class used to store currently selected and currently
- * shown Trace in several view (e.g. Histogram, Events table)
+ * Utility class used to store currently selected and currently shown Trace in several view (e.g.
+ * Histogram, Events table)
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -31,17 +32,20 @@ public final class TraceSelection {
 
 	/**
 	 * Get the current selected trace from the bus
+	 * 
 	 * @return the currentSelected trace, or null if no trace is selected
 	 */
 	public static Trace getCurrentSelectedTrace() {
-		return (Trace) FramesocBus.getInstance().getVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE);
+		return (Trace) FramesocBus.getInstance().getVariable(
+				FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE);
 	}
 
 	/**
-	 * Given a structured selection containing a TraceNode,
-	 * it returns the first contained Trace object.
+	 * Given a structured selection containing a TraceNode, it returns the first contained Trace
+	 * object.
 	 * 
-	 * @param selection structured selection containing a TraceNode
+	 * @param selection
+	 *            structured selection containing a TraceNode
 	 * @return the first Trace
 	 */
 	public static Trace getTraceFromSelection(ISelection selection) {
@@ -54,18 +58,18 @@ public final class TraceSelection {
 	}
 
 	/**
-	 * Given a structured selection containing one or more TraceNode,
-	 * it returns all the contained traces.
-	 * If no TraceNode is found, an empty list is returned.
+	 * Given a structured selection containing one or more TraceNode, it returns all the contained
+	 * traces. If no TraceNode is found, an empty list is returned.
 	 * 
-	 * @param selection structured selection containing one or more TraceNode
+	 * @param selection
+	 *            structured selection containing one or more TraceNode
 	 * @return a list of Traces found, or an empty list if no trace is found
 	 */
 	public static List<Trace> getTracesFromSelection(ISelection selection) {
 		List<Trace> traces = new LinkedList<Trace>();
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection sel = (IStructuredSelection) selection;
-			for (Object o: sel.toList()) {
+			for (Object o : sel.toList()) {
 				if (o instanceof TraceNode)
 					traces.add(((TraceNode) o).getTrace());
 			}
@@ -74,11 +78,11 @@ public final class TraceSelection {
 	}
 
 	/**
-	 * Check if the selection is valid.
-	 * A selection is considered valid if it is a not empty structured 
-	 * selection containing only TraceNode objects.
+	 * Check if the selection is valid. A selection is considered valid if it is a not empty
+	 * structured selection containing only TraceNode objects.
 	 * 
-	 * @param selection structured selection object
+	 * @param selection
+	 *            structured selection object
 	 * @return true if the selection is valid, false otherwise
 	 */
 	public static boolean isSelectionValid(ISelection selection) {
@@ -87,12 +91,32 @@ public final class TraceSelection {
 		IStructuredSelection ss = (IStructuredSelection) selection;
 		if (ss.isEmpty())
 			return false;
-		for (Object o: ss.toList()) {
-			if ( !(o instanceof TraceNode ) ) {
+		for (Object o : ss.toList()) {
+			if (!(o instanceof TraceNode)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Check if the selection a trace folder node.
+	 * 
+	 * @param selection
+	 *            structured selection object
+	 * @return true if the selection is a folder node
+	 */
+	public static boolean isFolderNode(ISelection selection) {
+		if (!(selection instanceof IStructuredSelection))
+			return false;
+		IStructuredSelection ss = (IStructuredSelection) selection;
+		if (ss.size() == 1) {
+			Object o = ss.toArray()[0];
+			if (o instanceof FolderNode) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
