@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -396,6 +398,19 @@ public class TimeGraphCombo extends Composite {
                     depth--;
                 }
                 fTimeGraphViewer.setHeaderHeight(tree.getHeaderHeight());
+            }
+        });
+
+        // TODO propose patch
+        // double click @Framesoc
+        fTreeViewer.addDoubleClickListener(new IDoubleClickListener() {
+            @Override
+            public void doubleClick(DoubleClickEvent event) {
+                IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+                ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
+                if (node.hasChildren()) {
+                    setExpandedState(node, !fTreeViewer.getExpandedState(node));
+                }
             }
         });
 
