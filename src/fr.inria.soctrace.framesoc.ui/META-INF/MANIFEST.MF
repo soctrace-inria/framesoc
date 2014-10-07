@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.draw2d;bundle-version="3.9.0",
  org.eclipse.core.expressions;bundle-version="3.4.500",
  org.eclipse.ui.workbench,
- org.eclipse.jface
+ org.eclipse.jface,
+ fr.inria.linuxtools.tmf.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,

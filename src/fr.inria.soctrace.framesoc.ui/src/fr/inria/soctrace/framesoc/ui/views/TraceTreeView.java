@@ -44,6 +44,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopicList;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
 import fr.inria.soctrace.framesoc.core.bus.IFramesocBusListener;
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.dialogs.TraceFilterDialog;
 import fr.inria.soctrace.framesoc.ui.handlers.HandlerUtils;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader;
 import fr.inria.soctrace.framesoc.ui.model.FolderNode;
@@ -302,12 +303,37 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		collapseAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, "icons/collapseall.gif"));
 
+		// create the search all action
+		Action searchAction = new Action() {
+			public void run() {
+				TraceFilterDialog filterDialog = new TraceFilterDialog(getSite().getShell());
+				filterDialog.open();
+			}
+		};
+		searchAction.setText("Search traces");
+		searchAction.setToolTipText("Search traces");
+		searchAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/collapseall.gif")); // TODO use eclipse search icon
+
+		// create the search all action
+		Action cleanAction = new Action() {
+			public void run() {
+				// TODO
+			}
+		};
+		cleanAction.setText("Clean highlight");
+		cleanAction.setToolTipText("Clean highlight");
+		cleanAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/collapseall.gif")); // TODO use eclipse clean icon
+
 		// add to toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
 		IToolBarManager toolBar = actionBars.getToolBarManager();
 		toolBar.add(expandAction);
 		toolBar.add(collapseAction);
 		toolBar.add(refreshAction);
+		toolBar.add(searchAction);
+		toolBar.add(cleanAction);
 	}
 
 	@Override
