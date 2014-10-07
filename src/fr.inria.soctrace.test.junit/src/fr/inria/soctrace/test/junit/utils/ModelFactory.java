@@ -445,7 +445,7 @@ class ModelFactory implements IModelFactory {
 			e1.printStackTrace();
 		}
 		e.setValue(0.007);
-		e.setVariableId(10);
+		e.setEndTimestamp(10);
 		return e;
 	}
 	

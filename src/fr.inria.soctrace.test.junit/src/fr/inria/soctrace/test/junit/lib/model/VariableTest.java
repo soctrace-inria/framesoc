@@ -28,8 +28,8 @@ public class VariableTest {
 	@Test
 	public void testGetVariableId() {
 		Variable v = new Variable(0);
-		v.setVariableId(Long.MAX_VALUE);
-		assertEquals(Long.MAX_VALUE, v.getVariableId());
+		v.setEndTimestamp(Long.MAX_VALUE);
+		assertEquals(Long.MAX_VALUE, v.getEndTimestamp());
 	}
 
 	@Test

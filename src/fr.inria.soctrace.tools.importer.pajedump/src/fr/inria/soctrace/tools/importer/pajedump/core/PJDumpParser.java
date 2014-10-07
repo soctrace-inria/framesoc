@@ -365,7 +365,7 @@ public class PJDumpParser {
 			v.setTimestamp(getTimestamp(fields[PJDumpConstants.V_START_TIME]));
 			v.setType(getType(fields[PJDumpConstants.V_TYPE], EventCategory.VARIABLE));
 			v.setValue(Double.valueOf(fields[PJDumpConstants.V_VALUE]));
-			v.setVariableId(0);
+			v.setEndTimestamp(0);
 			elist.add(v);
 			updateMinMax(v.getTimestamp());
 		}

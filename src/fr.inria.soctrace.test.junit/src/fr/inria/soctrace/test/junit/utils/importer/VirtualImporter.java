@@ -344,7 +344,7 @@ public class VirtualImporter {
 		case EventCategory.VARIABLE:
 			Variable v = new Variable(eIdManager.getNextId());
 			v.setTimestamp(currentTimestamp);
-			v.setVariableId(0); // XXX
+			v.setEndTimestamp(0); // XXX
 			currentTimestamp++; // XXX
 			e = v;
 			break;

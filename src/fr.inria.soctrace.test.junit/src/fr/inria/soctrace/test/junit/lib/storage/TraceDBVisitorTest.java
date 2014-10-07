@@ -556,7 +556,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 				break;
 			case EventCategory.VARIABLE:
 				((Variable)e).setValue(666);
-				((Variable)e).setVariableId(666);
+				((Variable)e).setEndTimestamp(666);
 				break;
 			}
 			traceDB.update(e);

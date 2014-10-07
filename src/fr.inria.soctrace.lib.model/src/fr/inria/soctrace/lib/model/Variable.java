@@ -27,27 +27,21 @@ public class Variable extends Event {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-		setVariableId(0);
+		setEndTimestamp(0);
 	}
 
 	/**
-	 * Warning: the event ID and the variable ID are different things.
-	 * Different event ID may correspond to a given variable ID.
-	 * The rationale behind the variable ID is to have the possibility
-	 * to have several variable for a given variable type.
-	 * Its utilization is optional.
-	 * 
-	 * @return the variable id
+	 * @return the variable end timestamp
 	 */
-	public long getVariableId() {
+	public long getEndTimestamp() {
 		return getLongPar();
 	}
 
 	/**
-	 * @param variableId the variable id to set
+	 * @param endTimestamp the end timestamp to set
 	 */
-	public void setVariableId(long variableId) {
-		setLongPar(variableId);
+	public void setEndTimestamp(long endTimestamp) {
+		setLongPar(endTimestamp);
 	}
 
 	/**
