@@ -26,11 +26,14 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -40,6 +43,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.wb.swt.ResourceManager;
@@ -717,6 +723,43 @@ public abstract class AbstractGanttView extends FramesocPart {
 		combo.setTreeContentProvider(new TreeContentProvider());
 		combo.setTreeLabelProvider(fLabelProvider);
 		combo.setTreeColumns(fColumns);
+
+		// Event Producer Context Menu
+		final Tree tree = combo.getTreeViewer().getTree();
+		final Menu menu = new Menu(tree);
+		tree.setMenu(menu);
+		menu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+				IStructuredSelection selection = (IStructuredSelection) combo.getTreeViewer()
+						.getSelection();
+				final ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
+				if (node.hasChildren()) {
+					MenuItem exp = new MenuItem(menu, SWT.NONE);
+					final boolean expanded = combo.getTreeViewer().getExpandedState(node);
+					exp.setText(expanded ? "Collapse" : "Expand All");
+					exp.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							System.out.println(expanded ? "collapse node" : "expand node");
+							combo.expandAll();
+						}
+					});
+				}
+				MenuItem hide = new MenuItem(menu, SWT.NONE);
+				hide.setText("Hide");
+				hide.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						System.out.println("hide node");
+					}
+				});
+			}
+		});
 
 		// Event Producer Filter
 		combo.setFilterContentProvider(new TreeContentProvider());
