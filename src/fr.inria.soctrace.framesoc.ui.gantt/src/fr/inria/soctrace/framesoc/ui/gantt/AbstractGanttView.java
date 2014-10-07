@@ -13,7 +13,9 @@ package fr.inria.soctrace.framesoc.ui.gantt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -738,6 +740,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				IStructuredSelection selection = (IStructuredSelection) combo.getTreeViewer()
 						.getSelection();
 				final ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
+				// expand/collapse
 				if (node.hasChildren()) {
 					MenuItem exp = new MenuItem(menu, SWT.NONE);
 					final boolean expanded = combo.getTreeViewer().getExpandedState(node);
@@ -745,19 +748,74 @@ public abstract class AbstractGanttView extends FramesocPart {
 					exp.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							System.out.println(expanded ? "collapse node" : "expand node");
-							combo.expandAll();
+							if (expanded)
+								combo.setExpandedState(node, false);
+							else
+								expandFromNode(node);
+						}
+
+						private void expandFromNode(ITimeGraphEntry node) {
+							combo.setExpandedState(node, true);
+							for (ITimeGraphEntry entry : node.getChildren()) {
+								expandFromNode(entry);
+							}
 						}
 					});
+					// restore
+					Set<ITimeGraphEntry> filteredSet = getFiltered();
+					List<ITimeGraphEntry> filteredChildren = new ArrayList<>();
+					getFilteredChildren(filteredChildren, filteredSet, node);
+					if (filteredChildren.size() > 0) {
+						for (ITimeGraphEntry entry : filteredChildren) {
+							filteredSet.remove(entry);
+						}
+						final List<Object> newFiltered = new ArrayList<>();
+						for (ITimeGraphEntry entry : filteredSet) {
+							newFiltered.add(entry);
+						}
+						MenuItem restore = new MenuItem(menu, SWT.NONE);
+						restore.setText("Restore hidden children");
+						restore.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent e) {
+								combo.setFilteredEntries(newFiltered);
+								combo.refresh();
+							}
+						});
+					}
 				}
+				// hide
 				MenuItem hide = new MenuItem(menu, SWT.NONE);
 				hide.setText("Hide");
 				hide.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						System.out.println("hide node");
+						IStructuredSelection selection = (IStructuredSelection) combo
+								.getTreeViewer().getSelection();
+						ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
+						combo.addFiltered(node);
+						combo.refresh();
 					}
 				});
+			}
+
+			private void getFilteredChildren(List<ITimeGraphEntry> filteredChildren,
+					Set<ITimeGraphEntry> filteredSet, ITimeGraphEntry entry) {
+				for (ITimeGraphEntry e : entry.getChildren()) {
+					if (filteredSet.contains(e)) {
+						filteredChildren.add(e);
+					}
+					getFilteredChildren(filteredChildren, filteredSet, e);
+				}
+			}
+
+			private Set<ITimeGraphEntry> getFiltered() {
+				List<Object> filtered = combo.getFilteredEntries();
+				Set<ITimeGraphEntry> filteredSet = new HashSet<>();
+				for (Object e : filtered) {
+					filteredSet.add(((ITimeGraphEntry) e));
+				}
+				return filteredSet;
 			}
 		});
 
