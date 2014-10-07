@@ -38,7 +38,9 @@ public class TraceDetailsLoader {
 
 	/**
 	 * Labels for fixed Trace attributes
+	 * TODO: use table column instead
 	 */
+	@Deprecated 
 	public static enum TraceField {		
 
 		TRACING_DATE("Tracing date"),

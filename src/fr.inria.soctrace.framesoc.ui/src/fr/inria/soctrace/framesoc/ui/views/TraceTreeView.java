@@ -10,6 +10,11 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.views;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -307,6 +312,10 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		Action searchAction = new Action() {
 			public void run() {
 				TraceFilterDialog filterDialog = new TraceFilterDialog(getSite().getShell());
+				List<Trace> traces = tracesLoader.getTraces();
+				Set<Trace> checked = new HashSet<>(); // TODO: real input
+				filterDialog.setTraces(traces);
+				filterDialog.setChecked(checked);
 				filterDialog.open();
 			}
 		};

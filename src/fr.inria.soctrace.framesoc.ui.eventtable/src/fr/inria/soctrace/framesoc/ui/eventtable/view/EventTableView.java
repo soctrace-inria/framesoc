@@ -335,7 +335,7 @@ public final class EventTableView extends FramesocPart {
 			try {
 				values[i] = row.get(col);
 			} catch (SoCTraceException e) {
-				logger.error("Columnt " + col.getHeader() + " not found in this row.");
+				logger.error("Column " + col.getHeader() + " not found in this row.");
 				e.printStackTrace();
 			} finally {
 				i++;

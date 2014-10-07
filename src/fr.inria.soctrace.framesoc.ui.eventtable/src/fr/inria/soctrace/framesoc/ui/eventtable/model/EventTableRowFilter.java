@@ -25,6 +25,8 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 /**
  * Filter for a EventTableRow objects.
  * 
+ * TODO: make this generic and use also in Trace Table
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventTableRowFilter {

@@ -40,6 +40,8 @@ public class TraceLoader {
 
 	private final static Logger logger = LoggerFactory.getLogger(TraceLoader.class);
 
+	private List<Trace> traces;
+
 	/**
 	 * Trace category
 	 */
@@ -67,7 +69,7 @@ public class TraceLoader {
 	private FolderNode processedTraces;
 
 	public TraceLoader() {
-		root = new FolderNode("root"); 
+		root = new FolderNode("root");
 		rawTraces = new FolderNode("Raw Traces");
 		processedTraces = new FolderNode("Processed Traces");
 		root.addChild(rawTraces);
@@ -75,21 +77,21 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Get the root folder node, always containing 
-	 * two sub-folder nodes for raw and processed traces
-	 * respectively.
+	 * Get the root folder node, always containing two sub-folder nodes for raw
+	 * and processed traces respectively.
+	 * 
 	 * @return the root node
 	 */
 	public FolderNode getRoot() {
 		return root;
 	}
-	
+
 	/**
-	 * Load traces from System DB. Note that this method loads
-	 * new trace objects. Any existing root content is lost.
+	 * Load traces from System DB. Note that this method loads new trace
+	 * objects. Any existing root content is lost.
 	 * 
 	 * @return the root of Trace hierarchy
-	 * @throws SoCTraceException 
+	 * @throws SoCTraceException
 	 */
 	public FolderNode loadFromDB() {
 
@@ -101,10 +103,10 @@ public class TraceLoader {
 
 			/* Get traces from DB */
 			traceSearch = new TraceSearch().initialize();
-			List<Trace> traces = traceSearch.getTraces();
+			traces = traceSearch.getTraces();
 			traceSearch.uninitialize();
 
-			/* Prepare the tree */		
+			/* Prepare the tree */
 			buildTree(buildTraceMap(traces));
 
 		} catch (SoCTraceException e) {
@@ -115,14 +117,12 @@ public class TraceLoader {
 			TraceSearch.finalUninitialize(traceSearch);
 		}
 		return root;
-
 	}
-
+	
 	/**
-	 * Synchronize current model with DB. Note that an old model
-	 * input must be already present. This method keeps the
-	 * existing trace objects (possibly updating them) and 
-	 * tree nodes, thus fixing any selection service issues
+	 * Synchronize current model with DB. Note that an old model input must be
+	 * already present. This method keeps the existing trace objects (possibly
+	 * updating them) and tree nodes, thus fixing any selection service issues
 	 * with other views.
 	 * 
 	 * @return the model input (tree root)
@@ -137,12 +137,12 @@ public class TraceLoader {
 
 			/* Get traces from DB */
 			traceSearch = new TraceSearch().initialize();
-			List<Trace> dbTraces = traceSearch.getTraces();
+			traces = traceSearch.getTraces();
 			traceSearch.uninitialize();
-
+			
 			// new trace map
 			Map<Integer, Trace> newTraces = new HashMap<Integer, Trace>();
-			for (Trace t: dbTraces) {
+			for (Trace t : traces) {
 				newTraces.put(t.getId(), t);
 			}
 
@@ -161,21 +161,21 @@ public class TraceLoader {
 				if (newTraces.containsKey(t.getId())) {
 					// update or not changed
 					Trace newTrace = newTraces.get(t.getId());
-					if (!newTrace.equals(t)) { 
+					if (!newTrace.equals(t)) {
 						t.synchWith(newTrace);
 						traceChangeMap.get(TraceChange.UPDATE).add(t);
-					} 
+					}
 					// remove from new traces
 					newTraces.remove(t.getId());
 				} else {
 					// deleted: remove from input
 					traceChangeMap.get(TraceChange.REMOVE).add(t);
 					oldTracesIterator.remove();
-				}	
+				}
 			}
 
 			// cat new traces
-			for (Trace nt: newTraces.values()) {
+			for (Trace nt : newTraces.values()) {
 				traces.add(nt);
 				traceChangeMap.get(TraceChange.ADD).add(nt);
 			}
@@ -184,8 +184,9 @@ public class TraceLoader {
 			updateTree(buildTraceMap(traces));
 
 			// notify the bus of changes
-			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_TRACES_SYNCHRONIZED, traceChangeMap);
-			
+			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_TRACES_SYNCHRONIZED,
+					traceChangeMap);
+
 		} catch (SoCTraceException e) {
 			logger.error(e.getMessage());
 			rawTraces.removeAll();
@@ -198,9 +199,8 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Synchronize the trace nodes with the trace objects contained,
-	 * in order to get nodes with updated labels.
-	 * The System DB is not used.
+	 * Synchronize the trace nodes with the trace objects contained, in order to
+	 * get nodes with updated labels. The System DB is not used.
 	 * 
 	 * @return the model input (tree root)
 	 */
@@ -214,15 +214,25 @@ public class TraceLoader {
 
 		return root;
 
-	}		
+	}
 
 	/**
-	 * Builds the following map:
-	 * <blockquote>
-	 * Category <-> { TraceTypeName <-> {TraceID <-> Trace} }
-	 * </blockquote>
+	 * Get the traces.
+	 * You have to call the methods that actually load
+	 * traces from DB before calling this method.
 	 * 
-	 * @param traces list of traces
+	 * @return the loaded traces
+	 */
+	public List<Trace> getTraces() {
+		return traces;
+	}
+	
+	/**
+	 * Builds the following map: <blockquote> Category <-> { TraceTypeName <->
+	 * {TraceID <-> Trace} } </blockquote>
+	 * 
+	 * @param traces
+	 *            list of traces
 	 * @return the trace map
 	 */
 	private Map<TraceCategory, Map<String, Map<Integer, Trace>>> buildTraceMap(List<Trace> traces) {
@@ -230,7 +240,7 @@ public class TraceLoader {
 		traceMap.put(TraceCategory.RAW_TRACE, new HashMap<String, Map<Integer, Trace>>());
 		traceMap.put(TraceCategory.PROCESSED_TRACE, new HashMap<String, Map<Integer, Trace>>());
 		Map<String, Map<Integer, Trace>> currentMap;
-		for (Trace trace: traces) {
+		for (Trace trace : traces) {
 			if (trace.isProcessed())
 				currentMap = traceMap.get(TraceCategory.PROCESSED_TRACE);
 			else
@@ -239,7 +249,7 @@ public class TraceLoader {
 				currentMap.put(trace.getType().getName(), new HashMap<Integer, Trace>());
 			}
 			currentMap.get(trace.getType().getName()).put(trace.getId(), trace);
-		}		
+		}
 		return traceMap;
 	}
 
@@ -248,17 +258,19 @@ public class TraceLoader {
 		rawTraces.removeAll();
 		processedTraces.removeAll();
 		// category
-		Iterator<Entry<TraceCategory, Map<String, Map<Integer, Trace>>>> iterator = map.entrySet().iterator();
+		Iterator<Entry<TraceCategory, Map<String, Map<Integer, Trace>>>> iterator = map.entrySet()
+				.iterator();
 		while (iterator.hasNext()) {
 			Entry<TraceCategory, Map<String, Map<Integer, Trace>>> pair = iterator.next();
-			FolderNode currentCategory = pair.getKey().equals(TraceCategory.RAW_TRACE)? rawTraces : processedTraces;	
+			FolderNode currentCategory = pair.getKey().equals(TraceCategory.RAW_TRACE) ? rawTraces
+					: processedTraces;
 			// trace type
 			Iterator<Entry<String, Map<Integer, Trace>>> it = pair.getValue().entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<String, Map<Integer, Trace>> typePair = it.next();
 				FolderNode typeNode = new FolderNode(typePair.getKey());
 				// traces
-				for (Trace trace: typePair.getValue().values()) {
+				for (Trace trace : typePair.getValue().values()) {
 					typeNode.addChild(new TraceNode(trace.getAlias(), trace));
 				}
 				currentCategory.addChild(typeNode);
@@ -279,7 +291,7 @@ public class TraceLoader {
 			while (it.hasNext()) {
 				Entry<String, Map<Integer, Trace>> typePair = it.next();
 				FolderNode typeNode = new FolderNode(typePair.getKey());
-				for (Trace trace: typePair.getValue().values()) {
+				for (Trace trace : typePair.getValue().values()) {
 					typeNode.addChild(new TraceNode(trace.getAlias(), trace));
 				}
 				categoryNode.addChild(typeNode);
@@ -290,8 +302,8 @@ public class TraceLoader {
 		// non empty category
 		Iterator<ITreeNode> typeIterator = categoryNode.getChildren().iterator();
 		while (typeIterator.hasNext()) {
-			FolderNode typeNode = (FolderNode)typeIterator.next();
-			if (!map.containsKey(typeNode.getName())) 
+			FolderNode typeNode = (FolderNode) typeIterator.next();
+			if (!map.containsKey(typeNode.getName()))
 				typeIterator.remove();
 			else {
 				updateType(typeNode, map.get(typeNode.getName()));
@@ -304,7 +316,7 @@ public class TraceLoader {
 		while (newTypeIterator.hasNext()) {
 			Entry<String, Map<Integer, Trace>> typePair = newTypeIterator.next();
 			FolderNode typeNode = new FolderNode(typePair.getKey());
-			for (Trace trace: typePair.getValue().values()) {
+			for (Trace trace : typePair.getValue().values()) {
 				typeNode.addChild(new TraceNode(trace.getAlias(), trace));
 			}
 			categoryNode.addChild(typeNode);
@@ -316,7 +328,7 @@ public class TraceLoader {
 		// empty type is not possible, so manage non empty case
 		Iterator<ITreeNode> traceIterator = typeNode.getChildren().iterator();
 		while (traceIterator.hasNext()) {
-			TraceNode traceNode = (TraceNode)traceIterator.next(); 
+			TraceNode traceNode = (TraceNode) traceIterator.next();
 			Trace t = (traceNode).getTrace();
 			if (!map.containsKey(t.getId())) {
 				// deleted
@@ -327,7 +339,7 @@ public class TraceLoader {
 			}
 		}
 		// new traces for this type
-		for (Trace nt: map.values()) {
+		for (Trace nt : map.values()) {
 			typeNode.addChild(new TraceNode(nt.getAlias(), nt));
 		}
 
@@ -335,16 +347,16 @@ public class TraceLoader {
 
 	private List<Trace> linearizeTree() {
 		List<Trace> traces = new LinkedList<Trace>();
-		if (root.getChildren()==null)
+		if (root.getChildren() == null)
 			return traces;
-		for (ITreeNode categoryNode: root.getChildren()) {
-			if (categoryNode.getChildren()==null)
+		for (ITreeNode categoryNode : root.getChildren()) {
+			if (categoryNode.getChildren() == null)
 				continue;
-			for (ITreeNode typeNode: categoryNode.getChildren()) {
-				if (typeNode.getChildren()==null) 
+			for (ITreeNode typeNode : categoryNode.getChildren()) {
+				if (typeNode.getChildren() == null)
 					continue;
-				for (ITreeNode traceNode: typeNode.getChildren())
-					traces.add(((TraceNode)traceNode).getTrace());
+				for (ITreeNode traceNode : typeNode.getChildren())
+					traces.add(((TraceNode) traceNode).getTrace());
 			}
 		}
 		return traces;
@@ -353,7 +365,8 @@ public class TraceLoader {
 	/**
 	 * Get a trace node from a given trace.
 	 * 
-	 * @param t trace
+	 * @param t
+	 *            trace
 	 * @return the corresponding trace node, or null if not found
 	 */
 	public TraceNode getTraceNode(Trace t) {
@@ -362,10 +375,10 @@ public class TraceLoader {
 
 	private TraceNode getTraceNode(ITreeNode n, Trace t) {
 
-		for (ITreeNode node: n.getChildren()) {
+		for (ITreeNode node : n.getChildren()) {
 
 			// leaf
-			if (node.getChildren()==null) {
+			if (node.getChildren() == null) {
 				// tracenode
 				if (node instanceof TraceNode) {
 					TraceNode tnode = (TraceNode) node;
@@ -376,9 +389,9 @@ public class TraceLoader {
 			}
 
 			// folder
-			for (ITreeNode son: node.getChildren()) {
+			for (ITreeNode son : node.getChildren()) {
 				TraceNode ret = getTraceNode(son, t);
-				if (ret!=null)
+				if (ret != null)
 					return ret;
 			}
 		}
@@ -386,4 +399,3 @@ public class TraceLoader {
 	}
 
 }
-
