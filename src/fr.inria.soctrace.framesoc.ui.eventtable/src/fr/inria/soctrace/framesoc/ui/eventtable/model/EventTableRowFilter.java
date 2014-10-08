@@ -12,36 +12,23 @@
 package fr.inria.soctrace.framesoc.ui.eventtable.model;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
+import fr.inria.soctrace.framesoc.ui.filter.TableRowFilter;
+import fr.inria.soctrace.framesoc.ui.model.ITableRow;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
  * Filter for a EventTableRow objects.
  * 
- * TODO: make this generic and use also in Trace Table
- * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventTableRowFilter {
+public class EventTableRowFilter extends TableRowFilter {
 
-	private Map<EventTableColumn, String> searchStrings;
-
-	public EventTableRowFilter() {
-		clean();
-	}
-
-	public void setSearchText(EventTableColumn col, String s) {
-		searchStrings.put(col, s);
-	}
-
-	public boolean matches(EventTableRow row) {
+	public boolean matches(ITableRow row) {
 		boolean matched = true;
 		for (EventTableColumn col : EventTableColumn.values()) {
 			String searchString = searchStrings.get(col);
@@ -76,23 +63,5 @@ public class EventTableRowFilter {
 			searchStrings.put(col, "");
 		}
 	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("[Filters] ");
-		Iterator<Entry<EventTableColumn, String>> it = searchStrings.entrySet().iterator();
-		boolean first = true;
-		while (it.hasNext()) {
-			if (!first) {
-				sb.append(", ");
-			}
-			first = false;
-			Entry<EventTableColumn, String> e = it.next();
-			sb.append(e.getKey().getHeader());
-			sb.append(": ");
-			sb.append(e.getValue());
-		}
-		return sb.toString();
-	}	
-
+	
 }
