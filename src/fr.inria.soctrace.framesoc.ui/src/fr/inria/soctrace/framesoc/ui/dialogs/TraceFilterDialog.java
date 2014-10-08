@@ -65,7 +65,7 @@ public class TraceFilterDialog extends Dialog {
 	private static final String MESSAGE = "Check the traces to highlight them in the Traces view.";
 
 	private static final int DEFAULT_WIDTH = 1200;
-	private static final int DEFAULT_HEIGHT = 300;
+	private static final int DEFAULT_HEIGHT = 500;
 
 	private TmfVirtualTable fTable;
 	private TraceTableCache fCache;
@@ -181,11 +181,17 @@ public class TraceFilterDialog extends Dialog {
 					setHeaderRowItemData(item);
 					return;
 				}
-
+				
 				TraceTableRow row = fCache.get(index);
 				item.setText(getItemStrings(row));
 				if (fChecked.contains(row.getTrace())) {
 					item.setChecked(true);
+					updateFilterCheck();
+				} else {
+					// we have to uncheck the item to clean any check during scroll
+					// e.g., if we scroll and the line that before was in our position 
+					// was checked, the checked status of the item would remain.
+					item.setChecked(false);
 					updateFilterCheck();
 				}
 			}
