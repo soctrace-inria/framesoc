@@ -450,6 +450,7 @@ public class TraceFilterDialog extends Dialog {
 			}
 
 			private void applyHeader() {
+				fTable.clearAll();
 				fCache.applyFilter();
 				tableEditor.getEditor().dispose();
 				fTable.setData(Key.FILTER_FLAG, true);
