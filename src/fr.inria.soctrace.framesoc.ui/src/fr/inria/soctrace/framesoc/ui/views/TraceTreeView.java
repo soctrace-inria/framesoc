@@ -145,6 +145,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_REFRESH_TRACES_NEEDED);
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_HIGHLIGHT_TRACES);
 		topics.registerAll();
 	}
 
@@ -263,6 +264,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	private void loadTracesFromDB() {
 		viewer.setInput(tracesLoader.loadFromDB());
 		viewer.refresh();
+		applyChecked(true);
 	}
 
 	/**
@@ -278,6 +280,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		}
 		viewer.setInput(root);
 		viewer.setExpandedElements(path);
+		applyChecked(true);
 	}
 
 	/**
@@ -287,6 +290,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		Object[] path = viewer.getExpandedElements();
 		viewer.setInput(tracesLoader.synchWithModel());
 		viewer.setExpandedElements(path);
+		applyChecked(true);
 	}
 
 	// utilities
@@ -411,12 +415,24 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 							.toString());
 			logger.debug("# of selected: {}", sel.size());
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED) && data != null) {
-			if ((Boolean) data)
+			if ((Boolean) data) {
 				synchTracesWithDB();
+			}
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED)) {
 			loadTracesFromDB();
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_REFRESH_TRACES_NEEDED)) {
 			synchTracesWithModel();
+		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_HIGHLIGHT_TRACES)) {
+			@SuppressWarnings("unchecked")
+			List<Trace> traces = (List<Trace>) data;
+			for (Trace t : traces) {
+				if (checked.contains(t)) {
+					checked.remove(t);
+				} else {
+					checked.add(t);
+				}
+			}
+			applyChecked(true);
 		}
 	}
 

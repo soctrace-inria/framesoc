@@ -106,6 +106,11 @@
             defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ManageColorsHandler"
             id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
             name="Manage Colors">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.HighlightTraceHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.switch_highlight"
+            name="Switch highlight">
       </command>      
    </extension>
    <extension
@@ -181,6 +186,11 @@
                name="fr.inria.soctrace.framesoc.ui.separator2"
                visible="true">
          </separator>
+         <command
+               commandId="fr.inria.soctrace.framesoc.ui.commands.switch_highlight"
+               icon="icons/search.gif"
+               style="push">
+         </command>
          <command
                commandId="fr.inria.soctrace.framesoc.ui.commands.CopyToClipboard"
                icon="icons/copy.png"

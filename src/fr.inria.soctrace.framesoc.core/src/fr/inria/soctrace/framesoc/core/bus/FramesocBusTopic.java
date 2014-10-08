@@ -13,6 +13,8 @@ package fr.inria.soctrace.framesoc.core.bus;
 /**
  * Constants for Framesoc topics.
  * 
+ * TODO use enum 
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class FramesocBusTopic {
@@ -78,5 +80,11 @@ public class FramesocBusTopic {
 	 * time interval is specified.
 	 */
 	public static final String TOPIC_UI_HISTOGRAM_DISPLAY = "TOPIC_UI_HISTOGRAM_DISPLAY"; //$NON-NLS-1$
+
+	/**
+	 * Event fired when we want to switch the highlight state of some traces.
+	 * The event body is a list of traces.
+	 */
+	public static final String TOPIC_UI_HIGHLIGHT_TRACES = "TOPIC_UI_HIGHLIGHT_TRACES"; //$NON-NLS-1$
 
 }
