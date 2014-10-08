@@ -8,10 +8,12 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.model;
+package fr.inria.soctrace.framesoc.ui.tracetable;
 
+import fr.inria.soctrace.framesoc.ui.model.TableRow;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.TraceParam;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Model element for a row in the Trace table
@@ -33,7 +35,18 @@ public class TraceTableRow extends TableRow {
 		fTrace = trace;
 		
 		fields.put(TraceTableColumn.ALIAS, String.valueOf(trace.getAlias()));
-		// TODO others
+		fields.put(TraceTableColumn.TRACING_DATE, String.valueOf(trace.getTracingDate()));
+		fields.put(TraceTableColumn.TRACED_APPLICATION, trace.getTracedApplication());
+		fields.put(TraceTableColumn.BOARD, trace.getBoard());
+		fields.put(TraceTableColumn.OPERATING_SYSTEM, trace.getOperatingSystem());
+		fields.put(TraceTableColumn.NUMBER_OF_CPUS, String.valueOf(trace.getNumberOfCpus()));
+		fields.put(TraceTableColumn.NUMBER_OF_EVENTS, String.valueOf(trace.getNumberOfEvents()));
+		fields.put(TraceTableColumn.OUTPUT_DEVICE, trace.getOutputDevice());
+		fields.put(TraceTableColumn.DESCRIPTION, trace.getDescription());
+		fields.put(TraceTableColumn.DBNAME, trace.getDbName());
+		fields.put(TraceTableColumn.MIN_TIMESTAMP, String.valueOf(trace.getMinTimestamp()));
+		fields.put(TraceTableColumn.MAX_TIMESTAMP, String.valueOf(trace.getMaxTimestamp()));
+		fields.put(TraceTableColumn.TIMEUNIT, TimeUnit.getLabel(trace.getTimeUnit()));
 		
 		StringBuilder tmp = new StringBuilder();
 		boolean first = true;

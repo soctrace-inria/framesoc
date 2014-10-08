@@ -8,7 +8,7 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.model;
+package fr.inria.soctrace.framesoc.ui.tracetable;
 
 import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 

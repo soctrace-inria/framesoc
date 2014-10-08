@@ -298,18 +298,21 @@ public class Trace implements IModelElement, Serializable {
 		return id;
 	}
 			
+//	@Override
+//	public String toString() {
+//		return "Trace [id=" + id + ", type=" + type + ", tracingDate="
+//				+ tracingDate + ", tracedApplication=" + tracedApplication
+//				+ ", board=" + board + ", operatingSystem=" + operatingSystem
+//				+ ", numberOfCpus=" + numberOfCpus + ", outputDevice="
+//				+ outputDevice + ", description=" + description
+//				+ ", processed=" + processed + ", dbName=" + dbName
+//				+ ", alias=" + alias + ", timeUnit=" + TimeUnit.getLabel(timeUnit)
+//				+ ", numberOfEvents=" + numberOfEvents + ", params=" + params
+//				+ "]";
+//	}
+
 	@Override
-	public String toString() {
-		return "Trace [id=" + id + ", type=" + type + ", tracingDate="
-				+ tracingDate + ", tracedApplication=" + tracedApplication
-				+ ", board=" + board + ", operatingSystem=" + operatingSystem
-				+ ", numberOfCpus=" + numberOfCpus + ", outputDevice="
-				+ outputDevice + ", description=" + description
-				+ ", processed=" + processed + ", dbName=" + dbName
-				+ ", alias=" + alias + ", timeUnit=" + TimeUnit.getLabel(timeUnit)
-				+ ", numberOfEvents=" + numberOfEvents + ", params=" + params
-				+ "]";
-	}
+	public String toString() { return getAlias(); } // XXX
 
 	@Override
 	public void accept(IModelVisitor visitor) throws SoCTraceException {

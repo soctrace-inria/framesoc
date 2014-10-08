@@ -743,6 +743,15 @@ public class TmfVirtualTable extends Composite {
     }
 
     /**
+     * Method getItems
+     * @return the table items
+     * @Framesoc
+     */
+    public TableItem[] getItems() {
+        return fTable.getItems();
+    }
+
+    /**
      * Method getItemHeight.
      * @return int the height of a table item in pixels. (may vary from one os to another)
      */

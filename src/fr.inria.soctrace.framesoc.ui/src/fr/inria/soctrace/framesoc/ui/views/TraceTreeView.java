@@ -10,7 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.views;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,7 +19,11 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.FontDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,8 +34,10 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISharedImages;
@@ -94,6 +99,12 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	private TreeViewer viewer;
 	private TraceLoader tracesLoader;
 	private FramesocBusTopicList topics;
+	private Set<Trace> checked;
+
+	private LocalResourceManager resourceManager = new LocalResourceManager(
+			JFaceResources.getResources());
+	private Font boldFont;
+	private Font normalFont;
 
 	/**
 	 * The listener we register with the selection service
@@ -140,6 +151,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	@Override
 	public void createPartControl(Composite parent) {
 
+		checked = new HashSet<>();
 		tracesLoader = new TraceLoader();
 		viewer = new TreeViewer(parent, SWT.MULTI);
 		viewer.setContentProvider(new TreeContentProvider());
@@ -225,6 +237,11 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		viewer.expandAll();
 		viewer.refresh();
 
+		// resources
+		boldFont = resourceManager.createFont(FontDescriptor.createFrom(viewer.getTree().getFont())
+				.setStyle(SWT.BOLD));
+		normalFont = viewer.getTree().getFont();
+
 	}
 
 	@Override
@@ -308,41 +325,64 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		collapseAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, "icons/collapseall.gif"));
 
-		// create the search all action
+		// create the search action
 		Action searchAction = new Action() {
 			public void run() {
 				TraceFilterDialog filterDialog = new TraceFilterDialog(getSite().getShell());
 				List<Trace> traces = tracesLoader.getTraces();
-				Set<Trace> checked = new HashSet<>(); // TODO: real input
-				filterDialog.setTraces(traces);
-				filterDialog.setChecked(checked);
-				filterDialog.open();
+				filterDialog.init(traces, checked);
+				if (filterDialog.open() == Dialog.OK) {
+					checked = filterDialog.getChecked();
+					applyChecked(true);
+				}
 			}
 		};
 		searchAction.setText("Search traces");
 		searchAction.setToolTipText("Search traces");
 		searchAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/collapseall.gif")); // TODO use eclipse search icon
+				Activator.PLUGIN_ID, "icons/search.gif"));
 
-		// create the search all action
+		// create the clear action
 		Action cleanAction = new Action() {
 			public void run() {
-				// TODO
+				checked = new HashSet<>();
+				applyChecked(false);
 			}
 		};
 		cleanAction.setText("Clean highlight");
 		cleanAction.setToolTipText("Clean highlight");
 		cleanAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/collapseall.gif")); // TODO use eclipse clean icon
+				Activator.PLUGIN_ID, "icons/clear_co.gif"));
 
 		// add to toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
 		IToolBarManager toolBar = actionBars.getToolBarManager();
+		toolBar.add(searchAction);
+		toolBar.add(cleanAction);
 		toolBar.add(expandAction);
 		toolBar.add(collapseAction);
 		toolBar.add(refreshAction);
-		toolBar.add(searchAction);
-		toolBar.add(cleanAction);
+	}
+
+	private void applyChecked(boolean check) {
+		TreeItem[] items = viewer.getTree().getItems();
+		for (TreeItem item : items) {
+			check(item, check);
+		}
+	}
+
+	private void check(TreeItem item, boolean check) {
+		if (item.getData() instanceof FolderNode) {
+			for (TreeItem s : item.getItems()) {
+				check(s, check);
+			}
+		} else {
+			if (check && checked.contains(((TraceNode) item.getData()).getTrace())) {
+				item.setFont(boldFont);
+			} else {
+				item.setFont(normalFont);
+			}
+		}
 	}
 
 	@Override
