@@ -49,11 +49,12 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
+ * <pre>
  * TODO:
- * 
- * - allow to hide columns, and store in local settings the hidden columns - allow to restore hidden
- * columns - checkall / uncheckall when using filter checkbox - filtering / reindexing - sorting /
- * reindexing
+ * - allow to hide columns, and store in local settings the hidden columns 
+ * - allow to restore hidden columns 
+ * - sorting / reindexing
+ * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -69,6 +70,7 @@ public class TraceFilterDialog extends Dialog {
 	private TmfVirtualTable fTable;
 	private TraceTableCache fCache;
 	private Set<Trace> fChecked;
+	private TableItem fFilterItem;
 
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
@@ -89,10 +91,6 @@ public class TraceFilterDialog extends Dialog {
 
 		/** Filter flag, set on the table */
 		String FILTER_FLAG = "$fltr_flag"; //$NON-NLS-1$
-		
-		/** Filter flag, set on the table */
-		String IS_FILTER = "$is_fltr"; //$NON-NLS-1$
-
 	}
 
 	public TraceFilterDialog(Shell parentShell) {
@@ -178,7 +176,7 @@ public class TraceFilterDialog extends Dialog {
 					setHeaderRowItemData(item);
 					return;
 				}
-				
+
 				TraceTableRow row = fCache.get(index);
 				item.setText(getItemStrings(row));
 				if (fChecked.contains(row.getTrace())) {
@@ -206,9 +204,11 @@ public class TraceFilterDialog extends Dialog {
 
 		fTable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
+				if (event.detail != SWT.CHECK)
+					return;
 				TableItem item = (TableItem) event.item;
 				int index = fTable.indexOf(item);
-				boolean checked = item.getChecked();
+				boolean checked = item.getChecked();				
 				if (index == 0) {
 					for (TableItem it : fTable.getItems()) {
 						it.setChecked(checked);
@@ -216,8 +216,7 @@ public class TraceFilterDialog extends Dialog {
 					for (int i = 0; i < fCache.getItemCount(); i++) {
 						if (checked) {
 							fChecked.add(fCache.get(i).getTrace());
-						}
-						else {
+						} else {
 							fChecked.remove(fCache.get(i).getTrace());
 						}
 					}
@@ -238,20 +237,16 @@ public class TraceFilterDialog extends Dialog {
 	}
 
 	private void updateFilterCheck() {
-		boolean check = true;
-		for (int i=0; i<fCache.getItemCount(); i++) {
+		if (fFilterItem == null) {
+			return;
+		}
+		for (int i = 0; i < fCache.getItemCount(); i++) {
 			if (!fChecked.contains(fCache.get(i).getTrace())) {
-				check = false;
-				break;
+				fFilterItem.setChecked(false);
+				return;
 			}
 		}
-		// check/uncheck the header
-		for (TableItem it : fTable.getItems()) {
-			if (it.getData(Key.IS_FILTER) != null) {
-				it.setChecked(check); 
-				break;
-			}
-		}
+		fFilterItem.setChecked(true);
 	}
 
 	private void cleanFilter() {
@@ -293,8 +288,8 @@ public class TraceFilterDialog extends Dialog {
 	}
 
 	private void setHeaderRowItemData(final TableItem item) {
+		fFilterItem = item;
 		item.setForeground(grayColor);
-		item.setData(Key.IS_FILTER, true);
 		for (int i = 0; i < fTable.getColumns().length; i++) {
 			final TableColumn column = fTable.getColumns()[i];
 			final String filter = (String) column.getData(Key.FILTER_TXT);
