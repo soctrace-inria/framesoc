@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.views;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -369,6 +370,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		for (TreeItem item : items) {
 			check(item, check);
 		}
+		viewer.expandAll();
 	}
 
 	private void check(TreeItem item, boolean check) {

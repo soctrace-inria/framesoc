@@ -112,6 +112,11 @@ public class TraceFilterDialog extends Dialog {
 	}
 
 	@Override
+	protected boolean isResizable() {
+		return true;
+	}
+	
+	@Override
 	protected Control createDialogArea(Composite parent) {
 		if (fCache == null)
 			throw new NullPointerException("Dialog not initialized");
