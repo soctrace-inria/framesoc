@@ -17,7 +17,10 @@ import java.util.Map;
 
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -25,6 +28,9 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
@@ -45,6 +51,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopicList;
 import fr.inria.soctrace.framesoc.core.bus.IFramesocBusListener;
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.dialogs.NewParamDialog;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceDetailsLoader;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
 import fr.inria.soctrace.framesoc.ui.model.DetailsTableRow;
@@ -66,7 +73,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	public static final String ID = FramesocViews.TRACE_DETAILS_VIEW_ID;
 
 	/**
-	 * Table Columns 
+	 * Table Columns
 	 */
 	private final static String COL_PROPERTY = "Property";
 	private final static String COL_VALUE = "Value";
@@ -75,7 +82,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	 * View header for multi trace selection
 	 */
 	private final static String MULTI_TRACE_SELECTION = "Multi-trace selection";
-	
+
 	/**
 	 * Followed topics
 	 */
@@ -102,6 +109,11 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	private ValueEditingSupport editingSupport;
 
 	/**
+	 * Delete param action
+	 */
+	private Action delParamsAction;
+
+	/**
 	 * The listener we register with the selection service
 	 */
 	private ISelectionListener listener = new ISelectionListener() {
@@ -114,9 +126,10 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		}
 	};
 
+	private Action addParamAction;
+
 	/**
-	 * Constructor.
-	 * Register to Framesoc Notification Bus.
+	 * Constructor. Register to Framesoc Notification Bus.
 	 */
 	public TraceDetailsView() {
 		topics = new FramesocBusTopicList(this);
@@ -130,7 +143,8 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	public void createPartControl(Composite parent) {
 
 		// create viewer and editing support
-		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
+		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
+				| SWT.FULL_SELECTION | SWT.BORDER);
 		editingSupport = new ValueEditingSupport(viewer);
 		createColumns();
 		final Table table = viewer.getTable();
@@ -139,11 +153,32 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
 		viewer.setInput(traceDetailsLoader.getProperties());
 
+		// viewer selection listener
+		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
+				Object[] rows = selection.toArray();
+				boolean enable = (rows.length > 0);
+				for (Object o : rows) {
+					DetailsTableRow row = (DetailsTableRow) o;
+					if (!row.isCustomParam()) {
+						enable = false;
+						break;
+					}
+				}
+				delParamsAction.setEnabled(enable);
+			}
+		});
+
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
 		IToolBarManager toolBar = actionBars.getToolBarManager();
 		toolBar.add(editingSupport.createResetAction());
 		toolBar.add(editingSupport.createSaveAction());
+		toolBar.add(new Separator());
+		toolBar.add(createAddParamAction());
+		toolBar.add(createDelParamsAction());
 
 		// register the selection listener
 		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(listener);
@@ -151,6 +186,47 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		// provide our selection for other viewers
 		getSite().setSelectionProvider(viewer);
 
+	}
+
+	private IAction createDelParamsAction() {
+		delParamsAction = new Action("reset changes") {
+			@Override
+			public void run() {
+				// get the selection
+				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
+				Object[] rows = selection.toArray();
+				for (Object row : rows) {
+					// delete corresponding params in all selected traces
+					// TODO
+					System.out.println("del : " + ((DetailsTableRow)row).getName());
+				}
+			}
+		};
+		delParamsAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/minus.png"));
+		delParamsAction.setEnabled(false);
+		return delParamsAction;
+
+	}
+
+	private IAction createAddParamAction() {
+		addParamAction = new Action("reset changes") {
+			@Override
+			public void run() {
+				NewParamDialog dlg = new NewParamDialog(getSite().getShell());
+				if (dlg.open() == Dialog.OK) {
+					// add the new param in all selected traces
+					// TODO
+					System.out.println(dlg.getName());
+					System.out.println(dlg.getType());
+					System.out.println(dlg.getValue());
+				}
+			}
+		};
+		addParamAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/plus.png"));
+		addParamAction.setEnabled(false);
+		return addParamAction;
 	}
 
 	@Override
@@ -166,44 +242,43 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		super.dispose();
 	}
 
-
 	private void showSelection(Trace selection) {
 		currentTraces = new LinkedList<Trace>();
 		currentTraces.add(selection);
 		showSelection();
 	}
-	
+
 	private void storeSelection(ISelection selection) {
 		if (!TraceSelection.isSelectionValid(selection))
 			return;
-		currentTraces = TraceSelection.getTracesFromSelection(selection);		
+		currentTraces = TraceSelection.getTracesFromSelection(selection);
 	}
-	
+
 	private void showSelection() {
 
 		if (currentTraces == null)
 			return;
-		
+
 		// manage old trace and clean editing support
-		if (currentTraces.size()>0 && editingSupport.isModified()) {
-			if (MessageDialog.openQuestion(getSite().getShell(), "Save trace details", 
+		if (currentTraces.size() > 0 && editingSupport.isModified()) {
+			if (MessageDialog.openQuestion(getSite().getShell(), "Save trace details",
 					"There are unsaved changes in trace details, do you want to save them?"))
-				editingSupport.save();			
-			editingSupport.clean();		
+				editingSupport.save();
+			editingSupport.clean();
 		}
 
 		// display current selection
-		if (currentTraces.size()==1) {
+		if (currentTraces.size() == 1) {
 			setContentDescription("Trace: " + currentTraces.iterator().next().getAlias());
-			traceDetailsLoader.load(currentTraces.iterator().next());			
+			traceDetailsLoader.load(currentTraces.iterator().next());
 		} else {
 			setContentDescription("Multi-trace selection");
-			traceDetailsLoader.load(currentTraces);			
+			traceDetailsLoader.load(currentTraces);
 		}
 		viewer.setInput(traceDetailsLoader.getProperties());
-		
-	}
+		addParamAction.setEnabled(true);
 
+	}
 
 	// Utilities
 
@@ -214,12 +289,15 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			public String getText(Object element) {
 				return ((DetailsTableRow) element).getName();
 			}
+
 			@Override
 			public Image getImage(Object element) {
 				if (((DetailsTableRow) element).isCustomParam())
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_DEF_VIEW);
+					return PlatformUI.getWorkbench().getSharedImages()
+							.getImage(ISharedImages.IMG_DEF_VIEW);
 				else
-					return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_INFO_TSK);
+					return PlatformUI.getWorkbench().getSharedImages()
+							.getImage(ISharedImages.IMG_OBJS_INFO_TSK);
 			}
 		});
 		col = createTableViewerColumn(COL_VALUE, 100, 1);
@@ -228,7 +306,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			public String getText(Object element) {
 				return ((DetailsTableRow) element).getValue();
 			}
-			
+
 			@Override
 			public org.eclipse.swt.graphics.Color getForeground(Object element) {
 				if (((DetailsTableRow) element).isReadOnly())
@@ -251,17 +329,17 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 	@Override
 	public void handle(String topic, Object data) {
-		if (topic.equals(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE) && data!=null) {
-			showSelection((Trace)data);
+		if (topic.equals(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE) && data != null) {
+			showSelection((Trace) data);
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED)) {
 			// clean the viewer content
 			currentTraces = null;
 			viewer.setInput(null);
 			viewer.refresh();
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_TRACES_SYNCHRONIZED)) {
-			if (currentTraces!=null) {
+			if (currentTraces != null) {
 				@SuppressWarnings("unchecked")
-				Map<TraceChange, List<Trace>> traceChangeMap = ((Map<TraceChange, List<Trace>>) data);		
+				Map<TraceChange, List<Trace>> traceChangeMap = ((Map<TraceChange, List<Trace>>) data);
 				boolean reload = false;
 				Iterator<Trace> it = currentTraces.iterator();
 				while (it.hasNext()) {
@@ -280,12 +358,12 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				else if (reload) {
 					traceDetailsLoader.load(currentTraces);
 					viewer.setInput(traceDetailsLoader.getProperties());
-				}							
+				}
 			}
 		}
 	}
 
-	/** 
+	/**
 	 * Editing support class
 	 */
 	private class ValueEditingSupport extends EditingSupport {
@@ -298,14 +376,15 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		private boolean editable;
 		private final TableViewer viewer;
 
-
 		public ValueEditingSupport(TableViewer viewer) {
 			super(viewer);
 			this.editable = true;
 			this.modified = false;
 			this.viewer = viewer;
-			imgSave = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID, "icons/save.png");
-			imgReset = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID, "icons/load.png");
+			imgSave = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+					"icons/save.png");
+			imgReset = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+					"icons/load.png");
 		}
 
 		@Override
@@ -332,9 +411,9 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			modified = true;
 			saveAction.setEnabled(true);
 			resetAction.setEnabled(true);
-			if (currentTraces.size()==1)
+			if (currentTraces.size() == 1)
 				setContentDescription("*Trace: " + currentTraces.iterator().next().getAlias());
-			else 
+			else
 				setContentDescription("*" + MULTI_TRACE_SELECTION);
 		}
 
@@ -348,10 +427,10 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			} catch (SoCTraceException e) {
 				MessageDialog.openError(getSite().getShell(), "Exception", e.getMessage());
 			}
-			if (currentTraces.size()==1) {
+			if (currentTraces.size() == 1) {
 				traceDetailsLoader.load(currentTraces.iterator().next());
 				setContentDescription("Trace: " + currentTraces.iterator().next().getAlias());
-			} else { 
+			} else {
 				traceDetailsLoader.load(currentTraces);
 				setContentDescription(MULTI_TRACE_SELECTION);
 			}
@@ -359,9 +438,9 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		}
 
 		public void clean() {
-			if (currentTraces.size()==1) {
+			if (currentTraces.size() == 1) {
 				setContentDescription("Trace: " + currentTraces.iterator().next().getAlias());
-			} else { 
+			} else {
 				setContentDescription(MULTI_TRACE_SELECTION);
 			}
 			modified = false;
@@ -373,7 +452,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		// utilities
 
 		public Action createSaveAction() {
-			saveAction = new Action("save") { 
+			saveAction = new Action("save") {
 				@Override
 				public void run() {
 					if (!modified)
@@ -390,7 +469,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		}
 
 		public Action createResetAction() {
-			resetAction = new Action("reset changes") { 
+			resetAction = new Action("reset changes") {
 				@Override
 				public void run() {
 					if (!modified)
@@ -406,6 +485,6 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			return resetAction;
 		}
 
-	} 
+	}
 
 }
