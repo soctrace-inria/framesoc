@@ -53,7 +53,6 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  * TODO:
  * - allow to hide columns, and store in local settings the hidden columns 
  * - allow to restore hidden columns 
- * - sorting / reindexing
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -459,7 +458,7 @@ public class TraceFilterDialog extends Dialog {
 							return false;
 						}
 						TraceTableColumn col = (TraceTableColumn) column.getData(Key.COLUMN_OBJ);
-						fCache.setSearchText(col, regex);
+						fCache.setFilterText(col, regex);
 						column.setData(Key.FILTER_TXT, regex);
 					} catch (final PatternSyntaxException ex) {
 						tableEditor.getEditor().dispose();
@@ -474,7 +473,7 @@ public class TraceFilterDialog extends Dialog {
 						return false;
 					}
 					TraceTableColumn col = (TraceTableColumn) column.getData(Key.COLUMN_OBJ);
-					fCache.setSearchText(col, "");
+					fCache.setFilterText(col, "");
 					column.setData(Key.FILTER_TXT, null);
 				}
 				return true;

@@ -447,7 +447,7 @@ public final class EventTableView extends FramesocPart {
 							return false;
 						}
 						EventTableColumn col = (EventTableColumn) column.getData(Key.COLUMN_OBJ);
-						rowFilter.setSearchText(col, regex);
+						rowFilter.setFilterText(col, regex);
 						column.setData(Key.FILTER_TXT, regex);
 					} catch (final PatternSyntaxException ex) {
 						tableEditor.getEditor().dispose();
@@ -462,7 +462,7 @@ public final class EventTableView extends FramesocPart {
 						return false;
 					}
 					EventTableColumn col = (EventTableColumn) column.getData(Key.COLUMN_OBJ);
-					rowFilter.setSearchText(col, "");
+					rowFilter.setFilterText(col, "");
 					column.setData(Key.FILTER_TXT, null);
 				}
 				return true;

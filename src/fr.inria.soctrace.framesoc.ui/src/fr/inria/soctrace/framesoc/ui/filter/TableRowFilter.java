@@ -15,8 +15,8 @@ import fr.inria.soctrace.framesoc.ui.model.ITableRow;
 public abstract class TableRowFilter {
 
 	/**
-	 * Map between each row column and its filter string. It must be filled with
-	 * the columns and empty strings by the {@link #clean()} method.
+	 * Map between each row column and its filter string. It must be filled with the columns and
+	 * empty strings by the {@link #clean()} method.
 	 */
 	protected Map<ITableColumn, String> searchStrings;
 
@@ -32,19 +32,18 @@ public abstract class TableRowFilter {
 	 * 
 	 * @param col
 	 *            column to set
-	 * @param s
+	 * @param filter
 	 *            filter string to set
 	 */
-	public void setSearchText(ITableColumn col, String s) {
+	public void setFilterText(ITableColumn col, String filter) {
 		if (!searchStrings.containsKey(col))
 			throw new IllegalArgumentException("Column " + col + " unknown by the filter.");
-		searchStrings.put(col, s);
+		searchStrings.put(col, filter);
 	}
 
 	/**
-	 * Check if any of the filter strings is set. The base implementation
-	 * considers that a filter string is set if it is not null and it is
-	 * different from the empty string.
+	 * Check if any of the filter strings is set. The base implementation considers that a filter
+	 * string is set if it is not null and it is different from the empty string.
 	 * 
 	 * @return true if any of the filters is set, false otherwise
 	 */
