@@ -31,6 +31,7 @@ import fr.inria.soctrace.lib.storage.SystemDBObject;
 
 /**
  * Loader for the trace details view.
+ * TODO: sort custom parameters
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -38,11 +39,10 @@ public class TraceDetailsLoader {
 
 	/**
 	 * Labels for fixed Trace attributes
-	 * TODO: use table column instead
 	 */
-	@Deprecated 
 	public static enum TraceField {		
 
+		ALIAS("Alias"),
 		TRACING_DATE("Tracing date"),
 		TRACED_APPLICATION("Traced application"),
 		BOARD("Board"),
@@ -50,12 +50,11 @@ public class TraceDetailsLoader {
 		NUMBER_OF_CPUS("Number of CPUs"),
 		NUMBER_OF_EVENTS("Number of events"),
 		OUTPUT_DEVICE("Output device"),
-		DESCRIPTION("Description"),
-		DBNAME("DB name"),
-		ALIAS("Alias"),
+		DESCRIPTION("Description"),		
 		MIN_TIMESTAMP("Min Timestamp"),
 		MAX_TIMESTAMP("Max Timestamp"),
-		TIMEUNIT("Time-unit");
+		TIMEUNIT("Time-unit"),
+		DBNAME("DB name");
 
 		private String name;
 
@@ -78,6 +77,7 @@ public class TraceDetailsLoader {
 	 */
 	public void load(Trace trace) {
 		properties.clear();
+		properties.add(new DetailsTableRow(TraceField.ALIAS.toString(), trace.getAlias()));
 		properties.add(new DetailsTableRow(TraceField.TRACING_DATE.toString(), trace.getTracingDate().toString()));
 		properties.add(new DetailsTableRow(TraceField.TRACED_APPLICATION.toString(), trace.getTracedApplication()));
 		properties.add(new DetailsTableRow(TraceField.BOARD.toString(), trace.getBoard()));
@@ -86,11 +86,10 @@ public class TraceDetailsLoader {
 		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String.valueOf(trace.getNumberOfEvents())));
 		properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), trace.getOutputDevice()));
 		properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), trace.getDescription()));
-		properties.add(new DetailsTableRow(TraceField.ALIAS.toString(), trace.getAlias()));
-		properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), trace.getDbName(), false, true));
 		properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String.valueOf(trace.getMinTimestamp()), false, true));
 		properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String.valueOf(trace.getMaxTimestamp()), false, true));
 		properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit.getLabel(trace.getTimeUnit()), false, true));
+		properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), trace.getDbName(), false, true));
 		for (TraceParam tp: trace.getParams()) {
 			properties.add(new DetailsTableRow(tp.getTraceParamType().getName(), tp.getValue(), true, false));
 		}		

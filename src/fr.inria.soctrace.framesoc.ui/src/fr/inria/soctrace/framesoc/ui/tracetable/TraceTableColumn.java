@@ -18,20 +18,20 @@ import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
  */
 public enum TraceTableColumn implements ITableColumn {
 
-	ALIAS("Alias", "Alias", 150),
-	TRACING_DATE("Tracing date", "Date", 100),
-	TRACED_APPLICATION("Traced application", "Application", 100),
-	BOARD("Board", "Board", 100),
-	OPERATING_SYSTEM("Operating System", "OS", 100),
-	NUMBER_OF_CPUS("Number of CPUs", "CPUs", 70),
-	NUMBER_OF_EVENTS("Number of events", "Events", 100),
-	OUTPUT_DEVICE("Output device", "Out device", 100),
+	ALIAS("Alias", "Alias", 200),
+	TRACING_DATE("Tracing date", "Date", 150),
+	TRACED_APPLICATION("Traced application", "Application", 90),
+	BOARD("Board", "Board", 90),
+	OPERATING_SYSTEM("Operating System", "OS", 90),
+	NUMBER_OF_CPUS("Number of CPUs", "CPUs", 60),
+	NUMBER_OF_EVENTS("Number of events", "Events", 70),
+	OUTPUT_DEVICE("Output device", "Out device", 90),
 	DESCRIPTION("Description", "Description", 100),
-	DBNAME("DB name", "DB", 100),
 	MIN_TIMESTAMP("Min Timestamp", "Min Ts", 100),
 	MAX_TIMESTAMP("Max Timestamp", "Max Ts", 100),
-	TIMEUNIT("Time-unit", "Ts unit", 70),
-	PARAMS("Custom Parameters", "Parameters", 200);
+	TIMEUNIT("Time-unit", "Ts unit", 60),
+	PARAMS("Custom Parameters", "Parameters", 200),
+	DBNAME("DB name", "DB", 100);
 	
 	private String shortName;
 	private String name;
