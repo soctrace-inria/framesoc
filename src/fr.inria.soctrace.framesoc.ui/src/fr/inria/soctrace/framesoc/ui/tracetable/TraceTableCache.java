@@ -10,41 +10,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
+
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class TraceTableCache {
 
-	private List<Trace> fSortedTraces;
+	private List<TraceTableRow> fSortedRows;
 	private Map<Trace, TraceTableRow> fCache;
 	private Map<Integer, Trace> fIndex;
 	private TraceTableRowFilter fFilter;
-	
+
 	public void init(List<Trace> traces) {
 		fFilter = new TraceTableRowFilter();
-		
-		fSortedTraces = new ArrayList<>();
+
+		fSortedRows = new ArrayList<>();
 		fCache = new HashMap<>();
 		for (Trace trace : traces) {
-			fCache.put(trace, new TraceTableRow(trace));
-			fSortedTraces.add(trace);
+			TraceTableRow row = new TraceTableRow(trace);
+			fCache.put(trace, row);
+			fSortedRows.add(row);
 		}
-		Collections.sort(fSortedTraces, new Comparator<Trace>() {
+		Collections.sort(fSortedRows, new Comparator<TraceTableRow>() {
 			@Override
-			public int compare(Trace o1, Trace o2) {
-				return o1.getAlias().compareTo(o2.getAlias());
+			public int compare(TraceTableRow o1, TraceTableRow o2) {
+				try {
+					return o1.get(TraceTableColumn.ALIAS).compareTo(o2.get(TraceTableColumn.ALIAS));
+				} catch (SoCTraceException e) {
+					e.printStackTrace();
+				}
+				return 0;
 			}
 		});
-		
+
 		int index = 0;
 		fIndex = new HashMap<>();
-		for (Trace trace : fSortedTraces) {
-			fIndex.put(index++, trace);
+		for (TraceTableRow trace : fSortedRows) {
+			fIndex.put(index++, trace.getTrace());
 		}
-		System.out.println(fSortedTraces);
-		
 	}
 
 	public TraceTableRow get(int index) {
@@ -59,9 +66,9 @@ public class TraceTableCache {
 		// TODO apply sorter first
 		int index = 0;
 		fIndex = new HashMap<>();
-		for (Trace t : fSortedTraces) {
-			if (fFilter.matches(fCache.get(t))) {
-				fIndex.put(index++, t);
+		for (TraceTableRow t : fSortedRows) {
+			if (fFilter.matches(t)) {
+				fIndex.put(index++, t.getTrace());
 			}
 		}
 	}
@@ -73,5 +80,33 @@ public class TraceTableCache {
 	public void cleanFilter() {
 		fFilter.clean();
 	}
-	
+
+	public void sort(final TraceTableColumn col, final int dir) {
+		Collections.sort(fSortedRows, new Comparator<TraceTableRow>() {
+			@Override
+			public int compare(TraceTableRow o1, TraceTableRow o2) {
+				try {
+					// TODO manage long integer
+					if (dir == SWT.UP) {
+						return o1.get(col).compareTo(o2.get(col));
+					} else {
+						return o2.get(col).compareTo(o1.get(col));
+					}
+				} catch (SoCTraceException e) {
+					e.printStackTrace();
+				}
+				return 0;
+			}
+		});
+
+		int index = 0;
+		fIndex = new HashMap<>();
+		boolean hasFilters = fFilter.hasFilters();
+		for (TraceTableRow row : fSortedRows) {
+			if (!hasFilters || fFilter.matches(row)) {
+				fIndex.put(index++, row.getTrace());
+			}
+		}
+	}
+
 }

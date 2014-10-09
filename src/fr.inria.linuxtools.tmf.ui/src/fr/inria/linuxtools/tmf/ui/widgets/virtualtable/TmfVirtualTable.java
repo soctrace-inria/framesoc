@@ -1120,4 +1120,23 @@ public class TmfVirtualTable extends Composite {
         this.doubleClickListener = doubleClickListener;
     }
 
+    // TEST @Framesoc
+
+    public TableColumn getSortColumn() {
+        return fTable.getSortColumn();
+    }
+
+    public void setSortColumn(TableColumn column) {
+        fTable.setSortColumn(column);
+
+    }
+
+    public int getSortDirection() {
+        return fTable.getSortDirection();
+    }
+
+    public void setSortDirection(int direction) {
+        fTable.setSortDirection(direction);
+    }
+
 }

@@ -161,6 +161,9 @@ public class TraceFilterDialog extends Dialog {
 
 		// Set the columns
 		setColumnHeaders();
+		
+		// Set the sorter
+		setColumnSorter();
 
 		// Set the frozen row for header row
 		fTable.setFrozenRowCount(1);
@@ -337,6 +340,34 @@ public class TraceFilterDialog extends Dialog {
 		}
 	}
 
+	private void setColumnSorter() {
+		Listener sortListener = new Listener() {
+			@Override
+			public void handleEvent(Event e) {
+				// determine new sort column and direction
+				TableColumn sortColumn = fTable.getSortColumn();
+				TableColumn currentColumn = (TableColumn) e.widget;
+				int dir = fTable.getSortDirection();
+				if (sortColumn == currentColumn) {
+					dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+				} else {
+					fTable.setSortColumn(currentColumn);
+					dir = SWT.UP;
+				}
+				// sort the data based on column and direction
+				fCache.sort((TraceTableColumn)currentColumn.getData(Key.COLUMN_OBJ), dir);
+				// update data displayed in table
+				fTable.setSortDirection(dir);
+				fTable.clearAll();
+				fTable.setItemCount(1+fCache.getItemCount()); // +1 for header
+				fTable.refresh();
+			}
+		};
+		for (TableColumn tc : fTable.getColumns()) {
+			tc.addListener(SWT.Selection, sortListener);
+		}
+	}
+	
 	private void createHeaderEditor() {
 		final TableEditor tableEditor = fTable.createTableEditor();
 		tableEditor.horizontalAlignment = SWT.LEFT;
