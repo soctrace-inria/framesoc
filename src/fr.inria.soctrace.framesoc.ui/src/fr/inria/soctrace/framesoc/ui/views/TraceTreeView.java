@@ -19,6 +19,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
@@ -361,20 +362,22 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		// add to toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
 		IToolBarManager toolBar = actionBars.getToolBarManager();
-		toolBar.add(searchAction);
-		toolBar.add(cleanAction);
 		toolBar.add(expandAction);
 		toolBar.add(collapseAction);
+		toolBar.add(new Separator());
+		toolBar.add(searchAction);
+		toolBar.add(cleanAction);
+		toolBar.add(new Separator());
 		toolBar.add(refreshAction);
 	}
 
 	private void applyChecked(boolean check) {
+		if (check && checked.size() > 0) {
+			viewer.expandAll();
+		}
 		TreeItem[] items = viewer.getTree().getItems();
 		for (TreeItem item : items) {
 			check(item, check);
-		}
-		if (checked.size() > 0) {
-			viewer.expandAll();
 		}
 	}
 
