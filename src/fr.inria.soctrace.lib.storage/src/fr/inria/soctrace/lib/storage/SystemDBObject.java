@@ -116,7 +116,7 @@ public class SystemDBObject extends DBObject {
 	/**
 	 * Return a TraceType object corresponding to a given type.
 	 * @param type trace type name
-	 * @return the TraceType object
+	 * @return the TraceType object or null if not found
 	 */
 	public TraceType getTraceType(String type) throws SoCTraceException {
 		TraceType traceType = null;

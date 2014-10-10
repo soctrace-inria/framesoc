@@ -16,34 +16,34 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
-import fr.inria.soctrace.lib.model.EventParamType;
+import fr.inria.soctrace.lib.model.TraceParamType;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
-import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.ModelElementCache;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
 /**
- * Query class for EventParamType table.
+ * Query class for TraceParamType table.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  *
  */
-public class EventParamTypeQuery extends ElementQuery {
+public class TraceParamTypeQuery extends ElementQuery {
 
 	/**
 	 * The constructor.
-	 * @param traceDB Trace DB object where the query is performed.
+	 * @param sysDB System DB object where the query is performed.
 	 */
-	public EventParamTypeQuery(TraceDBObject traceDB) {
-		super(traceDB);
+	public TraceParamTypeQuery(SystemDBObject sysDB) {
+		super(sysDB);
 		super.clear();
 	}
 
 	@Override
-	public List<EventParamType> getList() throws SoCTraceException {
+	public List<TraceParamType> getList() throws SoCTraceException {
 		try {
 
-			StringBuilder eventParamTypeQuery = new StringBuilder("SELECT ID FROM " + FramesocTable.EVENT_PARAM_TYPE + " ");
+			StringBuilder eventParamTypeQuery = new StringBuilder("SELECT ID FROM " + FramesocTable.TRACE_PARAM_TYPE + " ");
 
 			if (where) {
 				eventParamTypeQuery.append(" WHERE ");
@@ -67,10 +67,10 @@ public class EventParamTypeQuery extends ElementQuery {
 			Statement stm = dbObj.getConnection().createStatement();
 			ResultSet rs = stm.executeQuery(query);
 			
-			List<EventParamType> elist = new LinkedList<EventParamType>();
-			ModelElementCache cache = ((TraceDBObject)dbObj).getEventTypeCache();
-			while (rs.next()) {
-				elist.add(cache.get(EventParamType.class, rs.getInt(1)));
+			List<TraceParamType> elist = new LinkedList<TraceParamType>();
+			ModelElementCache cache = ((SystemDBObject)dbObj).getTraceTypeCache();
+			while (rs.next()) { 
+				elist.add(cache.get(TraceParamType.class, rs.getInt(1)));
 			}
 			stm.close();
 			return elist;		

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.views;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,14 +48,18 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 
+import fr.inria.soctrace.framesoc.core.FramesocManager;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopicList;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
 import fr.inria.soctrace.framesoc.core.bus.IFramesocBusListener;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.dialogs.NewParamDialog;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceDetailsLoader;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
 import fr.inria.soctrace.framesoc.ui.model.DetailsTableRow;
+import fr.inria.soctrace.framesoc.ui.model.TraceNode;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TraceSelection;
 import fr.inria.soctrace.lib.model.Trace;
@@ -195,10 +200,33 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				// get the selection
 				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
 				Object[] rows = selection.toArray();
+				List<String> params = new ArrayList<>(rows.length);
+
+				StringBuilder sb = new StringBuilder();
+				sb.append("Remove the following parameters from the selected traces?\n\n");
+				sb.append("Parameters to remove:\n");
 				for (Object row : rows) {
-					// delete corresponding params in all selected traces
-					// TODO
-					System.out.println("del : " + ((DetailsTableRow) row).getName());
+					String name = (String) ((DetailsTableRow) row).getName();
+					params.add(name);
+					sb.append("* ");
+					sb.append(name);
+					sb.append("\n");
+				}
+
+				if (!MessageDialog.openQuestion(getSite().getShell(), "Remove parameters",
+						sb.toString())) {
+					return;
+				}
+
+				// delete corresponding params in all selected traces
+				List<Trace> traces = getSelectedTraces();
+				try {
+					FramesocManager.getInstance().deleteParams(traces, params);
+					showSelection();
+				} catch (SoCTraceException e) {
+					MessageDialog.openError(getSite().getShell(), "Error",
+							"An error occurred removing the parameters.\n" + e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		};
@@ -216,10 +244,16 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				NewParamDialog dlg = new NewParamDialog(getSite().getShell());
 				if (dlg.open() == Dialog.OK) {
 					// add the new param in all selected traces
-					// TODO
-					System.out.println(dlg.getName());
-					System.out.println(dlg.getType());
-					System.out.println(dlg.getValue());
+					List<Trace> traces = getSelectedTraces();
+					try {
+						FramesocManager.getInstance().saveParam(traces, dlg.getName(),
+								dlg.getType(), dlg.getValue());
+						showSelection();
+					} catch (SoCTraceException e) {
+						MessageDialog.openError(getSite().getShell(), "Error",
+								"An error occurred saving the parameters.\n" + e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			}
 		};
@@ -227,6 +261,17 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				Activator.PLUGIN_ID, "icons/plus.png"));
 		addParamAction.setEnabled(false);
 		return addParamAction;
+	}
+
+	private List<Trace> getSelectedTraces() {
+		IStructuredSelection selection = (IStructuredSelection) FramesocBus.getInstance()
+				.getVariable(FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION);
+		Object[] traceNodes = selection.toArray();
+		List<Trace> traces = new ArrayList<>(traceNodes.length);
+		for (Object node : traceNodes) {
+			traces.add(((TraceNode) node).getTrace());
+		}
+		return traces;
 	}
 
 	@Override
