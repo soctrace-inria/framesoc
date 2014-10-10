@@ -12,6 +12,8 @@ package fr.inria.soctrace.framesoc.ui.loaders;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,8 +32,7 @@ import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 
 /**
- * Loader for the trace details view.
- * TODO: sort custom parameters
+ * Loader for the trace details view. TODO: sort custom parameters
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -40,25 +41,25 @@ public class TraceDetailsLoader {
 	/**
 	 * Labels for fixed Trace attributes
 	 */
-	public static enum TraceField {		
+	public static enum TraceField {
 
-		ALIAS("Alias"),
-		TRACING_DATE("Tracing date"),
-		TRACED_APPLICATION("Traced application"),
-		BOARD("Board"),
-		OPERATING_SYSTEM("Operating System"),
-		NUMBER_OF_CPUS("Number of CPUs"),
+		ALIAS("Alias"), 
+		TRACING_DATE("Tracing date"), 
+		TRACED_APPLICATION("Traced application"), 
+		BOARD("Board"), 
+		OPERATING_SYSTEM("Operating System"), 
+		NUMBER_OF_CPUS("Number of CPUs"), 
 		NUMBER_OF_EVENTS("Number of events"),
 		OUTPUT_DEVICE("Output device"),
-		DESCRIPTION("Description"),		
+		DESCRIPTION("Description"), 
 		MIN_TIMESTAMP("Min Timestamp"),
 		MAX_TIMESTAMP("Max Timestamp"),
-		TIMEUNIT("Time-unit"),
+		TIMEUNIT("Time-unit"), 
 		DBNAME("DB name");
 
 		private String name;
 
-		private TraceField(String name){
+		private TraceField(String name) {
 			this.name = name;
 		}
 
@@ -73,32 +74,54 @@ public class TraceDetailsLoader {
 
 	/**
 	 * Create table rows using Trace data
-	 * @param trace trace to read
+	 * 
+	 * @param trace
+	 *            trace to read
 	 */
 	public void load(Trace trace) {
 		properties.clear();
+
+		// default params
 		properties.add(new DetailsTableRow(TraceField.ALIAS.toString(), trace.getAlias()));
-		properties.add(new DetailsTableRow(TraceField.TRACING_DATE.toString(), trace.getTracingDate().toString()));
-		properties.add(new DetailsTableRow(TraceField.TRACED_APPLICATION.toString(), trace.getTracedApplication()));
+		properties.add(new DetailsTableRow(TraceField.TRACING_DATE.toString(), trace
+				.getTracingDate().toString()));
+		properties.add(new DetailsTableRow(TraceField.TRACED_APPLICATION.toString(), trace
+				.getTracedApplication()));
 		properties.add(new DetailsTableRow(TraceField.BOARD.toString(), trace.getBoard()));
-		properties.add(new DetailsTableRow(TraceField.OPERATING_SYSTEM.toString(), trace.getOperatingSystem()));
-		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_CPUS.toString(), String.valueOf(trace.getNumberOfCpus())));
-		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String.valueOf(trace.getNumberOfEvents())));
-		properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), trace.getOutputDevice()));
-		properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), trace.getDescription()));
-		properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String.valueOf(trace.getMinTimestamp()), false, true));
-		properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String.valueOf(trace.getMaxTimestamp()), false, true));
-		properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit.getLabel(trace.getTimeUnit()), false, true));
-		properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), trace.getDbName(), false, true));
-		for (TraceParam tp: trace.getParams()) {
-			properties.add(new DetailsTableRow(tp.getTraceParamType().getName(), tp.getValue(), true, false));
-		}		
+		properties.add(new DetailsTableRow(TraceField.OPERATING_SYSTEM.toString(), trace
+				.getOperatingSystem()));
+		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_CPUS.toString(), String
+				.valueOf(trace.getNumberOfCpus())));
+		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String
+				.valueOf(trace.getNumberOfEvents())));
+		properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), trace
+				.getOutputDevice()));
+		properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), trace
+				.getDescription()));
+		properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String
+				.valueOf(trace.getMinTimestamp()), false, true));
+		properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String
+				.valueOf(trace.getMaxTimestamp()), false, true));
+		properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit.getLabel(trace
+				.getTimeUnit()), false, true));
+		properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), trace.getDbName(), false,
+				true));
+
+		// custom params
+		List<TraceParam> params = trace.getParams();
+		sortParams(params);
+		for (TraceParam tp : params) {
+			properties.add(new DetailsTableRow(tp.getTraceParamType().getName(), tp.getValue(),
+					true, false));
+		}
 	}
 
 	/**
-	 * Create table rows using the data from all the passed traces.
-	 * Only parameters having common values are shown.
-	 * @param traces trace to read
+	 * Create table rows using the data from all the passed traces. Only parameters having common
+	 * values are shown.
+	 * 
+	 * @param traces
+	 *            trace to read
 	 */
 	public void load(List<Trace> traces) {
 
@@ -111,29 +134,31 @@ public class TraceDetailsLoader {
 
 		// Tracing date
 		boolean show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getTracingDate().equals(t.getTracingDate())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.TRACING_DATE.toString(), first.getTracingDate().toString()));
+			properties.add(new DetailsTableRow(TraceField.TRACING_DATE.toString(), first
+					.getTracingDate().toString()));
 
 		// Traced application
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getTracedApplication().equals(t.getTracedApplication())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.TRACED_APPLICATION.toString(), first.getTracedApplication().toString()));
+			properties.add(new DetailsTableRow(TraceField.TRACED_APPLICATION.toString(), first
+					.getTracedApplication().toString()));
 
 		// Board
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getBoard().equals(t.getBoard())) {
 				show = false;
 				break;
@@ -144,84 +169,91 @@ public class TraceDetailsLoader {
 
 		// Operating system
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getOperatingSystem().equals(t.getOperatingSystem())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.OPERATING_SYSTEM.toString(), first.getOperatingSystem()));
+			properties.add(new DetailsTableRow(TraceField.OPERATING_SYSTEM.toString(), first
+					.getOperatingSystem()));
 
 		// Number of CPU
 		show = true;
-		for (Trace t: traces) {
-			if (first.getNumberOfCpus()!=t.getNumberOfCpus()) {
+		for (Trace t : traces) {
+			if (first.getNumberOfCpus() != t.getNumberOfCpus()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_CPUS.toString(), String.valueOf(first.getNumberOfCpus())));
+			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_CPUS.toString(), String
+					.valueOf(first.getNumberOfCpus())));
 
 		// Number of events
 		show = true;
-		for (Trace t: traces) {
-			if (first.getNumberOfEvents()!=t.getNumberOfEvents()) {
+		for (Trace t : traces) {
+			if (first.getNumberOfEvents() != t.getNumberOfEvents()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String.valueOf(first.getNumberOfEvents())));
+			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String
+					.valueOf(first.getNumberOfEvents())));
 
 		// Traced application
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getOutputDevice().equals(t.getOutputDevice())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), first.getOutputDevice()));
+			properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), first
+					.getOutputDevice()));
 
 		// Description
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getDescription().equals(t.getDescription())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), first.getDescription()));
+			properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), first
+					.getDescription()));
 
 		// Min Timestamp
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (first.getMinTimestamp() != t.getMinTimestamp()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String.valueOf(first.getMinTimestamp())));
+			properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String
+					.valueOf(first.getMinTimestamp())));
 
 		// Max Timestamp
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (first.getMaxTimestamp() != t.getMaxTimestamp()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String.valueOf(first.getMaxTimestamp())));
+			properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String
+					.valueOf(first.getMaxTimestamp())));
 
 		// Alias
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getAlias().equals(t.getAlias())) {
 				show = false;
 				break;
@@ -232,35 +264,38 @@ public class TraceDetailsLoader {
 
 		// Trace DB name
 		show = true;
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			if (!first.getDbName().equals(t.getDbName())) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), first.getDbName(), false, true));
+			properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), first.getDbName(),
+					false, true));
 
 		// Traced application
 		show = true;
-		for (Trace t: traces) {
-			if (first.getTimeUnit()!=t.getTimeUnit()) {
+		for (Trace t : traces) {
+			if (first.getTimeUnit() != t.getTimeUnit()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit.getLabel(first.getTimeUnit()), false, true));
+			properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit
+					.getLabel(first.getTimeUnit()), false, true));
 
 		// Show a row for each parameter having the same name and the same value
 		List<Map<String, TraceParam>> plist = new LinkedList<Map<String, TraceParam>>();
-		for (Trace t: traces) {
+		for (Trace t : traces) {
 			plist.add(t.getParamMap());
 		}
 		Map<String, TraceParam> firstMap = first.getParamMap();
-		for (TraceParam tp: firstMap.values()) {
+		List<TraceParam> params = new ArrayList<>();
+		for (TraceParam tp : firstMap.values()) {
 			show = true;
-			for (Map<String, TraceParam> tm: plist) {
+			for (Map<String, TraceParam> tm : plist) {
 				if (!tm.containsKey(tp.getTraceParamType().getName())) {
 					show = false;
 					break;
@@ -272,11 +307,21 @@ public class TraceDetailsLoader {
 				}
 			}
 			if (show) {
-				properties.add(new DetailsTableRow(tp.getTraceParamType().getName(), tp.getValue(), true, false));
+				params.add(tp);
 			}
+		}
+		sortParams(params);
+		for (TraceParam tp : params) {
+			properties.add(new DetailsTableRow(tp.getTraceParamType().getName(), tp.getValue(),
+					true, false));
 		}
 	}
 
+	/**
+	 * Get the list of details table row.
+	 * 
+	 * @return a list of details table row
+	 */
 	public List<DetailsTableRow> getProperties() {
 		return properties;
 	}
@@ -284,22 +329,23 @@ public class TraceDetailsLoader {
 	/**
 	 * Save the modification done to this list of traces.
 	 * 
-	 * @param currentTraces list of traces to modify
+	 * @param currentTraces
+	 *            list of traces to modify
 	 * @throws SoCTraceException
 	 */
 	public void store(List<Trace> currentTraces) throws SoCTraceException {
 
 		boolean argError = false;
-		
+
 		SystemDBObject sysDB = null;
-		
+
 		try {
 			sysDB = SystemDBObject.openNewIstance();
 
-			for (Trace trace: currentTraces) {
+			for (Trace trace : currentTraces) {
 				argError |= updateTraceObject(trace);
 				sysDB.update(trace);
-				for (TraceParam p: trace.getParams()) {
+				for (TraceParam p : trace.getParams()) {
 					sysDB.update(p);
 				}
 			}
@@ -316,10 +362,11 @@ public class TraceDetailsLoader {
 	}
 
 	/**
-	 * Update the trace object using the value actually present in the 
-	 * properties. Read Only fields (DBNAME and TIMEUNIT) are skipped.
+	 * Update the trace object using the value actually present in the properties. Read Only fields
+	 * (DBNAME and TIMEUNIT) are skipped.
 	 * 
-	 * @param trace the trace to update
+	 * @param trace
+	 *            the trace to update
 	 * @return true if an error occurs, false otherwise
 	 */
 	private boolean updateTraceObject(Trace trace) {
@@ -331,11 +378,11 @@ public class TraceDetailsLoader {
 		Map<String, String> fixed = new HashMap<String, String>();
 
 		// put all the properties (params and fixed) in params...
-		for (DetailsTableRow r: properties) {
+		for (DetailsTableRow r : properties) {
 			params.put(r.getName(), r.getValue());
 		}
 		// ...then remove the fixed fields from param
-		for (TraceField f: TraceField.values()) {
+		for (TraceField f : TraceField.values()) {
 			if (!params.containsKey(f.toString()))
 				continue;
 			fixed.put(f.toString(), params.get(f.toString()));
@@ -352,9 +399,11 @@ public class TraceDetailsLoader {
 		}
 		try {
 			if (fixed.containsKey(TraceField.NUMBER_OF_CPUS.toString()))
-				trace.setNumberOfCpus(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_CPUS.toString())));
+				trace.setNumberOfCpus(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_CPUS
+						.toString())));
 			if (fixed.containsKey(TraceField.NUMBER_OF_EVENTS.toString()))
-				trace.setNumberOfEvents(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_EVENTS.toString())));
+				trace.setNumberOfEvents(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_EVENTS
+						.toString())));
 		} catch (NumberFormatException e) {
 			argError = true;
 		}
@@ -384,4 +433,20 @@ public class TraceDetailsLoader {
 
 		return argError;
 	}
+
+	/**
+	 * Sort the passed trace param list by trace param type name.
+	 * 
+	 * @param params
+	 *            list to sort
+	 */
+	private void sortParams(List<TraceParam> params) {
+		Collections.sort(params, new Comparator<TraceParam>() {
+			@Override
+			public int compare(TraceParam o1, TraceParam o2) {
+				return o1.getTraceParamType().getName().compareTo(o2.getTraceParamType().getName());
+			}
+		});
+	}
+
 }
