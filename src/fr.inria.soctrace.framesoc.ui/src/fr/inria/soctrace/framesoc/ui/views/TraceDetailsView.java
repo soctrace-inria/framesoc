@@ -198,7 +198,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				for (Object row : rows) {
 					// delete corresponding params in all selected traces
 					// TODO
-					System.out.println("del : " + ((DetailsTableRow)row).getName());
+					System.out.println("del : " + ((DetailsTableRow) row).getName());
 				}
 			}
 		};
@@ -275,8 +275,11 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			setContentDescription("Multi-trace selection");
 			traceDetailsLoader.load(currentTraces);
 		}
-		viewer.setInput(traceDetailsLoader.getProperties());
-		addParamAction.setEnabled(true);
+		List<DetailsTableRow> prop = traceDetailsLoader.getProperties();
+		if (prop != null && prop.size() > 0) {
+			viewer.setInput(prop);
+			addParamAction.setEnabled(true);
+		}
 
 	}
 
@@ -352,8 +355,10 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 					}
 				}
 				// all selected traces have been deleted
-				if (currentTraces.size() == 0)
+				if (currentTraces.size() == 0) {
 					viewer.setInput(null);
+					addParamAction.setEnabled(false);
+				}
 				// some trace has been removed or updated, and there are still selected traces
 				else if (reload) {
 					traceDetailsLoader.load(currentTraces);
