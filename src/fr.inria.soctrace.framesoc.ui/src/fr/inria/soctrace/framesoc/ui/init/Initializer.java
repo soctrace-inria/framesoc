@@ -64,11 +64,15 @@ public enum Initializer {
 			// DBMS info
 			Configuration.getInstance().set(SoCTraceProperty.soctrace_dbms, properties.getDbms());
 			if (properties.getDbms().equalsIgnoreCase(DBMS.SQLITE.toString())) {
-				Configuration.getInstance().set(SoCTraceProperty.sqlite_db_directory, properties.getSqliteDirectory());
+				Configuration.getInstance().set(SoCTraceProperty.sqlite_db_directory,
+						properties.getSqliteDirectory());
 			} else if (properties.getDbms().equalsIgnoreCase(DBMS.MYSQL.toString())) {
-				Configuration.getInstance().set(SoCTraceProperty.mysql_base_db_jdbc_url, properties.getMysqlUrl());
-				Configuration.getInstance().set(SoCTraceProperty.mysql_db_user, properties.getMysqlUser());
-				Configuration.getInstance().set(SoCTraceProperty.mysql_db_password, properties.getMysqlPassword());
+				Configuration.getInstance().set(SoCTraceProperty.mysql_base_db_jdbc_url,
+						properties.getMysqlUrl());
+				Configuration.getInstance().set(SoCTraceProperty.mysql_db_user,
+						properties.getMysqlUser());
+				Configuration.getInstance().set(SoCTraceProperty.mysql_db_password,
+						properties.getMysqlPassword());
 			}
 
 			Configuration.getInstance().saveOnFile();
@@ -81,7 +85,7 @@ public enum Initializer {
 			if (FramesocManager.getInstance().isSystemDBExisting()) {
 				sb.append("A System DB instance is already existing.");
 				manageDatabases();
-			} else {									
+			} else {
 				FramesocManager.getInstance().createSystemDB();
 				sb.append("A System DB instance has been created.");
 			}
@@ -95,22 +99,24 @@ public enum Initializer {
 			return false;
 		} finally {
 			// refresh Traces view and Trace Details
-			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE, null);
-			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
+			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
+					null);
+			FramesocBus.getInstance().setVariable(
+					FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
 			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
 		}
 	}
 
-	/** 
-	 * Manage Framesoc tools registering all the tools in the
-	 * runtime not yet registered and removing all the tools 
-	 * registered but not present in the runtime.
+	/**
+	 * Manage Framesoc tools registering all the plugin tools in the runtime not
+	 * yet registered, and removing all the plugin tools registered but not
+	 * present in the runtime.
 	 */
 	public void manageTools(Shell shell) {
 
 		SystemDBObject sysDB = null;
 		try {
-			sysDB = SystemDBObject.openNewIstance();			
+			sysDB = SystemDBObject.openNewIstance();
 			ToolQuery tq = new ToolQuery(sysDB);
 			List<Tool> registeredTools = tq.getList();
 			List<Tool> runtimeTools = ToolContributionManager.getPluginTools(new IdManager());
@@ -118,20 +124,24 @@ public enum Initializer {
 
 			Map<String, Tool> regMap = new HashMap<String, Tool>();
 			Map<String, Tool> runMap = new HashMap<String, Tool>();
-			for (Tool t: registeredTools) 
+			for (Tool t : registeredTools)
 				regMap.put(t.getName(), t);
-			for (Tool t: runtimeTools)
+			for (Tool t : runtimeTools)
 				runMap.put(t.getName(), t);
 
 			// registered no longer present: unregister
-			for (Tool t: registeredTools) {
+			for (Tool t : registeredTools) {
+				if (!t.isPlugin())
+					continue;
 				if (!runMap.containsKey(t.getName())) {
-					boolean remove = MessageDialog.openQuestion(shell, "Missing tool", 
-							"The tool " + t.getName() + " is no longer present in the current Eclipse runtime.\n"
-									+ "Do you want to remove it and all its results (if any)?");
+					boolean remove = MessageDialog.openQuestion(shell, "Missing tool", "The tool "
+							+ t.getName()
+							+ " is no longer present in the current Eclipse runtime.\n"
+							+ "Do you want to remove it and all its results (if any)?");
 					if (remove) {
 						// unregister
-						logger.debug("Unregister tool " + t.getName() + " because no longer present");
+						logger.debug("Unregister tool " + t.getName()
+								+ " because no longer present");
 						FramesocManager.getInstance().removeTool(t);
 					}
 
@@ -139,11 +149,12 @@ public enum Initializer {
 			}
 
 			// present but unregistered: register
-			for (Tool t: runtimeTools) {
+			for (Tool t : runtimeTools) {
 				if (!regMap.containsKey(t.getName())) {
 					// register
 					logger.debug("Register tool " + t.getName());
-					FramesocManager.getInstance().registerTool(t.getName(), t.getCommand(), t.getType(), t.isPlugin(), t.getDoc());
+					FramesocManager.getInstance().registerTool(t.getName(), t.getCommand(),
+							t.getType(), t.isPlugin(), t.getDoc());
 				}
 			}
 
@@ -155,30 +166,30 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing,
-	 * removing them if it is not the case.
+	 * Check if all the registered TraceDBs are still existing, removing them if
+	 * it is not the case.
 	 */
 	public void manageDatabases() {
 
 		SystemDBObject sysDB = null;
 
 		try {
-			sysDB = SystemDBObject.openNewIstance();			
+			sysDB = SystemDBObject.openNewIstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 
 			// registered no longer present: unregister
-			for (Trace t: registeredTraces) {
+			for (Trace t : registeredTraces) {
 				if (!DBObject.isDBExisting(t.getDbName())) {
-					logger.warn("The trace database {} corresponding to the trace {} is no longer present. "
-							+ "The trace will be removed.", t.getDbName(), t.getAlias());
+					logger.warn(
+							"The trace database {} corresponding to the trace {} is no longer present. "
+									+ "The trace will be removed.", t.getDbName(), t.getAlias());
 					sysDB.delete(t);
 				}
 			}
 			sysDB.close();
 
-		}
-		catch (SoCTraceException e) {
+		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		} finally {
 			DBObject.finalClose(sysDB);
