@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/fr.inria.soctrace.features.framesoc_1.0.0.201410111445.jar" id="fr.inria.soctrace.features.framesoc" version="1.0.0.201410111445">
+      <category name="framesoc"/>
+   </feature>
+   <feature url="features/fr.inria.soctrace.features.tools_1.0.0.201410111445.jar" id="fr.inria.soctrace.features.tools" version="1.0.0.201410111445">
+      <category name="framesoc"/>
+   </feature>
+   <category-def name="framesoc" label="Framesoc">
+      <description>
+         Framesoc - Trace Management and Analysis Infrastructure
+      </description>
+   </category-def>
+</site>
