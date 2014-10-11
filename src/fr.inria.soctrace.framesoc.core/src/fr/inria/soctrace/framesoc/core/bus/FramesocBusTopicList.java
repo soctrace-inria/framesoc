@@ -10,7 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.core.bus;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class FramesocBusTopicList {
 
-	private List<String> topics = new LinkedList<String>();
+	private List<FramesocBusTopic> topics = new ArrayList<>();
 	IFramesocBusListener listener;
 	
 	/**
@@ -35,7 +35,7 @@ public class FramesocBusTopicList {
 	 * Add the topic to the list without registering.
 	 * @param topic topic of interest
 	 */
-	public void addTopic(String topic) {
+	public void addTopic(FramesocBusTopic topic) {
 		topics.add(topic);
 	}
 	
@@ -43,7 +43,7 @@ public class FramesocBusTopicList {
 	 * Register all the topic that are in the list.
 	 */
 	public void registerAll(){
-		for (String topic: topics) {
+		for (FramesocBusTopic topic: topics) {
 			FramesocBus.getInstance().register(topic, listener);
 		}
 	}
@@ -52,7 +52,7 @@ public class FramesocBusTopicList {
 	 * Unregister all the topic that are in the list.
 	 */
 	public void unregisterAll(){
-		for (String topic: topics) {
+		for (FramesocBusTopic topic: topics) {
 			FramesocBus.getInstance().unregister(topic, listener);
 		}
 	}

@@ -96,8 +96,8 @@ public class FramesocColorService implements IFramesocBusListener {
 	}
 
 	@Override
-	public void handle(String topic, Object data) {
-		if (topic.equals(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED.toString())) {
+	public void handle(FramesocBusTopic topic, Object data) {
+		if (topic.equals(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED)) {
 			if ( ((Boolean) data ) == true ) {
 				try {
 					updateColors();

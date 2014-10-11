@@ -20,11 +20,11 @@ public interface IFramesocBusListener {
 	/**
 	 * Handle a notification for a given topic containing given data. 
 	 * The type of the data depends on the topic.
-	 * Predefined topics are documented in {@link FramesocBusTopic}.
+	 * Topics are documented in {@link FramesocBusTopic}.
 	 * 
 	 * @param topic notification topic
 	 * @param data notification data
 	 */
-	void handle(String topic, Object data);
+	void handle(FramesocBusTopic topic, Object data);
 
 }

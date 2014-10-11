@@ -396,7 +396,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	}
 
 	@Override
-	public void handle(String topic, Object data) {
+	public void handle(FramesocBusTopic topic, Object data) {
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE) && data != null) {
 			TraceNode node = tracesLoader.getTraceNode((Trace) data);
 			if (node == null)

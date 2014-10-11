@@ -11,11 +11,11 @@
 package fr.inria.soctrace.framesoc.core.bus;
 
 /**
- * Constants for Framesoc variable names
+ * Constants for Framesoc variables
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class FramesocBusVariable {
+public enum FramesocBusVariable {
 
 	/*
 	 * Important note for the following two variables:
@@ -36,13 +36,13 @@ public class FramesocBusVariable {
 	 * Trace object corresponding to the selected trace.
 	 * If more than one trace is selected, this variable stores the first selected trace.
 	 */
-	public static final String TRACE_VIEW_SELECTED_TRACE = "TRACE_VIEW_SELECTED_TRACE"; //$NON-NLS-1$
+	TRACE_VIEW_SELECTED_TRACE,
 
 	/**
 	 * Selection object corresponding to the current selection in the Traces view.
 	 * It is updated each time one or more trace node are selected in this view.
 	 * Therefore the ISelectionObject contains a list of TraceNode (only).
 	 */
-	public static final String TRACE_VIEW_CURRENT_TRACE_SELECTION = "TRACE_VIEW_CURRENT_TRACE_SELECTION"; //$NON-NLS-1$
+	TRACE_VIEW_CURRENT_TRACE_SELECTION;
 
 }

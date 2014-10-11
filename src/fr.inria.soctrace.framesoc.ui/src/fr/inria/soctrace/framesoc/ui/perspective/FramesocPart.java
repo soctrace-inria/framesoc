@@ -221,7 +221,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 	
 	@Override
-	public void handle(String topic, Object data) {
+	public void handle(FramesocBusTopic topic, Object data) {
 		// manage the common topics
 		handleCommonTopics(topic, data);
 		
@@ -239,7 +239,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	 * @param topic bus topic
 	 * @param data bus event data
 	 */
-	private void handleCommonTopics(String topic, Object data) {
+	private void handleCommonTopics(FramesocBusTopic topic, Object data) {
 		if (currentShownTrace == null)
 			return;
 		Trace t = currentShownTrace;
@@ -300,7 +300,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	 * @param topic bus topic
 	 * @param data bus event data
 	 */
-	public void partHandle(String topic, Object data) {}
+	public void partHandle(FramesocBusTopic topic, Object data) {}
 
 	/**
 	 * Check if a title is highlighted

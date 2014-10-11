@@ -376,7 +376,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	}
 
 	@Override
-	public void handle(String topic, Object data) {
+	public void handle(FramesocBusTopic topic, Object data) {
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE) && data != null) {
 			showSelection((Trace) data);
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED)) {

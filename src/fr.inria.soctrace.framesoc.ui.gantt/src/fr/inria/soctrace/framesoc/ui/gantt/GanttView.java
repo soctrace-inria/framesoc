@@ -153,7 +153,7 @@ public class GanttView extends AbstractGanttView {
 	}
 
 	@Override
-	public void partHandle(String topic, Object data) {
+	public void partHandle(FramesocBusTopic topic, Object data) {
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED)) {
 			if (currentShownTrace == null)
 				return;

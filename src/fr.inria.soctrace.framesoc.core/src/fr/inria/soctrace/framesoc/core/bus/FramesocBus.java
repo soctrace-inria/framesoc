@@ -38,12 +38,12 @@ public class FramesocBus {
 	/**
 	 * Listeners map: topic - list of listeners
 	 */
-	private Map<String, List<IFramesocBusListener>> listeners;
+	private Map<FramesocBusTopic, List<IFramesocBusListener>> listeners;
 	
 	/**
 	 * Variables map
 	 */
-	private Map<String, Object> variables;
+	private Map<FramesocBusVariable, Object> variables;
 	
 	/**
 	 * Single instance of the FB
@@ -65,7 +65,7 @@ public class FramesocBus {
 	 * @param topic topic of the notification
 	 * @param data data of the notification (may be null)
 	 */
-	public void send(String topic, Object data) {
+	public void send(FramesocBusTopic topic, Object data) {
 		logger.debug("send {} for topic {}", data, topic);		
 		if (listeners.containsKey(topic)) {
 			List<IFramesocBusListener> list = listeners.get(topic);
@@ -87,7 +87,7 @@ public class FramesocBus {
 	 * @param topic topic of the notification
 	 * @param listener Framesoc Bus listener
 	 */
-	public void register(String topic, IFramesocBusListener listener) {
+	public void register(FramesocBusTopic topic, IFramesocBusListener listener) {
 		logger.debug("register {} for topic {}", listener, topic);
 		if (!listeners.containsKey(topic)) {
 			listeners.put(topic, new LinkedList<IFramesocBusListener>());
@@ -101,7 +101,7 @@ public class FramesocBus {
 	 * @param topic topic of the notification
 	 * @param listener Framesoc Bus listener
 	 */
-	public void unregister(String topic, IFramesocBusListener listener) {
+	public void unregister(FramesocBusTopic topic, IFramesocBusListener listener) {
 		logger.debug("unregister {} for topic {}", listener, topic);
 		if (listeners.containsKey(topic)) {
 			List<IFramesocBusListener> list = listeners.get(topic);
@@ -116,19 +116,19 @@ public class FramesocBus {
 	 * @param name variable name
 	 * @param value variable value
 	 */
-	public synchronized void setVariable(String name, Object value) {
-		logger.debug("set variable: name={}, value={}", name, value);
-		variables.put(name, value);
+	public synchronized void setVariable(FramesocBusVariable variable, Object value) {
+		logger.debug("set variable: name={}, value={}", variable, value);
+		variables.put(variable, value);
 	} 
 	
 	/**
-	 * Get a given variable. May return null if the variable is not set.
-	 * @param name variable name
+	 * Get a given variable value. May return null if the variable is not set.
+	 * @param name variable
 	 * @return the variable value, or null if not set
 	 */
-	public synchronized Object getVariable(String name) {
-		logger.debug("get variable: name={}, value={}", name, variables.get(name));
-		return variables.get(name);
+	public synchronized Object getVariable(FramesocBusVariable variable) {
+		logger.debug("get variable: name={}, value={}", variable, variables.get(variable));
+		return variables.get(variable);
 	}
 	
 	/**
@@ -136,8 +136,8 @@ public class FramesocBus {
 	 */
 	private FramesocBus() {
 		logger.debug("instance created");
-		listeners = new HashMap<String, List<IFramesocBusListener>>();
-		variables = new HashMap<String, Object>();
+		listeners = new HashMap<FramesocBusTopic, List<IFramesocBusListener>>();
+		variables = new HashMap<FramesocBusVariable, Object>();
 	};
 	
 }

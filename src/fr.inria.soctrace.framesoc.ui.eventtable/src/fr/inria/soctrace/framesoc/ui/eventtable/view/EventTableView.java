@@ -632,7 +632,7 @@ public final class EventTableView extends FramesocPart {
 	}
 
 	@Override
-	public void partHandle(String topic, Object data) {
+	public void partHandle(FramesocBusTopic topic, Object data) {
 		logger.debug("nothing to do here");
 	}
 

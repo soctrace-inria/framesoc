@@ -285,7 +285,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	}
 
 	@Override
-	public void handle(String topic, Object data) {
+	public void handle(FramesocBusTopic topic, Object data) {
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY)) {
 			logger.debug("Topic histogram");
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor)data;
