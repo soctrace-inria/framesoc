@@ -3,13 +3,13 @@
    <description name="Framesoc update site" url="http://generoso.github.io/framesoc/updatesite/">
       Eclipse update site for Framesoc.
    </description>
-   <feature url="features/fr.inria.soctrace.features.framesoc_1.0.0.201410111507.jar" id="fr.inria.soctrace.features.framesoc" version="1.0.0.201410111507">
-      <category name="fr.inria.soctrace.framesoc"/>
+   <feature url="features/fr.inria.soctrace.features.framesoc_1.0.0.201410111532.jar" id="fr.inria.soctrace.features.framesoc" version="1.0.0.201410111532">
+      <category name="framesoc"/>
    </feature>
-   <feature url="features/fr.inria.soctrace.features.tools_1.0.0.201410111507.jar" id="fr.inria.soctrace.features.tools" version="1.0.0.201410111507" os="linux,macosx,win32" arch="x86,x86_64">
-      <category name="fr.inria.soctrace.framesoc"/>
+   <feature url="features/fr.inria.soctrace.features.tools_1.0.0.201410111532.jar" id="fr.inria.soctrace.features.tools" version="1.0.0.201410111532">
+      <category name="framesoc"/>
    </feature>
-   <category-def name="fr.inria.soctrace.framesoc" label="Framesoc">
+   <category-def name="framesoc" label="Framesoc">
       <description>
          Framesoc - Trace Management and Analysis Infrastructure
       </description>
