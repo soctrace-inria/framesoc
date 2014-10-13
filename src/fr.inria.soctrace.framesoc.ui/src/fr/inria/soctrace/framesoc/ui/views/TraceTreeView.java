@@ -387,7 +387,10 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				check(s, check);
 			}
 		} else {
-			if (check && checked.contains(((TraceNode) item.getData()).getTrace())) {
+			TraceNode node = (TraceNode) item.getData();
+			if (node == null)
+				return;
+			if (check && checked.contains(node.getTrace())) {
 				item.setFont(boldFont);
 			} else {
 				item.setFont(normalFont);
