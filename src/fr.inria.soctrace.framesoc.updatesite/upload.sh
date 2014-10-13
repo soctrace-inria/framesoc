@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 # path of gh-pages checkout
-GHPAGES="./../../framesoc.gh-pages"
+GHPAGES="./../../../framesoc.gh-pages/updatesite"
 
 rm -rf ${GHPAGES}/* 
 cp features plugins web artifacts.jar content.jar index.html site.xml ${GHPAGES}
