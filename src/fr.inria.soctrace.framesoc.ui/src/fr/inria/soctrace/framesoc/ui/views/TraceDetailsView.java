@@ -193,10 +193,27 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 	}
 
+	private boolean editingClean() {
+		// clean editing before
+		if (currentTraces.size() > 0 && editingSupport.isModified()) {
+			MessageDialog
+					.openWarning(
+							getSite().getShell(),
+							"Warning",
+							"There are unsaved changes in trace details. Save or rollback them before adding or removing parameters.");
+			return false;
+		}
+		return true;
+	}
+
 	private IAction createDelParamsAction() {
 		delParamsAction = new Action("reset changes") {
 			@Override
 			public void run() {
+
+				if (!editingClean())
+					return;
+
 				// get the selection
 				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
 				Object[] rows = selection.toArray();
@@ -241,6 +258,10 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		addParamAction = new Action("reset changes") {
 			@Override
 			public void run() {
+
+				if (!editingClean())
+					return;
+
 				NewParamDialog dlg = new NewParamDialog(getSite().getShell());
 				if (dlg.open() == Dialog.OK) {
 					// add the new param in all selected traces
