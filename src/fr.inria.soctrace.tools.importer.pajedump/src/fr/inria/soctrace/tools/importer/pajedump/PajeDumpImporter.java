@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import fr.inria.soctrace.framesoc.core.FramesocManager;
@@ -43,8 +45,8 @@ public class PajeDumpImporter extends FramesocTool {
 	private final static Logger logger = LoggerFactory.getLogger(PajeDumpImporter.class);
 
 	/**
-	 * Plugin Tool Job body: we use a Job since we have to perform a long
-	 * operation and we don't want to freeze the UI.
+	 * Plugin Tool Job body: we use a Job since we have to perform a long operation and we don't
+	 * want to freeze the UI.
 	 */
 	public class PJDumpImporterPluginJobBody implements IPluginToolJobBody {
 
@@ -71,21 +73,18 @@ public class PajeDumpImporter extends FramesocTool {
 			String pattern = Pattern.quote(System.getProperty("file.separator"));
 			int numberOfTraces = argsm.getTokens().size();
 			int currentTrace = 1;
+			Set<String> usedNames = new HashSet<>();
 			for (String traceFile : argsm.getTokens()) {
 
 				if (monitor.isCanceled())
 					break;
-				
+
 				delta.start();
 
 				String sysDbName = Configuration.getInstance().get(
 						SoCTraceProperty.soctrace_db_name);
-
-				String t[] = traceFile.split(pattern);
-				String t2 = t[t.length - 1];
-				if (t2.endsWith(PJDumpConstants.TRACE_EXT))
-					t2 = t2.replace(PJDumpConstants.TRACE_EXT, "");
-				String traceDbName = FramesocManager.getInstance().getTraceDBName(t2);
+				
+				String traceDbName = getNewTraceDBName(usedNames, traceFile, pattern);
 
 				SystemDBObject sysDB = null;
 				TraceDBObject traceDB = null;
@@ -130,6 +129,22 @@ public class PajeDumpImporter extends FramesocTool {
 
 	}
 
+	private String getNewTraceDBName(Set<String> usedNames, String traceFile, String pattern) {
+		String t[] = traceFile.split(pattern);
+		String t2 = t[t.length - 1];
+		if (t2.endsWith(PJDumpConstants.TRACE_EXT))
+			t2 = t2.replace(PJDumpConstants.TRACE_EXT, "");
+		String traceDbName = FramesocManager.getInstance().getTraceDBName(t2);
+		int n = 0;
+		String realName = traceDbName;
+		while (usedNames.contains(realName)) {
+			System.out.println("tested " + realName);
+			realName = traceDbName + "_" + n++;
+		}
+		usedNames.add(realName);
+		return realName;
+	}
+	
 	@SuppressWarnings("unused")
 	private boolean checkArgs(ArgumentsManager argsm) {
 		if (argsm.getTokens().size() != 1)
