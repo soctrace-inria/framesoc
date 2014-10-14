@@ -13,6 +13,7 @@ package fr.inria.soctrace.framesoc.ui.piechart.providers;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -74,7 +75,11 @@ public class StatisticsTableRowLabelProvider extends OwnerDrawLabelProvider {
 		} else {
 			img = new Image(event.display, bounds.height/2, bounds.height/2);
 			GC gc = new GC(img);
-		    gc.setBackground(((StatisticsTableRow)element).getColor());
+			StatisticsTableRow row = (StatisticsTableRow)element;
+			Color swtColor = row.getColor();
+			// TODO understand why the element whose color has changed appears twice. (the first time the old color is disposed...)
+			if (!swtColor.isDisposed()) 
+				gc.setBackground(swtColor);
 		    gc.fillRectangle(0, 0, bounds.height/2, bounds.height/2);
 		    gc.dispose();			
 			images.put(text, img);			

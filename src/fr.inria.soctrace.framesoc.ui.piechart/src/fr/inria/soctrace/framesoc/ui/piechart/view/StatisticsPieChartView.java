@@ -57,6 +57,7 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
@@ -74,6 +75,7 @@ import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -418,8 +420,11 @@ public class StatisticsPieChartView extends FramesocPart {
 					final PieChartStatisticsLoader loader = loaders[loaderIndex].loader;
 					if (!loaders[loaderIndex].dataReady()) {
 						loader.load(currentShownTrace);
+						DeltaManager dm = new DeltaManager();
+						dm.start();
 						loaders[loaderIndex].dataset = loader.getPieDataset();
 						loaders[loaderIndex].colors = loader.getColors();
+						dm.end("graphical objects");
 					}
 					final PieDataset dataset = loaders[loaderIndex].dataset;
 					final String title = loader.getStatName();
@@ -431,6 +436,8 @@ public class StatisticsPieChartView extends FramesocPart {
 					Display.getDefault().syncExec(new Runnable() {
 						@Override
 						public void run() {
+							DeltaManager dm = new DeltaManager();
+							dm.start();
 							final JFreeChart chart = createChart(dataset, "", colors);
 							setContentDescription("Trace: " + currentShownTrace.getAlias());
 							compositePie.setText(title);
@@ -454,6 +461,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							logger.debug("group size: " + compositePie.getSize() );
 							logger.debug("frame location: " + chartFrame.getLocation() );
 							logger.debug("frame size: " + chartFrame.getSize() );
+							dm.end("update ui");
 						}
 					});
 					monitor.done();
