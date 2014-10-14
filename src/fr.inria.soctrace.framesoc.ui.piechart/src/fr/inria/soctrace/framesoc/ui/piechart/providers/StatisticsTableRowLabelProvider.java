@@ -83,7 +83,7 @@ public class StatisticsTableRowLabelProvider extends OwnerDrawLabelProvider {
 			 * - the color, however, was cached in the statistic table row object
 			 * - such row was not completed here, due to the exception, thus it was 
 			 *   probably requested twice
-			 * */
+			 */
 			if (!swtColor.isDisposed()) 
 				gc.setBackground(swtColor);
 			else {
