@@ -1,12 +1,30 @@
 #!/bin/bash -x
 
-# path of gh-pages checkout
-GHPAGES="./../../../framesoc.gh-pages/updatesite"
+DEFAULT="./../../../framesoc.gh-pages"
 
-rm -rf ${GHPAGES}/* 
-cp features plugins web artifacts.jar content.jar index.html site.xml ${GHPAGES}
+# check args
+if [ $# -lt 1 ]
+then 
+  echo "Specify the gh-pages checkout directory or use -d for default"
+  exit
+fi
 
-cd ${GHPAGES}
+OPT=$1
+if [ "x${OPT}" == "x-d" ]
+then
+  GHPAGES=${DEFAULT}
+else
+  GHPAGES="${OPT}"
+fi
+
+SITE="${GHPAGES}/updatesite"
+
+echo "Updating site in ${SITE} and uploading it"
+
+rm -rf ${SITE}/* 
+cp -r features plugins web artifacts.jar content.jar index.html site.xml ${SITE}
+
+cd ${SITE}
 
 git add --all
 git commit -m "New update site uploaded"
