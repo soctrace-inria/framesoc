@@ -22,6 +22,12 @@ public class TestConstants {
 	
 	public static final int NUMBER_OF_TRACES = 2;
 	
+	// imported trace and processed one
+	public static final int NUMBER_OF_TRACE_TYPES = 2; 
+	
+	// note: only the virtual imported trace has trace parameters
+	public static final int NUMBER_OF_TRACE_PARAM_TYPES = VirtualImporter.NUMBER_OF_PARAMETERS;
+	
 	public static final int PROCESSED_TRACE_ID = VirtualImporter.TRACE_ID+1;
 	
 	public static final int PROCESSED_TRACE_TYPE_ID = VirtualImporter.TRACE_TYPE_ID+1;
