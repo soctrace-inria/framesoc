@@ -77,9 +77,18 @@ public class StatisticsTableRowLabelProvider extends OwnerDrawLabelProvider {
 			GC gc = new GC(img);
 			StatisticsTableRow row = (StatisticsTableRow)element;
 			Color swtColor = row.getColor();
-			// TODO understand why the element whose color has changed appears twice. (the first time the old color is disposed...)
+			/* Problem:
+			 * - when I change the color associated to a type in the color manager,
+			 *   the color manager disposes the old color associated to that type
+			 * - the color, however, was cached in the statistic table row object
+			 * - such row was not completed here, due to the exception, thus it was 
+			 *   probably requested twice
+			 * */
 			if (!swtColor.isDisposed()) 
 				gc.setBackground(swtColor);
+			else {
+				System.out.println(row);
+			}
 		    gc.fillRectangle(0, 0, bounds.height/2, bounds.height/2);
 		    gc.dispose();			
 			images.put(text, img);			
