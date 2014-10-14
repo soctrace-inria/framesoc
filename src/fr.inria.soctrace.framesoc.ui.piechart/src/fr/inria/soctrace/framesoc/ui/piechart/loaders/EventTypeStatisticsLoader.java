@@ -63,17 +63,16 @@ public class EventTypeStatisticsLoader extends PieChartStatisticsLoader {
 
 			EventTypeQuery etq = new EventTypeQuery(traceDB);
 			List<EventType> etl = etq.getList();
-			Map<Integer, String> etmap = new HashMap<Integer, String>();
+			Map<Integer, String> etmap = new HashMap<>();
 			for (EventType et: etl) {
 				etmap.put(et.getId(), et.getName());
 			}
 
 			String query = "SELECT EVENT_TYPE_ID, COUNT(*) AS NUMBER " +
 					" FROM EVENT " +
-					" GROUP BY EVENT_TYPE_ID" +
-					" ORDER BY NUMBER DESC";
+					" GROUP BY EVENT_TYPE_ID";
 
-			values = new HashMap<String, Double>();
+			values = new HashMap<>();
 			try {
 				Statement stm = traceDB.getConnection().createStatement();
 				ResultSet rs = stm.executeQuery(query);

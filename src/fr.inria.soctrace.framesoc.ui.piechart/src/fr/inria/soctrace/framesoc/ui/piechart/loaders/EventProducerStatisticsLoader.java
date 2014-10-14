@@ -63,17 +63,16 @@ public class EventProducerStatisticsLoader extends PieChartStatisticsLoader {
 
 			EventProducerQuery epq = new EventProducerQuery(traceDB);
 			List<EventProducer> epl = epq.getList();
-			Map<Integer, String> epmap = new HashMap<Integer, String>();
+			Map<Integer, String> epmap = new HashMap<>();
 			for (EventProducer ep: epl) {
 				epmap.put(ep.getId(), ep.getWholeName());
 			}
 
 			String query = "SELECT EVENT_PRODUCER_ID, COUNT(*) AS NUMBER " +
 					" FROM EVENT " +
-					" GROUP BY EVENT_PRODUCER_ID " +
-					" ORDER BY NUMBER DESC";
+					" GROUP BY EVENT_PRODUCER_ID ";
 
-			values = new HashMap<String, Double>();
+			values = new HashMap<>();
 			try {
 				Statement stm = traceDB.getConnection().createStatement();
 				ResultSet rs = stm.executeQuery(query);
