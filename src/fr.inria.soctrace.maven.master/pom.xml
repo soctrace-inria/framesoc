@@ -74,7 +74,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>			
+			</plugin>
 		</plugins>
 
 	</build>
@@ -103,16 +103,16 @@
 		<module>../fr.inria.soctrace.lib.storage</module>
 		<module>../fr.inria.soctrace.lib.utils</module>
 		<module>../fr.inria.soctrace.lib.slf4j</module>
-		
-		<!-- Tools feature and plugins -->		
+
+		<!-- Tools feature and plugins -->
 		<module>../fr.inria.soctrace.features.tools</module>
 		<module>../fr.inria.soctrace.tools.importer.gstreamer</module>
 		<module>../fr.inria.soctrace.tools.importer.pajedump</module>
-		<module>../fr.inria.soctrace.tools.framesoc.exporter</module>		
-				
+		<module>../fr.inria.soctrace.tools.framesoc.exporter</module>
+
 		<!-- Repository configuration -->
 		<module>../fr.inria.soctrace.maven.repository</module>
-		
+
 		<!-- JUnit tests -->
 		<module>../fr.inria.soctrace.test.junit</module>
 
@@ -120,10 +120,10 @@
 		<module>../fr.inria.linuxtools.statesystem.core</module>
 		<module>../fr.inria.linuxtools.tmf.core</module>
 		<module>../fr.inria.linuxtools.tmf.ui</module>
-		
+
 		<!-- Branding -->
 		<module>../fr.inria.soctrace.framesoc.brand</module>
 
 	</modules>
-	
+
 </project>
