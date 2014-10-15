@@ -30,7 +30,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventProducerPieChartLoader extends PieChartLoader {
+public class EventProducerPieChartLoader extends AggregatedPieChartLoader {
 
 	/**
 	 * Logger

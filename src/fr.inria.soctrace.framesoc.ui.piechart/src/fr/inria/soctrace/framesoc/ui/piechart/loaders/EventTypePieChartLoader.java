@@ -30,7 +30,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventTypePieChartLoader extends PieChartLoader {
+public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 
 	/**
 	 * Logger
@@ -41,7 +41,7 @@ public class EventTypePieChartLoader extends PieChartLoader {
 	public String getStatName() {
 		return "Event Types";
 	}
- 
+	
 	/* 
 	 * TODO 
 	 * - partition loading 

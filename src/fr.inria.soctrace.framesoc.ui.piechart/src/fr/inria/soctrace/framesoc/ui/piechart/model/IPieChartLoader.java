@@ -25,6 +25,27 @@ public interface IPieChartLoader {
 	String getStatName();
 
 	/**
+	 * Return true if aggregation is performed.
+	 * 
+	 * @return true if aggregation is performed, false otherwise
+	 */
+	boolean doAggregation();
+	
+	/**
+	 * Get the aggregation threshold percentage (i.e., 0.1 is 10%).
+	 * It is considered only if {@link #doAggregation()} returns true.
+	 * 
+	 * @return the aggregation threshold percentages
+	 */
+	double getAggregationThreshold();
+	
+	/**
+	 * Get the label for the aggregated items.
+	 * @return the label for the aggregated items
+	 */
+	String getAggregatedLabel();
+	
+	/**
 	 * Load the statistics for the given trace and time interval into the passed map.
 	 * 
 	 * @param trace

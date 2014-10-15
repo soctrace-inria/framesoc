@@ -58,7 +58,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -69,7 +68,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventProducerPieChartLoade
 import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventTypePieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.LoaderMap;
-import fr.inria.soctrace.framesoc.ui.piechart.model.RowFilter;
+import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
@@ -188,7 +187,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Filter for table
 	 */
-	private RowFilter nameFilter;
+	private StatisticsTableRowFilter nameFilter;
 
 	/**
 	 * Constructor
@@ -279,7 +278,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					tableTreeViewer.expandAll();
 					logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
 					// TODO
-					statusText.setText(getStatus(0,
+					statusText.setText(getStatus(loaders[currentLoaderIndex].dataset.size(),
 							getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
 				}
 			}
@@ -341,7 +340,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			if (col.equals(StatisticsTableColumn.NAME)) {
 
 				// add a filter for this column
-				nameFilter = new RowFilter(col);
+				nameFilter = new StatisticsTableRowFilter(col);
 				tableTreeViewer.addFilter(nameFilter);
 
 				// the label provider puts also the image

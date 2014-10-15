@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.core.util.Pair;
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
@@ -33,16 +34,6 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	 * Logger
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
-
-	/**
-	 * Label for aggregated slices.
-	 */
-	protected static final String AGGREGATED_LABEL = "Aggregated slices";
-
-	/**
-	 * Threshold for aggregating percentage values (between 0 and 1).
-	 */
-	protected static final Double AGGREGATION_THRESHOLD = 0.01;
 
 	@Override
 	public PieDataset getPieDataset(Map<String, Double> values) {
@@ -59,21 +50,22 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			sortedValues.add(new Pair<>(entry.getKey(), entry.getValue()));
 		}
 		Collections.sort(sortedValues, new ValueComparator());
-		Double threshold = tot * AGGREGATION_THRESHOLD;
+		Double threshold = tot * getAggregationThreshold();
+		boolean aggregate = doAggregation();
 
 		// create dataset
 		DefaultPieDataset dataset = new DefaultPieDataset();
 		Double aggregatedValue = 0.0;
 		for (Pair<String, Double> pair : sortedValues) {
 			logger.debug(pair.toString());
-			if (pair.getSecond() < threshold) {
+			if (aggregate && pair.getSecond() < threshold) {
 				aggregatedValue += pair.getSecond();
 			} else {
 				dataset.setValue(pair.getFirst(), pair.getSecond());
 			}
 		}
-		if (aggregatedValue != 0) {
-			dataset.setValue(AGGREGATED_LABEL, aggregatedValue);
+		if (aggregate && aggregatedValue != 0) {
+			dataset.setValue(getAggregatedLabel(), aggregatedValue);
 		}
 
 		return dataset;
@@ -89,11 +81,13 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		for (Double value : values.values()) {
 			tot += value;
 		}
-		Double threshold = tot * AGGREGATION_THRESHOLD;
+		Double threshold = tot * getAggregationThreshold();
 
 		// create dataset
 		StatisticsTableFolderRow root = new StatisticsTableFolderRow("", "", "", null);
 		List<StatisticsTableRow> aggregatedRows = new ArrayList<>();
+
+		boolean aggregate = doAggregation();
 
 		Double aggregatedValue = 0.0;
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
@@ -105,17 +99,17 @@ public abstract class PieChartLoader implements IPieChartLoader {
 					.getValue()), getPercentLine(entry.getValue(), tot), getColor(entry.getKey())
 					.getSwtColor());
 
-			if (entry.getValue() < threshold) {
+			if (aggregate && entry.getValue() < threshold) {
 				aggregatedRows.add(row);
 				aggregatedValue += entry.getValue();
 			} else {
 				root.addChild(row);
 			}
 		}
-		if (!aggregatedRows.isEmpty()) {
-			StatisticsTableFolderRow agg = new StatisticsTableFolderRow(AGGREGATED_LABEL,
+		if (aggregate && !aggregatedRows.isEmpty()) {
+			StatisticsTableFolderRow agg = new StatisticsTableFolderRow(getAggregatedLabel(),
 					String.valueOf(aggregatedValue), getPercentLine(aggregatedValue, tot),
-					getColor(AGGREGATED_LABEL).getSwtColor());
+					FramesocColor.BLACK.getSwtColor());
 			for (StatisticsTableRow r : aggregatedRows) {
 				agg.addChild(r);
 			}
@@ -138,5 +132,5 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			return -1 * Double.compare(p1.getSecond(), p2.getSecond());
 		}
 	}
-	
+
 }

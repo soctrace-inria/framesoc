@@ -34,12 +34,12 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class RowFilter extends ViewerFilter {
+public class StatisticsTableRowFilter extends ViewerFilter {
 
 	private ITableColumn col;
 	private String searchString;
 
-	public RowFilter(ITableColumn col) {
+	public StatisticsTableRowFilter(ITableColumn col) {
 		this.col = col;
 	}
 

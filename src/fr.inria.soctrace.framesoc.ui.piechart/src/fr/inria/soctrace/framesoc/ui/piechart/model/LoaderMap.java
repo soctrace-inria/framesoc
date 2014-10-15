@@ -96,4 +96,8 @@ public class LoaderMap {
 		return fStop || fComplete;
 	}
 
+	public int size() {
+		return fMap.size();
+	}
+
 }
