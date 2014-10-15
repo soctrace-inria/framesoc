@@ -87,7 +87,7 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 			}
 			traceDB.close();
 
-			map.putSnapshot(values, interval);
+			map.setSnapshot(values, interval);
 			map.setComplete(true);
 
 			logger.debug(dm.endMessage("Prepared Pie Chart dataset"));

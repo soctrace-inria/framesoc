@@ -16,21 +16,23 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 public class PieChartLoaderMap {
 
 	private Map<String, Double> fMap = new HashMap<>();
-	private TimeInterval fInterval  = new TimeInterval(0, 0);
+	private TimeInterval fInterval = new TimeInterval(0, 0);
 	private boolean fComplete;
 	private boolean fStop;
+	private boolean fDirty;
 
 	/**
-	 * Put a snapshot for the map with the corresponding time interval.
+	 * Set a snapshot for the map with the corresponding time interval.
 	 * 
 	 * @param snapshot
 	 *            map snapshot
 	 * @param interval
 	 *            time interval
 	 */
-	public synchronized void putSnapshot(Map<String, Double> snapshot, TimeInterval interval) {
+	public synchronized void setSnapshot(Map<String, Double> snapshot, TimeInterval interval) {
 		fMap = new HashMap<>(snapshot);
 		fInterval.copy(interval);
+		fDirty = true;
 	}
 
 	/**
@@ -43,6 +45,7 @@ public class PieChartLoaderMap {
 	 */
 	public synchronized Map<String, Double> getSnapshot(TimeInterval interval) {
 		interval.copy(fInterval);
+		fDirty = false;
 		return new HashMap<>(fMap);
 	}
 
@@ -59,7 +62,7 @@ public class PieChartLoaderMap {
 	}
 
 	/**
-	 * Set the stop flag. 
+	 * Set the stop flag.
 	 * 
 	 * This flag means that something bad happened and the map won't be complete.
 	 * 
@@ -69,7 +72,7 @@ public class PieChartLoaderMap {
 	public synchronized void setStop(boolean stop) {
 		fStop = stop;
 	}
-	
+
 	/**
 	 * 
 	 * @return the complete flag
@@ -77,7 +80,7 @@ public class PieChartLoaderMap {
 	public boolean isComplete() {
 		return fComplete;
 	}
-	
+
 	/**
 	 * 
 	 * @return the stop flag
@@ -85,10 +88,20 @@ public class PieChartLoaderMap {
 	public boolean isStop() {
 		return fStop;
 	}
-	
+
 	/**
-	 * Return true if the map is complete or the stop flag
-	 * has been raised.
+	 * Check if the map is dirty.
+	 * 
+	 * The map is dirty if a snapshot has been set and it has not been read yet.
+	 * 
+	 * @return the dirty flag
+	 */
+	public boolean isDirty() {
+		return fDirty;
+	}
+
+	/**
+	 * Return true if the map is complete or the stop flag has been raised.
 	 * 
 	 * @return true if we are done
 	 */
@@ -96,6 +109,11 @@ public class PieChartLoaderMap {
 		return fStop || fComplete;
 	}
 
+	/**
+	 * Get the number of items in the map.
+	 * 
+	 * @return the number of items
+	 */
 	public int size() {
 		return fMap.size();
 	}

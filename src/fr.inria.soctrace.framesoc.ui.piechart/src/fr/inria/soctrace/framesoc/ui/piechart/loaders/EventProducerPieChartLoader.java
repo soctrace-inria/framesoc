@@ -87,7 +87,7 @@ public class EventProducerPieChartLoader extends AggregatedPieChartLoader {
 				throw new SoCTraceException(e);
 			}
 			
-			map.putSnapshot(values, interval);
+			map.setSnapshot(values, interval);
 			map.setComplete(true);
 			
 			logger.debug(dm.endMessage("Prepared Pie Chart dataset"));
