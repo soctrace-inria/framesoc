@@ -13,8 +13,9 @@ package fr.inria.soctrace.framesoc.ui.piechart.model;
 import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 
 /**
+ * Column of the table beside the pie chart.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
  */
 public enum StatisticsTableColumn implements ITableColumn {
 

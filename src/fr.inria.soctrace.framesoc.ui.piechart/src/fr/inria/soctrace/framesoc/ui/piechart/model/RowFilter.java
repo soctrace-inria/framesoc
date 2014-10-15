@@ -11,7 +11,7 @@
 /**
  * 
  */
-package fr.inria.soctrace.framesoc.ui.piechart.view;
+package fr.inria.soctrace.framesoc.ui.piechart.model;
 
 import java.util.regex.PatternSyntaxException;
 
@@ -23,8 +23,6 @@ import org.eclipse.swt.widgets.Display;
 import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 import fr.inria.soctrace.framesoc.ui.model.ITableRow;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
-import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
-import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**

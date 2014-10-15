@@ -86,9 +86,6 @@ public class StatisticsTableRowLabelProvider extends OwnerDrawLabelProvider {
 			 */
 			if (!swtColor.isDisposed()) 
 				gc.setBackground(swtColor);
-			else {
-				System.out.println(row);
-			}
 		    gc.fillRectangle(0, 0, bounds.height/2, bounds.height/2);
 		    gc.dispose();			
 			images.put(text, img);			
