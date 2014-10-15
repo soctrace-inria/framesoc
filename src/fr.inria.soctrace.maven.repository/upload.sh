@@ -7,9 +7,17 @@
 # Author: Generoso Pagano
 #
 
+OLD_DIR=`pwd`
+SCRIPT=`realpath $0`
+SCRIPT_DIR=`dirname ${SCRIPT}`
 DEFAULT="./../../../framesoc.gh-pages"
 REPOSITORY="./target/repository"
 SITE_CONTENT="features plugins artifacts.jar content.jar"
+
+########################
+# cd to script directory
+cd ${SCRIPT_DIR}
+########################
 
 # check args
 if [ $# -lt 1 ]
@@ -61,3 +69,9 @@ fi
 git add --all
 git commit -m "New update site uploaded"
 git push origin gh-pages
+
+##########################
+# cd back to old directory
+cd ${OLD_DIR}
+##########################
+
