@@ -13,7 +13,7 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class LoaderMap {
+public class PieChartLoaderMap {
 
 	private Map<String, Double> fMap = new HashMap<>();
 	private TimeInterval fInterval  = new TimeInterval(0, 0);

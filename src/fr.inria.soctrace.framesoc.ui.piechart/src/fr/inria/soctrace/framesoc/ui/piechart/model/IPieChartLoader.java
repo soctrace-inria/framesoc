@@ -58,7 +58,7 @@ public interface IPieChartLoader {
 	 *            progress monitor
 	 * @throws SoCTraceException
 	 */
-	void load(Trace trace, TimeInterval interval, LoaderMap map, IProgressMonitor monitor)
+	void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor)
 			throws SoCTraceException;
 
 	/**

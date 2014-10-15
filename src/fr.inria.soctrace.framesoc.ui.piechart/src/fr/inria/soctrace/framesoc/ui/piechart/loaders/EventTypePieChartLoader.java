@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
-import fr.inria.soctrace.framesoc.ui.piechart.model.LoaderMap;
+import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -48,7 +48,7 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 	 * - use the progress monitor
 	 */
 	@Override
-	public void load(Trace trace, TimeInterval interval, LoaderMap map, IProgressMonitor monitor)
+	public void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor)
 			throws SoCTraceException {
 
 		if (trace == null || interval == null || map == null || monitor == null)

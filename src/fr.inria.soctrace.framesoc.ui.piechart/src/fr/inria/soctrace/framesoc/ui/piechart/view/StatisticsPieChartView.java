@@ -67,7 +67,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventProducerPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventTypePieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
-import fr.inria.soctrace.framesoc.ui.piechart.model.LoaderMap;
+import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
@@ -108,13 +108,13 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private class LoaderData {
 		public IPieChartLoader loader = null;
-		public LoaderMap dataset = null;
+		public PieChartLoaderMap dataset = null;
 		public TimeInterval interval = null;
 
 		public LoaderData(IPieChartLoader loader) {
 			this.loader = loader;
 			this.interval = new TimeInterval(0, 0);
-			this.dataset = new LoaderMap();
+			this.dataset = new PieChartLoaderMap();
 		}
 
 		public boolean dataReady() {
@@ -424,11 +424,11 @@ public class StatisticsPieChartView extends FramesocPart {
 						TimeInterval interval = new TimeInterval(
 								currentShownTrace.getMinTimestamp(),
 								currentShownTrace.getMaxTimestamp());
-						loaders[loaderIndex].dataset = new LoaderMap();
+						loaders[loaderIndex].dataset = new PieChartLoaderMap();
 						loader.load(currentShownTrace, interval, loaders[loaderIndex].dataset,
 								new NullProgressMonitor());
 					}
-					LoaderMap map = loaders[loaderIndex].dataset;
+					PieChartLoaderMap map = loaders[loaderIndex].dataset;
 					Map<String, Double> values = map.getSnapshot(loaders[loaderIndex].interval);
 					final PieDataset dataset = loader.getPieDataset(values);
 					final StatisticsTableFolderRow root = loader.getTableDataset(values);
