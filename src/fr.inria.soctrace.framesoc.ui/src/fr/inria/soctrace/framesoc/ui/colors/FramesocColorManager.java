@@ -73,6 +73,9 @@ public class FramesocColorManager {
 	
 	private static FramesocColorManager instance = new FramesocColorManager();
 	
+	private boolean dirtyTypes = false;
+	private boolean dirtyProducers = false;
+	
 	private FramesocColorManager() {
 		try {
 			loadFile(etColors, ET_FILE);
@@ -214,6 +217,20 @@ public class FramesocColorManager {
 	 * utilities
 	 */
 	
+	private void setDirty(Map<String, FramesocColor> colors, boolean dirty) {
+		if (colors.equals(etColors))
+			dirtyTypes = dirty;
+		else
+			dirtyProducers = dirty;		
+	}
+
+	private boolean isDirty(Map<String, FramesocColor> colors) {
+		if (colors.equals(etColors))
+			return dirtyTypes;
+		else
+			return dirtyProducers;		
+	}
+
 	private String printMap(Map<String, FramesocColor> colors) {
 		StringBuilder builder = new StringBuilder();
 		Iterator<Entry<String, FramesocColor>> it = colors.entrySet().iterator();
@@ -226,10 +243,11 @@ public class FramesocColorManager {
 		}
 		return builder.toString();
 	}
-	
+		
 	private FramesocColor getColor(String name, Map<String, FramesocColor> colors) {
 		if (!colors.containsKey(name)) {
 			colors.put(name, getRandomColor());
+			setDirty(colors, true);
 		}
 		return colors.get(name);
 	}
@@ -238,15 +256,18 @@ public class FramesocColorManager {
 		if (colors.containsKey(name))
 			colors.get(name).dispose();
 		colors.put(name, color);
+		setDirty(colors, true);
 	}
 	
 	private void removeColor(String name, Map<String, FramesocColor> colors) {
-		if (colors.containsKey(name))
+		if (colors.containsKey(name)) {
 			colors.remove(name);	
+			setDirty(colors, true);
+		}
 	}
 	
 	private synchronized void loadFile(Map<String, FramesocColor> colors, String path) throws SoCTraceException {
-	
+		
 		disposeColors(colors);
 	
 		try {			
@@ -274,6 +295,7 @@ public class FramesocColorManager {
 				}
 				br.close();
 			}
+			setDirty(colors, false);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
@@ -281,6 +303,10 @@ public class FramesocColorManager {
 	}
 	
 	private synchronized void updateFile(Map<String, FramesocColor> colors, String path) {
+		
+		if (!isDirty(colors))
+			return;
+		
 		try {
 			File file = new File(Platform.getInstallLocation().getURL().getPath() + path);
 			file.delete();
@@ -293,6 +319,7 @@ public class FramesocColorManager {
 				bw.write(entry.getKey()+EQUAL+getString(entry.getValue())+"\n");
 			}
 			bw.close();
+			setDirty(colors, false);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
