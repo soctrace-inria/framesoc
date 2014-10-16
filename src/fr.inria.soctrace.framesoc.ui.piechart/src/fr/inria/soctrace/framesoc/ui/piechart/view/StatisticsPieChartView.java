@@ -133,7 +133,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			return "LoaderDescriptor [loader=" + loader + ", dataset=" + dataset + ", interval="
 					+ interval + "]";
 		}
-		
+
 	}
 
 	/**
@@ -233,10 +233,12 @@ public class StatisticsPieChartView extends FramesocPart {
 		if (combo.getSelectionIndex() == -1)
 			return false;
 		LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-		TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(), timeBar.getEndTimestamp());
-		return !comboDescriptor.equals(currentDescriptor) || !barInterval.equals(currentDescriptor.interval);
+		TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
+				timeBar.getEndTimestamp());
+		return !comboDescriptor.equals(currentDescriptor)
+				|| !barInterval.equals(currentDescriptor.interval);
 	}
-	
+
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
@@ -375,7 +377,8 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (btnLoad != null && timeBar != null) {
-					TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(), timeBar.getEndTimestamp());
+					TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
+							timeBar.getEndTimestamp());
 					if (!barInterval.equals(currentDescriptor.interval)) {
 						btnLoad.setEnabled(true);
 						btnSynch.setEnabled(true);
@@ -486,14 +489,22 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	/**
-	 * Load a pie chart using the current loader.
+	 * Load a pie chart using the current trace, the current loader and the time interval in the
+	 * time bar.
 	 */
 	private void loadPieChart() {
 
-		final TimeInterval loadInterval = new TimeInterval(
-				timeBar.getStartTimestamp(),
+		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
+		// TODO
+		// launch loader and drawer thread
+		// loader:
+		// - check if it is really necessary to recompute
+		// drawer:
+		// - refresh pie and table untill the map is done
+		//
+		
 		// Clean parent
 		for (Control c : compositePie.getChildren()) {
 			c.dispose();
@@ -510,7 +521,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				try {
 					// prepare dataset and chart (if necessary)
 					final IPieChartLoader loader = currentDescriptor.loader;
-
 					if (!currentDescriptor.dataReady()) {
 						currentDescriptor.dataset = new PieChartLoaderMap();
 						loader.load(currentShownTrace, loadInterval, currentDescriptor.dataset,
