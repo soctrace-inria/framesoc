@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="fr.inria.soctrace.framesoc.ui.piechart.loader" name="loader" schema="schema/fr.inria.soctrace.framesoc.ui.piechart.exsd"/>
    <extension
          point="org.eclipse.ui.views">
       <view
@@ -30,6 +31,15 @@
             priority="1"
             viewId="fr.inria.soctrace.framesoc.ui.PIE">
       </part>
+   </extension>
+   <extension
+         point="fr.inria.soctrace.framesoc.ui.piechart.loader">
+      <pieLoader
+            loaderClass="fr.inria.soctrace.framesoc.ui.piechart.loaders.EventTypePieChartLoader">
+      </pieLoader>
+      <pieLoader
+            loaderClass="fr.inria.soctrace.framesoc.ui.piechart.loaders.EventProducerPieChartLoader">
+      </pieLoader>
    </extension>
 
 </plugin>

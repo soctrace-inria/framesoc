@@ -12,8 +12,10 @@ package fr.inria.soctrace.framesoc.ui.piechart.view;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,7 +44,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -64,14 +65,13 @@ import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
-import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventProducerPieChartLoader;
-import fr.inria.soctrace.framesoc.ui.piechart.loaders.EventTypePieChartLoader;
+import fr.inria.soctrace.framesoc.ui.piechart.PieContributionManager;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
-import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
+import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
@@ -106,12 +106,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Loader data
 	 */
-	private class LoaderData {
+	private class LoaderDescriptor {
 		public IPieChartLoader loader = null;
 		public PieChartLoaderMap dataset = null;
 		public TimeInterval interval = null;
 
-		public LoaderData(IPieChartLoader loader) {
+		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
 			this.interval = new TimeInterval(0, 0);
 			this.dataset = new PieChartLoaderMap();
@@ -129,25 +129,25 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	/**
-	 * Available loaders. Add new loaders here.
+	 * Available loaders, read from the extension point. The i-th element of this array corresponds
+	 * to the i-th element of the combo-box.
 	 */
-	private LoaderData loaders[] = { new LoaderData(new EventTypePieChartLoader()),
-			new LoaderData(new EventProducerPieChartLoader()) };
+	private ArrayList<LoaderDescriptor> loaderDescriptors;
 
 	/**
-	 * Current loader index
+	 * Descriptor related to the current active loader.
 	 */
-	private int currentLoaderIndex = -1;
+	private LoaderDescriptor currentDescriptor;
 
 	/**
-	 * Statistic loader combo
+	 * Statistics loader combo
 	 */
 	private Combo combo;
 
 	/**
 	 * Pie load button
 	 */
-	private Button load;
+	private Button loadButton;
 
 	/**
 	 * Description text
@@ -196,6 +196,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		super();
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED);
 		topics.registerAll();
+		List<IPieChartLoader> loaders = PieContributionManager.getLoaders();
+		loaderDescriptors = new ArrayList<>(loaders.size());
+		for (IPieChartLoader loader : loaders) {
+			loaderDescriptors.add(new LoaderDescriptor(loader));
+		}
 	}
 
 	// // Uncomment this to use the window builder
@@ -222,28 +227,30 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		combo = new Combo(compositeCombo, SWT.READ_ONLY);
 		combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		for (int i = 0; i < loaders.length; i++) {
-			combo.add(loaders[i].loader.getStatName(), i);
+		int position = 0;
+		for (LoaderDescriptor descriptor : loaderDescriptors) {
+			combo.add(descriptor.loader.getStatName(), position++);
 		}
 		combo.setEnabled(false);
 
-		load = new Button(compositeCombo, SWT.NONE);
-		load.setToolTipText("Load metric");
-		load.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
+		loadButton = new Button(compositeCombo, SWT.NONE);
+		loadButton.setToolTipText("Load metric");
+		loadButton.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
 				"icons/play.png"));
-		load.addSelectionListener(new SelectionAdapter() {
+		loadButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				loadPieChart(currentShownTrace, combo.getSelectionIndex());
+				if (combo.getSelectionIndex() == -1)
+					return;
+				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				loadPieChart(currentShownTrace);
 			}
 		});
-		load.setEnabled(false);
-		new Label(compositeCombo, SWT.NONE);
+		loadButton.setEnabled(false);
 
-		// compositePie = new Composite(compositeLeft, SWT.NONE);
 		compositePie = new Group(compositeLeft, SWT.NONE);
-		compositePie.setLayout(new FillLayout()); // Fill layout with Grid Data (FILL) to allow
-													// correct resize
+		// Fill layout with Grid Data (FILL) to allow correct resize
+		compositePie.setLayout(new FillLayout());
 		compositePie.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		txtDescription = new Text(compositePie, SWT.READ_ONLY | SWT.WRAP | SWT.CENTER | SWT.MULTI);
@@ -271,14 +278,13 @@ public class StatisticsPieChartView extends FramesocPart {
 				if (e.keyCode == SWT.CR) {
 					if (nameFilter == null || tableTreeViewer == null || statusText == null)
 						return;
-					if (currentLoaderIndex == -1 || loaders[currentLoaderIndex].dataset == null)
+					if (currentDescriptor == null || currentDescriptor.dataset == null)
 						return;
 					nameFilter.setSearchText(textFilter.getText());
 					tableTreeViewer.refresh();
 					tableTreeViewer.expandAll();
 					logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
-					// TODO
-					statusText.setText(getStatus(loaders[currentLoaderIndex].dataset.size(),
+					statusText.setText(getStatus(currentDescriptor.dataset.size(),
 							getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
 				}
 			}
@@ -371,10 +377,10 @@ public class StatisticsPieChartView extends FramesocPart {
 	@Override
 	public void dispose() {
 		super.dispose();
-		for (LoaderData data : loaders) {
-			data.dispose();
+		for (LoaderDescriptor descriptor : loaderDescriptors) {
+			descriptor.dispose();
 		}
-		loaders = null;
+		loaderDescriptors = null;
 		disposeImages();
 		images = null;
 	}
@@ -394,13 +400,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @param loaderIndex
 	 *            loader index in loaders array
 	 */
-	private void loadPieChart(final Trace trace, final int loaderIndex) {
+	private void loadPieChart(final Trace trace) {
 
 		// Clean parent
 		for (Control c : compositePie.getChildren()) {
 			c.dispose();
 		}
-		;
 
 		// dispose images
 		disposeImages();
@@ -415,21 +420,20 @@ public class StatisticsPieChartView extends FramesocPart {
 					if (trace == null)
 						return Status.CANCEL_STATUS;
 					currentShownTrace = trace;
-					currentLoaderIndex = loaderIndex;
 
 					// prepare dataset and chart (if necessary)
-					final IPieChartLoader loader = loaders[loaderIndex].loader;
+					final IPieChartLoader loader = currentDescriptor.loader;
 
-					if (!loaders[loaderIndex].dataReady()) {
+					if (!currentDescriptor.dataReady()) {
 						TimeInterval interval = new TimeInterval(
 								currentShownTrace.getMinTimestamp(),
 								currentShownTrace.getMaxTimestamp());
-						loaders[loaderIndex].dataset = new PieChartLoaderMap();
-						loader.load(currentShownTrace, interval, loaders[loaderIndex].dataset,
+						currentDescriptor.dataset = new PieChartLoaderMap();
+						loader.load(currentShownTrace, interval, currentDescriptor.dataset,
 								new NullProgressMonitor());
 					}
-					PieChartLoaderMap map = loaders[loaderIndex].dataset;
-					Map<String, Double> values = map.getSnapshot(loaders[loaderIndex].interval);
+					PieChartLoaderMap map = currentDescriptor.dataset;
+					Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 					final PieDataset dataset = loader.getPieDataset(values);
 					final StatisticsTableFolderRow root = loader.getTableDataset(values);
 					final String title = loader.getStatName();
@@ -582,11 +586,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	@Override
 	public void partHandle(FramesocBusTopic topic, Object data) {
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED)) {
-			if (currentShownTrace == null)
+			if (currentShownTrace == null || currentDescriptor == null)
 				return;
 			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
 			logger.debug("Colors changed: {}", des);
-			loadPieChart(currentShownTrace, currentLoaderIndex);
+			loadPieChart(currentShownTrace);
 		}
 	}
 
@@ -597,7 +601,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	@Override
 	public void showTrace(Trace trace, Object data) {
-		load.setEnabled(true);
+		loadButton.setEnabled(true);
 		combo.setEnabled(true);
 		combo.select(0);
 		txtDescription.setVisible(true);
