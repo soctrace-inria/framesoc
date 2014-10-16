@@ -51,7 +51,7 @@ public interface IPieChartLoader {
 	 * @param trace
 	 *            trace to work with
 	 * @param interval
-	 *            time interval
+	 *            time interval to load
 	 * @param map
 	 *            loader map to fill
 	 * @param monitor

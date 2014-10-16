@@ -41,5 +41,30 @@ public class TimeInterval {
 		return "TimeInterval [startTimestamp=" + startTimestamp + ", endTimestamp=" + endTimestamp
 				+ "]";
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (endTimestamp ^ (endTimestamp >>> 32));
+		result = prime * result + (int) (startTimestamp ^ (startTimestamp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TimeInterval other = (TimeInterval) obj;
+		if (endTimestamp != other.endTimestamp)
+			return false;
+		if (startTimestamp != other.startTimestamp)
+			return false;
+		return true;
+	}
 	
 }

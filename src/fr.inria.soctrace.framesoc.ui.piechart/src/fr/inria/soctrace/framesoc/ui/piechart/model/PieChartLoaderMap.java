@@ -118,4 +118,10 @@ public class PieChartLoaderMap {
 		return fMap.size();
 	}
 
+	@Override
+	public String toString() {
+		return "PieChartLoaderMap [fMap.size()=" + fMap.size() + ", fInterval=" + fInterval + ", fComplete="
+				+ fComplete + ", fStop=" + fStop + ", fDirty=" + fDirty + "]";
+	}
+
 }

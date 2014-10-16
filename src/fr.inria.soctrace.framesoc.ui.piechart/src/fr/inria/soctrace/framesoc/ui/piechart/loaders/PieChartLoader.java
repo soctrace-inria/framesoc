@@ -133,4 +133,9 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "PieChartLoader [" + getStatName() + "]";
+	}
+
 }
