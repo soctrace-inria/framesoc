@@ -99,7 +99,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Build update timeout
 	 */
-	private static final long BUILD_UPDATE_TIMEOUT = 100;
+	private static final long BUILD_UPDATE_TIMEOUT = 1000;
 
 	/**
 	 * Constants
@@ -553,7 +553,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			boolean done = false;
 			while (!done) {
 				done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
-				logger.debug("done: " + done);
 				if (!map.isDirty()) {
 					logger.debug("not dirty");
 					continue;
@@ -565,6 +564,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 				refresh();
 			}
+			logger.debug("done");
 			return Status.OK_STATUS;
 		}
 
@@ -592,7 +592,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread);
 		loaderThread.start();
-		drawerJob.setUser(true);
 		drawerJob.schedule();
 
 	}
@@ -646,6 +645,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				btnSynch.setEnabled(false);
 				tableTreeViewer.setInput(root);
 				tableTreeViewer.expandAll();
+				timeBar.setSelection(currentDescriptor.interval.startTimestamp, currentDescriptor.interval.endTimestamp);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 
 				logger.debug("group location: " + compositePie.getLocation());

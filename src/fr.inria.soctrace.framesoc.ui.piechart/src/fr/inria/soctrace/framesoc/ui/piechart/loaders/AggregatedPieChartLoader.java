@@ -3,6 +3,8 @@
  */
 package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
+
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -18,6 +20,11 @@ public abstract class AggregatedPieChartLoader extends PieChartLoader {
 	 * Label for aggregated slices.
 	 */
 	protected static final String AGGREGATED_LABEL = "Aggregated slices";
+	
+	/**
+	 * Color for aggregated slices.
+	 */
+	protected static final FramesocColor AGGREGATED_COLOR = FramesocColor.BLACK;
 
 	@Override
 	public boolean doAggregation() {

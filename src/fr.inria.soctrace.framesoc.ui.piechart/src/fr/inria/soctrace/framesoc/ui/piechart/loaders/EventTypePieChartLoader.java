@@ -106,6 +106,8 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 
 	@Override
 	public FramesocColor getColor(String name) {
+		if (name.equals(AGGREGATED_LABEL))
+			return AGGREGATED_COLOR;
 		FramesocColor color = FramesocColorManager.getInstance().getEventTypeColor(name);
 		FramesocColorManager.getInstance().saveEventTypeColors();
 		return color;
