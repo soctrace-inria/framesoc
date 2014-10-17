@@ -16,94 +16,32 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
-import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
-import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.lib.model.EventType;
-import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
-import fr.inria.soctrace.lib.storage.DBObject;
+import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
-import fr.inria.soctrace.lib.storage.DBObject.DBMode;
-import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventTypePieChartLoader extends AggregatedPieChartLoader {
+public class EventTypePieChartLoader extends EventPieChartLoader {
 
 	/**
 	 * Logger
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(EventTypePieChartLoader.class);
+	
+	/**
+	 * Event type map.
+	 */
+	private Map<Integer, String> etMap;
 
 	@Override
 	public String getStatName() {
 		return "Event Types";
 	}
 	
-	/* 
-	 * TODO 
-	 * - partition loading 
-	 * - use the progress monitor
-	 */
-	@Override
-	public void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor) {
-
-		if (trace == null || interval == null || map == null || monitor == null)
-			throw new NullPointerException();
-
-		TraceDBObject traceDB = null;
-
-		try {
-			DeltaManager dm = new DeltaManager();
-			dm.start();
-			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
-
-			EventTypeQuery etq = new EventTypeQuery(traceDB);
-			List<EventType> etl = etq.getList();
-			Map<Integer, String> etmap = new HashMap<>();
-			for (EventType et : etl) {
-				etmap.put(et.getId(), et.getName());
-			}
-
-			String query = "SELECT EVENT_TYPE_ID, COUNT(*) AS NUMBER FROM EVENT "
-					+ " GROUP BY EVENT_TYPE_ID";
-
-			Map<String, Double> values = new HashMap<>();
-
-			try {
-				Statement stm = traceDB.getConnection().createStatement();
-				ResultSet rs = stm.executeQuery(query);
-				while (rs.next()) {
-					int id = rs.getInt(1);
-					double count = rs.getInt(2);
-					values.put(etmap.get(id), count);
-				}
-				stm.close();
-			} catch (SQLException e) {
-				throw new SoCTraceException(e);
-			}
-			traceDB.close();
-
-			map.setSnapshot(values, interval);
-			map.setComplete();
-
-			logger.debug(dm.endMessage("Prepared Pie Chart dataset"));
-
-		} catch (SoCTraceException e) {
-			e.printStackTrace();
-			map.setStop();
-		} finally {
-			if (!map.isStop() && !map.isComplete()) {
-				// something went wrong, respect the map contract anyway
-				map.setStop();
-			}
-			DBObject.finalClose(traceDB);
-		}
-
-	}
-
 	@Override
 	public FramesocColor getColor(String name) {
 		if (name.equals(AGGREGATED_LABEL))
@@ -111,6 +49,55 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 		FramesocColor color = FramesocColorManager.getInstance().getEventTypeColor(name);
 		FramesocColorManager.getInstance().saveEventTypeColors();
 		return color;
+	}
+
+	@Override
+	protected int doRequest(long t0, long t1, boolean last, Map<String, Double> values,
+			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException {
+
+		// lazily load the producer map
+		loadEventTypeMap(traceDB);
+		
+		// execute query
+		ComparisonOperation lastComp = last ? ComparisonOperation.LE : ComparisonOperation.LT;
+		String query = "SELECT EVENT_TYPE_ID, COUNT(*) AS NUMBER FROM EVENT "
+				+ " WHERE TIMESTAMP >= " + t0 + " AND TIMESTAMP " + lastComp + " " + t1
+				+ " GROUP BY EVENT_TYPE_ID ";
+		logger.debug(query);
+		int results = 0;
+		try {
+			Statement stm = traceDB.getConnection().createStatement();
+			ResultSet rs = stm.executeQuery(query);
+			while (rs.next()) {
+				if (monitor.isCanceled())
+					return results;
+				int id = rs.getInt(1);
+				double count = rs.getInt(2);
+				String etName = etMap.get(id);
+				if (!values.containsKey(etName))
+					values.put(etName, count);
+				else
+					values.put(etName, count + values.get(etName));
+				results++;
+			}
+			stm.close();
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+
+		return results;
+	}
+
+	private void loadEventTypeMap(TraceDBObject traceDB) throws SoCTraceException {
+		// load all types (do it only once)
+		if (etMap == null) {
+			EventTypeQuery etq = new EventTypeQuery(traceDB);
+			List<EventType> etl = etq.getList();
+			etMap = new HashMap<>();
+			for (EventType et : etl) {
+				etMap.put(et.getId(), et.getName());
+			}
+		}
 	}
 
 }

@@ -78,7 +78,6 @@ import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
-import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -614,8 +613,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				DeltaManager dm = new DeltaManager();
-				dm.start();
 
 				// clean UI: composite pie + images
 				for (Control c : compositePie.getChildren()) {
@@ -652,7 +649,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				logger.debug("group size: " + compositePie.getSize());
 				logger.debug("frame location: " + chartFrame.getLocation());
 				logger.debug("frame size: " + chartFrame.getSize());
-				dm.end("update ui");
 			}
 		});
 	}
