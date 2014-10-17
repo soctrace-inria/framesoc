@@ -58,8 +58,7 @@ public interface IPieChartLoader {
 	 *            progress monitor
 	 * @throws SoCTraceException
 	 */
-	void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor)
-			throws SoCTraceException;
+	void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor);
 
 	/**
 	 * Get the color corresponding to the given item.

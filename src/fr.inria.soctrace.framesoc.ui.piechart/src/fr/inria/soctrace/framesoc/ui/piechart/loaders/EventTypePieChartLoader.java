@@ -48,8 +48,7 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 	 * - use the progress monitor
 	 */
 	@Override
-	public void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor)
-			throws SoCTraceException {
+	public void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor) {
 
 		if (trace == null || interval == null || map == null || monitor == null)
 			throw new NullPointerException();
@@ -88,11 +87,18 @@ public class EventTypePieChartLoader extends AggregatedPieChartLoader {
 			traceDB.close();
 
 			map.setSnapshot(values, interval);
-			map.setComplete(true);
+			map.setComplete();
 
 			logger.debug(dm.endMessage("Prepared Pie Chart dataset"));
 
+		} catch (SoCTraceException e) {
+			e.printStackTrace();
+			map.setStop();
 		} finally {
+			if (!map.isStop() && !map.isComplete()) {
+				// something went wrong, respect the map contract anyway
+				map.setStop();
+			}
 			DBObject.finalClose(traceDB);
 		}
 

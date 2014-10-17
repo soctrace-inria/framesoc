@@ -97,6 +97,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	public static final String ID = FramesocViews.STATISTICS_PIE_CHART_VIEW_ID;
 
 	/**
+	 * Build update timeout
+	 */
+	private static final long BUILD_UPDATE_TIMEOUT = 100;
+
+	/**
 	 * Constants
 	 */
 	public static final boolean HAS_LEGEND = false;
@@ -109,28 +114,28 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private class LoaderDescriptor {
 		public IPieChartLoader loader = null;
-		public PieChartLoaderMap dataset = null;
+		public PieChartLoaderMap map = null;
 		public TimeInterval interval = null;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
 			this.interval = new TimeInterval(0, 0);
-			this.dataset = new PieChartLoaderMap();
+			this.map = new PieChartLoaderMap();
 		}
 
 		public boolean dataReady() {
-			return (dataset != null && dataset.isComplete());
+			return (map != null && map.isComplete());
 		}
 
 		public void dispose() {
 			loader = null;
-			if (dataset != null)
-				dataset = null;
+			if (map != null)
+				map = null;
 		}
 
 		@Override
 		public String toString() {
-			return "LoaderDescriptor [loader=" + loader + ", dataset=" + dataset + ", interval="
+			return "LoaderDescriptor [loader=" + loader + ", dataset=" + map + ", interval="
 					+ interval + "]";
 		}
 
@@ -228,15 +233,21 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Tells if the load button should be enable.
 	 */
 	private boolean shouldEnableLoad() {
-		if (combo == null || timeBar == null || currentDescriptor == null)
+		// uninitialized UI cases
+		if (combo == null || timeBar == null)
 			return false;
 		if (combo.getSelectionIndex() == -1)
 			return false;
+		
+		// initialized UI cases
 		LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+		if (!comboDescriptor.equals(currentDescriptor))
+			return true;
+		if (!comboDescriptor.dataReady())
+			return true;
 		TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
-		return !comboDescriptor.equals(currentDescriptor)
-				|| !barInterval.equals(currentDescriptor.interval);
+		return !barInterval.equals(currentDescriptor.interval);
 	}
 
 	@Override
@@ -281,6 +292,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		for (LoaderDescriptor descriptor : loaderDescriptors) {
 			combo.add(descriptor.loader.getStatName(), position++);
 		}
+		combo.select(0);
+		currentDescriptor = loaderDescriptors.get(0);
 		combo.setEnabled(false);
 
 		// load button
@@ -325,13 +338,13 @@ public class StatisticsPieChartView extends FramesocPart {
 				if (e.keyCode == SWT.CR) {
 					if (nameFilter == null || tableTreeViewer == null || statusText == null)
 						return;
-					if (currentDescriptor == null || currentDescriptor.dataset == null)
+					if (currentDescriptor == null || currentDescriptor.map == null)
 						return;
 					nameFilter.setSearchText(textFilter.getText());
 					tableTreeViewer.refresh();
 					tableTreeViewer.expandAll();
 					logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
-					statusText.setText(getStatus(currentDescriptor.dataset.size(),
+					statusText.setText(getStatus(currentDescriptor.map.size(),
 							getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
 				}
 			}
@@ -489,6 +502,75 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	/**
+	 * Loader thread.
+	 */
+	private class LoaderThread extends Thread {
+
+		private final TimeInterval loadInterval;
+		private final IProgressMonitor monitor;
+
+		public LoaderThread(TimeInterval loadInterval) {
+			this.loadInterval = loadInterval;
+			this.monitor = new NullProgressMonitor();
+		}
+
+		@Override
+		public void run() {
+			currentDescriptor.loader.load(currentShownTrace, loadInterval, currentDescriptor.map,
+					monitor);
+		}
+
+		public void cancel() {
+			monitor.setCanceled(true);
+		}
+	}
+
+//	private void debugSleep() {
+//		try {
+//			logger.debug("Start sleep");
+//			Thread.sleep(2000);
+//			logger.debug("End sleep");
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//	}
+	
+	/**
+	 * Drawer job.
+	 */
+	private class DrawerJob extends Job {
+
+		private final LoaderThread loaderThread;
+
+		public DrawerJob(String name, LoaderThread loaderThread) {
+			super(name);
+			this.loaderThread = loaderThread;
+		}
+
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+			PieChartLoaderMap map = currentDescriptor.map;
+			boolean done = false;
+			while (!done) {
+				done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
+				logger.debug("done: " + done);
+				if (!map.isDirty()) {
+					logger.debug("not dirty");
+					continue;
+				}
+				logger.debug("dirty");
+				if (monitor.isCanceled()) {
+					loaderThread.cancel();
+					return Status.CANCEL_STATUS;
+				}
+				refresh();
+			}
+			return Status.OK_STATUS;
+		}
+
+	}
+
+	/**
 	 * Load a pie chart using the current trace, the current loader and the time interval in the
 	 * time bar.
 	 */
@@ -497,87 +579,82 @@ public class StatisticsPieChartView extends FramesocPart {
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
-		// TODO
-		// launch loader and drawer thread
-		// loader:
-		// - check if it is really necessary to recompute
-		// drawer:
-		// - refresh pie and table untill the map is done
-		//
-		
-		// Clean parent
-		for (Control c : compositePie.getChildren()) {
-			c.dispose();
+		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {
+			logger.debug("Data is ready. Nothing to do. Refresh only.");
+			refresh();
+			return;
 		}
 
-		// dispose images
-		disposeImages();
+		// create a new loader map
+		currentDescriptor.map = new PieChartLoaderMap();
+		
+		// create loader and drawer threads
+		LoaderThread loaderThread = new LoaderThread(loadInterval);
+		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread);
+		loaderThread.start();
+		drawerJob.setUser(true);
+		drawerJob.schedule();
 
-		Job job = new Job("Loading Statistics Pie Chart...") {
+	}
+
+	/**
+	 * Refresh the UI using the current trace and the current descriptor.
+	 */
+	private void refresh() {
+
+		// compute graphical elements
+		PieChartLoaderMap map = currentDescriptor.map;
+		Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
+		final IPieChartLoader loader = currentDescriptor.loader;
+		final PieDataset dataset = loader.getPieDataset(values);
+		final StatisticsTableFolderRow root = loader.getTableDataset(values);
+		final String title = loader.getStatName();
+		final int valuesCount = values.size();
+
+		// update the new UI
+		Display.getDefault().syncExec(new Runnable() {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
+			public void run() {
+				DeltaManager dm = new DeltaManager();
+				dm.start();
 
-				monitor.beginTask("Loading Statistics Pie Chart", IProgressMonitor.UNKNOWN);
-				try {
-					// prepare dataset and chart (if necessary)
-					final IPieChartLoader loader = currentDescriptor.loader;
-					if (!currentDescriptor.dataReady()) {
-						currentDescriptor.dataset = new PieChartLoaderMap();
-						loader.load(currentShownTrace, loadInterval, currentDescriptor.dataset,
-								new NullProgressMonitor());
-					}
-					PieChartLoaderMap map = currentDescriptor.dataset;
-					Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
-					final PieDataset dataset = loader.getPieDataset(values);
-					final StatisticsTableFolderRow root = loader.getTableDataset(values);
-					final String title = loader.getStatName();
-					final int valuesCount = values.size();
-
-					// prepare the new UI
-					Display.getDefault().syncExec(new Runnable() {
-						@Override
-						public void run() {
-							DeltaManager dm = new DeltaManager();
-							dm.start();
-							final JFreeChart chart = createChart(dataset, "", loader);
-							setContentDescription("Trace: " + currentShownTrace.getAlias());
-							compositePie.setText(title);
-							ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE,
-									chart, USE_BUFFER);
-
-							Point size = compositePie.getSize();
-							size.x -= 5; // consider the group border
-							size.y -= 25; // consider the group border and text
-							chartFrame.setSize(size);
-
-							Point location = chartFrame.getLocation();
-							location.x += 1; // consider the group border
-							location.y += 20; // consider the group border and text
-							chartFrame.setLocation(location);
-
-							btnLoad.setEnabled(false);
-							btnSynch.setEnabled(false);
-							tableTreeViewer.setInput(root);
-							tableTreeViewer.expandAll();
-							statusText.setText(getStatus(valuesCount, valuesCount));
-
-							logger.debug("group location: " + compositePie.getLocation());
-							logger.debug("group size: " + compositePie.getSize());
-							logger.debug("frame location: " + chartFrame.getLocation());
-							logger.debug("frame size: " + chartFrame.getSize());
-							dm.end("update ui");
-						}
-					});
-					monitor.done();
-				} catch (Exception e) {
-					e.printStackTrace();
-					return Status.CANCEL_STATUS;
+				// clean UI: composite pie + images
+				for (Control c : compositePie.getChildren()) {
+					c.dispose();
 				}
-				return Status.OK_STATUS;
+				disposeImages();
+
+				// create new chart
+				JFreeChart chart = createChart(dataset, "", loader);
+				setContentDescription("Trace: " + currentShownTrace.getAlias());
+				compositePie.setText(title);
+				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
+						USE_BUFFER);
+
+				Point size = compositePie.getSize();
+				size.x -= 5; // consider the group border
+				size.y -= 25; // consider the group border and text
+				chartFrame.setSize(size);
+
+				Point location = chartFrame.getLocation();
+				location.x += 1; // consider the group border
+				location.y += 20; // consider the group border and text
+				chartFrame.setLocation(location);
+
+				// update other elements
+				btnLoad.setEnabled(false);
+				btnSynch.setEnabled(false);
+				tableTreeViewer.setInput(root);
+				tableTreeViewer.expandAll();
+				statusText.setText(getStatus(valuesCount, valuesCount));
+
+				logger.debug("group location: " + compositePie.getLocation());
+				logger.debug("group size: " + compositePie.getSize());
+				logger.debug("frame location: " + chartFrame.getLocation());
+				logger.debug("frame size: " + chartFrame.getSize());
+				dm.end("update ui");
 			}
-		};
-		job.setUser(true);
-		job.schedule();
+		});
 	}
 
 	/**

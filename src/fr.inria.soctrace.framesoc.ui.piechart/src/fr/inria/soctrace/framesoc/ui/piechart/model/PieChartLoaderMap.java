@@ -5,6 +5,8 @@ package fr.inria.soctrace.framesoc.ui.piechart.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 
@@ -17,6 +19,7 @@ public class PieChartLoaderMap {
 
 	private Map<String, Double> fMap = new HashMap<>();
 	private TimeInterval fInterval = new TimeInterval(0, 0);
+	private CountDownLatch fDoneLatch = new CountDownLatch(1);
 	private boolean fComplete;
 	private boolean fStop;
 	private boolean fDirty;
@@ -53,24 +56,20 @@ public class PieChartLoaderMap {
 	 * Set the complete flag.
 	 * 
 	 * The map is complete when all the requested interval has been loaded.
-	 * 
-	 * @param complete
-	 *            the complete flag to set.
 	 */
-	public synchronized void setComplete(boolean complete) {
-		fComplete = complete;
+	public synchronized void setComplete() {
+		fComplete = true;
+		fDoneLatch.countDown();
 	}
 
 	/**
 	 * Set the stop flag.
 	 * 
-	 * This flag means that something bad happened and the map won't be complete.
-	 * 
-	 * @param stop
-	 *            the stop flag to set.
+	 * This flag means that something bad happened and the map won't be complete. 
 	 */
-	public synchronized void setStop(boolean stop) {
-		fStop = stop;
+	public synchronized void setStop() {
+		fStop = true;
+		fDoneLatch.countDown();
 	}
 
 	/**
@@ -105,10 +104,28 @@ public class PieChartLoaderMap {
 	 * 
 	 * @return true if we are done
 	 */
+	@Deprecated
 	public synchronized boolean done() {
 		return fStop || fComplete;
 	}
 
+	/**
+	 * Wait until we are done or the timeout elapsed.
+	 * 
+	 * @param timeout max wait timeout in milliseconds
+	 * @param unit timeout unit
+	 * @return true if we are done, false if the timeout elapsed
+	 */
+	public boolean waitUntilDone(long timeout) {
+		boolean done = false;
+		try {
+			done = fDoneLatch.await(timeout, TimeUnit.MILLISECONDS);
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+		return done;
+	}
+	
 	/**
 	 * Get the number of items in the map.
 	 * 
