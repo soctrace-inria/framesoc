@@ -237,7 +237,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			return false;
 		if (combo.getSelectionIndex() == -1)
 			return false;
-		
+
 		// initialized UI cases
 		LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
 		if (!comboDescriptor.equals(currentDescriptor))
@@ -451,7 +451,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			TreeViewerColumn elemsViewerCol = new TreeViewerColumn(tableTreeViewer, SWT.NONE);
 
 			if (col.equals(StatisticsTableColumn.NAME)) {
-
 				// add a filter for this column
 				nameFilter = new StatisticsTableRowFilter(col);
 				tableTreeViewer.addFilter(nameFilter);
@@ -524,16 +523,16 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 	}
 
-//	private void debugSleep() {
-//		try {
-//			logger.debug("Start sleep");
-//			Thread.sleep(2000);
-//			logger.debug("End sleep");
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
-	
+	// private void debugSleep() {
+	// try {
+	// logger.debug("Start sleep");
+	// Thread.sleep(2000);
+	// logger.debug("End sleep");
+	// } catch (InterruptedException e) {
+	// e.printStackTrace();
+	// }
+	// }
+
 	/**
 	 * Drawer job.
 	 */
@@ -548,27 +547,46 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
-			PieChartLoaderMap map = currentDescriptor.map;
-			boolean done = false;
-			while (!done) {
-				done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
-				if (!map.isDirty()) {
-					logger.debug("not dirty");
-					continue;
+			try {
+				enableTimeBar(false);
+				PieChartLoaderMap map = currentDescriptor.map;
+				boolean done = false;
+				while (!done) {
+					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
+					if (!map.isDirty()) {
+						logger.debug("not dirty");
+						continue;
+					}
+					logger.debug("dirty");
+					if (monitor.isCanceled()) {
+						loaderThread.cancel();
+						return Status.CANCEL_STATUS;
+					}
+					refresh();
 				}
-				logger.debug("dirty");
-				if (monitor.isCanceled()) {
-					loaderThread.cancel();
-					return Status.CANCEL_STATUS;
-				}
-				refresh();
+				logger.debug("done");
+				return Status.OK_STATUS;
+			} finally {
+				enableTimeBar(true);
 			}
-			logger.debug("done");
-			return Status.OK_STATUS;
 		}
 
 	}
 
+	/**
+	 * Enable/disable the time bar in the UI thread (sync execution).
+	 * 
+	 * @param enable enable flag
+	 */
+	private void enableTimeBar(final boolean enable) {
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				timeBar.setEnabled(enable);
+			}
+		});
+	}
+	
 	/**
 	 * Load a pie chart using the current trace, the current loader and the time interval in the
 	 * time bar.
@@ -583,10 +601,10 @@ public class StatisticsPieChartView extends FramesocPart {
 			refresh();
 			return;
 		}
-
+		
 		// create a new loader map
 		currentDescriptor.map = new PieChartLoaderMap();
-		
+
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread);
@@ -642,7 +660,8 @@ public class StatisticsPieChartView extends FramesocPart {
 				btnSynch.setEnabled(false);
 				tableTreeViewer.setInput(root);
 				tableTreeViewer.expandAll();
-				timeBar.setSelection(currentDescriptor.interval.startTimestamp, currentDescriptor.interval.endTimestamp);
+				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
+						currentDescriptor.interval.endTimestamp);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 
 				logger.debug("group location: " + compositePie.getLocation());
@@ -774,8 +793,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(true);
 		combo.select(0);
 		timeBar.setEnabled(true);
-		timeBar.setMinTimestamp(trace.getMinTimestamp());
-		timeBar.setMaxTimestamp(trace.getMaxTimestamp());
+		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		txtDescription.setVisible(true);
 		currentShownTrace = trace;

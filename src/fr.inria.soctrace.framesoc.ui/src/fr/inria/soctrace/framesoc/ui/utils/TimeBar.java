@@ -183,6 +183,11 @@ public class TimeBar {
 		this.windowSize = windowSize;
 	}
 
+	public void setExtrema(long min, long max) {
+		logger.debug("extrema:" + min + ", " + max);
+		this.range.setExtrema(min, max);
+	}
+	
 	public void setMaxTimestamp(long max) {
 		logger.debug("set max:" + max);
 		this.range.setMaximum(max);

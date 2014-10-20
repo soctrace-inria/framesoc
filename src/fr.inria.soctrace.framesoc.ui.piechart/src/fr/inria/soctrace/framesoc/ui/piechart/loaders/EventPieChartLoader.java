@@ -36,7 +36,17 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 	/**
 	 * Average number of event to load in each query
 	 */
-	private final int EVENTS_PER_QUERY = 100000;
+	private final int EVENTS_PER_QUERY = 1;
+
+	private void debugSleep() {
+//		try {
+//			logger.debug("Start sleep");
+//			Thread.sleep(2000);
+//			logger.debug("End sleep");
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+	}
 
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
@@ -69,6 +79,8 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 					return;
 				}
 
+				debugSleep();
+				
 				// load interval
 				long t1 = Math.min(requestedInterval.endTimestamp, t0 + intervalDuration);
 				int results = doRequest(t0, t1, (t1 >= requestedInterval.endTimestamp), values,
@@ -86,7 +98,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 					logger.debug("saved " + ((t0 - oldt0) / intervalDuration) + " queries.");
 					continue;
 				}
-				
+
 				loadedInterval.endTimestamp = t1;
 				map.setSnapshot(values, loadedInterval);
 
@@ -109,7 +121,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		}
 
 	}
-	
+
 	private long getNextTimestampAfter(TraceDBObject traceDB, long end) {
 		long next = end + 1;
 		try {
@@ -134,7 +146,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 
 	protected abstract int doRequest(long t0, long t1, boolean last, Map<String, Double> values,
 			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException;
-	
+
 	private boolean checkCancel(PieChartLoaderMap map, IProgressMonitor monitor) {
 		if (monitor.isCanceled()) {
 			map.setStop();
