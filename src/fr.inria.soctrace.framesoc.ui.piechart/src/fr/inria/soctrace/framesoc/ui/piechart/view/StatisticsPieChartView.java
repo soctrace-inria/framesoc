@@ -59,7 +59,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -114,9 +113,10 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Loader data
 	 */
 	private class LoaderDescriptor {
-		public IPieChartLoader loader = null;
-		public PieChartLoaderMap map = null;
-		public TimeInterval interval = null;
+		public IPieChartLoader loader;
+		public PieChartLoaderMap map;
+		public TimeInterval interval;
+		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
@@ -285,7 +285,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				btnLoad.setEnabled(shouldEnableLoad());
+				LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				currentDescriptor = comboDescriptor;
+				refresh();
 			}
 		});
 
@@ -411,8 +413,13 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo != null && timeBar != null && currentDescriptor != null) {
-					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
-							currentDescriptor.interval.endTimestamp);
+					if (currentDescriptor.dirty) {
+						timeBar.setSelection(currentDescriptor.interval.startTimestamp,
+								currentDescriptor.interval.endTimestamp);
+					} else {
+						timeBar.setSelection(currentShownTrace.getMinTimestamp(),
+								currentShownTrace.getMaxTimestamp());
+					}
 					btnSynch.setEnabled(false);
 					btnLoad.setEnabled(shouldEnableLoad());
 				}
@@ -545,6 +552,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				enableTimeBar(false);
 				PieChartLoaderMap map = currentDescriptor.map;
 				boolean done = false;
+				boolean refreshed = false;
 				while (!done) {
 					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!map.isDirty()) {
@@ -555,6 +563,11 @@ public class StatisticsPieChartView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
+					refresh();
+					refreshed = true;
+				}
+				if (!refreshed) {
+					// refresh at least once when there is no data.
 					refresh();
 				}
 				return Status.OK_STATUS;
@@ -569,7 +582,8 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Enable/disable the time bar in the UI thread (sync execution).
 	 * 
-	 * @param enable enable flag
+	 * @param enable
+	 *            enable flag
 	 */
 	private void enableTimeBar(final boolean enable) {
 		Display.getDefault().syncExec(new Runnable() {
@@ -581,7 +595,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		});
 	}
-	
+
 	/**
 	 * Load a pie chart using the current trace, the current loader and the time interval in the
 	 * time bar.
@@ -591,12 +605,14 @@ public class StatisticsPieChartView extends FramesocPart {
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
+		currentDescriptor.dirty = true;
+
 		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {
 			logger.debug("Data is ready. Nothing to do. Refresh only.");
 			refresh();
 			return;
 		}
-		
+
 		// create a new loader map
 		currentDescriptor.map = new PieChartLoaderMap();
 
@@ -610,12 +626,14 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	/**
 	 * Refresh the UI using the current trace and the current descriptor.
+	 * 
+	 * @param dataReady
 	 */
 	private void refresh() {
 
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
-		Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
+		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		final PieDataset dataset = loader.getPieDataset(values);
 		final StatisticsTableFolderRow root = loader.getTableDataset(values);
@@ -627,6 +645,12 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void run() {
 
+				if (currentDescriptor.dataReady() && values.isEmpty()) {
+					// store the loaded interval in case of no data
+					currentDescriptor.interval.startTimestamp = timeBar.getStartTimestamp();
+					currentDescriptor.interval.endTimestamp = timeBar.getEndTimestamp();
+				}
+
 				// clean UI: composite pie + images
 				for (Control c : compositePie.getChildren()) {
 					c.dispose();
@@ -634,7 +658,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				disposeImages();
 
 				// create new chart
-				JFreeChart chart = createChart(dataset, "", loader);
+				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dirty);
 				setContentDescription("Trace: " + currentShownTrace.getAlias());
 				compositePie.setText(title);
 				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
@@ -651,12 +675,21 @@ public class StatisticsPieChartView extends FramesocPart {
 				chartFrame.setLocation(location);
 
 				// update other elements
-				btnLoad.setEnabled(false);
-				btnSynch.setEnabled(false);
-				tableTreeViewer.setInput(root);
+				if (!root.hasChildren()) {
+					tableTreeViewer.setInput(null);
+				} else {
+					tableTreeViewer.setInput(root);
+				}
 				tableTreeViewer.expandAll();
-				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
-						currentDescriptor.interval.endTimestamp);
+				btnLoad.setEnabled(!currentDescriptor.dirty);
+				btnSynch.setEnabled(false);
+				if (currentDescriptor.dirty) {
+					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
+							currentDescriptor.interval.endTimestamp);
+				} else {
+					timeBar.setSelection(currentShownTrace.getMinTimestamp(),
+							currentShownTrace.getMaxTimestamp());
+				}
 				statusText.setText(getStatus(valuesCount, valuesCount));
 
 			}
@@ -669,9 +702,14 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @param dataset
 	 *            the dataset.
 	 * @param loader
+	 *            the pie chart loader
+	 * @param dataRequested
+	 *            flag indicating if the data have been requested for the current loader and the
+	 *            current interval
 	 * @return the pie chart
 	 */
-	private static JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader) {
+	private static JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader,
+			boolean dataRequested) {
 
 		JFreeChart chart = ChartFactory.createPieChart(title, dataset, HAS_LEGEND, HAS_TOOLTIPS,
 				HAS_URLS);
@@ -686,7 +724,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		PiePlot plot = (PiePlot) chart.getPlot();
 		plot.setSectionOutlinesVisible(false);
 		plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-		plot.setNoDataMessage("No data available");
+		plot.setNoDataMessage("No data available "
+				+ (dataRequested ? "in this time interval" : "yet"));
 		plot.setCircular(true);
 		plot.setLabelGenerator(null); // hide labels
 		plot.setBackgroundPaint(Color.WHITE);
