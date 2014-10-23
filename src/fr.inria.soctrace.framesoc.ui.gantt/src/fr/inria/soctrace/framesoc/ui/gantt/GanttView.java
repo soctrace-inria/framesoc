@@ -25,16 +25,13 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
-import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
@@ -42,7 +39,10 @@ import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -439,18 +439,8 @@ public class GanttView extends AbstractGanttView {
 		manager.add(new Separator());
 
 		// Framesoc
-
-		// show in table
-		if (FramesocPartManager.getInstance().isFramesocPartExisting(
-				FramesocViews.EVENT_TABLE_VIEW_ID)) {
-			manager.add(createTableAction());
-		}
-
-		// show in table
-		if (FramesocPartManager.getInstance().isFramesocPartExisting(
-				FramesocViews.STATISTICS_PIE_CHART_VIEW_ID)) {
-			manager.add(createPieAction());
-		}
+		TableTraceIntervalAction.add(manager, createTableAction());
+		PieTraceIntervalAction.add(manager, createPieAction());
 
 		// TEST ACTION
 		// manager.add(new Action("Test Action", IAction.AS_PUSH_BUTTON) {
@@ -461,40 +451,32 @@ public class GanttView extends AbstractGanttView {
 		// });
 	}
 
-	private IAction createTableAction() {
-		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/table.png");
-		Action showTable = new Action("Show in Table", img) {
+	private TraceIntervalAction createTableAction() {
+		return new TableTraceIntervalAction() {
 			@Override
-			public void run() {
-				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
-				des.setTrace(currentShownTrace);
-				des.setStartTimestamp(getStartTime());
-				des.setEndTimestamp(getEndTime());
-				logger.debug(des.toString());
-				FramesocBus.getInstance().send(
-						FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL, des);
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
 			}
 		};
-		return showTable;
 	}
-	
-	private IAction createPieAction() {
-		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/pie.png");
-		Action showTable = new Action("Show in Pie Chart", img) {
+
+	private TraceIntervalAction createPieAction() {
+		return new PieTraceIntervalAction() {
 			@Override
-			public void run() {
-				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
-				des.setTrace(currentShownTrace);
-				des.setStartTimestamp(getStartTime());
-				des.setEndTimestamp(getEndTime());
-				logger.debug(des.toString());
-				FramesocBus.getInstance().send(
-						FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL, des);
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
 			}
 		};
-		return showTable;
+	}
+
+	private TraceIntervalDescriptor getIntervalDescriptor() {
+		if (currentShownTrace == null)
+			return null;
+		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(getStartTime());
+		des.setEndTimestamp(getEndTime());
+		return des;
 	}
 
 	private IAction createHideArrowsAction() {

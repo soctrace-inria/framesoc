@@ -28,7 +28,6 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.SWT;
@@ -63,7 +62,6 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
-import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
@@ -72,7 +70,10 @@ import fr.inria.soctrace.framesoc.ui.eventtable.loader.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
+import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
@@ -267,9 +268,9 @@ public final class EventTableView extends FramesocPart {
 		// ----------
 
 		getViewSite().getActionBars().getToolBarManager().add(createColumnAction());
-		if (FramesocPartManager.getInstance().isFramesocPartExisting(
-				FramesocViews.GANTT_CHART_VIEW_ID))
-			getViewSite().getActionBars().getToolBarManager().add(createGanttAction());
+		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		GanttTraceIntervalAction.add(manager, createGanttAction());
+		PieTraceIntervalAction.add(manager, createPieAction());
 		enableActions(false);
 
 		// -------------
@@ -541,22 +542,32 @@ public final class EventTableView extends FramesocPart {
 		return sb.toString();
 	}
 
-	private IAction createGanttAction() {
-		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/gantt.png");
-		Action showGantt = new Action("Show in Gantt Chart", img) {
+	private TraceIntervalAction createGanttAction() {
+		return new GanttTraceIntervalAction() {
 			@Override
-			public void run() {
-				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
-				des.setTrace(currentShownTrace);
-				des.setStartTimestamp(startTimestamp);
-				des.setEndTimestamp(endTimestamp);
-				logger.debug(des.toString());
-				FramesocBus.getInstance().send(
-						FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
 			}
 		};
-		return showGantt;
+	}
+
+	private TraceIntervalAction createPieAction() {
+		return new PieTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	private TraceIntervalDescriptor getIntervalDescriptor() {
+		if (currentShownTrace == null)
+			return null;
+		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(startTimestamp);
+		des.setEndTimestamp(endTimestamp);
+		return des;
 	}
 
 	private void enableActions(boolean enabled) {

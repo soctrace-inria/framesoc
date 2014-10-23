@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -64,7 +65,10 @@ import org.slf4j.LoggerFactory;
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -410,7 +414,43 @@ public class StatisticsPieChartView extends FramesocPart {
 		btnSynch.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
 				"icons/load.png"));
 		btnSynch.setEnabled(false);
+		
+		// ----------
+		// TOOL BAR
+		// ----------
+		
+		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		TableTraceIntervalAction.add(manager, createTableAction());
+		GanttTraceIntervalAction.add(manager, createGanttAction());
+		
+	}
 
+	private TraceIntervalAction createTableAction() {
+		return new TableTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	private TraceIntervalAction createGanttAction() {
+		return new GanttTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	private TraceIntervalDescriptor getIntervalDescriptor() {
+		if (currentShownTrace == null || !currentDescriptor.dirty)
+			return null;
+		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(currentDescriptor.interval.startTimestamp);
+		des.setEndTimestamp(currentDescriptor.interval.endTimestamp);
+		return des;
 	}
 
 	private int getTreeLeafs(TreeItem[] items, int v) {
