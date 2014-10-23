@@ -83,6 +83,14 @@ public enum FramesocBusTopic {
 	 * Event fired when we want to switch the highlight state of some traces.
 	 * The event body is a list of traces.
 	 */
-	TOPIC_UI_HIGHLIGHT_TRACES;
-
+	TOPIC_UI_HIGHLIGHT_TRACES,
+	
+	/**
+	 * Event fired when we want to display a time interval in a Pie Chart.
+	 * The event body is a TraceIntervalDescriptor.
+	 * The Pie Chart should handle the statistics operator selection in 
+	 * a convenient way (e.g., proposing a dialog to the user).
+	 */	
+	TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL;
+	
 }

@@ -311,6 +311,14 @@ public final class FramesocPartManager implements IFramesocBusListener {
 				return;
 			status.part.showTrace(des.getTrace(), des);
 			updateTitlesHighlight((Trace)des.getTrace());
+		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL) && data!=null) {
+			logger.debug("Topic pie interval");
+			TraceIntervalDescriptor des = (TraceIntervalDescriptor)data;
+			OpenFramesocPartStatus status = getPartInstance(FramesocViews.STATISTICS_PIE_CHART_VIEW_ID, des.getTrace());
+			if (status.part == null) 
+				return;
+			status.part.showTrace(des.getTrace(), des);
+			updateTitlesHighlight((Trace)des.getTrace());
 		}
 	}
 
@@ -388,6 +396,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL);
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL);
 		topics.registerAll();
 
 		// register the selection listener

@@ -446,6 +446,12 @@ public class GanttView extends AbstractGanttView {
 			manager.add(createTableAction());
 		}
 
+		// show in table
+		if (FramesocPartManager.getInstance().isFramesocPartExisting(
+				FramesocViews.STATISTICS_PIE_CHART_VIEW_ID)) {
+			manager.add(createPieAction());
+		}
+
 		// TEST ACTION
 		// manager.add(new Action("Test Action", IAction.AS_PUSH_BUTTON) {
 		// @Override
@@ -468,6 +474,24 @@ public class GanttView extends AbstractGanttView {
 				logger.debug(des.toString());
 				FramesocBus.getInstance().send(
 						FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL, des);
+			}
+		};
+		return showTable;
+	}
+	
+	private IAction createPieAction() {
+		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/pie.png");
+		Action showTable = new Action("Show in Pie Chart", img) {
+			@Override
+			public void run() {
+				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+				des.setTrace(currentShownTrace);
+				des.setStartTimestamp(getStartTime());
+				des.setEndTimestamp(getEndTime());
+				logger.debug(des.toString());
+				FramesocBus.getInstance().send(
+						FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL, des);
 			}
 		};
 		return showTable;

@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -44,6 +45,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -63,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.piechart.PieContributionManager;
@@ -797,14 +800,62 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	@Override
 	public void showTrace(Trace trace, Object data) {
-		btnLoad.setEnabled(true);
 		combo.setEnabled(true);
-		combo.select(0);
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		txtDescription.setVisible(true);
 		currentShownTrace = trace;
 		setContentDescription("Trace: " + trace.getAlias());
+		if (data != null) {
+			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
+			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
+			if (operatorDialog.open() == Dialog.OK) {
+				if (operatorDialog.getSelectionIndex() != -1) {
+					combo.select(operatorDialog.getSelectionIndex());
+					currentDescriptor = loaderDescriptors.get(operatorDialog.getSelectionIndex());
+					timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
+					loadPieChart();
+				}
+			}
+		} else {
+			combo.select(0);
+			btnLoad.setEnabled(true);
+			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
+			txtDescription.setVisible(true);
+		}
+	}
+
+	private class OperatorDialog extends Dialog {
+
+		private int selectionIndex;
+
+		protected OperatorDialog(Shell parentShell) {
+			super(parentShell);
+		}
+
+		@Override
+		protected Control createDialogArea(Composite parent) {
+
+			Composite composite = (Composite) super.createDialogArea(parent);
+
+			final Combo operators = new Combo(composite, SWT.READ_ONLY);
+			operators.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			for (LoaderDescriptor s : loaderDescriptors) {
+				operators.add(s.loader.getStatName());
+			}
+			operators.select(0);
+			operators.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					selectionIndex = operators.getSelectionIndex();
+				}
+			});
+
+			return composite;
+		}
+
+		public int getSelectionIndex() {
+			return selectionIndex;
+		}
+
 	}
 }
