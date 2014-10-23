@@ -230,27 +230,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	// createFramesocPartControl(parent);
 	// }
 
-	/**
-	 * Tells if the load button should be enable.
-	 */
-	private boolean shouldEnableLoad() {
-		// uninitialized UI cases
-		if (combo == null || timeBar == null)
-			return false;
-		if (combo.getSelectionIndex() == -1)
-			return false;
-
-		// initialized UI cases
-		LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-		if (!comboDescriptor.equals(currentDescriptor))
-			return true;
-		if (!comboDescriptor.dataReady())
-			return true;
-		TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
-				timeBar.getEndTimestamp());
-		return !barInterval.equals(currentDescriptor.interval);
-	}
-
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
@@ -285,8 +264,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				LoaderDescriptor comboDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				currentDescriptor = comboDescriptor;
+				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
 				refresh();
 			}
 		});
@@ -421,7 +399,7 @@ public class StatisticsPieChartView extends FramesocPart {
 								currentShownTrace.getMaxTimestamp());
 					}
 					btnSynch.setEnabled(false);
-					btnLoad.setEnabled(shouldEnableLoad());
+					btnLoad.setEnabled(!currentDescriptor.dirty);
 				}
 			}
 		});
