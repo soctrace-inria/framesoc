@@ -36,17 +36,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 	/**
 	 * Average number of event to load in each query
 	 */
-	private final int EVENTS_PER_QUERY = 1;
-
-	private void debugSleep() {
-//		try {
-//			logger.debug("Start sleep");
-//			Thread.sleep(2000);
-//			logger.debug("End sleep");
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-	}
+	private final int EVENTS_PER_QUERY = 1000000000;
 
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
@@ -78,8 +68,6 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 				if (checkCancel(map, monitor)) {
 					return;
 				}
-
-				debugSleep();
 				
 				// load interval
 				long t1 = Math.min(requestedInterval.endTimestamp, t0 + intervalDuration);

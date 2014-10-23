@@ -59,6 +59,7 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -78,6 +79,7 @@ import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -98,7 +100,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Build update timeout
 	 */
-	private static final long BUILD_UPDATE_TIMEOUT = 1000;
+	private static final long BUILD_UPDATE_TIMEOUT = 300;
 
 	/**
 	 * Constants
@@ -523,16 +525,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 	}
 
-	// private void debugSleep() {
-	// try {
-	// logger.debug("Start sleep");
-	// Thread.sleep(2000);
-	// logger.debug("End sleep");
-	// } catch (InterruptedException e) {
-	// e.printStackTrace();
-	// }
-	// }
-
 	/**
 	 * Drawer job.
 	 */
@@ -547,6 +539,8 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
+			DeltaManager dm = new DeltaManager();
+			dm.start();
 			try {
 				enableTimeBar(false);
 				PieChartLoaderMap map = currentDescriptor.map;
@@ -554,20 +548,19 @@ public class StatisticsPieChartView extends FramesocPart {
 				while (!done) {
 					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!map.isDirty()) {
-						logger.debug("not dirty");
 						continue;
 					}
-					logger.debug("dirty");
 					if (monitor.isCanceled()) {
 						loaderThread.cancel();
+						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
 					refresh();
 				}
-				logger.debug("done");
 				return Status.OK_STATUS;
 			} finally {
 				enableTimeBar(true);
+				logger.debug(dm.endMessage("finished drawing"));
 			}
 		}
 
@@ -582,7 +575,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				timeBar.setEnabled(enable);
+				if (!timeBar.isDisposed()) {
+					timeBar.setEnabled(enable);
+				}
 			}
 		});
 	}
@@ -664,10 +659,6 @@ public class StatisticsPieChartView extends FramesocPart {
 						currentDescriptor.interval.endTimestamp);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 
-				logger.debug("group location: " + compositePie.getLocation());
-				logger.debug("group size: " + compositePie.getSize());
-				logger.debug("frame location: " + chartFrame.getLocation());
-				logger.debug("frame size: " + chartFrame.getSize());
 			}
 		});
 	}
