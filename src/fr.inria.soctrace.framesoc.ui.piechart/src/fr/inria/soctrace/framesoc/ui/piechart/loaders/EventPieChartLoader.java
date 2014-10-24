@@ -6,6 +6,7 @@ package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 	/**
 	 * Average number of event to load in each query
 	 */
-	private final int EVENTS_PER_QUERY = 100000;
+	private final int EVENTS_PER_QUERY = 1;
 
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
@@ -61,7 +62,8 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 			double density = ((double) trace.getNumberOfEvents()) / duration;
 			Assert.isTrue(density != 0, "The density cannot be 0");
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
-
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive"); // TODO also gantt and table
+			
 			Map<String, Double> values = new HashMap<>();
 
 			long t0 = requestedInterval.startTimestamp;
@@ -71,7 +73,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 			// not different from the others
 			boolean first = (t0 != trace.getMinTimestamp());
 
-			while (t0 <= requestedInterval.endTimestamp) {
+			while (t0 < requestedInterval.endTimestamp) {
 
 				if (checkCancel(map, monitor)) {
 					return;
@@ -99,7 +101,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 				loadedInterval.endTimestamp = t1;
 				map.setSnapshot(values, loadedInterval);
 
-				t0 = t1 + 1;
+				t0 = t1 ; /// XXX fix this also for gantt and table
 
 			}
 
@@ -109,6 +111,8 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 			map.setStop();
+		} catch (ConcurrentModificationException e) {
+			e.printStackTrace();
 		} finally {
 			if (!map.isStop() && !map.isComplete()) {
 				// something went wrong, respect the map contract anyway

@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,11 +51,11 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	 * durations: (0,1) and (3,5).
 	 */
 	private static class PendingDuration {
-		
+
 		public int typeId;
 		public long start;
 		public long end;
-		
+
 		public PendingDuration(int type) {
 			typeId = type;
 		}
@@ -67,7 +69,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	/**
 	 * List of pending durations for the current load operation.
 	 */
-	private List<PendingDuration> pending = new ArrayList<>();
+	private List<PendingDuration> pending = new LinkedList<>();
 
 	@Override
 	public FramesocColor getColor(String name) {
@@ -86,13 +88,19 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 		logger.debug("do request: {}, {}. First: {}, Last: {}.", t0, t1, first, last);
 		logger.debug("before managing pending");
 		logger.debug(pending.toString());
-		
+
 		// lazily load the type map
 		loadEventTypeMap(traceDB);
 
 		// manage pending
-		for (PendingDuration d : pending) {
-			managePendingDuration(d, t0, t1, values);
+		List<PendingDuration> newPending = new ArrayList<>();
+		for (Iterator<PendingDuration> it = pending.iterator(); it.hasNext();) {
+			if (managePendingDuration(it.next(), t0, t1, values, newPending)) {
+				it.remove();
+			}
+		}
+		if (!newPending.isEmpty()) {
+			pending.addAll(newPending);
 		}
 
 		logger.debug("after managing pending");
@@ -121,7 +129,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 				PendingDuration d = new PendingDuration(rs.getInt(1));
 				d.start = rs.getLong(2);
 				d.end = rs.getLong(3);
-				managePendingDuration(d, t0, t1, values);
+				managePendingDuration(d, t0, t1, values, pending);
 				results++;
 			}
 			stm.close();
@@ -132,7 +140,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 		logger.debug("end");
 		logger.debug(pending.toString());
 		logger.debug(values.toString());
-		
+
 		return results;
 	}
 
@@ -141,30 +149,63 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 		pending = new ArrayList<>();
 	}
 
-	private void managePendingDuration(PendingDuration d, long t0, long t1,
-			Map<String, Double> values) {
+	/**
+	 * Process a pending duration in a given time interval.
+	 * 
+	 * This means that the part of the passed pending duration intersecting the interval will be
+	 * added to the pie chart values, while the remaining parts of the passed pending duration (if
+	 * any) will be added to the list of new pending durations.
+	 * 
+	 * @param d
+	 *            pending duration to process
+	 * @param t0
+	 *            start timestamp
+	 * @param t1
+	 *            end timestamp
+	 * @param values
+	 *            pie chart values
+	 * @param newPending
+	 *            list containing the new pending durations
+	 * @return <true> if the passed pending duration intersects the passed interval and one or two
+	 *         new pending durations have been added to the list of new pending durations
+	 */
+	private boolean managePendingDuration(PendingDuration d, long t0, long t1,
+			Map<String, Double> values, List<PendingDuration> newPending) {
 		String etName = etMap.get(d.typeId);
-		if (d.start < t0) {
+		boolean modified = false;
+		if (d.typeId == 3) {
+			logger.debug(d.toString());
+		}
+		if (d.start < t0 && d.end > t0) {
+			// d intersects t0: cut the part before
 			PendingDuration before = new PendingDuration(d.typeId);
 			before.start = d.start;
 			before.end = t0;
-			pending.add(before);
+			newPending.add(before);
 			d.start = t0;
+			modified = true;
 		}
-		if (d.end > t1) {
+		if (d.start < t1 && d.end > t1) {
+			// d intersects t1: cut the part after
 			PendingDuration after = new PendingDuration(d.typeId);
 			after.start = t1;
 			after.end = d.end;
-			pending.add(after);
+			newPending.add(after);
 			d.end = t1;
+			modified = true;
 		}
-		Double remainingDuration = ((Long) (d.end - d.start)).doubleValue();
-		if (remainingDuration > 0) {
-			if (!values.containsKey(etName))
-				values.put(etName, remainingDuration);
-			else
-				values.put(etName, remainingDuration + values.get(etName));
+		if (d.start >= t0 && d.end <= t1) {
+			// the remaining part is contained in [t0, t1]
+			Double remainingDuration = ((Long) (d.end - d.start)).doubleValue();
+			if (remainingDuration > 0) {
+				modified = true;
+				if (!values.containsKey(etName))
+					values.put(etName, remainingDuration);
+				else
+					values.put(etName, remainingDuration + values.get(etName));
+			}
 		}
+		return modified;
 	}
 
 	/**
