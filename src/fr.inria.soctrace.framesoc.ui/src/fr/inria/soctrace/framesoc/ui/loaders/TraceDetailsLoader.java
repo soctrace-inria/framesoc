@@ -32,7 +32,7 @@ import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 
 /**
- * Loader for the trace details view. TODO: sort custom parameters
+ * Loader for the trace details view.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */

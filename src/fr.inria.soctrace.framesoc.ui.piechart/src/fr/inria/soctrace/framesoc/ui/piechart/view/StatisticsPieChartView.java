@@ -241,7 +241,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	public void createFramesocPartControl(Composite parent) {
 
 		setContentDescription("Trace: <no trace displayed>");
-		
+
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
 		gl_parent.verticalSpacing = 2;
@@ -404,7 +404,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		btnSynch.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
 				"icons/load.png"));
 		btnSynch.setEnabled(false);
-		
+
 		// load button
 		btnLoad = new Button(timeComposite, SWT.NONE);
 		btnLoad.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -425,12 +425,12 @@ public class StatisticsPieChartView extends FramesocPart {
 		// ----------
 		// TOOL BAR
 		// ----------
-		
+
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		enableActions(false);
-		
+
 	}
 
 	private TraceIntervalAction createTableAction() {
@@ -633,7 +633,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
-		
+
 		currentDescriptor.dirty = true;
 
 		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {
