@@ -36,7 +36,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 	/**
 	 * Average number of event to load in each query
 	 */
-	protected final int EVENTS_PER_QUERY = 1;
+	protected final int EVENTS_PER_QUERY = 100000;
 
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
