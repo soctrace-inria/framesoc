@@ -6,7 +6,6 @@ package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +36,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 	/**
 	 * Average number of event to load in each query
 	 */
-	private final int EVENTS_PER_QUERY = 1;
+	protected final int EVENTS_PER_QUERY = 1;
 
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
@@ -49,9 +48,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		TraceDBObject traceDB = null;
 
 		try {
-			
-			reset();
-			
+
 			DeltaManager dm = new DeltaManager();
 			dm.start();
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
@@ -62,16 +59,14 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 			double density = ((double) trace.getNumberOfEvents()) / duration;
 			Assert.isTrue(density != 0, "The density cannot be 0");
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
-			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive"); // TODO also gantt and table
-			
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive"); 
+
 			Map<String, Double> values = new HashMap<>();
 
 			long t0 = requestedInterval.startTimestamp;
 			TimeInterval loadedInterval = new TimeInterval(t0, 0);
 
-			// if we are loading the metric from the beginning of the trace, the first interval is
-			// not different from the others
-			boolean first = (t0 != trace.getMinTimestamp());
+			boolean first = true;
 
 			while (t0 < requestedInterval.endTimestamp) {
 
@@ -81,8 +76,8 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 
 				// load interval
 				long t1 = Math.min(requestedInterval.endTimestamp, t0 + intervalDuration);
-				int results = doRequest(t0, t1, first, (t1 >= requestedInterval.endTimestamp),
-						values, traceDB, monitor);
+				boolean last = (t1 >= requestedInterval.endTimestamp);
+				int results = doRequest(t0, t1, first, last, values, traceDB, monitor);
 				first = false;
 				logger.debug("Loaded: " + results);
 
@@ -91,9 +86,9 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 				}
 
 				// check for empty regions
-				if (results == 0) {
+				if (results == 0 && !last) {
 					long oldt0 = t0;
-					t0 = getNextTimestampAfter(traceDB, t1);
+					t0 = getNextTimestampStartingFrom(traceDB, t1);
 					logger.debug("saved " + ((t0 - oldt0) / intervalDuration) + " queries.");
 					continue;
 				}
@@ -101,7 +96,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 				loadedInterval.endTimestamp = t1;
 				map.setSnapshot(values, loadedInterval);
 
-				t0 = t1 ; /// XXX fix this also for gantt and table
+				t0 = t1;
 
 			}
 
@@ -111,8 +106,6 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 			map.setStop();
-		} catch (ConcurrentModificationException e) {
-			e.printStackTrace();
 		} finally {
 			if (!map.isStop() && !map.isComplete()) {
 				// something went wrong, respect the map contract anyway
@@ -147,20 +140,13 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 			Map<String, Double> values, TraceDBObject traceDB, IProgressMonitor monitor)
 			throws SoCTraceException;
 
-	/**
-	 * This method is called by the parent class before starting a new load operation. This way the
-	 * son class can possibly clean any data structure keeping the state for the current loading
-	 * operation.
-	 */
-	protected abstract void reset();
-
-	private long getNextTimestampAfter(TraceDBObject traceDB, long end) {
+	protected long getNextTimestampStartingFrom(TraceDBObject traceDB, long end) {
 		long next = end + 1;
 		try {
 			Statement stm = traceDB.getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP > "
+			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP >= "
 					+ end);
 			logger.debug(dm.endMessage("exec query"));
 			while (rs.next()) {
@@ -176,7 +162,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		return Math.max(next, end + 1);
 	}
 
-	private boolean checkCancel(PieChartLoaderMap map, IProgressMonitor monitor) {
+	protected boolean checkCancel(PieChartLoaderMap map, IProgressMonitor monitor) {
 		if (monitor.isCanceled()) {
 			map.setStop();
 			return true;

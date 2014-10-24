@@ -100,9 +100,4 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 		}
 	}
 
-	@Override
-	protected void reset() {
-		// NOP
-	}
-
 }
