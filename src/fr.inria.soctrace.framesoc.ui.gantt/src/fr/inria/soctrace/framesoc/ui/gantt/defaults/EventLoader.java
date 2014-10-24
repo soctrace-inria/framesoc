@@ -147,6 +147,7 @@ public class EventLoader implements IEventLoader {
 			double density = ((double) fTrace.getNumberOfEvents()) / duration;
 			Assert.isTrue(density != 0, "The density cannot be 0");
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
 			int totalWork = (int) ((double) duration / intervalDuration);
 
 			// read the time window, interval by interval
@@ -157,7 +158,7 @@ public class EventLoader implements IEventLoader {
 			TimeInterval firstInterval = null;
 			boolean first = true;
 			long t0 = start;
-			while (t0 <= end) {
+			while (t0 < end) {
 				// check if cancelled
 				if (checkCancel(monitor)) {
 					return;
@@ -170,17 +171,17 @@ public class EventLoader implements IEventLoader {
 					firstInterval = new TimeInterval(t0, t1);
 					first = false;
 				}
-				List<ReducedEvent> events = loadInterval(false, (t1 >= end), t0, t1, monitor);
+				boolean last = (t1 >= end);
+				List<ReducedEvent> events = loadInterval(false, last, t0, t1, monitor);
 				totalEvents = debug(events, totalEvents);
 				if (checkCancel(monitor)) {
 					return;
 				}
 
 				// check for empty regions
-				if (events.size() == 0) {
-					long oldt0 = t0;
-					t0 = getNextTimestampAfter(t1);
-					logger.debug("saved " + ((t0 - oldt0) / intervalDuration) + " queries.");
+				if (events.size() == 0 && !last) {
+					t0 = getNextTimestampStartingFrom(t1);
+					logger.debug("saved " + ((t0 - t1) / intervalDuration) + " queries.");
 					continue;
 				}
 
@@ -188,7 +189,7 @@ public class EventLoader implements IEventLoader {
 				int worked = (int) ((double) (fLatestStart - start) / intervalDuration);
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
-				t0 = t1 + 1;
+				t0 = t1;
 
 				fQueue.push(events, new TimeInterval(fTimeInterval));
 			}
@@ -253,13 +254,13 @@ public class EventLoader implements IEventLoader {
 		return events;
 	}
 
-	private long getNextTimestampAfter(long end) {
+	private long getNextTimestampStartingFrom(long end) {
 		long next = end + 1;
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP > "
+			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP >= "
 					+ end);
 			logger.debug(dm.endMessage("exec query"));
 			while (rs.next()) {

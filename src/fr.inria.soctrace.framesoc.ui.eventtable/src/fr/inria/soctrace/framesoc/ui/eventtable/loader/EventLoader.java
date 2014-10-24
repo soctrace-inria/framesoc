@@ -47,7 +47,7 @@ public class EventLoader implements IEventLoader {
 	private static final Logger logger = LoggerFactory.getLogger(EventLoader.class);
 
 	// constants
-	private final int EVENTS_PER_QUERY = 1;
+	private final int EVENTS_PER_QUERY = 100000;
 
 	// set by the user
 	private Trace fTrace = null;
@@ -90,17 +90,17 @@ public class EventLoader implements IEventLoader {
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
 			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
 			int totalWork = (int) ((double) duration / intervalDuration);
-			
+
 			// read the time window, interval by interval
 			monitor.beginTask("Loading Event Table", totalWork);
 			int oldWorked = 0;
 
 			/*
-			 * XXX Current solution (may change).
-			 * The table only loads the events with timestamp contained in the interval.
-			 * So there is no difference between the first interval and the other.
+			 * XXX Current solution (may change). The table only loads the events with timestamp
+			 * contained in the interval. So there is no difference between the first interval and
+			 * the other.
 			 */
-			//boolean first = true;
+			// boolean first = true;
 			long t0 = start;
 			while (t0 < end) {
 				// check if cancelled
@@ -110,7 +110,7 @@ public class EventLoader implements IEventLoader {
 
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
-				//List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
+				// List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
 				boolean last = (t1 >= end);
 				List<Event> events = loadInterval(false, last, t0, t1, monitor);
 				debug(events);
@@ -134,7 +134,7 @@ public class EventLoader implements IEventLoader {
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
 				t0 = t1;
-				//first = false;
+				// first = false;
 			}
 
 			fQueue.setComplete();
@@ -151,9 +151,9 @@ public class EventLoader implements IEventLoader {
 
 	private List<Event> loadInterval(boolean first, boolean last, long t0, long t1,
 			IProgressMonitor monitor) {
-		
+
 		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
-		
+
 		try {
 			EventQuery query = getQueryObject();
 			query.clear();
@@ -166,14 +166,14 @@ public class EventLoader implements IEventLoader {
 						"(0, 3)"));
 				andPunct.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE,
 						String.valueOf(t0)));
-				andPunct.addCondition(new SimpleCondition("TIMESTAMP", endComp,
-						String.valueOf(t1)));
-				// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >= t0)
+				andPunct.addCondition(new SimpleCondition("TIMESTAMP", endComp, String.valueOf(t1)));
+				// states and links: start < t1 and end >= t0 (last interval: start <= t1 and end >=
+				// t0)
 				LogicalCondition andDuration = new LogicalCondition(LogicalOperation.AND);
 				andDuration.addCondition(new SimpleCondition("CATEGORY", ComparisonOperation.IN,
 						"(1, 2)"));
-				andDuration.addCondition(new SimpleCondition("TIMESTAMP", endComp,
-						String.valueOf(t1)));
+				andDuration.addCondition(new SimpleCondition("TIMESTAMP", endComp, String
+						.valueOf(t1)));
 				andDuration.addCondition(new SimpleCondition("LPAR", ComparisonOperation.GE, String
 						.valueOf(t0)));
 				or.addCondition(andPunct);
