@@ -39,7 +39,7 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 
 	@Override
 	public String getStatName() {
-		return "Event Types";
+		return "Event Type Instances";
 	}
 	
 	@Override
