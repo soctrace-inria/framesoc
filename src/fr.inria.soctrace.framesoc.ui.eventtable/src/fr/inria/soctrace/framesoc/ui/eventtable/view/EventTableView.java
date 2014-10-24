@@ -22,9 +22,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -54,7 +52,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
@@ -572,16 +569,6 @@ public final class EventTableView extends FramesocPart {
 		des.setStartTimestamp(startTimestamp);
 		des.setEndTimestamp(endTimestamp);
 		return des;
-	}
-
-	private void enableActions(boolean enabled) {
-		IActionBars actionBars = getViewSite().getActionBars();
-		IToolBarManager toolBar = actionBars.getToolBarManager();
-		for (IContributionItem item : toolBar.getItems()) {
-			if (item instanceof ActionContributionItem) {
-				((ActionContributionItem) item).getAction().setEnabled(enabled);
-			}
-		}
 	}
 
 	private IAction createColumnAction() {

@@ -260,6 +260,7 @@ public class GanttView extends AbstractGanttView {
 			final LoaderQueue<ReducedEvent> queue) {
 
 		setContentDescription("Trace: " + trace.getAlias());
+		enableActions(true);
 
 		drawerThread = new Thread() {
 			@Override

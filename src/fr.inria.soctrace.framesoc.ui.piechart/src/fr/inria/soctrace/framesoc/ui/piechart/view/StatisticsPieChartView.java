@@ -429,6 +429,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
+		enableActions(false);
 		
 	}
 
@@ -633,6 +634,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
+		enableActions(true);
+		
 		currentDescriptor.dirty = true;
 
 		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {

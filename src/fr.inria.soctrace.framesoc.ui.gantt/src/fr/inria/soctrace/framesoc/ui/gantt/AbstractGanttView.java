@@ -954,6 +954,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		// View Action Handling
 		makeActions();
 		contributeToActionBars();
+		enableActions(false);
 
 	}
 
@@ -1178,4 +1179,5 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fUserChangedSelection = false;
 		fUserChangedTimeRange = false;
 	}
+	
 }

@@ -19,8 +19,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.ActionContributionItem;
-import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -118,6 +116,7 @@ public class HistogramView extends FramesocPart {
 		TableTraceIntervalAction.add(toolBar, createTableAction());
 		GanttTraceIntervalAction.add(toolBar, createGanttAction());
 		PieTraceIntervalAction.add(toolBar, createPieAction());
+		enableActions(false);
 	}
 
 	@Override
@@ -171,20 +170,6 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Enable all toolbar actions. If the need to differentiate among actions arises, we can use
-	 * actions IDs.
-	 */
-	private void enableActions() {
-		IActionBars actionBars = getViewSite().getActionBars();
-		IToolBarManager toolBar = actionBars.getToolBarManager();
-		for (IContributionItem item : toolBar.getItems()) {
-			if (item instanceof ActionContributionItem) {
-				((ActionContributionItem) item).getAction().setEnabled(true);
-			}
-		}
-	}
-
-	/**
 	 * Histogram mouse listener
 	 */
 	public class HistogramMouseListener implements ChartMouseListener {
@@ -214,8 +199,7 @@ public class HistogramView extends FramesocPart {
 		for (Control c : parent.getChildren()) {
 			c.dispose();
 		}
-		;
-
+		
 		Job job = new Job("Loading Event Density Chart...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -296,7 +280,7 @@ public class HistogramView extends FramesocPart {
 							chartFrame.setSize(parent.getSize()); // size
 							chartFrame.setRangeZoomable(false); // prevent y zooming
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
-							enableActions();
+							enableActions(true);
 						}
 					});
 					monitor.done();
