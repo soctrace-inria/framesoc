@@ -667,6 +667,8 @@ public final class EventTableView extends FramesocPart {
 		// check for contained interval
 		if (trace.equals(currentShownTrace) && cache.contains(interval)) {
 			cache.index(interval);
+			table.clearAll();
+			table.setItemCount(cache.getIndexedRowCount()+1); // +1 for header
 			table.refresh();
 			table.setSelection(0);
 			startTimestamp = interval.startTimestamp;
