@@ -26,6 +26,7 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -190,6 +191,8 @@ public final class EventTableView extends FramesocPart {
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
+		setContentDescription("Trace: <no trace displayed>");
+		
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
 		gl_parent.verticalSpacing = 2;
@@ -267,8 +270,9 @@ public final class EventTableView extends FramesocPart {
 		// TOOLBAR
 		// ----------
 
-		getViewSite().getActionBars().getToolBarManager().add(createColumnAction());
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		manager.add(createColumnAction());
+		manager.add(new Separator());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
 		enableActions(false);

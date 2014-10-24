@@ -241,7 +241,14 @@ public class StatisticsPieChartView extends FramesocPart {
 	public void createFramesocPartControl(Composite parent) {
 
 		setContentDescription("Trace: <no trace displayed>");
-		parent.setLayout(new GridLayout(1, false));
+		
+		// parent layout
+		GridLayout gl_parent = new GridLayout(1, false);
+		gl_parent.verticalSpacing = 2;
+		gl_parent.marginWidth = 0;
+		gl_parent.horizontalSpacing = 0;
+		gl_parent.marginHeight = 0;
+		parent.setLayout(gl_parent);
 
 		// -------------------------------
 		// Base GUI: pie + table
@@ -251,7 +258,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		// Composite Left: composite combo + composite pie
-		Composite compositeLeft = new Composite(sashForm, SWT.BORDER);
+		Composite compositeLeft = new Composite(sashForm, SWT.NONE);
 		GridLayout gl_compositeLeft = new GridLayout(1, false);
 		gl_compositeLeft.marginBottom = 3;
 		gl_compositeLeft.verticalSpacing = 0;
@@ -261,7 +268,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Composite Combo
 		Composite compositeCombo = new Composite(compositeLeft, SWT.NONE);
 		compositeCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		GridLayout gl_compositeCombo = new GridLayout(2, false);
+		GridLayout gl_compositeCombo = new GridLayout(1, false);
 		gl_compositeCombo.marginWidth = 0;
 		compositeCombo.setLayout(gl_compositeCombo);
 
@@ -283,23 +290,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.select(0);
 		currentDescriptor = loaderDescriptors.get(0);
 		combo.setEnabled(false);
-
-		// load button
-		btnLoad = new Button(compositeCombo, SWT.NONE);
-		btnLoad.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true, 1, 1));
-		btnLoad.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (combo.getSelectionIndex() == -1)
-					return;
-				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				loadPieChart();
-			}
-		});
-		btnLoad.setToolTipText("Load metric");
-		btnLoad.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
-				"icons/play.png"));
-		btnLoad.setEnabled(false);
 
 		// Composite Pie
 		compositePie = new Group(compositeLeft, SWT.NONE);
@@ -370,7 +360,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
 		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		timeComposite.setLayout(new GridLayout(3, false));
+		timeComposite.setLayout(new GridLayout(4, false));
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE);
 		timeBar.setEnabled(false);
@@ -415,6 +405,23 @@ public class StatisticsPieChartView extends FramesocPart {
 				"icons/load.png"));
 		btnSynch.setEnabled(false);
 		
+		// load button
+		btnLoad = new Button(timeComposite, SWT.NONE);
+		btnLoad.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		btnLoad.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (combo.getSelectionIndex() == -1)
+					return;
+				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				loadPieChart();
+			}
+		});
+		btnLoad.setToolTipText("Load metric");
+		btnLoad.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
+				"icons/play.png"));
+		btnLoad.setEnabled(false);
+
 		// ----------
 		// TOOL BAR
 		// ----------
