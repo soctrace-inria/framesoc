@@ -633,8 +633,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
-
-		enableActions(true);
 		
 		currentDescriptor.dirty = true;
 
@@ -722,6 +720,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							currentShownTrace.getMaxTimestamp());
 				}
 				statusText.setText(getStatus(valuesCount, valuesCount));
+				enableActions(currentDescriptor.dirty);
 
 			}
 		});
