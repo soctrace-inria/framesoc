@@ -47,7 +47,7 @@ public class EventLoader implements IEventLoader {
 	private static final Logger logger = LoggerFactory.getLogger(EventLoader.class);
 
 	// constants
-	private final int EVENTS_PER_QUERY = 100000;
+	private final int EVENTS_PER_QUERY = 1;
 
 	// set by the user
 	private Trace fTrace = null;
@@ -88,8 +88,9 @@ public class EventLoader implements IEventLoader {
 			double density = ((double) fTrace.getNumberOfEvents()) / duration;
 			Assert.isTrue(density != 0, "The density cannot be 0");
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
 			int totalWork = (int) ((double) duration / intervalDuration);
-
+			
 			// read the time window, interval by interval
 			monitor.beginTask("Loading Event Table", totalWork);
 			int oldWorked = 0;
@@ -101,7 +102,7 @@ public class EventLoader implements IEventLoader {
 			 */
 			//boolean first = true;
 			long t0 = start;
-			while (t0 <= end) {
+			while (t0 < end) {
 				// check if cancelled
 				if (checkCancel(monitor)) {
 					return;
@@ -110,17 +111,17 @@ public class EventLoader implements IEventLoader {
 				// load interval
 				long t1 = Math.min(end, t0 + intervalDuration);
 				//List<Event> events = loadInterval(first, (t1 >= end), t0, t1, monitor);
-				List<Event> events = loadInterval(false, (t1 >= end), t0, t1, monitor);
+				boolean last = (t1 >= end);
+				List<Event> events = loadInterval(false, last, t0, t1, monitor);
 				debug(events);
 				if (checkCancel(monitor)) {
 					return;
 				}
 
 				// check for empty regions
-				if (events.size() == 0) {
-					long oldt0 = t0;
-					t0 = getNextTimestampAfter(t1);
-					logger.debug("saved " + ((t0 - oldt0) / intervalDuration) + " queries.");
+				if (events.size() == 0 && !last) {
+					t0 = getNextTimestampStartingFrom(t1);
+					logger.debug("saved " + ((t0 - t1) / intervalDuration) + " queries.");
 					continue;
 				}
 
@@ -132,7 +133,7 @@ public class EventLoader implements IEventLoader {
 				int worked = (int) ((double) (t0 - start) / intervalDuration);
 				monitor.worked(Math.max(0, worked - oldWorked));
 				oldWorked = worked;
-				t0 = t1 + 1;
+				t0 = t1;
 				//first = false;
 			}
 
@@ -184,8 +185,7 @@ public class EventLoader implements IEventLoader {
 				LogicalCondition and = new LogicalCondition(LogicalOperation.AND);
 				and.addCondition(new SimpleCondition("TIMESTAMP", ComparisonOperation.GE, String
 						.valueOf(t0)));
-				ComparisonOperation end = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
-				and.addCondition(new SimpleCondition("TIMESTAMP", end, String.valueOf(t1)));
+				and.addCondition(new SimpleCondition("TIMESTAMP", endComp, String.valueOf(t1)));
 				query.setElementWhere(and);
 			}
 			query.setOrderBy("TIMESTAMP", OrderBy.ASC);
@@ -205,13 +205,13 @@ public class EventLoader implements IEventLoader {
 		return false;
 	}
 
-	private long getNextTimestampAfter(long end) {
+	private long getNextTimestampStartingFrom(long end) {
 		long next = end + 1;
 		try {
 			Statement stm = getTraceDB().getConnection().createStatement();
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP > "
+			ResultSet rs = stm.executeQuery("SELECT MIN(TIMESTAMP) FROM EVENT WHERE TIMESTAMP >= "
 					+ end);
 			logger.debug(dm.endMessage("exec query"));
 			while (rs.next()) {
