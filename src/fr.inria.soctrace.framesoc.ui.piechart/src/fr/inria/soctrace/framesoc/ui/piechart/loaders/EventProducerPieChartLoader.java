@@ -52,7 +52,7 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 	}
 	
 	@Override
-	protected int doRequest(long t0, long t1, boolean last, Map<String, Double> values,
+	protected int doRequest(long t0, long t1, boolean first, boolean last, Map<String, Double> values,
 			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException {
 
 		// lazily load the producer map
@@ -98,6 +98,11 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 				epMap.put(ep.getId(), ep.getWholeName());
 			}
 		}
+	}
+
+	@Override
+	protected void reset() {
+		// NOP
 	}
 	
 }

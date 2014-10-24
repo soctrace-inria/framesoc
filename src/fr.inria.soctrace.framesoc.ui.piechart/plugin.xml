@@ -40,6 +40,12 @@
       <pieLoader
             loaderClass="fr.inria.soctrace.framesoc.ui.piechart.loaders.EventProducerPieChartLoader">
       </pieLoader>
+      <pieLoader
+            loaderClass="fr.inria.soctrace.framesoc.ui.piechart.loaders.StateDurationPieChartLoader">
+      </pieLoader>
+      <pieLoader
+            loaderClass="fr.inria.soctrace.framesoc.ui.piechart.loaders.LinkDurationPieChartLoader">
+      </pieLoader>
    </extension>
 
 </plugin>

@@ -48,6 +48,9 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		TraceDBObject traceDB = null;
 
 		try {
+			
+			reset();
+			
 			DeltaManager dm = new DeltaManager();
 			dm.start();
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
@@ -63,16 +66,22 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 
 			long t0 = requestedInterval.startTimestamp;
 			TimeInterval loadedInterval = new TimeInterval(t0, 0);
+
+			// if we are loading the metric from the beginning of the trace, the first interval is
+			// not different from the others
+			boolean first = (t0 != trace.getMinTimestamp());
+
 			while (t0 <= requestedInterval.endTimestamp) {
 
 				if (checkCancel(map, monitor)) {
 					return;
 				}
-				
+
 				// load interval
 				long t1 = Math.min(requestedInterval.endTimestamp, t0 + intervalDuration);
-				int results = doRequest(t0, t1, (t1 >= requestedInterval.endTimestamp), values,
-						traceDB, monitor);
+				int results = doRequest(t0, t1, first, (t1 >= requestedInterval.endTimestamp),
+						values, traceDB, monitor);
+				first = false;
 				logger.debug("Loaded: " + results);
 
 				if (checkCancel(map, monitor)) {
@@ -110,6 +119,37 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 
 	}
 
+	/**
+	 * Perform the request to load the statistic for the given time interval.
+	 * 
+	 * @param t0
+	 *            start timestamp
+	 * @param t1
+	 *            end timestamp
+	 * @param first
+	 *            flag indicating if we are requesting the first interval
+	 * @param last
+	 *            flag indicating if we are requesting the last interval
+	 * @param values
+	 *            map to update with new results
+	 * @param traceDB
+	 *            trace DB object
+	 * @param monitor
+	 *            progress monitor
+	 * @return the number of results of the query
+	 * @throws SoCTraceException
+	 */
+	protected abstract int doRequest(long t0, long t1, boolean first, boolean last,
+			Map<String, Double> values, TraceDBObject traceDB, IProgressMonitor monitor)
+			throws SoCTraceException;
+
+	/**
+	 * This method is called by the parent class before starting a new load operation. This way the
+	 * son class can possibly clean any data structure keeping the state for the current loading
+	 * operation.
+	 */
+	protected abstract void reset();
+
 	private long getNextTimestampAfter(TraceDBObject traceDB, long end) {
 		long next = end + 1;
 		try {
@@ -131,9 +171,6 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 		}
 		return Math.max(next, end + 1);
 	}
-
-	protected abstract int doRequest(long t0, long t1, boolean last, Map<String, Double> values,
-			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException;
 
 	private boolean checkCancel(PieChartLoaderMap map, IProgressMonitor monitor) {
 		if (monitor.isCanceled()) {
