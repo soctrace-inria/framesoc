@@ -20,6 +20,8 @@
 
 package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -35,20 +37,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.ViewerFilter;
-import fr.inria.linuxtools.tmf.core.timestamp.ITmfTimestamp;
-import fr.inria.linuxtools.tmf.core.timestamp.TmfNanoTimestamp;
-import fr.inria.linuxtools.tmf.core.timestamp.TmfTimestampDelta;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphColorListener;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTimeListener;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTreeListener;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.StateItem;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTreeExpansionEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -80,6 +68,18 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ScrollBar;
+
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphColorListener;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTimeListener;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTreeListener;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.StateItem;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTreeExpansionEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 
 /**
  * Time graph control implementation
@@ -2079,7 +2079,11 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
     }
 
+    /*
+     * @Framesoc: Removed TmfNanoTimestamp, using "###.#E0" format instead.
+     */
     private void updateStatusLine(int x) {
+        NumberFormat formatter = new DecimalFormat("###.#E0"); //$NON-NLS-1$
         if (fStatusLineManager == null || null == fTimeProvider ||
                 fTimeProvider.getTime0() == fTimeProvider.getTime1()) {
             return;
@@ -2089,28 +2093,28 @@ public class TimeGraphControl extends TimeGraphBaseControl
             long time = getTimeAtX(x);
             if (time >= 0) {
                 message.append("T: "); //$NON-NLS-1$
-                message.append(new TmfNanoTimestamp(time).toString());
+                message.append(formatter.format(time));
                 message.append("     T1: "); //$NON-NLS-1$
                 long selectionBegin = fTimeProvider.getSelectionBegin();
                 long selectionEnd = fTimeProvider.getSelectionEnd();
-                message.append(new TmfNanoTimestamp(Math.min(selectionBegin, selectionEnd)).toString());
+                message.append(formatter.format(Math.min(selectionBegin, selectionEnd)));
                 if (selectionBegin != selectionEnd) {
                     message.append("     T2: "); //$NON-NLS-1$
-                    message.append(new TmfNanoTimestamp(Math.max(selectionBegin, selectionEnd)).toString());
+                    message.append(formatter.format(Math.max(selectionBegin, selectionEnd)));
                     message.append("     \u0394: "); //$NON-NLS-1$
-                    message.append(new TmfTimestampDelta(Math.abs(selectionBegin - selectionEnd), ITmfTimestamp.NANOSECOND_SCALE));
+                    message.append(formatter.format(Math.abs(selectionBegin - selectionEnd)));
                 }
             }
         } else if (fDragState == DRAG_SELECTION || fDragState == DRAG_ZOOM) {
             long time0 = fDragTime0;
             long time = getTimeAtX(fDragX);
             message.append("T1: "); //$NON-NLS-1$
-            message.append(new TmfNanoTimestamp(Math.min(time, time0)).toString());
+            message.append(formatter.format(Math.min(time, time0)));
             if (time != time0) {
                 message.append("     T2: "); //$NON-NLS-1$
-                message.append(new TmfNanoTimestamp(Math.max(time, time0)).toString());
+                message.append(formatter.format(Math.max(time, time0)));
                 message.append("     \u0394: "); //$NON-NLS-1$
-                message.append(new TmfTimestampDelta(Math.abs(time - time0), ITmfTimestamp.NANOSECOND_SCALE));
+                message.append(formatter.format(Math.abs(time - time0)));
             }
         }
         fStatusLineManager.setMessage(message.toString());
