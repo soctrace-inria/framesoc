@@ -11,19 +11,15 @@
 package fr.inria.soctrace.tools.importer.otf2;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ArgumentsManager;
-import fr.inria.soctrace.framesoc.core.tools.management.ILineProcessor;
 import fr.inria.soctrace.framesoc.core.tools.management.PluginImporterJob;
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
@@ -35,7 +31,6 @@ import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 import fr.inria.soctrace.tools.importer.otf2.core.Otf2Constants;
 import fr.inria.soctrace.tools.importer.otf2.core.Otf2Parser;
-import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
 /**
  * Otf2 importer tool.
@@ -62,7 +57,7 @@ public class Otf2Importer extends FramesocTool {
 		public void run(IProgressMonitor monitor) {
 			DeltaManager delta = new DeltaManager();
 			delta.start();
-			
+
 			logger.debug("Args: ");
 			for (String s : args) {
 				logger.debug(s);
@@ -135,28 +130,12 @@ public class Otf2Importer extends FramesocTool {
 		return true;
 	}
 
-	/*@Override
+	@Override
 	public void launch(String[] args) {
 		PluginImporterJob job = new PluginImporterJob("Otf2 Importer",
 				new Otf2ImporterPluginJobBody(args));
 		job.setUser(true);
 		job.schedule();
-	}*/
-	
-	@Override
-	public void launch(String[] args) {
-	   System.out.println("Executing the wrapper"); 
-	   List<String> cargs = new ArrayList<String>();
-	   cargs.add("-G");
-	   cargs.add("/home/youenn/Documents/traces/ex_otf2/mpi_only/rennes_64_cg.C.64/traces.otf2"); 
-	   Otf2PrintWrapper wrapper = new Otf2PrintWrapper(cargs);
-	   wrapper.execute(new NullProgressMonitor(), new ILineProcessor() {
-	     @Override
-	     public void process(String line) {
-	       System.out.println("processing : " + line);
-	     }
-	  });
-	  System.out.println("End of test");
 	}
 
 	@Override

@@ -6,8 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
