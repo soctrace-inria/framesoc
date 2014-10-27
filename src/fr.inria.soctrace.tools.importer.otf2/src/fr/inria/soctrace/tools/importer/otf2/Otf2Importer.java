@@ -110,7 +110,6 @@ public class Otf2Importer extends FramesocTool {
 				delta.end("Import trace");
 			}
 
-			delta.end("All trace imported");
 		}
 
 	}
