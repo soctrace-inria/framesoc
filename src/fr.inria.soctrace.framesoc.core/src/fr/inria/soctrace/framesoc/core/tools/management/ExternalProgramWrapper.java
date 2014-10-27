@@ -67,7 +67,7 @@ public class ExternalProgramWrapper {
 			
 			BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";
-			while ((line = bri.readLine()) != null) {
+			while ((line = bri.readLine()) != null && !monitor.isCanceled()) {
 				processor.process(line);
 			}
 			bri.close();
