@@ -12,6 +12,8 @@ package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
@@ -19,6 +21,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.lib.model.Event;
+import fr.inria.soctrace.lib.model.EventParam;
 import fr.inria.soctrace.lib.model.EventParamType;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
@@ -41,12 +45,17 @@ public class Otf2Parser {
 	private TraceDBObject traceDB;
 	private String traceFile;
 
-	private Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
-	private Map<String, EventType> types = new HashMap<String, EventType>();
-	private int numberOfEvents = 0;
-	private long minTimestamp;
-	private long maxTimestamp;
-
+	public Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
+	public Map<Integer, EventProducer> idProducersMap = new HashMap<Integer, EventProducer>();
+	public Map<String, EventType> types = new HashMap<String, EventType>();
+	public List<Event> elist = new LinkedList<Event>();
+	public int numberOfEvents = 0;
+	public long minTimestamp = -1;
+	public long maxTimestamp = -1;
+	// Start of the time stamp so that we avoid having big timestamp
+	public long timeOffset = 0;
+	public int page = 0;
+	
 	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile) {
 		this.traceFile = traceFile;
 		this.sysDB = sysDB;
@@ -86,9 +95,30 @@ public class Otf2Parser {
 	 * @throws SoCTraceException
 	 */
 	private boolean parseRawTrace(IProgressMonitor monitor) throws SoCTraceException {
+		Otf2PreParser aPreParse = new Otf2PreParser(this);
+		aPreParse.parseDef();
+		
+		Otf2StateParser aStateParser = new  Otf2StateParser(this);
+		aStateParser.parseState(monitor);
 		return true;
 	}
 
+	public void saveEvents(List<Event> events) throws SoCTraceException {
+		for (Event e : events) {
+			try {
+				e.check();
+			} catch (SoCTraceException ex) {
+				logger.debug(ex.getMessage());
+				throw new SoCTraceException(ex);
+			}
+			traceDB.save(e);
+			for (EventParam ep : e.getEventParams()) {
+				traceDB.save(ep);
+			}
+		}
+		traceDB.commit(); // committing each page is faster
+	}
+	
 	private void saveProducers() throws SoCTraceException {
 		Collection<EventProducer> eps = producersMap.values();
 		for (EventProducer ep : eps) {
