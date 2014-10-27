@@ -23,6 +23,9 @@ import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOper
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 
 /**
+ * Pie Chart loader for Event Producer instances metric (i.e., how many event
+ * instances for each event producer).
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventProducerPieChartLoader extends EventPieChartLoader {
@@ -50,14 +53,15 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 		FramesocColorManager.getInstance().saveEventProducerColors();
 		return color;
 	}
-	
+
 	@Override
-	protected int doRequest(long t0, long t1, boolean first, boolean last, Map<String, Double> values,
-			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException {
+	protected int doRequest(long t0, long t1, boolean first, boolean last,
+			Map<String, Double> values, TraceDBObject traceDB, IProgressMonitor monitor)
+			throws SoCTraceException {
 
 		// lazily load the producer map
 		loadEventProducerMap(traceDB);
-		
+
 		// execute query
 		ComparisonOperation lastComp = last ? ComparisonOperation.LE : ComparisonOperation.LT;
 		String query = "SELECT EVENT_PRODUCER_ID, COUNT(*) AS NUMBER FROM EVENT "
@@ -99,5 +103,5 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 			}
 		}
 	}
-	
+
 }

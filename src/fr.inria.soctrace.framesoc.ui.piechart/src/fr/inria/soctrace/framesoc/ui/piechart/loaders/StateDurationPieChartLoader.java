@@ -6,6 +6,8 @@ package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 
 /**
+ * Pie Chart loader for state duration.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class StateDurationPieChartLoader extends DurationPieChartLoader {

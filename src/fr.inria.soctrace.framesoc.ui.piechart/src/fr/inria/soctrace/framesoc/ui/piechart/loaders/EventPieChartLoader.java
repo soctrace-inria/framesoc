@@ -24,6 +24,11 @@ import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
+ * Base abstract class for event Pie Chart loaders. It performs aggregation and
+ * the load method skips empty regions to avoid useless queries.
+ * 
+ * Concrete classes have to override the {@link #doRequest()} method.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
@@ -59,7 +64,7 @@ public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
 			double density = ((double) trace.getNumberOfEvents()) / duration;
 			Assert.isTrue(density != 0, "The density cannot be 0");
 			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
-			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive"); 
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
 
 			Map<String, Double> values = new HashMap<>();
 

@@ -26,6 +26,8 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 
 /**
+ * Base abstract class for Pie Chart loaders.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class PieChartLoader implements IPieChartLoader {

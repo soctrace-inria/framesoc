@@ -23,6 +23,9 @@ import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOper
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 
 /**
+ * Pie Chart loader for Event Type instances metric (i.e., how many event
+ * instances for each event type).
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class EventTypePieChartLoader extends EventPieChartLoader {
@@ -31,7 +34,7 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 	 * Logger
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(EventTypePieChartLoader.class);
-	
+
 	/**
 	 * Event type map.
 	 */
@@ -41,7 +44,7 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 	public String getStatName() {
 		return "Event Type Instances";
 	}
-	
+
 	@Override
 	public FramesocColor getColor(String name) {
 		if (name.equals(AGGREGATED_LABEL))
@@ -52,12 +55,13 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 	}
 
 	@Override
-	protected int doRequest(long t0, long t1, boolean first, boolean last, Map<String, Double> values,
-			TraceDBObject traceDB, IProgressMonitor monitor) throws SoCTraceException {
+	protected int doRequest(long t0, long t1, boolean first, boolean last,
+			Map<String, Double> values, TraceDBObject traceDB, IProgressMonitor monitor)
+			throws SoCTraceException {
 
 		// lazily load the type map
 		loadEventTypeMap(traceDB);
-		
+
 		// execute query
 		ComparisonOperation lastComp = last ? ComparisonOperation.LE : ComparisonOperation.LT;
 		String query = "SELECT EVENT_TYPE_ID, COUNT(*) AS NUMBER FROM EVENT "
