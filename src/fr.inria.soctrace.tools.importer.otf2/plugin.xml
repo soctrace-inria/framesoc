@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="fr.inria.soctrace.framesoc.core.tool">
+      <tool
+            class="fr.inria.soctrace.tools.importer.otf2.Otf2Importer"
+            doc="Select the OTF2 anchor file."
+            name="OTF2 Importer"
+            type="IMPORT">
+      </tool>
+   </extension>
+
+</plugin>
