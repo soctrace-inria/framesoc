@@ -58,7 +58,7 @@ public class TraceDBObject extends DBObject {
 	@Override
 	protected void createDB() throws SoCTraceException {
 		
-		if ( dbManager.isDBExisting() )
+		if (dbManager.isDBExisting())
 			throw new SoCTraceException("Database "+dbManager.getDBName()+" already present");
 		
 		// create the DB and the tables
