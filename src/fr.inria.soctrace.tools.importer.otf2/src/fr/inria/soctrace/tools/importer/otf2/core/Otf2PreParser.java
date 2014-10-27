@@ -1,38 +1,45 @@
 package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.utils.IdManager;
+import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
+/**
+ * TODO
+ * - add support to hierarchy file (cfr. mail Damien)
+ */
 public class Otf2PreParser {
 
-	String defFile;
-	Otf2Parser theParser;
+	private Otf2Parser theParser;
 	private IdManager etIdManager = new IdManager();
 	private IdManager epIdManager = new IdManager();
-	
+
 	public Otf2PreParser(Otf2Parser aParser) {
 		theParser = aParser;
-		defFile = "/home/youenn/Documents/traces/ex_otf2/mpi_only/rennes_64_cg.C.64/printG.txt";
 	}
 
-	public void parseDef() {
+	public void parseDef(IProgressMonitor monitor) {
 
-		BufferedReader br;
 		try {
-			br = new BufferedReader(new InputStreamReader(new DataInputStream(
-					new FileInputStream(defFile))));
+			List<String> args = new ArrayList<String>();
+			args.add("-G");
+			args.add(theParser.getTraceFile());
+			Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
+
+			BufferedReader br = wrapper.execute(monitor);
 
 			String line;
-			while ((line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null && !monitor.isCanceled()) {
 				if (line.isEmpty() || !line.contains(" "))
 					continue;
 
@@ -50,6 +57,7 @@ public class Otf2PreParser {
 					parseTreeNode(line);
 				}
 			}
+			br.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -96,12 +104,10 @@ public class Otf2PreParser {
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_NAME)) {
 				name = groupProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote,
-						name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
 			}
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_TYPE)) {
 				type = groupProperty[1].trim();
-				;
 			}
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_PARENT)) {
 				parentName = groupProperty[1].trim();
@@ -144,14 +150,12 @@ public class Otf2PreParser {
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_NAME)) {
 				name = nodeProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote,
-						name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
 			}
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_TYPE)) {
 				type = nodeProperty[1].trim();
 				int indexOfFirstQuote = type.indexOf("\"") + 1;
-				type = type.substring(indexOfFirstQuote,
-						type.indexOf("\"", indexOfFirstQuote));
+				type = type.substring(indexOfFirstQuote, type.indexOf("\"", indexOfFirstQuote));
 			}
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_PARENT)) {
 
@@ -191,8 +195,7 @@ public class Otf2PreParser {
 			if (regionProperty[0].trim().equals(Otf2Constants.REGION_NAME)) {
 				name = regionProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote,
-						name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
 			}
 		}
 
@@ -208,8 +211,7 @@ public class Otf2PreParser {
 		return parentId;
 	}
 
-	public EventProducer createProducer(String name, int id, String type,
-			int pid) {
+	public EventProducer createProducer(String name, int id, String type, int pid) {
 		EventProducer anEP = new EventProducer(epIdManager.getNextId());
 
 		anEP.setName(name);

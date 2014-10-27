@@ -1,12 +1,10 @@
 package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -14,28 +12,29 @@ import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.State;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.IdManager;
+import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
 public class Otf2StateParser {
-	String eventFile;
-	Otf2Parser theParser;
+	
+	private Otf2Parser theParser;
 	private IdManager eIdManager = new IdManager();
 	
-	HashMap<EventProducer, State> stateMaps = new HashMap<EventProducer, State>();
+	private HashMap<EventProducer, State> stateMaps = new HashMap<EventProducer, State>();
 
 	public Otf2StateParser(Otf2Parser aParser) {
 		theParser = aParser;
-		eventFile = "/home/youenn/Documents/traces/ex_otf2/mpi_only/rennes_64_cg.C.64/print.txt";
 	}
 
 	public void parseState(IProgressMonitor monitor) {
 
-		BufferedReader br;
 		try {
-			br = new BufferedReader(new InputStreamReader(new DataInputStream(
-					new FileInputStream(eventFile))));
+			List<String> args = new ArrayList<String>();
+			args.add(theParser.getTraceFile());
+			Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
+			BufferedReader br = wrapper.execute(monitor);
 
 			String line;
-			while ((line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null && !monitor.isCanceled()) {
 				if (line.isEmpty() || !line.contains(" "))
 					continue;
 
@@ -63,11 +62,8 @@ public class Otf2StateParser {
 				theParser.numberOfEvents += theParser.elist.size();
 				theParser.elist.clear();
 			}
-	
 			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			br.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

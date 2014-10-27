@@ -45,6 +45,9 @@ public class Otf2Parser {
 	private TraceDBObject traceDB;
 	private String traceFile;
 
+	/** XXX FIXME WARNING **/
+	// All this CANNOT be public!
+	// Either we expose some getter/setter or we put the user code in this class.
 	public Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
 	public Map<Integer, EventProducer> idProducersMap = new HashMap<Integer, EventProducer>();
 	public Map<String, EventType> types = new HashMap<String, EventType>();
@@ -55,11 +58,15 @@ public class Otf2Parser {
 	// Start of the time stamp so that we avoid having big timestamp
 	public long timeOffset = 0;
 	public int page = 0;
-	
+
 	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile) {
 		this.traceFile = traceFile;
 		this.sysDB = sysDB;
 		this.traceDB = traceDB;
+	}
+
+	public String getTraceFile() {
+		return traceFile;
 	}
 
 	/**
@@ -75,8 +82,14 @@ public class Otf2Parser {
 
 		try {
 			monitor.beginTask("Import trace " + traceFile, Otf2Constants.WORK);
-			// Trace Events, EventTypes and Producers
-			boolean complete = parseRawTrace(monitor);
+			
+			// preparse
+			if (!preparse(monitor))
+				return;
+			
+			// parse
+			boolean complete = parse(monitor);
+			
 			saveProducers();
 			saveTypes();
 			saveTraceMetadata(!complete);
@@ -86,21 +99,16 @@ public class Otf2Parser {
 
 	}
 
-	/**
-	 * Main parsing method
-	 * 
-	 * @param monitor
-	 *            progress monitor
-	 * @return true if the trace was completely imported
-	 * @throws SoCTraceException
-	 */
-	private boolean parseRawTrace(IProgressMonitor monitor) throws SoCTraceException {
-		Otf2PreParser aPreParse = new Otf2PreParser(this);
-		aPreParse.parseDef();
-		
-		Otf2StateParser aStateParser = new  Otf2StateParser(this);
+	private boolean preparse(IProgressMonitor monitor) {
+		Otf2PreParser aPreParser = new Otf2PreParser(this);
+		aPreParser.parseDef(monitor);
+		return !monitor.isCanceled();
+	}
+	
+	private boolean parse(IProgressMonitor monitor) {
+		Otf2StateParser aStateParser = new Otf2StateParser(this);
 		aStateParser.parseState(monitor);
-		return true;
+		return !monitor.isCanceled();
 	}
 
 	public void saveEvents(List<Event> events) throws SoCTraceException {
@@ -118,7 +126,7 @@ public class Otf2Parser {
 		}
 		traceDB.commit(); // committing each page is faster
 	}
-	
+
 	private void saveProducers() throws SoCTraceException {
 		Collection<EventProducer> eps = producersMap.values();
 		for (EventProducer ep : eps) {
