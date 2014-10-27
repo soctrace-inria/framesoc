@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Otf2
+Bundle-SymbolicName: fr.inria.soctrace.tools.importer.otf2;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fr.inria.soctrace.tools.importer.otf2.Activator
+Bundle-Vendor: INRIA
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ fr.inria.soctrace.framesoc.core,
+ fr.inria.soctrace.lib.storage,
+ fr.inria.soctrace.lib.model,
+ fr.inria.soctrace.lib.slf4j,
+ fr.inria.soctrace.lib.utils
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Import-Package: org.apache.commons.io
