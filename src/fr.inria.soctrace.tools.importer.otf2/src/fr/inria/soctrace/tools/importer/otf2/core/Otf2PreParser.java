@@ -1,7 +1,6 @@
 package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +13,6 @@ import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.utils.IdManager;
 import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
-/**
- * TODO
- * - add support to hierarchy file (cfr. mail Damien)
- */
 public class Otf2PreParser {
 
 	private Otf2Parser theParser;
@@ -29,7 +24,6 @@ public class Otf2PreParser {
 	}
 
 	public void parseDef(IProgressMonitor monitor) {
-
 		try {
 			List<String> args = new ArrayList<String>();
 			args.add("-G");
@@ -39,6 +33,7 @@ public class Otf2PreParser {
 			BufferedReader br = wrapper.execute(monitor);
 
 			String line;
+
 			while ((line = br.readLine()) != null && !monitor.isCanceled()) {
 				if (line.isEmpty() || !line.contains(" "))
 					continue;
@@ -57,10 +52,29 @@ public class Otf2PreParser {
 					parseTreeNode(line);
 				}
 			}
+
+			theParser.types
+					.put(Otf2Constants.MPI_COMM,
+							createEventType(Otf2Constants.MPI_COMM,
+									EventCategory.LINK));
+			theParser.types.put(
+					Otf2Constants.MPI_COLLECTIVE,
+					createEventType(Otf2Constants.MPI_COLLECTIVE,
+							EventCategory.PUNCTUAL_EVENT));
+			theParser.types.put(
+					Otf2Constants.MPI_RECEIVE_REQUEST,
+					createEventType(Otf2Constants.MPI_RECEIVE_REQUEST,
+							EventCategory.PUNCTUAL_EVENT));
+			theParser.types.put(
+					Otf2Constants.MPI_SEND_COMPLETE,
+					createEventType(Otf2Constants.MPI_SEND_COMPLETE,
+							EventCategory.PUNCTUAL_EVENT));
+			theParser.types.put(
+					Otf2Constants.MPI_METRIC,
+					createEventType(Otf2Constants.MPI_METRIC,
+							EventCategory.PUNCTUAL_EVENT));
+
 			br.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -72,7 +86,8 @@ public class Otf2PreParser {
 		conf = conf.trim();
 		String[] clockInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
 		for (int i = 0; i < clockInfo.length; i++) {
-			String[] clockProperty = clockInfo[i].split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] clockProperty = clockInfo[i]
+					.split(Otf2Constants.PARAMETER_SEPARATOR);
 			if (clockProperty[0].trim().equals(Otf2Constants.CLOCK_TIME_OFFSET)) {
 				theParser.timeOffset = Long.parseLong(clockProperty[1].trim());
 			}
@@ -99,12 +114,14 @@ public class Otf2PreParser {
 
 		String[] groupInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
 		for (int i = 0; i < groupInfo.length; i++) {
-			String[] groupProperty = groupInfo[i].split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] groupProperty = groupInfo[i]
+					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_NAME)) {
 				name = groupProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote,
+						name.indexOf("\"", indexOfFirstQuote));
 			}
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_TYPE)) {
 				type = groupProperty[1].trim();
@@ -121,7 +138,8 @@ public class Otf2PreParser {
 			}
 		}
 
-		theParser.producersMap.put(name, createProducer(name, id, type, parentId));
+		theParser.producersMap.put(name,
+				createProducer(name, id, type, parentId));
 		theParser.idProducersMap.put(id, theParser.producersMap.get(name));
 	}
 
@@ -145,17 +163,20 @@ public class Otf2PreParser {
 
 		String[] nodeInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
 		for (int i = 0; i < nodeInfo.length; i++) {
-			String[] nodeProperty = nodeInfo[i].split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] nodeProperty = nodeInfo[i]
+					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_NAME)) {
 				name = nodeProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote,
+						name.indexOf("\"", indexOfFirstQuote));
 			}
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_TYPE)) {
 				type = nodeProperty[1].trim();
 				int indexOfFirstQuote = type.indexOf("\"") + 1;
-				type = type.substring(indexOfFirstQuote, type.indexOf("\"", indexOfFirstQuote));
+				type = type.substring(indexOfFirstQuote,
+						type.indexOf("\"", indexOfFirstQuote));
 			}
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_PARENT)) {
 
@@ -169,7 +190,8 @@ public class Otf2PreParser {
 			}
 		}
 
-		theParser.producersMap.put(name, createProducer(name, id, type, parentId));
+		theParser.producersMap.put(name,
+				createProducer(name, id, type, parentId));
 		theParser.idProducersMap.put(id, theParser.producersMap.get(name));
 	}
 
@@ -190,16 +212,18 @@ public class Otf2PreParser {
 		conf = conf.trim();
 		String[] regionInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
 		for (int i = 0; i < regionInfo.length; i++) {
-			String[] regionProperty = regionInfo[i].split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] regionProperty = regionInfo[i]
+					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
 			if (regionProperty[0].trim().equals(Otf2Constants.REGION_NAME)) {
 				name = regionProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
-				name = name.substring(indexOfFirstQuote, name.indexOf("\"", indexOfFirstQuote));
+				name = name.substring(indexOfFirstQuote,
+						name.indexOf("\"", indexOfFirstQuote));
 			}
 		}
 
-		theParser.types.put(name, createEventType(name, id, EventCategory.STATE));
+		theParser.types.put(name, createEventType(name, EventCategory.STATE));
 	}
 
 	public int getParentId(String aParent) {
@@ -211,7 +235,8 @@ public class Otf2PreParser {
 		return parentId;
 	}
 
-	public EventProducer createProducer(String name, int id, String type, int pid) {
+	public EventProducer createProducer(String name, int id, String type,
+			int pid) {
 		EventProducer anEP = new EventProducer(epIdManager.getNextId());
 
 		anEP.setName(name);
@@ -222,7 +247,7 @@ public class Otf2PreParser {
 		return anEP;
 	}
 
-	public EventType createEventType(String name, int id, int aCat) {
+	public EventType createEventType(String name, int aCat) {
 		EventType anET = new EventType(etIdManager.getNextId(), aCat);
 
 		anET.setName(name);

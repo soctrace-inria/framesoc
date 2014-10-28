@@ -36,6 +36,14 @@ public class Otf2Constants {
 	public static final String TRACE_EXT = ".otf2";
 		
 	/**
+	 * Category labels
+	 */
+	public static final String EVENT = "Event";
+	public static final String STATE = "State";
+	public static final String LINK = "Link";
+	public static final String VARIABLE = "Variable";
+	
+	/**
 	 * Global definition parsing constants
 	 */
 	final static String PROPERTY_SEPARATOR = ",";
@@ -63,5 +71,26 @@ public class Otf2Constants {
 	 */
 	final static String ENTER_STATE = "ENTER";
 	final static String LEAVE_STATE = "LEAVE";
+	
+	final static String METRIC = "METRIC";
+	final static String MPI_RECV = "MPI_RECV";
+	final static String MPI_SEND = "MPI_SEND";
+	final static String MPI_IRECV = "MPI_IRECV";
+	final static String MPI_ISEND = "MPI_ISEND";
+	final static String MPI_IRECV_REQUEST = "MPI_IRECV_REQUEST";
+	final static String MPI_ISEND_COMPLETE = "MPI_ISEND_COMPLETE";
+	final static String MPI_COLLECTIVE_BEGIN = "MPI_COLLECTIVE_BEGIN";
+	final static String MPI_COLLECTIVE_END = "MPI_COLLECTIVE_END";
+	
+	/**
+	 * Artificial event type
+	 */
+	final static String MPI_COMM = "MPI_COMM";
+	final static String MPI_COLLECTIVE = "MPI_COLLECTIVE";
+	final static String MPI_RECEIVE_REQUEST = "MPI_RECEIVE_REQUEST";
+	final static String MPI_SEND_COMPLETE = "MPI_SEND_COMPLETE";
+	final static String MPI_METRIC = "MPI_METRIC";
+	
+	
 	
 }
