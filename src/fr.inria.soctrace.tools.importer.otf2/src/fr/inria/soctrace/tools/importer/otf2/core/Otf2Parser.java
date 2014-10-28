@@ -55,7 +55,7 @@ public class Otf2Parser {
 	public int numberOfEvents = 0;
 	public long minTimestamp = -1;
 	public long maxTimestamp = -1;
-	// Start of the time stamp so that we avoid having big timestamp
+	// Start of the time stamp so that we avoid having big timestamps
 	public long timeOffset = 0;
 	public int page = 0;
 
