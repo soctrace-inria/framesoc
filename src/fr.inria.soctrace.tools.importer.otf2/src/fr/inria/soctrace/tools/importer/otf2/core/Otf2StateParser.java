@@ -15,11 +15,14 @@ import fr.inria.soctrace.lib.utils.IdManager;
 import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
 public class Otf2StateParser {
-	
+
 	private Otf2Parser theParser;
 	private IdManager eIdManager = new IdManager();
-	
-	private HashMap<EventProducer, State> stateMaps = new HashMap<EventProducer, State>();
+
+	// Keep the current states for each event producer
+	// It must be able to hold several states since it is possible to have state
+	// embedding
+	private HashMap<EventProducer, List<State>> stateMaps = new HashMap<EventProducer, List<State>>();
 
 	public Otf2StateParser(Otf2Parser aParser) {
 		theParser = aParser;
@@ -45,13 +48,13 @@ public class Otf2StateParser {
 				if (keyword.equals(Otf2Constants.LEAVE_STATE)) {
 					parseLeavingState(line);
 				}
-				
+
 				if (theParser.elist.size() == Otf2Constants.PAGE_SIZE)
 					theParser.page++;
 
 				if (theParser.elist.size() >= Otf2Constants.PAGE_SIZE) {
 					theParser.saveEvents(theParser.elist);
-					
+
 					theParser.numberOfEvents += theParser.elist.size();
 					theParser.elist.clear();
 				}
@@ -62,7 +65,7 @@ public class Otf2StateParser {
 				theParser.numberOfEvents += theParser.elist.size();
 				theParser.elist.clear();
 			}
-			
+
 			br.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -75,20 +78,20 @@ public class Otf2StateParser {
 
 	public void parseEnteringState(String aLine) {
 		State aState = new State(eIdManager.getNextId());
-		
+
 		long timeStamp;
 		int epId;
 		String eventName = "";
-		
+
 		String conf = aLine.substring(Otf2Constants.ENTER_STATE.length());
 		conf = conf.trim();
-		
+
 		// Get producer id
 		String epIdString = conf.substring(0, conf.indexOf(" "));
 		epId = Integer.valueOf(epIdString);
 		conf = conf.substring(epIdString.length());
 		conf = conf.trim();
-		
+
 		// Get timestamp
 		String timeStampString = conf.substring(0, conf.indexOf(" "));
 		timeStamp = Long.valueOf(timeStampString) - theParser.timeOffset;
@@ -101,7 +104,7 @@ public class Otf2StateParser {
 		int indexOfFirstQuote = eventName.indexOf("\"") + 1;
 		eventName = eventName.substring(indexOfFirstQuote,
 				eventName.indexOf("\"", indexOfFirstQuote));
-		
+
 		EventProducer anEp = theParser.idProducersMap.get(epId);
 		aState.setEventProducer(anEp);
 		aState.setTimestamp(timeStamp);
@@ -111,27 +114,30 @@ public class Otf2StateParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		if(theParser.minTimestamp == -1)
+
+		if (theParser.minTimestamp == -1)
 			theParser.minTimestamp = timeStamp;
-		
-		stateMaps.put(anEp, aState);
+
+		if (!stateMaps.containsKey(anEp)) {
+			stateMaps.put(anEp, new ArrayList<State>());
+		}
+		stateMaps.get(anEp).add(aState);
 	}
 
 	public void parseLeavingState(String aLine) {
 		long timeStamp;
 		int epId;
 		String eventName = "";
-		
+
 		String conf = aLine.substring(Otf2Constants.ENTER_STATE.length());
 		conf = conf.trim();
-		
+
 		// Get producer id
 		String epIdString = conf.substring(0, conf.indexOf(" "));
 		epId = Integer.valueOf(epIdString);
 		conf = conf.substring(epIdString.length());
 		conf = conf.trim();
-		
+
 		// Get timestamp
 		String timeStampString = conf.substring(0, conf.indexOf(" "));
 		timeStamp = Long.valueOf(timeStampString) - theParser.timeOffset;
@@ -144,15 +150,24 @@ public class Otf2StateParser {
 		int indexOfFirstQuote = eventName.indexOf("\"") + 1;
 		eventName = eventName.substring(indexOfFirstQuote,
 				eventName.indexOf("\"", indexOfFirstQuote));
-		
+
 		EventProducer anEp = theParser.idProducersMap.get(epId);
-		State aState = stateMaps.get(anEp);
-		if(!aState.getType().getName().equals(eventName))
-			System.out.println("Error while creating state!!!!!!");
-		
-		if(theParser.maxTimestamp < timeStamp)
+		State aState = null;
+		for (State state : stateMaps.get(anEp)) {
+			if (state.getType() == theParser.types.get(eventName)) {
+				if (aState != null) {
+					System.err
+							.println("Warning: Several states of the same type are embedded.");
+				}
+				aState = state;
+			}
+		}
+	
+		if (theParser.maxTimestamp < timeStamp)
 			theParser.maxTimestamp = timeStamp;
-		
+
+		stateMaps.get(anEp).remove(aState);
+
 		aState.setEndTimestamp(timeStamp);
 		aState.setPage(theParser.page);
 		theParser.elist.add(aState);
