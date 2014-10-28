@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.slf4j.Logger;
@@ -51,11 +50,11 @@ public class Otf2Parser {
 	public Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
 	public Map<Integer, EventProducer> idProducersMap = new HashMap<Integer, EventProducer>();
 	public Map<String, EventType> types = new HashMap<String, EventType>();
-	public List<Event> elist = new LinkedList<Event>();
+	public List<Event> eventList = new LinkedList<Event>();
 	public int numberOfEvents = 0;
 	public long minTimestamp = -1;
 	public long maxTimestamp = -1;
-	// Start of the time stamp so that we avoid having big timestamps
+	// Start of the time stamp to avoid having huge timestamps
 	public long timeOffset = 0;
 	public int page = 0;
 

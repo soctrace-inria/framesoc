@@ -40,7 +40,7 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 			throws SoCTraceException {
 		super(sysDB);
 		this.buffer.setDbName(dbName);
-		this.buffer.setAlias(alias);
+		this.buffer.setAlias(alias + getCurrentDate());
 	}
 
 	public void setNumberOfEvents(int events) {
