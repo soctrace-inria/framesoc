@@ -91,6 +91,4 @@ public class Otf2Constants {
 	final static String MPI_SEND_COMPLETE = "MPI_SEND_COMPLETE";
 	final static String MPI_METRIC = "MPI_METRIC";
 	
-	
-	
 }

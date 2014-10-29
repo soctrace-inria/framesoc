@@ -1,7 +1,6 @@
 package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +8,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.utils.IdManager;
 import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
@@ -23,8 +23,17 @@ public class Otf2PreParser {
 		theParser = aParser;
 	}
 
-	public void parseDef(IProgressMonitor monitor) {
+	/**
+	 * Parse the definition file (created with otf2-print with the -G option)
+	 * and get all sort of info (event producers, event types, etc.)
+	 * 
+	 * @param monitor
+	 * @throws SoCTraceException
+	 */
+	public void parseDefinitons(IProgressMonitor monitor)
+			throws SoCTraceException {
 		try {
+			monitor.subTask("Getting event producers and event types");
 			List<String> args = new ArrayList<String>();
 			args.add("-G");
 			args.add(theParser.getTraceFile());
@@ -53,34 +62,19 @@ public class Otf2PreParser {
 				}
 			}
 
-			theParser.types
-					.put(Otf2Constants.MPI_COMM,
-							createEventType(Otf2Constants.MPI_COMM,
-									EventCategory.LINK));
-			theParser.types.put(
-					Otf2Constants.MPI_COLLECTIVE,
-					createEventType(Otf2Constants.MPI_COLLECTIVE,
-							EventCategory.PUNCTUAL_EVENT));
-			theParser.types.put(
-					Otf2Constants.MPI_RECEIVE_REQUEST,
-					createEventType(Otf2Constants.MPI_RECEIVE_REQUEST,
-							EventCategory.PUNCTUAL_EVENT));
-			theParser.types.put(
-					Otf2Constants.MPI_SEND_COMPLETE,
-					createEventType(Otf2Constants.MPI_SEND_COMPLETE,
-							EventCategory.PUNCTUAL_EVENT));
-			theParser.types.put(
-					Otf2Constants.MPI_METRIC,
-					createEventType(Otf2Constants.MPI_METRIC,
-							EventCategory.PUNCTUAL_EVENT));
+			createStaticTypes();
 
 			br.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new SoCTraceException(e);
 		}
 	}
 
+	/**
+	 * Get the starting time offset for the timestamps
+	 * 
+	 * @param aLine
+	 */
 	public void parseClockProperties(String aLine) {
 		String conf = aLine.substring(Otf2Constants.CLOCK_PROPERTIES.length());
 		conf = conf.trim();
@@ -89,14 +83,19 @@ public class Otf2PreParser {
 			String[] clockProperty = clockInfo[i]
 					.split(Otf2Constants.PARAMETER_SEPARATOR);
 			if (clockProperty[0].trim().equals(Otf2Constants.CLOCK_TIME_OFFSET)) {
-				theParser.timeOffset = Long.parseLong(clockProperty[1].trim());
+				theParser
+						.setTimeOffset(Long.parseLong(clockProperty[1].trim()));
 			}
 		}
 	}
 
-	// LOCATION_GROUP
-	// 35 Name: "MPI Rank 35" <258>, Type: PROCESS, Parent:
-	// "parapide-9.rennes.grid5000.fr" <5>
+	/**
+	 * Parse a node of the MPI cluster, and create the corresponding event
+	 * producer
+	 * 
+	 * @param aLine
+	 *            string with the info about the producer
+	 */
 	public void parseLocationGroup(String aLine) {
 		int id;
 		String name = "";
@@ -107,6 +106,7 @@ public class Otf2PreParser {
 		String conf = aLine.substring(Otf2Constants.LOCATION_GROUP.length());
 		conf = conf.trim();
 
+		// Get the "in-trace" id of the producer
 		String idString = conf.substring(0, conf.indexOf(" "));
 		id = Integer.valueOf(idString);
 		conf = conf.substring(idString.length());
@@ -117,19 +117,24 @@ public class Otf2PreParser {
 			String[] groupProperty = groupInfo[i]
 					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
+			// Get the name
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_NAME)) {
 				name = groupProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
 				name = name.substring(indexOfFirstQuote,
 						name.indexOf("\"", indexOfFirstQuote));
 			}
+			// Get the type
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_TYPE)) {
 				type = groupProperty[1].trim();
 			}
+			// Get the parent event producer
 			if (groupProperty[0].trim().equals(Otf2Constants.GROUP_PARENT)) {
 				parentName = groupProperty[1].trim();
 
+				// If it has a parent
 				if (!parentName.equals(Otf2Constants.NODE_UNKNOWN_PARENT)) {
+					// Get the parent ID
 					int indexOfFirstQuote = parentName.indexOf("\"") + 1;
 					parentName = parentName.substring(indexOfFirstQuote,
 							parentName.indexOf("\"", indexOfFirstQuote));
@@ -138,14 +143,18 @@ public class Otf2PreParser {
 			}
 		}
 
-		theParser.producersMap.put(name,
+		theParser.getProducersMap().put(name,
 				createProducer(name, id, type, parentId));
-		theParser.idProducersMap.put(id, theParser.producersMap.get(name));
+		theParser.getIdProducersMap().put(id,
+				theParser.getProducersMap().get(name));
 	}
 
-	// SYSTEM_TREE_NODE
-	// 2 Name: "paradent-22.rennes.grid5000.fr" <227>, Class: "node" <5>,
-	// Parent: "Linux" <0>
+	/**
+	 * Parse the non-leave producer of the producer hierarchy tree and create
+	 * the corresponding event producer
+	 * 
+	 * @param aLine
+	 */
 	public void parseTreeNode(String aLine) {
 		int id;
 		String name = "";
@@ -156,6 +165,7 @@ public class Otf2PreParser {
 		String conf = aLine.substring(Otf2Constants.SYSTEM_TREE_NODE.length());
 		conf = conf.trim();
 
+		// Get the in-trace ID
 		String idString = conf.substring(0, conf.indexOf(" "));
 		id = Integer.valueOf(idString);
 		conf = conf.substring(idString.length());
@@ -166,21 +176,25 @@ public class Otf2PreParser {
 			String[] nodeProperty = nodeInfo[i]
 					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
+			// Get the name
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_NAME)) {
 				name = nodeProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
 				name = name.substring(indexOfFirstQuote,
 						name.indexOf("\"", indexOfFirstQuote));
 			}
+			// Get the type
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_TYPE)) {
 				type = nodeProperty[1].trim();
 				int indexOfFirstQuote = type.indexOf("\"") + 1;
 				type = type.substring(indexOfFirstQuote,
 						type.indexOf("\"", indexOfFirstQuote));
 			}
+			// Get the parent
 			if (nodeProperty[0].trim().equals(Otf2Constants.NODE_PARENT)) {
 
 				parentName = nodeProperty[1].trim();
+				// If it has a parent
 				if (!parentName.equals(Otf2Constants.NODE_UNKNOWN_PARENT)) {
 					int indexOfFirstQuote = parentName.indexOf("\"") + 1;
 					parentName = parentName.substring(indexOfFirstQuote,
@@ -190,23 +204,25 @@ public class Otf2PreParser {
 			}
 		}
 
-		theParser.producersMap.put(name,
+		theParser.getProducersMap().put(name,
 				createProducer(name, id, type, parentId));
-		theParser.idProducersMap.put(id, theParser.producersMap.get(name));
+		theParser.getIdProducersMap().put(id,
+				theParser.getProducersMap().get(name));
 	}
 
-	// REGION
-	// 135 Name: "MPI_Init" <143> (Aka. "MPI_Init" <143>), Descr.: "" <0>, Role:
-	// FUNCTION, Paradigm: MPI, Flags: NONE, File: "MPI" <8>, Begin: 0, End: 0
+	/**
+	 * Create the event types
+	 * 
+	 * @param aLine
+	 */
 	public void parseRegion(String aLine) {
-		int id;
 		String name = "";
 
 		String conf = aLine.substring(Otf2Constants.REGION.length());
 		conf = conf.trim();
 
+		// Parse the id but ignore it since we have no use for it
 		String idString = conf.substring(0, conf.indexOf(" "));
-		id = Integer.valueOf(idString);
 		conf = conf.substring(idString.length());
 
 		conf = conf.trim();
@@ -215,6 +231,7 @@ public class Otf2PreParser {
 			String[] regionProperty = regionInfo[i]
 					.split(Otf2Constants.PARAMETER_SEPARATOR);
 
+			// Get the name
 			if (regionProperty[0].trim().equals(Otf2Constants.REGION_NAME)) {
 				name = regionProperty[1].trim();
 				int indexOfFirstQuote = name.indexOf("\"") + 1;
@@ -223,18 +240,36 @@ public class Otf2PreParser {
 			}
 		}
 
-		theParser.types.put(name, createEventType(name, EventCategory.STATE));
+		theParser.getTypes().put(name,
+				createEventType(name, EventCategory.STATE));
 	}
 
+	/**
+	 * Given a producer name, get the corresponding ID
+	 * 
+	 * @param aParent
+	 *            the parent name
+	 * @return the parent id
+	 */
 	public int getParentId(String aParent) {
-		int parentId = EventProducer.NO_PARENT_ID;
 
-		if (theParser.producersMap.containsKey(aParent))
-			return theParser.producersMap.get(aParent).getId();
+		if (theParser.getProducersMap().containsKey(aParent))
+			return theParser.getProducersMap().get(aParent).getId();
 
-		return parentId;
+		return EventProducer.NO_PARENT_ID;
 	}
 
+	/**
+	 * Create an event producer based on the given parameters
+	 * 
+	 * @param name
+	 * @param id
+	 *            "In-trace" ID of the producer (set as localID)
+	 * @param type
+	 * @param pid
+	 *            parent ID
+	 * @return The created event producer
+	 */
 	public EventProducer createProducer(String name, int id, String type,
 			int pid) {
 		EventProducer anEP = new EventProducer(epIdManager.getNextId());
@@ -247,12 +282,45 @@ public class Otf2PreParser {
 		return anEP;
 	}
 
+	/**
+	 * Create an event type based on the given parameters
+	 * 
+	 * @param name
+	 * @param aCat
+	 *            soctrace category of the event
+	 * @return The created event type
+	 */
 	public EventType createEventType(String name, int aCat) {
 		EventType anET = new EventType(etIdManager.getNextId(), aCat);
 
 		anET.setName(name);
 
 		return anET;
+	}
+
+	/**
+	 * Create some event types that are not present in the definition file but
+	 * that corresponds to keywords in the OTF2 specifications
+	 */
+	public void createStaticTypes() {
+		theParser.getTypes().put(Otf2Constants.MPI_COMM,
+				createEventType(Otf2Constants.MPI_COMM, EventCategory.LINK));
+		theParser.getTypes().put(
+				Otf2Constants.MPI_COLLECTIVE,
+				createEventType(Otf2Constants.MPI_COLLECTIVE,
+						EventCategory.PUNCTUAL_EVENT));
+		theParser.getTypes().put(
+				Otf2Constants.MPI_RECEIVE_REQUEST,
+				createEventType(Otf2Constants.MPI_RECEIVE_REQUEST,
+						EventCategory.PUNCTUAL_EVENT));
+		theParser.getTypes().put(
+				Otf2Constants.MPI_SEND_COMPLETE,
+				createEventType(Otf2Constants.MPI_SEND_COMPLETE,
+						EventCategory.PUNCTUAL_EVENT));
+		theParser.getTypes().put(
+				Otf2Constants.MPI_METRIC,
+				createEventType(Otf2Constants.MPI_METRIC,
+						EventCategory.PUNCTUAL_EVENT));
 	}
 
 }
