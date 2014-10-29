@@ -30,6 +30,7 @@ import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Link;
 import fr.inria.soctrace.lib.model.State;
+import fr.inria.soctrace.lib.model.Variable;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
@@ -93,8 +94,7 @@ public class Otf2Parser {
 		parserMap.put(Otf2Constants.EVENT, new EventParser());
 		parserMap.put(Otf2Constants.LINK, new LinkParser());
 		parserMap.put(Otf2Constants.STATE, new StateParser());
-		// TODO Does OTF2 contains variables (METRIC ?)
-		// parserMap.put(Otf2Constants.VARIABLE, new VariableParser());
+		parserMap.put(Otf2Constants.VARIABLE, new VariableParser());
 
 		eventCategory.put(Otf2Constants.MPI_IRECV_REQUEST, Otf2Constants.EVENT);
 		eventCategory
@@ -103,7 +103,6 @@ public class Otf2Parser {
 				Otf2Constants.EVENT);
 		eventCategory
 				.put(Otf2Constants.MPI_COLLECTIVE_END, Otf2Constants.EVENT);
-		eventCategory.put(Otf2Constants.METRIC, Otf2Constants.EVENT);
 
 		eventCategory.put(Otf2Constants.ENTER_STATE, Otf2Constants.STATE);
 		eventCategory.put(Otf2Constants.LEAVE_STATE, Otf2Constants.STATE);
@@ -112,6 +111,8 @@ public class Otf2Parser {
 		eventCategory.put(Otf2Constants.MPI_IRECV, Otf2Constants.LINK);
 		eventCategory.put(Otf2Constants.MPI_SEND, Otf2Constants.LINK);
 		eventCategory.put(Otf2Constants.MPI_ISEND, Otf2Constants.LINK);
+
+		eventCategory.put(Otf2Constants.METRIC, Otf2Constants.VARIABLE);
 	}
 
 	public String getTraceFile() {
@@ -328,9 +329,6 @@ public class Otf2Parser {
 
 			if (keyword.equals(Otf2Constants.MPI_ISEND_COMPLETE))
 				eventName = Otf2Constants.MPI_SEND_COMPLETE;
-
-			if (keyword.equals(Otf2Constants.METRIC))
-				eventName = Otf2Constants.MPI_METRIC;
 
 			String conf = aLine.substring(keyword.length());
 			conf = conf.trim();
@@ -610,6 +608,95 @@ public class Otf2Parser {
 			aLink.setPage(page);
 			eventList.add(aLink);
 		}
+	}
+
+	private class VariableParser implements Otf2LineParser {
+		public void parseLine(String keyword, String line)
+				throws SoCTraceException {
+			if (keyword.equals(Otf2Constants.METRIC)) {
+				parseMetric(line);
+			}
+		}
+
+		private void parseMetric(String aLine) throws SoCTraceException {
+			long timeStamp;
+			int epId;
+			String eventName = "";
+
+			String conf = aLine.substring(Otf2Constants.METRIC.length());
+			conf = conf.trim();
+
+			// Get producer id
+			String epIdString = conf.substring(0, conf.indexOf(" "));
+			epId = Integer.valueOf(epIdString);
+			conf = conf.substring(epIdString.length());
+			conf = conf.trim();
+
+			// Get timestamp
+			String timeStampString;
+			
+			// Are there more parameters in the line?
+			if (conf.contains(" "))
+				timeStampString = conf.substring(0, conf.indexOf(" "));
+			else
+				timeStampString = conf;
+			timeStamp = Long.valueOf(timeStampString) - timeOffset;
+			conf = conf.substring(timeStampString.length());
+			conf = conf.trim();
+
+			EventProducer anEp = getIdProducersMap().get(epId);
+
+			// Get the variables
+			String[] metricInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
+
+			for (int i = 0; i < metricInfo.length; i++) {
+				String[] metricProperty = metricInfo[i]
+						.split(Otf2Constants.PARAMETER_SEPARATOR);
+
+				if (metricProperty[0].trim().startsWith("(")
+						|| metricProperty[1].trim().startsWith("(")) {
+
+					String values;
+
+					Variable aVariable = new Variable(eIdManager.getNextId());
+					aVariable.setEventProducer(anEp);
+					aVariable.setTimestamp(timeStamp);
+					eventName = "";
+
+					if (metricProperty.length > 1)
+						values = metricProperty[1];
+					else
+						values = metricProperty[0];
+
+					String[] valueTab = values
+							.split(Otf2Constants.VALUE_SEPARATOR);
+					valueTab[0] = valueTab[0].substring(1);
+
+					// Get event type
+					int indexOfFirstQuote = valueTab[0].indexOf("\"") + 1;
+					eventName = valueTab[0].substring(indexOfFirstQuote,
+							valueTab[0].indexOf("\"", indexOfFirstQuote));
+
+					aVariable.setType(getTypes().get(eventName));
+
+					// Get the variable value
+					int indexLastElement = valueTab.length - 1;
+					double varValue = 0.0;
+					varValue = Double
+							.valueOf(valueTab[indexLastElement].trim()
+									.substring(
+											0,
+											valueTab[indexLastElement]
+													.indexOf(")") - 1));
+
+					aVariable.setValue(varValue);
+					eventList.add(aVariable);
+				}
+			}
+			if (minTimestamp == -1)
+				minTimestamp = timeStamp;
+		}
+
 	}
 
 }

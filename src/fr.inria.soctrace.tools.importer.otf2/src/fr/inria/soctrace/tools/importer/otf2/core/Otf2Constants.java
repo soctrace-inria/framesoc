@@ -18,12 +18,12 @@ package fr.inria.soctrace.tools.importer.otf2.core;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class Otf2Constants {
-	
+
 	/**
 	 * Amount of work for the progress monitor
 	 */
 	public static final int WORK = Integer.MAX_VALUE;
-	
+
 	/**
 	 * Page size
 	 */
@@ -34,7 +34,7 @@ public class Otf2Constants {
 	 */
 	public static final String TRACE_TYPE = "otf2";
 	public static final String TRACE_EXT = ".otf2";
-		
+
 	/**
 	 * Category labels
 	 */
@@ -42,17 +42,23 @@ public class Otf2Constants {
 	public static final String STATE = "State";
 	public static final String LINK = "Link";
 	public static final String VARIABLE = "Variable";
-	
+
 	/**
 	 * Global definition parsing constants
 	 */
 	final static String PROPERTY_SEPARATOR = ",";
 	final static String PARAMETER_SEPARATOR = ":";
+	final static String VALUE_SEPARATOR = ";";
 
 	final static String CLOCK_PROPERTIES = "CLOCK_PROPERTIES";
 	final static String LOCATION_GROUP = "LOCATION_GROUP";
 	final static String REGION = "REGION";
 	final static String SYSTEM_TREE_NODE = "SYSTEM_TREE_NODE";
+	final static String METRIC_MEMBER = "METRIC_MEMBER";
+
+	/**
+	 * Specific definition properties
+	 */
 	final static String CLOCK_TIME_OFFSET = "Global Offset";
 	final static String CLOCK_GRANULARITY = "Ticks per Seconds";
 
@@ -66,13 +72,22 @@ public class Otf2Constants {
 	final static String NODE_UNKNOWN_PARENT = "UNDEFINED";
 
 	final static String REGION_NAME = "Name";
+
+	final static String METRIC_NAME = "Name";
+	final static String METRIC_DESCR = "Descr.";
+	final static String METRIC_TYPE = "Type";
+	final static String METRIC_MODE = "Mode";
 	
+	final static String METRIC_VALUE = "METRIC_VALUE";
+	// TODO Add those ?
+	// Value Type: UINT64, Base: DECIMAL, Exponent: 0, Unit: "#" <68>
+
 	/**
 	 * Event parsing constants
 	 */
 	final static String ENTER_STATE = "ENTER";
 	final static String LEAVE_STATE = "LEAVE";
-	
+
 	final static String METRIC = "METRIC";
 	final static String MPI_RECV = "MPI_RECV";
 	final static String MPI_SEND = "MPI_SEND";
@@ -82,7 +97,7 @@ public class Otf2Constants {
 	final static String MPI_ISEND_COMPLETE = "MPI_ISEND_COMPLETE";
 	final static String MPI_COLLECTIVE_BEGIN = "MPI_COLLECTIVE_BEGIN";
 	final static String MPI_COLLECTIVE_END = "MPI_COLLECTIVE_END";
-	
+
 	/**
 	 * Artificial event type
 	 */
@@ -91,5 +106,5 @@ public class Otf2Constants {
 	final static String MPI_RECEIVE_REQUEST = "MPI_RECEIVE_REQUEST";
 	final static String MPI_SEND_COMPLETE = "MPI_SEND_COMPLETE";
 	final static String MPI_METRIC = "MPI_METRIC";
-	
+
 }
