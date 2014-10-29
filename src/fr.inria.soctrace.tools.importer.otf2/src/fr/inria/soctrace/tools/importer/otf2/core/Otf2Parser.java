@@ -67,6 +67,7 @@ public class Otf2Parser {
 
 	// Starting time of the time stamp to avoid having huge timestamps
 	private long timeOffset = 0;
+	private long timeGranularity = -1;
 
 	private Map<String, Otf2LineParser> parserMap = new HashMap<String, Otf2LineParser>();
 	private Map<String, String> eventCategory = new HashMap<String, String>();
@@ -168,6 +169,7 @@ public class Otf2Parser {
 	 */
 	private boolean parse(IProgressMonitor monitor) throws SoCTraceException {
 		try {
+			monitor.subTask("Getting events");
 			List<String> args = new ArrayList<String>();
 			args.add(getTraceFile());
 			Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
@@ -259,6 +261,7 @@ public class Otf2Parser {
 		metadata.setNumberOfEvents(numberOfEvents);
 		metadata.setMinTimestamp(minTimestamp);
 		metadata.setMaxTimestamp(maxTimestamp);
+		metadata.setTimeUnit(metadata.getTimeUnit(timeGranularity));
 		metadata.createMetadata();
 		metadata.saveMetadata();
 	}
@@ -293,6 +296,14 @@ public class Otf2Parser {
 
 	public void setTimeOffset(long timeOffset) {
 		this.timeOffset = timeOffset;
+	}
+
+	public long getTimeGranularity() {
+		return timeGranularity;
+	}
+
+	public void setTimeGranularity(long timeGranularity) {
+		this.timeGranularity = timeGranularity;
 	}
 
 	private class EventParser implements Otf2LineParser {

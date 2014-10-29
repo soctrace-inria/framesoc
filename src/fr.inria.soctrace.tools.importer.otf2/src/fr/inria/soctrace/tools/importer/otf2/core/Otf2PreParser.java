@@ -86,6 +86,10 @@ public class Otf2PreParser {
 				theParser
 						.setTimeOffset(Long.parseLong(clockProperty[1].trim()));
 			}
+			if (clockProperty[0].trim().equals(Otf2Constants.CLOCK_GRANULARITY)) {
+				theParser
+						.setTimeGranularity(Long.parseLong(clockProperty[1].trim()));
+			}
 		}
 	}
 
