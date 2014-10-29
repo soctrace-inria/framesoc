@@ -60,6 +60,9 @@ public class Otf2PreParser {
 				if (keyword.equals(Otf2Constants.SYSTEM_TREE_NODE)) {
 					parseTreeNode(line);
 				}
+				if (keyword.equals(Otf2Constants.METRIC_MEMBER)) {
+					parseMetricMember(line);
+				}
 			}
 
 			createStaticTypes();
@@ -247,6 +250,40 @@ public class Otf2PreParser {
 		theParser.getTypes().put(name,
 				createEventType(name, EventCategory.STATE));
 	}
+	
+	/**
+	 * Create the event types for a metric
+	 * 
+	 * @param aLine
+	 */
+	public void parseMetricMember(String aLine) {
+		String name = "";
+
+		String conf = aLine.substring(Otf2Constants.METRIC_MEMBER.length());
+		conf = conf.trim();
+
+		// Parse the id
+		String idString = conf.substring(0, conf.indexOf(" "));
+		conf = conf.substring(idString.length());
+
+		conf = conf.trim();
+		String[] regionInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
+		for (int i = 0; i < regionInfo.length; i++) {
+			String[] regionProperty = regionInfo[i]
+					.split(Otf2Constants.PARAMETER_SEPARATOR);
+
+			// Get the name
+			if (regionProperty[0].trim().equals(Otf2Constants.REGION_NAME)) {
+				name = regionProperty[1].trim();
+				int indexOfFirstQuote = name.indexOf("\"") + 1;
+				name = name.substring(indexOfFirstQuote,
+						name.indexOf("\"", indexOfFirstQuote));
+			}
+		}
+
+		theParser.getTypes().put(name,
+				createEventType(name, EventCategory.VARIABLE));
+	}
 
 	/**
 	 * Given a producer name, get the corresponding ID
@@ -324,7 +361,7 @@ public class Otf2PreParser {
 		theParser.getTypes().put(
 				Otf2Constants.MPI_METRIC,
 				createEventType(Otf2Constants.MPI_METRIC,
-						EventCategory.PUNCTUAL_EVENT));
+						EventCategory.VARIABLE));
 	}
 
 }
