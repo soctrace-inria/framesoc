@@ -54,6 +54,10 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 	public void setMaxTimestamp(long max) {
 		this.buffer.setMaxTimestamp(max);
 	}
+	
+	public void setTimeUnit(int timeUnit) {
+		this.buffer.setTimeUnit(timeUnit);
+	}
 
 	@Override
 	public void setTraceFields(Trace trace) {
@@ -91,6 +95,20 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 		sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
 		sdf.applyPattern("dd MMM yyyy HH:mm:ss z");
 		return sdf.format(new Date()).toString();
+	}
+	
+	/**
+	 * Get the exposant of the time unit
+	 * 
+	 * @return a string with the current date
+	 */
+	public int getTimeUnit(long ticksPerSecond) {
+		int exp = 0;
+		while (ticksPerSecond >= 10) {
+			ticksPerSecond = ticksPerSecond / 10;
+			exp++;
+		}
+		return -1 * exp;
 	}
 
 }
