@@ -11,6 +11,7 @@
 package fr.inria.soctrace.framesoc.ui.gantt;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -524,6 +525,9 @@ public class GanttView extends AbstractGanttView {
 	// TODO find a nicer solution to manage width
 	private String getPercentageString(double p) {
 		DecimalFormat decim = new DecimalFormat("##.#");
+		DecimalFormatSymbols custom = new DecimalFormatSymbols();
+		custom.setDecimalSeparator('.');
+		decim.setDecimalFormatSymbols(custom);
 		Double percent = Double.parseDouble(decim.format(p));
 		StringBuilder sb = new StringBuilder();
 		if (percent < 100)
