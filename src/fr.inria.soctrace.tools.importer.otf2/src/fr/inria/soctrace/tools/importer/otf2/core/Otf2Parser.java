@@ -35,6 +35,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.IdManager;
+import fr.inria.soctrace.lib.utils.TagList;
 import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
 /**
@@ -60,6 +61,7 @@ public class Otf2Parser {
 	private long minTimestamp = -1;
 	private long maxTimestamp = -1;
 	private int page = 0;
+	private boolean ignoreVariables = false;
 
 	/** Total number of event lines in the output of otf2-print */
 	private int totNumberOfLines = 0;
@@ -100,11 +102,14 @@ public class Otf2Parser {
 	 *            trace DB object
 	 * @param traceFile
 	 *            trace file name
+	 * @param novar
+	 *            flag stating that variable must be ignored
 	 */
-	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile) {
-		this.traceFile = traceFile;
+	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile, boolean novar) {
 		this.sysDB = sysDB;
 		this.traceDB = traceDB;
+		this.traceFile = traceFile;
+		this.ignoreVariables = novar;
 
 		parserMap.put(Otf2Constants.EVENT, new EventParser());
 		parserMap.put(Otf2Constants.LINK, new LinkParser());
@@ -141,11 +146,11 @@ public class Otf2Parser {
 		try {
 
 			monitor.beginTask("Pre-parse trace " + traceFile, IProgressMonitor.UNKNOWN);
-			
+
 			// preparse
 			if (!preparse(monitor))
 				return;
-			
+
 			monitor.beginTask("Import trace " + traceFile, totNumberOfLines);
 
 			// parse
@@ -153,7 +158,7 @@ public class Otf2Parser {
 
 			saveProducers();
 			saveTypes();
-			saveTraceMetadata(!complete);
+			saveTraceMetadata(!complete, ignoreVariables);
 		} finally {
 			monitor.done();
 		}
@@ -189,6 +194,7 @@ public class Otf2Parser {
 			Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
 			BufferedReader br = wrapper.execute(monitor);
 
+			final int MONITOR_INCREMENT = 500;
 			parsedLines = -3; // skip first three header lines (=== OTF2-PRINT === ..)
 			String line;
 			while ((line = br.readLine()) != null && !monitor.isCanceled()) {
@@ -196,10 +202,11 @@ public class Otf2Parser {
 					continue;
 
 				parsedLines++;
-				if (parsedLines > 0) {
-					monitor.worked(1);
+				if (parsedLines > 0 && (parsedLines % MONITOR_INCREMENT == 0)) {
+					// block increment for performance
+					monitor.worked(MONITOR_INCREMENT);
 				}
-				
+
 				String keyword = line.substring(0, line.indexOf(" "));
 
 				// Is the keyword supported by our parser ?
@@ -211,16 +218,19 @@ public class Otf2Parser {
 				// Build an event
 				parserMap.get(eventCategory.get(keyword)).parseLine(keyword, line);
 
-				if (eventList.size() == Otf2Constants.PAGE_SIZE)
+				if (eventList.size() == Otf2Constants.PAGE_SIZE) {
 					page++;
+				}
 
 				if (eventList.size() >= Otf2Constants.PAGE_SIZE) {
 					saveEvents(eventList);
-
 					numberOfEvents += eventList.size();
 					eventList.clear();
 				}
 			}
+			
+			// ensure we complete the monitor
+			monitor.worked(MONITOR_INCREMENT);
 
 			// Are there non saved events after we have finished parsing the trace?
 			if (eventList.size() > 0) {
@@ -269,10 +279,20 @@ public class Otf2Parser {
 		}
 	}
 
-	private void saveTraceMetadata(boolean partialImport) throws SoCTraceException {
+	private void saveTraceMetadata(boolean partialImport, boolean ignoreVariables)
+			throws SoCTraceException {
 		String alias = FilenameUtils.getBaseName(traceFile);
-		String realAlias = (partialImport) ? (alias + " [part]") : alias;
-		Otf2TraceMetadata metadata = new Otf2TraceMetadata(sysDB, traceDB.getDBName(), realAlias);
+		TagList tlist = new TagList();
+		if (partialImport) {
+			tlist.addValue("part");
+		}
+		if (ignoreVariables) {
+			tlist.addValue("novar");
+		}
+		if (tlist.size() > 0) {
+			alias = alias + " " + tlist.getValueString();
+		}
+		Otf2TraceMetadata metadata = new Otf2TraceMetadata(sysDB, traceDB.getDBName(), alias);
 		metadata.setNumberOfEvents(numberOfEvents);
 		metadata.setMinTimestamp(minTimestamp);
 		metadata.setMaxTimestamp(maxTimestamp);
@@ -331,6 +351,10 @@ public class Otf2Parser {
 
 	public void setNumberOfLines(int numberOfLines) {
 		this.totNumberOfLines = numberOfLines;
+	}
+
+	public boolean ignoreVariables() {
+		return this.ignoreVariables;
 	}
 
 	/*
@@ -634,7 +658,7 @@ public class Otf2Parser {
 
 		@Override
 		public void parseLine(String keyword, String line) throws SoCTraceException {
-			if (keyword.equals(Otf2Constants.METRIC)) {
+			if (!ignoreVariables && keyword.equals(Otf2Constants.METRIC)) {
 				parseMetric(line);
 			}
 		}

@@ -41,6 +41,11 @@ public class Otf2Constants {
 	public static final String TRACE_EXT = ".otf2";
 
 	/**
+	 * Parser options
+	 */
+	public static final String OPT_NO_VAR = "novar";
+
+	/**
 	 * Category labels
 	 */
 	public static final String EVENT = "Event";
@@ -83,7 +88,7 @@ public class Otf2Constants {
 	final static String METRIC_DESCR = "Descr.";
 	final static String METRIC_TYPE = "Type";
 	final static String METRIC_MODE = "Mode";
-	
+
 	final static String METRIC_VALUE = "METRIC_VALUE";
 	// TODO Add those ?
 	// Value Type: UINT64, Base: DECIMAL, Exponent: 0, Unit: "#" <68>

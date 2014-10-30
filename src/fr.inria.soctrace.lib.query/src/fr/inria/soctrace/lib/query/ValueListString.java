@@ -10,61 +10,35 @@
  ******************************************************************************/
 package fr.inria.soctrace.lib.query;
 
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.TagList;
 
 
 /**
  * Utility class used to build SQL compliant value lists.
- * Format: ( 1, 2, 3, 4 )
+ * Format: (1, 2, 3, 4)
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  *
  */
-public class ValueListString {
+public class ValueListString extends TagList {
+
+	private static final String START = "(";
+	private static final String END = ")";
+	private static final String SEPARATOR = ", ";
 	
-	private int size = 0;
-	private boolean first = true;
-	private boolean quotes = false;
-	private StringBuilder buffer = null;
-	
-	public ValueListString() {
-		clear();
+	@Override
+	protected String getSeparator() {
+		return SEPARATOR;
 	}
 	
-	public void setQuotes(boolean quotes) {
-		this.quotes = quotes;
+	@Override
+	protected String getStart() {
+		return START;
 	}
 	
-	public void addValue(String value) {
-		size++;
-		if (!first) {
-			buffer.append(", ");
-		} else {
-			first = false;
-		}
-		if (quotes) {
-			buffer.append("'");
-		}
-		buffer.append(value);
-		if (quotes) {
-			buffer.append("'");
-		}
+	@Override
+	protected String getEnd() {
+		return END;
 	}
 	
-	public String getValueString() throws SoCTraceException {
-		if (size==0)
-			throw new SoCTraceException("Error: trying to get an empty list of values!");
-		return "( " + buffer.toString() + " )";
-	}
-	
-	public void clear() {
-		buffer = null; 
-		buffer = new StringBuilder();
-		size = 0;
-		first = true;
-	}
-	
-	public int size() {
-		return size;
-	}
 }

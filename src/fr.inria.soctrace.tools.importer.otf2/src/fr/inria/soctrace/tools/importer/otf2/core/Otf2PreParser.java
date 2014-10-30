@@ -22,6 +22,7 @@ import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
  * and other meta-data.
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 class Otf2PreParser {
 
@@ -271,6 +272,10 @@ class Otf2PreParser {
 	 *            a metric line
 	 */
 	private void parseMetricMember(String aLine) {
+
+		if (theParser.ignoreVariables())
+			return;
+
 		String name = "";
 
 		String conf = aLine.substring(Otf2Constants.METRIC_MEMBER.length());
@@ -306,7 +311,6 @@ class Otf2PreParser {
 	private int getParentId(String aParent) {
 		if (theParser.getProducersMap().containsKey(aParent))
 			return theParser.getProducersMap().get(aParent).getId();
-
 		return EventProducer.NO_PARENT_ID;
 	}
 

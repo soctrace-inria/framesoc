@@ -5,7 +5,7 @@
          point="fr.inria.soctrace.framesoc.core.tool">
       <tool
             class="fr.inria.soctrace.tools.importer.otf2.Otf2Importer"
-            doc="Select the OTF2 anchor file."
+            doc="Select the OTF2 anchor file. Options: -novar (ignore variables)."
             name="OTF2 Importer"
             type="IMPORT">
       </tool>

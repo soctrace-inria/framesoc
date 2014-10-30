@@ -67,6 +67,8 @@ public class Otf2Importer extends FramesocTool {
 			argsm.parseArgs(args);
 			argsm.printArgs();
 
+			boolean novar = argsm.getFlags().contains(Otf2Constants.OPT_NO_VAR);
+
 			Assert.isTrue(argsm.getTokens().size() == 1);
 			String traceFile = argsm.getTokens().get(0);
 			if (monitor.isCanceled())
@@ -84,7 +86,7 @@ public class Otf2Importer extends FramesocTool {
 				traceDB = new TraceDBObject(traceDbName, DBMode.DB_CREATE);
 
 				// parsing
-				Otf2Parser parser = new Otf2Parser(sysDB, traceDB, traceFile);
+				Otf2Parser parser = new Otf2Parser(sysDB, traceDB, traceFile, novar);
 				parser.parseTrace(monitor);
 
 			} catch (SoCTraceException ex) {
@@ -133,14 +135,25 @@ public class Otf2Importer extends FramesocTool {
 
 	@Override
 	public boolean canLaunch(String[] args) {
-		if (args.length != 1)
+
+		ArgumentsManager argsm = new ArgumentsManager();
+		try {
+			// do this in a try block, since the method is called also for
+			// invalid input (it is called each time input changes)
+			argsm.parseArgs(args);
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+
+		// check if the (single) file is specified
+		if (argsm.getTokens().size() != 1)
 			return false;
 
-		for (String file : args) {
-			File f = new File(file);
-			if (!f.isFile())
-				return false;
-		}
+		// check if the file exists
+		String file = argsm.getTokens().get(0);
+		File f = new File(file);
+		if (!f.isFile())
+			return false;
 
 		return true;
 	}

@@ -13,8 +13,8 @@
  */
 package fr.inria.soctrace.test.junit.lib.query;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -35,7 +35,7 @@ public class ValueListStringTest {
 		vls.addValue("3");
 		vls.addValue("4");
 		assertEquals("List size", 4, vls.size());
-		assertEquals("List value", "( 1, 2, 3, 4 )", vls.getValueString());
+		assertEquals("List value", "(1, 2, 3, 4)", vls.getValueString());
 		
 		vls.clear();
 		assertEquals("List size", 0, vls.size());
@@ -43,7 +43,7 @@ public class ValueListStringTest {
 		vls.addValue("5");
 		vls.addValue("6");
 		assertEquals("List size", 2, vls.size());
-		assertEquals("List value", "( 5, 6 )", vls.getValueString());
+		assertEquals("List value", "(5, 6)", vls.getValueString());
 		
 		vls.clear();
 		assertEquals("List size", 0, vls.size());
@@ -51,7 +51,7 @@ public class ValueListStringTest {
 		try {
 			vls.getValueString();
 			fail("Exception non launched");
-		} catch (SoCTraceException e) {}
+		} catch (IllegalStateException e) {}
 		
 	}
 
@@ -65,7 +65,7 @@ public class ValueListStringTest {
 		vls.addValue("3");
 		vls.addValue("4");
 		assertEquals("List size", 4, vls.size());
-		assertEquals("List value", "( '1', '2', '3', '4' )", vls.getValueString());
+		assertEquals("List value", "('1', '2', '3', '4')", vls.getValueString());
 		
 		vls.clear();
 		assertEquals("List size", 0, vls.size());
@@ -74,7 +74,7 @@ public class ValueListStringTest {
 		vls.addValue("5");
 		vls.addValue("6");
 		assertEquals("List size", 2, vls.size());
-		assertEquals("List value", "( 5, 6 )", vls.getValueString());
+		assertEquals("List value", "(5, 6)", vls.getValueString());
 		
 		vls.clear();
 		assertEquals("List size", 0, vls.size());
@@ -82,7 +82,7 @@ public class ValueListStringTest {
 		try {
 			vls.getValueString();
 			fail("Exception non launched");
-		} catch (SoCTraceException e) {}
+		} catch (IllegalStateException e) {}
 		
 	}
 
