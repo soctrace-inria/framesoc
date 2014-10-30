@@ -13,8 +13,13 @@ package fr.inria.soctrace.tools.importer.otf2.core;
 /**
  * Constants for Otf2 parser
  * 
- * TODO: add more
+ * <pre>
+ * TODO (@Youenn)
+ * - List what is supported/managed and what is not, among types/keywords/etc
+ *   - e.g., the TODO in the code should be included in this list.
+ * </pre>
  * 
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class Otf2Constants {
@@ -51,6 +56,7 @@ public class Otf2Constants {
 	final static String VALUE_SEPARATOR = ";";
 
 	final static String CLOCK_PROPERTIES = "CLOCK_PROPERTIES";
+	final static String LOCATION = "LOCATION";
 	final static String LOCATION_GROUP = "LOCATION_GROUP";
 	final static String REGION = "REGION";
 	final static String SYSTEM_TREE_NODE = "SYSTEM_TREE_NODE";

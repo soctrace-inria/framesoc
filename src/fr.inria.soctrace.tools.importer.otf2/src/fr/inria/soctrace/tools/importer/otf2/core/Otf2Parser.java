@@ -40,25 +40,20 @@ import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 /**
  * Otf2 Parser core class.
  * 
- * TODO
- * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
 public class Otf2Parser {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(Otf2Parser.class);
+	private static final Logger logger = LoggerFactory.getLogger(Otf2Parser.class);
 
 	private SystemDBObject sysDB;
 	private TraceDBObject traceDB;
 	private String traceFile;
 
-	private Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
-	/**
-	 * Event producers indexed by their in-trace id for easier access during
-	 * parsing
-	 */
+	/** Event producers indexed by their in-trace id for easier access during parsing */
 	private Map<Integer, EventProducer> idProducersMap = new HashMap<Integer, EventProducer>();
+	private Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
 	private Map<String, EventType> types = new HashMap<String, EventType>();
 	private List<Event> eventList = new LinkedList<Event>();
 	private int numberOfEvents = 0;
@@ -66,27 +61,47 @@ public class Otf2Parser {
 	private long maxTimestamp = -1;
 	private int page = 0;
 
-	// Starting time of the time stamp to avoid having huge timestamps
+	/** Total number of event lines in the output of otf2-print */
+	private int totNumberOfLines = 0;
+
+	/** Total number of parsed event lines */
+	private int parsedLines = 0;
+
+	/** Starting time of the timestamp to avoid having huge timestamps */
 	private long timeOffset = 0;
+
+	/** Number of ticks per second. Used to identify the time-unit. */
 	private long timeGranularity = -1;
 
+	/** Line parsers */
 	private Map<String, Otf2LineParser> parserMap = new HashMap<String, Otf2LineParser>();
+
+	/** Map between event types and corresponding category */
 	private Map<String, String> eventCategory = new HashMap<String, String>();
 
 	/**
-	 * Keep the current states for each event producer It must be able to hold
-	 * several states since it is possible to have embedded states
+	 * Keep the current states for each event producer. It must be able to hold several states since
+	 * it is possible to have embedded states.
 	 */
 	private HashMap<EventProducer, List<State>> stateMaps = new HashMap<EventProducer, List<State>>();
-	/**
-	 * Keep the communication links for each sending event producer
-	 */
+
+	/** Keep the communication links for each sending event producer. */
 	private HashMap<EventProducer, List<Link>> linkMaps = new HashMap<EventProducer, List<Link>>();
 
+	/** Event id manager */
 	private IdManager eIdManager = new IdManager();
 
-	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB,
-			String traceFile) {
+	/**
+	 * The constructor.
+	 * 
+	 * @param sysDB
+	 *            system DB object
+	 * @param traceDB
+	 *            trace DB object
+	 * @param traceFile
+	 *            trace file name
+	 */
+	public Otf2Parser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile) {
 		this.traceFile = traceFile;
 		this.sysDB = sysDB;
 		this.traceDB = traceDB;
@@ -97,12 +112,9 @@ public class Otf2Parser {
 		parserMap.put(Otf2Constants.VARIABLE, new VariableParser());
 
 		eventCategory.put(Otf2Constants.MPI_IRECV_REQUEST, Otf2Constants.EVENT);
-		eventCategory
-				.put(Otf2Constants.MPI_ISEND_COMPLETE, Otf2Constants.EVENT);
-		eventCategory.put(Otf2Constants.MPI_COLLECTIVE_BEGIN,
-				Otf2Constants.EVENT);
-		eventCategory
-				.put(Otf2Constants.MPI_COLLECTIVE_END, Otf2Constants.EVENT);
+		eventCategory.put(Otf2Constants.MPI_ISEND_COMPLETE, Otf2Constants.EVENT);
+		eventCategory.put(Otf2Constants.MPI_COLLECTIVE_BEGIN, Otf2Constants.EVENT);
+		eventCategory.put(Otf2Constants.MPI_COLLECTIVE_END, Otf2Constants.EVENT);
 
 		eventCategory.put(Otf2Constants.ENTER_STATE, Otf2Constants.STATE);
 		eventCategory.put(Otf2Constants.LEAVE_STATE, Otf2Constants.STATE);
@@ -113,10 +125,6 @@ public class Otf2Parser {
 		eventCategory.put(Otf2Constants.MPI_ISEND, Otf2Constants.LINK);
 
 		eventCategory.put(Otf2Constants.METRIC, Otf2Constants.VARIABLE);
-	}
-
-	public String getTraceFile() {
-		return traceFile;
 	}
 
 	/**
@@ -131,11 +139,14 @@ public class Otf2Parser {
 		logger.debug("Trace file: {}", traceFile);
 
 		try {
-			monitor.beginTask("Import trace " + traceFile, Otf2Constants.WORK);
 
+			monitor.beginTask("Pre-parse trace " + traceFile, IProgressMonitor.UNKNOWN);
+			
 			// preparse
 			if (!preparse(monitor))
 				return;
+			
+			monitor.beginTask("Import trace " + traceFile, totNumberOfLines);
 
 			// parse
 			boolean complete = parse(monitor);
@@ -152,6 +163,7 @@ public class Otf2Parser {
 	 * Provide event producers and event types
 	 * 
 	 * @param monitor
+	 *            progress monitor
 	 * @return true if the process was not cancelled, false otherwise
 	 * @throws SoCTraceException
 	 */
@@ -165,6 +177,7 @@ public class Otf2Parser {
 	 * Parse and build the actual events
 	 * 
 	 * @param monitor
+	 *            progress monitor
 	 * @return true if the process was not cancelled, false otherwise
 	 * @throws SoCTraceException
 	 */
@@ -172,27 +185,31 @@ public class Otf2Parser {
 		try {
 			monitor.subTask("Getting events");
 			List<String> args = new ArrayList<String>();
-			args.add(getTraceFile());
+			args.add(traceFile);
 			Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
 			BufferedReader br = wrapper.execute(monitor);
 
+			parsedLines = -3; // skip first three header lines (=== OTF2-PRINT === ..)
 			String line;
 			while ((line = br.readLine()) != null && !monitor.isCanceled()) {
 				if (line.isEmpty() || !line.contains(" "))
 					continue;
 
+				parsedLines++;
+				if (parsedLines > 0) {
+					monitor.worked(1);
+				}
+				
 				String keyword = line.substring(0, line.indexOf(" "));
 
 				// Is the keyword supported by our parser ?
 				if (!eventCategory.containsKey(keyword)) {
-					logger.debug("Warning: unsupported keyword encountered: "
-							+ keyword);
+					logger.debug("Warning: unsupported keyword encountered: " + keyword);
 					continue;
 				}
 
 				// Build an event
-				parserMap.get(eventCategory.get(keyword)).parseLine(keyword,
-						line);
+				parserMap.get(eventCategory.get(keyword)).parseLine(keyword, line);
 
 				if (eventList.size() == Otf2Constants.PAGE_SIZE)
 					page++;
@@ -205,8 +222,7 @@ public class Otf2Parser {
 				}
 			}
 
-			// Are there non saved events after we have finished parsing the
-			// trace?
+			// Are there non saved events after we have finished parsing the trace?
 			if (eventList.size() > 0) {
 				saveEvents(eventList);
 				numberOfEvents += eventList.size();
@@ -253,18 +269,24 @@ public class Otf2Parser {
 		}
 	}
 
-	private void saveTraceMetadata(boolean partialImport)
-			throws SoCTraceException {
+	private void saveTraceMetadata(boolean partialImport) throws SoCTraceException {
 		String alias = FilenameUtils.getBaseName(traceFile);
 		String realAlias = (partialImport) ? (alias + " [part]") : alias;
-		Otf2TraceMetadata metadata = new Otf2TraceMetadata(sysDB,
-				traceDB.getDBName(), realAlias);
+		Otf2TraceMetadata metadata = new Otf2TraceMetadata(sysDB, traceDB.getDBName(), realAlias);
 		metadata.setNumberOfEvents(numberOfEvents);
 		metadata.setMinTimestamp(minTimestamp);
 		metadata.setMaxTimestamp(maxTimestamp);
 		metadata.setTimeUnit(metadata.getTimeUnit(timeGranularity));
 		metadata.createMetadata();
 		metadata.saveMetadata();
+	}
+
+	/*
+	 * Public getters/setters
+	 */
+
+	public String getTraceFile() {
+		return traceFile;
 	}
 
 	public Map<String, EventType> getTypes() {
@@ -307,14 +329,22 @@ public class Otf2Parser {
 		this.timeGranularity = timeGranularity;
 	}
 
+	public void setNumberOfLines(int numberOfLines) {
+		this.totNumberOfLines = numberOfLines;
+	}
+
+	/*
+	 * Line parsers
+	 */
+
 	private class EventParser implements Otf2LineParser {
-		public void parseLine(String keyword, String line)
-				throws SoCTraceException {
+
+		@Override
+		public void parseLine(String keyword, String line) throws SoCTraceException {
 			parseEvent(keyword, line);
 		}
 
-		private void parseEvent(String keyword, String aLine)
-				throws SoCTraceException {
+		private void parseEvent(String keyword, String aLine) throws SoCTraceException {
 			Event anEvent = new Event(eIdManager.getNextId());
 
 			long timeStamp;
@@ -364,8 +394,9 @@ public class Otf2Parser {
 	}
 
 	private class StateParser implements Otf2LineParser {
-		public void parseLine(String keyword, String line)
-				throws SoCTraceException {
+
+		@Override
+		public void parseLine(String keyword, String line) throws SoCTraceException {
 			// Getting in a new state
 			if (keyword.equals(Otf2Constants.ENTER_STATE)) {
 				parseEnteringState(line);
@@ -399,8 +430,7 @@ public class Otf2Parser {
 			conf = conf.trim();
 
 			// Get event type
-			String[] groupProperty = conf
-					.split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] groupProperty = conf.split(Otf2Constants.PARAMETER_SEPARATOR);
 			eventName = groupProperty[1].trim();
 			int indexOfFirstQuote = eventName.indexOf("\"") + 1;
 			eventName = eventName.substring(indexOfFirstQuote,
@@ -444,8 +474,7 @@ public class Otf2Parser {
 			conf = conf.trim();
 
 			// Get event type
-			String[] groupProperty = conf
-					.split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] groupProperty = conf.split(Otf2Constants.PARAMETER_SEPARATOR);
 			eventName = groupProperty[1].trim();
 			int indexOfFirstQuote = eventName.indexOf("\"") + 1;
 			eventName = eventName.substring(indexOfFirstQuote,
@@ -477,21 +506,19 @@ public class Otf2Parser {
 	}
 
 	private class LinkParser implements Otf2LineParser {
-		public void parseLine(String keyword, String line)
-				throws SoCTraceException {
+
+		@Override
+		public void parseLine(String keyword, String line) throws SoCTraceException {
 			// Starting a communication
-			if (keyword.equals(Otf2Constants.MPI_ISEND)
-					|| keyword.equals(Otf2Constants.MPI_SEND))
+			if (keyword.equals(Otf2Constants.MPI_ISEND) || keyword.equals(Otf2Constants.MPI_SEND))
 				parseSend(keyword, line);
 
 			// Finishing a communication
-			if (keyword.equals(Otf2Constants.MPI_IRECV)
-					|| keyword.equals(Otf2Constants.MPI_RECV))
+			if (keyword.equals(Otf2Constants.MPI_IRECV) || keyword.equals(Otf2Constants.MPI_RECV))
 				parseReceive(keyword, line);
 		}
 
-		private void parseSend(String keyword, String aLine)
-				throws SoCTraceException {
+		private void parseSend(String keyword, String aLine) throws SoCTraceException {
 			Link aLink = new Link(eIdManager.getNextId());
 
 			long timeStamp;
@@ -514,19 +541,16 @@ public class Otf2Parser {
 			conf = conf.trim();
 
 			// Get receiver id
-			String[] groupProperty = conf
-					.split(Otf2Constants.PROPERTY_SEPARATOR);
-			String[] groupParameter = groupProperty[0]
-					.split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] groupProperty = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
+			String[] groupParameter = groupProperty[0].split(Otf2Constants.PARAMETER_SEPARATOR);
 			groupParameter[1] = groupParameter[1].trim();
-			String receiverIdString = groupParameter[1].substring(0,
-					groupParameter[1].indexOf(" "));
+			String receiverIdString = groupParameter[1]
+					.substring(0, groupParameter[1].indexOf(" "));
 
 			EventProducer anEp = getIdProducersMap().get(epId);
 			aLink.setEventProducer(anEp);
 			aLink.setTimestamp(timeStamp);
-			aLink.setEndProducer(getIdProducersMap().get(
-					Integer.valueOf(receiverIdString)));
+			aLink.setEndProducer(getIdProducersMap().get(Integer.valueOf(receiverIdString)));
 			aLink.setType(getTypes().get(eventName));
 
 			if (minTimestamp == -1)
@@ -560,13 +584,10 @@ public class Otf2Parser {
 			conf = conf.trim();
 
 			// Get sender id
-			String[] groupProperty = conf
-					.split(Otf2Constants.PROPERTY_SEPARATOR);
-			String[] groupParameter = groupProperty[0]
-					.split(Otf2Constants.PARAMETER_SEPARATOR);
+			String[] groupProperty = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
+			String[] groupParameter = groupProperty[0].split(Otf2Constants.PARAMETER_SEPARATOR);
 			groupParameter[1] = groupParameter[1].trim();
-			String senderIdString = groupParameter[1].substring(0,
-					groupParameter[1].indexOf(" "));
+			String senderIdString = groupParameter[1].substring(0, groupParameter[1].indexOf(" "));
 			int senderId = Integer.valueOf(senderIdString);
 
 			Link aLink = null;
@@ -574,8 +595,7 @@ public class Otf2Parser {
 			// If we receive a communication but did not recorded the sending
 			if (!linkMaps.containsKey(getIdProducersMap().get(senderId))) {
 				// State an error and discard the event
-				logger.error(keyword + ": Unknown link with senderId "
-						+ senderId);
+				logger.error(keyword + ": Unknown link with senderId " + senderId);
 				return;
 			}
 
@@ -611,8 +631,9 @@ public class Otf2Parser {
 	}
 
 	private class VariableParser implements Otf2LineParser {
-		public void parseLine(String keyword, String line)
-				throws SoCTraceException {
+
+		@Override
+		public void parseLine(String keyword, String line) throws SoCTraceException {
 			if (keyword.equals(Otf2Constants.METRIC)) {
 				parseMetric(line);
 			}
@@ -634,7 +655,7 @@ public class Otf2Parser {
 
 			// Get timestamp
 			String timeStampString;
-			
+
 			// Are there more parameters in the line?
 			if (conf.contains(" "))
 				timeStampString = conf.substring(0, conf.indexOf(" "));
@@ -650,8 +671,7 @@ public class Otf2Parser {
 			String[] metricInfo = conf.split(Otf2Constants.PROPERTY_SEPARATOR);
 
 			for (int i = 0; i < metricInfo.length; i++) {
-				String[] metricProperty = metricInfo[i]
-						.split(Otf2Constants.PARAMETER_SEPARATOR);
+				String[] metricProperty = metricInfo[i].split(Otf2Constants.PARAMETER_SEPARATOR);
 
 				if (metricProperty[0].trim().startsWith("(")
 						|| metricProperty[1].trim().startsWith("(")) {
@@ -668,8 +688,7 @@ public class Otf2Parser {
 					else
 						values = metricProperty[0];
 
-					String[] valueTab = values
-							.split(Otf2Constants.VALUE_SEPARATOR);
+					String[] valueTab = values.split(Otf2Constants.VALUE_SEPARATOR);
 					valueTab[0] = valueTab[0].substring(1);
 
 					// Get event type
@@ -682,12 +701,8 @@ public class Otf2Parser {
 					// Get the variable value
 					int indexLastElement = valueTab.length - 1;
 					double varValue = 0.0;
-					varValue = Double
-							.valueOf(valueTab[indexLastElement].trim()
-									.substring(
-											0,
-											valueTab[indexLastElement]
-													.indexOf(")") - 1));
+					varValue = Double.valueOf(valueTab[indexLastElement].trim().substring(0,
+							valueTab[indexLastElement].indexOf(")") - 1));
 
 					aVariable.setValue(varValue);
 					eventList.add(aVariable);

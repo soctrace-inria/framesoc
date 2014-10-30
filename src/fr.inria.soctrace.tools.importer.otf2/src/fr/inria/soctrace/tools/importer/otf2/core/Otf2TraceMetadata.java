@@ -22,12 +22,9 @@ import fr.inria.soctrace.lib.storage.SystemDBObject;
 /**
  * Class to manage Otf2 Trace metadata.
  * 
- * TODO: expose a setter for each trace metadata you want to explicitly set in
- * the parser.
- * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
+class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 
 	private Trace buffer = new Trace(0);
 
@@ -40,7 +37,7 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 			throws SoCTraceException {
 		super(sysDB);
 		this.buffer.setDbName(dbName);
-		this.buffer.setAlias(alias + getCurrentDate());
+		this.buffer.setAlias(alias);
 	}
 
 	public void setNumberOfEvents(int events) {
@@ -54,7 +51,7 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 	public void setMaxTimestamp(long max) {
 		this.buffer.setMaxTimestamp(max);
 	}
-	
+
 	public void setTimeUnit(int timeUnit) {
 		this.buffer.setTimeUnit(timeUnit);
 	}
@@ -65,11 +62,11 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 		// fields read by the buffer
 		trace.setAlias(buffer.getAlias());
 		trace.setDbName(buffer.getDbName());
-		
+
 		trace.setNumberOfEvents(buffer.getNumberOfEvents());
 		trace.setMinTimestamp(buffer.getMinTimestamp());
 		trace.setMaxTimestamp(buffer.getMaxTimestamp());
-		
+
 		trace.setTimeUnit(buffer.getTimeUnit());
 		trace.setTracedApplication(buffer.getTracedApplication());
 		trace.setOperatingSystem(buffer.getOperatingSystem());
@@ -96,9 +93,9 @@ public class Otf2TraceMetadata extends AbstractTraceMetadataManager {
 		sdf.applyPattern("dd MMM yyyy HH:mm:ss z");
 		return sdf.format(new Date()).toString();
 	}
-	
+
 	/**
-	 * Get the exposant of the time unit
+	 * Get the exponent of the time unit
 	 * 
 	 * @return a string with the current date
 	 */

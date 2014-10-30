@@ -42,8 +42,8 @@ public class Otf2Importer extends FramesocTool {
 	private final static Logger logger = LoggerFactory.getLogger(Otf2Importer.class);
 
 	/**
-	 * Plugin Tool Job body: we use a Job since we have to perform a long
-	 * operation and we don't want to freeze the UI.
+	 * Plugin Tool Job body: we use a Job since we have to perform a long operation and we don't
+	 * want to freeze the UI.
 	 */
 	public class Otf2ImporterPluginJobBody implements IPluginToolJobBody {
 
@@ -91,27 +91,27 @@ public class Otf2Importer extends FramesocTool {
 				System.err.println(ex.getMessage());
 				ex.printStackTrace();
 				System.err.println("Import failure. Trying to rollback modifications in DB.");
-				if (sysDB != null)
+				if (sysDB != null) {
 					try {
 						sysDB.rollback();
 					} catch (SoCTraceException e) {
 						e.printStackTrace();
 					}
-				if (traceDB != null)
+				}
+				if (traceDB != null) {
 					try {
 						traceDB.dropDatabase();
 					} catch (SoCTraceException e) {
 						e.printStackTrace();
 					}
+				}
 			} finally {
 				// close the trace DB and the system DB (commit)
 				DBObject.finalClose(traceDB);
 				DBObject.finalClose(sysDB);
 				delta.end("Import trace");
 			}
-
 		}
-
 	}
 
 	private String getNewTraceDBName(String traceFile) {
@@ -121,13 +121,6 @@ public class Otf2Importer extends FramesocTool {
 			basename = basename.replace(Otf2Constants.TRACE_EXT, "");
 		}
 		return FramesocManager.getInstance().getTraceDBName(basename);
-	}
-
-	@SuppressWarnings("unused")
-	private boolean checkArgs(ArgumentsManager argsm) {
-		if (argsm.getTokens().size() != 1)
-			return false;
-		return true;
 	}
 
 	@Override
