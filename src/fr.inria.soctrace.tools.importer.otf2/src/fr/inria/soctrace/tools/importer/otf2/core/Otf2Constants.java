@@ -13,11 +13,28 @@ package fr.inria.soctrace.tools.importer.otf2.core;
 /**
  * Constants for Otf2 parser
  * 
- * <pre>
- * TODO (@Youenn)
- * - List what is supported/managed and what is not, among types/keywords/etc
- *   - e.g., the TODO in the code should be included in this list.
- * </pre>
+ * WARNING: The following types of events are not currently supported (i.e. they
+ * are ignored ignored) in the importer. This list is based on the list of all
+ * event records in the OTF2 documentation: 
+ * 
+ * -BUFFER_FLUSH
+ * -MEASUREMENT_ON_OFF
+ * -MPI_REQUEST_TEST MPI_REQUEST_CANCEL 
+ * -All the OMP related events (OmpFork, OmpJoin, OmpAcquireLock, OmpReleaseLock,
+ * OmpTaskCreate, OmpTaskSwitch, OmpTaskComplete, etc.)
+ * 
+ * -PARAMETER_STRING, PARAMETER_INT, PARAMETER_UNSIGNED_INT
+ * 
+ * -All the RMA events (RMA_WIN_CREATE, RMA_WIN_DESTROY RMA_COLLECTIVE_BEGIN,
+ * RMA_COLLECTIVE_END, RMA_GROUP_SYNC, RMA_REQUEST_LOCK, RMA_ACQUIRE_LOCK,
+ * RMA_TRY_LOCK, RMA_RELEASE_LOCK, RMA_SYNC RMA_WAIT_CHANGE, RMA_PUT, RMA_GET,
+ * RMA_ATOMIC, etc.)
+ * 
+ * -All the thread events (THREAD_FORK, THREAD_JOIN, etc.)
+ * 
+ * Also among the supported types of events, some of the event type parameters are also ignored:
+ * The parameters of the event types given in the REGION definitions and 
+ * some of the parameters of the metric variable
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
