@@ -56,12 +56,12 @@ class Otf2PreParser {
 	 * @throws SoCTraceException
 	 */
 	public void parseDefinitons(IProgressMonitor monitor) throws SoCTraceException {
-		
+
 		if (!checkExternalProgram()) {
 			monitor.setCanceled(true);
 			return;
 		}
-		
+
 		try {
 			monitor.subTask("Getting event producers and event types");
 			List<String> args = new ArrayList<String>();
@@ -402,8 +402,10 @@ class Otf2PreParser {
 				createEventType(Otf2Constants.MPI_RECEIVE_REQUEST, EventCategory.PUNCTUAL_EVENT));
 		theParser.getTypes().put(Otf2Constants.MPI_SEND_COMPLETE,
 				createEventType(Otf2Constants.MPI_SEND_COMPLETE, EventCategory.PUNCTUAL_EVENT));
-		theParser.getTypes().put(Otf2Constants.MPI_METRIC,
-				createEventType(Otf2Constants.MPI_METRIC, EventCategory.VARIABLE));
+		if (!theParser.ignoreVariables()) {
+			theParser.getTypes().put(Otf2Constants.MPI_METRIC,
+					createEventType(Otf2Constants.MPI_METRIC, EventCategory.VARIABLE));
+		}
 	}
 
 }
