@@ -501,14 +501,12 @@ public class RangeSlider extends Canvas {
 		gc.setBackground(getBackground());
 
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		for (int i = 1; i < 10; i++) {
-
-			final int x = (int) (9 + pixelSize * ((this.maximum - this.minimum) / 10f) * i);
-			
+		final long longDelta = Math.max(((this.maximum - this.minimum) / 10), 1);
+		for (int i = 1; longDelta * i < this.maximum; i++) {
+			final int x = (int) (9 + pixelSize * longDelta * i);
 			if (showGrads) {
 				NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-				String value = formatter.format(((this.maximum - this.minimum) / 10f) * i
-						+ this.minimum);
+				String value = formatter.format(longDelta * i + this.minimum);
 				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
 						SWT.NONE));
 				Point textSize = gc.textExtent(value);
@@ -631,7 +629,7 @@ public class RangeSlider extends Canvas {
 
 		final double pixelSize = computePixelSizeForVerticalSlider();
 		for (int i = 1; i < 10; i++) {
-			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum) / 10f * i);
+			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum) / 10 * i);
 			gc.drawLine(4, y, 7, y);
 			gc.drawLine(clientArea.width - 6, y, clientArea.width - 9, y);
 
