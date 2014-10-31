@@ -13,6 +13,7 @@
  */
 package fr.inria.soctrace.framesoc.ui.utils;
 
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
+
 import org.eclipse.swt.widgets.Label;
 
 /**
@@ -250,6 +252,10 @@ public class TimeBar {
 	public String toString() {
 		return "TimeBar [start=" + range.getLowerValue() + ", end=" + range.getUpperValue() + ", "
 				+ "min=" + range.getMinimum() + ", max=" + range.getMaximum() + "]";
+	}
+	
+	public void setStatusLineManager(IStatusLineManager manager) {
+		range.setStatusLineManager(manager);
 	}
 
 }

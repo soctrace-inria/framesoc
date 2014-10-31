@@ -15,6 +15,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.PaintEvent;
@@ -57,6 +58,8 @@ public class RangeSlider extends Canvas {
 	private static final int BARHEIGHT = 10;
 	private static final int BOTTOM = 5;
 	private static final int BARSIZE = 5;
+	
+    private static final int NO_STATUS = -1;
 
 	private enum SELECTED_KNOB {
 		NONE, UPPER, LOWER
@@ -83,6 +86,7 @@ public class RangeSlider extends Canvas {
 	private boolean showGrads = false;
 	private long cursorValue;
 	private boolean mayShowTooltip;
+	private IStatusLineManager statusLineManager;
 
 	/**
 	 * Constructs a new instance of this class given its parent and a style value describing its
@@ -208,6 +212,20 @@ public class RangeSlider extends Canvas {
 			@Override
 			public void handleEvent(final Event e) {
 				handleMouseWheel(e);
+			}
+		});
+
+		addListener(SWT.MouseEnter, new Listener() {
+			@Override
+			public void handleEvent(final Event e) {
+				updateStatusLine(e.x);
+			}
+		});
+		
+		addListener(SWT.MouseExit, new Listener() {
+			@Override
+			public void handleEvent(final Event e) {
+				updateStatusLine(NO_STATUS);
 			}
 		});
 
@@ -347,6 +365,7 @@ public class RangeSlider extends Canvas {
 			fireSelectionListeners(e);
 		}
 
+		updateStatusLine(x);
 		redraw();
 	}
 
@@ -1283,6 +1302,41 @@ public class RangeSlider extends Canvas {
 	public String toString() {
 		return "RangeSlider [minimum=" + minimum + ", maximum=" + maximum + ", lowerValue="
 				+ lowerValue + ", upperValue=" + upperValue + "]";
+	}
+
+	public void setStatusLineManager(IStatusLineManager manager) {
+		if (statusLineManager != null && manager == null) {
+			statusLineManager.setMessage(""); //$NON-NLS-1$
+		}
+		statusLineManager = manager;
+	}
+
+	private void updateStatusLine(int x) {
+		if (statusLineManager == null) {
+			return;
+		}
+		
+		if (x == NO_STATUS) {
+			statusLineManager.setMessage("");
+			return;
+		}
+		
+		NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+		StringBuilder message = new StringBuilder();
+		if (!dragInProgress) {
+			final long mouseValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
+					+ this.minimum;
+			message.append("T: "); //$NON-NLS-1$
+			message.append(formatter.format(mouseValue));
+			message.append("     ");
+		}
+		message.append("T1: "); //$NON-NLS-1$
+		message.append(formatter.format(this.lowerValue));
+		message.append("     T2: "); //$NON-NLS-1$
+		message.append(formatter.format(this.upperValue));
+		message.append("     \u0394: "); //$NON-NLS-1$
+		message.append(formatter.format(Math.abs(this.upperValue - this.lowerValue)));
+		statusLineManager.setMessage(message.toString());
 	}
 
 }

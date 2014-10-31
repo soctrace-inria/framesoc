@@ -170,13 +170,13 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private boolean fPackDone = false;
 
 	/** The time management bar */
-	private TimeBar timeBar;
+	private TimeBar fTimeBar;
 
 	/** The button to synchronize the time bar with the loaded interval */
-	private Button btnSynch;
+	private Button fBtnSynch;
 
 	/** The button to load a new interval */
-	private Button btnDraw;
+	private Button fBtnDraw;
 
 	// ------------------------------------------------------------------------
 	// Classes
@@ -832,8 +832,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 		getTimeGraphViewer().getTimeGraphControl().addDragSelectionListener(
 				new ITimeGraphTimeListener() {
 					public void timeSelected(TimeGraphTimeEvent event) {
-						if (timeBar != null) {
-							timeBar.setSelection(event.getBeginTime(), event.getEndTime());
+						if (fTimeBar != null) {
+							fTimeBar.setSelection(event.getBeginTime(), event.getEndTime());
 							fUserChangedSelection = true;
 							fDragging = true;
 						}
@@ -859,9 +859,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 			@Override
 			public void timeSelected(TimeGraphTimeEvent event) {
 				logger.debug("timeSelected");
-				if (!fDragging && timeBar != null) {
+				if (!fDragging && fTimeBar != null) {
 					// resynch timebar
-					timeBar.setSelection(fStartTime, fEndTime);
+					fTimeBar.setSelection(fStartTime, fEndTime);
 					// clean user selection change
 					fUserChangedSelection = false;
 				}
@@ -894,43 +894,44 @@ public abstract class AbstractGanttView extends FramesocPart {
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		// time manager
-		timeBar = new TimeBar(timeComposite, SWT.NONE);
-		timeBar.setEnabled(false);
-		timeBar.addSelectionListener(new SelectionAdapter() {
+		fTimeBar = new TimeBar(timeComposite, SWT.NONE);
+		fTimeBar.setEnabled(false);
+	    fTimeBar.setStatusLineManager(statusLineManager);
+		fTimeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (combo != null && timeBar != null) {
-					combo.getTimeGraphViewer().setSelectionRange(timeBar.getStartTimestamp(),
-							timeBar.getEndTimestamp());
+				if (combo != null && fTimeBar != null) {
+					combo.getTimeGraphViewer().setSelectionRange(fTimeBar.getStartTimestamp(),
+							fTimeBar.getEndTimestamp());
 					fUserChangedSelection = true;
 				}
 			}
 		});
 
 		// button to synch the timebar with the gantt
-		btnSynch = new Button(timeComposite, SWT.NONE);
-		btnSynch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnSynch.addSelectionListener(new SelectionAdapter() {
+		fBtnSynch = new Button(timeComposite, SWT.NONE);
+		fBtnSynch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		fBtnSynch.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (combo != null && timeBar != null) {
+				if (combo != null && fTimeBar != null) {
 					// clean selection
 					combo.getTimeGraphViewer().setSelectionRange(0, 0);
 					// resynch timebar
-					timeBar.setSelection(fStartTime, fEndTime);
+					fTimeBar.setSelection(fStartTime, fEndTime);
 					// clean user selection change
 					fUserChangedSelection = false;
 				}
 			}
 		});
-		btnSynch.setToolTipText("Synch selection with Gantt");
-		btnSynch.setEnabled(false);
-		btnSynch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
+		fBtnSynch.setToolTipText("Synch selection with Gantt");
+		fBtnSynch.setEnabled(false);
+		fBtnSynch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
 
 		// draw button
-		btnDraw = new Button(timeComposite, SWT.NONE);
-		btnDraw.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnDraw.addSelectionListener(new SelectionAdapter() {
+		fBtnDraw = new Button(timeComposite, SWT.NONE);
+		fBtnDraw.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		fBtnDraw.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// reset selection
@@ -938,14 +939,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 				// load new interval
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(currentShownTrace);
-				des.setStartTimestamp(timeBar.getStartTimestamp());
-				des.setEndTimestamp(timeBar.getEndTimestamp());
+				des.setStartTimestamp(fTimeBar.getStartTimestamp());
+				des.setEndTimestamp(fTimeBar.getEndTimestamp());
 				showTrace(currentShownTrace, des);
 			}
 		});
-		btnDraw.setToolTipText("Draw current selection");
-		btnDraw.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
-		btnDraw.setEnabled(false);
+		fBtnDraw.setToolTipText("Draw current selection");
+		fBtnDraw.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+		fBtnDraw.setEnabled(false);
 
 		// -------------------------------
 		// TOOL BAR
@@ -1020,8 +1021,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 
 				// set timebar bounds (min, max)
-				timeBar.setMaxTimestamp(fMaxTime);
-				timeBar.setMinTimestamp(fMinTime);
+				fTimeBar.setMaxTimestamp(fMaxTime);
+				fTimeBar.setMinTimestamp(fMinTime);
 				// set the viewer time bounds (including all the loaded events)
 				fTimeGraphWrapper.getTimeGraphViewer().setTimeBounds(fStartTime, fEndTime);
 				// set the viewer start and end times (the visible part)
@@ -1032,7 +1033,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 					// reset selection in the viewer and set the bounds in the
 					// timebar
 					fTimeGraphWrapper.getTimeGraphViewer().setSelectionRange(0, 0);
-					timeBar.setSelection(fStartTime, fEndTime);
+					fTimeBar.setSelection(fStartTime, fEndTime);
 				}
 
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
@@ -1045,9 +1046,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 					}
 				}
 
-				timeBar.setEnabled(true);
-				btnSynch.setEnabled(true);
-				btnDraw.setEnabled(true);
+				fTimeBar.setEnabled(true);
+				fBtnSynch.setEnabled(true);
+				fBtnDraw.setEnabled(true);
 
 				if (!fUserChangedTimeRange) {
 					startZoomThread(fStartTime, fEndTime);
