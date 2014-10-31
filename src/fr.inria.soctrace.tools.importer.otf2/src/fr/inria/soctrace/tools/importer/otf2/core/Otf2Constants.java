@@ -15,7 +15,7 @@ package fr.inria.soctrace.tools.importer.otf2.core;
  * 
  * <pre>
  * 
- * WARNING: The following types of events are not currently supported (i.e. they are ignored) 
+ * WARNING: The following types of events are not currently supported (i.e., they are ignored) 
  * in the importer. This list is based on the list of all event records in the OTF2 
  * documentation:
  * 
