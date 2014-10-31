@@ -158,7 +158,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		viewer = new TreeViewer(parent, SWT.MULTI);
 		viewer.setContentProvider(new TreeContentProvider());
 		viewer.setLabelProvider(new TreeLabelProvider());
-		viewer.setInput(tracesLoader.loadFromDB());
+		viewer.setInput(TraceLoader.getRoots(tracesLoader.loadFromDB()));
 
 		// default comparator
 		viewer.setComparator(new ViewerComparator());
@@ -263,7 +263,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 * Load the traces from the System DB.
 	 */
 	private void loadTracesFromDB() {
-		viewer.setInput(tracesLoader.loadFromDB());
+		viewer.setInput(TraceLoader.getRoots(tracesLoader.loadFromDB()));
 		viewer.refresh();
 		applyChecked(true);
 	}
@@ -279,7 +279,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(getSite().getShell(), "Exception", e.getMessage());
 		}
-		viewer.setInput(root);
+		viewer.setInput(TraceLoader.getRoots(root));
 		viewer.setExpandedElements(path);
 		applyChecked(true);
 	}
@@ -289,7 +289,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 */
 	private void synchTracesWithModel() {
 		Object[] path = viewer.getExpandedElements();
-		viewer.setInput(tracesLoader.synchWithModel());
+		viewer.setInput(TraceLoader.getRoots(tracesLoader.synchWithModel()));
 		viewer.setExpandedElements(path);
 		applyChecked(true);
 	}

@@ -74,7 +74,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	}
 
 	@Override
-	public StatisticsTableFolderRow getTableDataset(Map<String, Double> values) {
+	public StatisticsTableRow[] getTableDataset(Map<String, Double> values) {
 
 		Assert.isTrue(values != null, "Null map passed");
 
@@ -86,7 +86,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		Double threshold = tot * getAggregationThreshold();
 
 		// create dataset
-		StatisticsTableFolderRow root = new StatisticsTableFolderRow("", "", "", null);
+		List<StatisticsTableRow> roots = new ArrayList<>();
 		List<StatisticsTableRow> aggregatedRows = new ArrayList<>();
 
 		boolean aggregate = doAggregation();
@@ -105,7 +105,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 				aggregatedRows.add(row);
 				aggregatedValue += entry.getValue();
 			} else {
-				root.addChild(row);
+				roots.add(row);
 			}
 		}
 		if (aggregate && !aggregatedRows.isEmpty()) {
@@ -115,10 +115,10 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			for (StatisticsTableRow r : aggregatedRows) {
 				agg.addChild(r);
 			}
-			root.addChild(agg);
+			roots.add(agg);
 		}
 
-		return root;
+		return roots.toArray(new StatisticsTableRow[roots.size()]);
 	}
 
 	private String getPercentLine(double val, double tot) {

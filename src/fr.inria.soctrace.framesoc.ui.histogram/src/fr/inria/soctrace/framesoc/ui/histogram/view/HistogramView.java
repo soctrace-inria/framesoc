@@ -21,10 +21,18 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.dialogs.PatternFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -45,6 +53,8 @@ import org.jfree.experimental.chart.swt.ChartComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
@@ -53,6 +63,8 @@ import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
+import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
+import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.lib.model.Trace;
 
@@ -61,6 +73,8 @@ import fr.inria.soctrace.lib.model.Trace;
  * 
  */
 public class HistogramView extends FramesocPart {
+	public HistogramView() {
+	}
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -88,15 +102,20 @@ public class HistogramView extends FramesocPart {
 	public static final boolean USE_BUFFER = true;
 
 	/**
-	 * The view parent
+	 * The chart composite
 	 */
-	private Composite parent;
+	private Composite compositeChart;
 
 	/**
-	 * Currently selected bin item
+	 * Event producer tree
 	 */
-	private XYItemEntity selectedBin; // TODO remove this because not used
-
+	private FilteredCheckboxTree producerTree;
+	
+	/**
+	 * Event type tree (grouped by category)
+	 */
+	private FilteredCheckboxTree typeTree;
+	
 	/**
 	 * The chart frame
 	 */
@@ -104,11 +123,62 @@ public class HistogramView extends FramesocPart {
 
 	protected XYPlot plot;
 
+	// Uncomment this to use the window builder
+	@Override
+	public void createPartControl(Composite parent) {
+		createFramesocPartControl(parent);
+	}
+	
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 		// Empty view at the beginning
-		this.parent = parent;
 		setContentDescription("Trace: <no trace displayed>");
+
+		// Sash
+		SashForm sashForm = new SashForm(parent, SWT.NONE);
+		
+		// Chart
+		compositeChart = new Composite(sashForm, SWT.BORDER);
+		compositeChart.setLayout(new FillLayout(SWT.HORIZONTAL));
+		
+		// Configuration
+		Composite compositeConf = new Composite(sashForm, SWT.BORDER);
+		compositeConf.setLayout(new GridLayout(1, false));
+
+		// tab
+		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+        PatternFilter filter = new TreePatternFilter();
+        TreeContentProvider contentProvider = new TreeContentProvider();
+        TreeLabelProvider labelProvider = new TreeLabelProvider();
+
+		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
+		tbtmEventTypes.setText("Event Types");
+        filter.setIncludeLeadingWildcard(true);
+        typeTree = new FilteredCheckboxTree(parent, SWT.BORDER | SWT.MULTI, filter, true);
+        typeTree.getViewer().setContentProvider(contentProvider);
+        typeTree.getViewer().setLabelProvider(labelProvider);
+		
+		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
+		tbtmEventProducers.setText("Event Producers");
+        producerTree = new FilteredCheckboxTree(parent, SWT.BORDER | SWT.MULTI, filter, true);
+        producerTree.getViewer().setContentProvider(contentProvider);
+        producerTree.getViewer().setLabelProvider(labelProvider);
+		
+		// Buttons
+		Composite compositeBtn = new Composite(compositeConf, SWT.NONE);
+		compositeBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		compositeBtn.setLayout(new GridLayout(2, false));
+		
+		Button btnReset = new Button(compositeBtn, SWT.NONE);
+		btnReset.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnReset.setText("Reset");
+		
+		Button btnLoad = new Button(compositeBtn, SWT.NONE);
+		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnLoad.setText("Load");
+		sashForm.setWeights(new int[] {80, 20});
 
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
@@ -126,7 +196,6 @@ public class HistogramView extends FramesocPart {
 
 	@Override
 	public void dispose() {
-		selectedBin = null;
 		plot = null;
 		super.dispose();
 	}
@@ -183,7 +252,7 @@ public class HistogramView extends FramesocPart {
 			if (!(event.getEntity() instanceof XYItemEntity))
 				return;
 			// store selected bin timestamp
-			selectedBin = (XYItemEntity) event.getEntity();
+			XYItemEntity selectedBin = (XYItemEntity) event.getEntity();
 			logger.debug("selected " + selectedBin);
 		}
 	}
@@ -196,10 +265,10 @@ public class HistogramView extends FramesocPart {
 	@Override
 	public void showTrace(final Trace trace, Object data) {
 		// Clean parent
-		for (Control c : parent.getChildren()) {
+		for (Control c : compositeChart.getChildren()) {
 			c.dispose();
 		}
-		
+
 		Job job = new Job("Loading Event Density Chart...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -276,8 +345,8 @@ public class HistogramView extends FramesocPart {
 							setContentDescription("Trace: " + currentShownTrace.getAlias());
 							if (chartFrame != null)
 								chartFrame.dispose();
-							chartFrame = new ChartComposite(parent, SWT.NONE, chart, USE_BUFFER);
-							chartFrame.setSize(parent.getSize()); // size
+							chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER);
+							chartFrame.setSize(compositeChart.getSize()); // size
 							chartFrame.setRangeZoomable(false); // prevent y zooming
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
 							enableActions(true);
@@ -294,5 +363,4 @@ public class HistogramView extends FramesocPart {
 		job.setUser(true);
 		job.schedule();
 	}
-
 }

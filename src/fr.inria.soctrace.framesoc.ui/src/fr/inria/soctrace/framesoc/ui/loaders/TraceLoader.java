@@ -118,6 +118,15 @@ public class TraceLoader {
 		}
 		return root;
 	}
+	/**
+	 * XXX tmp method
+	 * 
+	 * @param root
+	 * @return
+	 */
+	public static Object[] getRoots(FolderNode root) {
+		return root.getChildren().toArray(new FolderNode[root.getChildren().size()]);
+	}
 	
 	/**
 	 * Synchronize current model with DB. Note that an old model input must be

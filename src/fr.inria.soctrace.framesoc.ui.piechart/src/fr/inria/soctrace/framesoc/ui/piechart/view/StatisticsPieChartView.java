@@ -63,7 +63,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -669,7 +668,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		final PieDataset dataset = loader.getPieDataset(values);
-		final StatisticsTableFolderRow root = loader.getTableDataset(values);
+		final StatisticsTableRow[] roots = loader.getTableDataset(values);
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 
@@ -708,10 +707,10 @@ public class StatisticsPieChartView extends FramesocPart {
 				chartFrame.setLocation(location);
 
 				// update other elements
-				if (!root.hasChildren()) {
+				if (roots.length == 0) {
 					tableTreeViewer.setInput(null);
 				} else {
-					tableTreeViewer.setInput(root);
+					tableTreeViewer.setInput(roots);
 				}
 				tableTreeViewer.expandAll();
 				btnLoad.setEnabled(!currentDescriptor.dirty);
