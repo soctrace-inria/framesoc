@@ -65,7 +65,7 @@ public class TimeBar {
 		sliderBar.setLayout(gl_sliderBar);
 		sliderBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		prev = new Button(sliderBar, SWT.NONE);
-		GridData gd_prev = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		GridData gd_prev = new GridData(SWT.RIGHT, SWT.BOTTOM, false, false, 1, 1);
 		gd_prev.heightHint = 28;
 		prev.setLayoutData(gd_prev);
 		prev.setText("<");
