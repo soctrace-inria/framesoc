@@ -94,7 +94,7 @@ class Otf2PreParser {
 
 	private boolean checkExternalProgram() {
 		List<String> args = new ArrayList<>(1);
-		args.add("--versiosn");
+		args.add("--version");
 		Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
 		BufferedReader br = wrapper.execute(new NullProgressMonitor());
 		try {
@@ -102,7 +102,7 @@ class Otf2PreParser {
 			if ((line = br.readLine()) != null) {
 				Pattern p = Pattern.compile("otf2-print: version (\\d\\.\\d)");
 				Matcher m = p.matcher(line);
-				return m.matches();
+				return m.find();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
