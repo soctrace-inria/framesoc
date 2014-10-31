@@ -1,24 +1,26 @@
 package fr.inria.soctrace.tools.importer.otf2.core;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.IdManager;
 import fr.inria.soctrace.tools.importer.otf2.reader.Otf2PrintWrapper;
 
 /**
  * Otf2 pre-parser.
  * 
- * Parse the output of "otf2-print -G" to retrieve: the event producer hyerarchy, the event types
+ * Parse the output of "otf2-print -G" to retrieve: the event producer hierarchy, the event types
  * and other meta-data.
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
@@ -36,14 +38,20 @@ class Otf2PreParser {
 	}
 
 	/**
-	 * Parse the otf2 definitions (created with otf2-print with the -G option) and get all sort of
-	 * info (event producers, event types, etc.)
+	 * Check that the otf2-print is working and parse the otf2 definitions (created with otf2-print
+	 * with the -G option) and get all sort of info (event producers, event types, etc.)
 	 * 
 	 * @param monitor
 	 *            progress monitor
 	 * @throws SoCTraceException
 	 */
 	public void parseDefinitons(IProgressMonitor monitor) throws SoCTraceException {
+		
+		if (!checkExternalProgram()) {
+			monitor.setCanceled(true);
+			return;
+		}
+		
 		try {
 			monitor.subTask("Getting event producers and event types");
 			List<String> args = new ArrayList<String>();
@@ -82,6 +90,24 @@ class Otf2PreParser {
 		} catch (Exception e) {
 			throw new SoCTraceException(e);
 		}
+	}
+
+	private boolean checkExternalProgram() {
+		List<String> args = new ArrayList<>(1);
+		args.add("--versiosn");
+		Otf2PrintWrapper wrapper = new Otf2PrintWrapper(args);
+		BufferedReader br = wrapper.execute(new NullProgressMonitor());
+		try {
+			String line;
+			if ((line = br.readLine()) != null) {
+				Pattern p = Pattern.compile("otf2-print: version (\\d\\.\\d)");
+				Matcher m = p.matcher(line);
+				return m.matches();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	/**
