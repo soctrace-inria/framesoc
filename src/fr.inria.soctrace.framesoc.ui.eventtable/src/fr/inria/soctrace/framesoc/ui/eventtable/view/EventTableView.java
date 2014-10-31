@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -301,6 +302,8 @@ public final class EventTableView extends FramesocPart {
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE);
 		timeBar.setEnabled(false);
+		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
+		timeBar.setStatusLineManager(statusLineManager);
 
 		// button to synch the timeline with the table
 		btnSynch = new Button(timeComposite, SWT.NONE);

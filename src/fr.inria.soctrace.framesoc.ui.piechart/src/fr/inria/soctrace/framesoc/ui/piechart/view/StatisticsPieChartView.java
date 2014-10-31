@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -61,6 +62,7 @@ import org.jfree.experimental.chart.swt.ChartComposite;
 import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -364,6 +366,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE);
 		timeBar.setEnabled(false);
+		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
+		timeBar.setStatusLineManager(statusLineManager);
 		timeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
