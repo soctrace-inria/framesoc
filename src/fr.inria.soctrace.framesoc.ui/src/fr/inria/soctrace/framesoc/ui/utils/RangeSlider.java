@@ -58,8 +58,8 @@ public class RangeSlider extends Canvas {
 	private static final int BARHEIGHT = 10;
 	private static final int BOTTOM = 5;
 	private static final int BARSIZE = 5;
-	
-    private static final int NO_STATUS = -1;
+
+	private static final int NO_STATUS = -1;
 
 	private enum SELECTED_KNOB {
 		NONE, UPPER, LOWER
@@ -221,7 +221,7 @@ public class RangeSlider extends Canvas {
 				updateStatusLine(e.x);
 			}
 		});
-		
+
 		addListener(SWT.MouseExit, new Listener() {
 			@Override
 			public void handleEvent(final Event e) {
@@ -520,12 +520,12 @@ public class RangeSlider extends Canvas {
 		gc.setBackground(getBackground());
 
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		final long longDelta = Math.max(((this.maximum - this.minimum) / 10), 1);
-		for (int i = 1; longDelta * i < this.maximum; i++) {
-			final int x = (int) (9 + pixelSize * longDelta * i);
+		final double delta = Math.max(((this.maximum - this.minimum) / 10f), 1);
+		for (int i = 1; i < 10; i++) {
+			final int x = (int) (9 + pixelSize * delta * i);
 			if (showGrads) {
 				NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-				String value = formatter.format(longDelta * i + this.minimum);
+				String value = formatter.format(delta * i + this.minimum);
 				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
 						SWT.NONE));
 				Point textSize = gc.textExtent(value);
@@ -648,7 +648,7 @@ public class RangeSlider extends Canvas {
 
 		final double pixelSize = computePixelSizeForVerticalSlider();
 		for (int i = 1; i < 10; i++) {
-			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum) / 10 * i);
+			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum) / 10f * i);
 			gc.drawLine(4, y, 7, y);
 			gc.drawLine(clientArea.width - 6, y, clientArea.width - 9, y);
 
@@ -1315,12 +1315,12 @@ public class RangeSlider extends Canvas {
 		if (statusLineManager == null) {
 			return;
 		}
-		
+
 		if (x == NO_STATUS) {
 			statusLineManager.setMessage("");
 			return;
 		}
-		
+
 		NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
 		StringBuilder message = new StringBuilder();
 		if (!dragInProgress) {
