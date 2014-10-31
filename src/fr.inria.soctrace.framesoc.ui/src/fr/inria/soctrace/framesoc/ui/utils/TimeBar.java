@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
+import org.eclipse.swt.widgets.Label;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
@@ -56,9 +57,17 @@ public class TimeBar {
 
 		// Time slider bar
 		Composite sliderBar = new Composite(parent, style);
-		sliderBar.setLayout(new GridLayout(5, false));
+		GridLayout gl_sliderBar = new GridLayout(5, false);
+		gl_sliderBar.horizontalSpacing = 1;
+		gl_sliderBar.marginHeight = 0;
+		gl_sliderBar.verticalSpacing = 0;
+		gl_sliderBar.marginWidth = 0;
+		sliderBar.setLayout(gl_sliderBar);
 		sliderBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		prev = new Button(sliderBar, SWT.NONE);
+		GridData gd_prev = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		gd_prev.heightHint = 28;
+		prev.setLayoutData(gd_prev);
 		prev.setText("<");
 		prev.setToolTipText("Previous time window");
 		prev.addSelectionListener(new PreviousWindowListener());
@@ -70,6 +79,9 @@ public class TimeBar {
 		range.setUpperValue(0);
 		range.setShowGrads(true);
 		next = new Button(sliderBar, SWT.NONE);
+		GridData gd_next = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_next.heightHint = 28;
+		next.setLayoutData(gd_next);
 		next.setToolTipText("Next time window");
 		next.setText(">");
 		next.addSelectionListener(new NextWindowListener());
@@ -79,6 +91,7 @@ public class TimeBar {
 		btnSettings.setToolTipText("Manual editing");
 		btnSettings
 				.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
+		new Label(sliderBar, SWT.NONE);
 
 	}
 

@@ -35,8 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Instances of this class provide a slider with 2 buttons (min value, max
- * value).
+ * Instances of this class provide a slider with 2 buttons (min value, max value).
  * <p>
  * <dl>
  * <dt><b>Styles:</b></dt>
@@ -51,14 +50,14 @@ import org.slf4j.LoggerFactory;
 public class RangeSlider extends Canvas {
 
 	private final static Logger logger = LoggerFactory.getLogger(RangeSlider.class);
-	
+
 	private static final int MIN_WIDTH = 100;
 	private static final int MIN_HEIGHT = 32;
-	
+
 	private static final int BARHEIGHT = 10;
 	private static final int BOTTOM = 5;
 	private static final int BARSIZE = 5;
-	
+
 	private enum SELECTED_KNOB {
 		NONE, UPPER, LOWER
 	};
@@ -86,49 +85,60 @@ public class RangeSlider extends Canvas {
 	private boolean mayShowTooltip;
 
 	/**
-	 * Constructs a new instance of this class given its parent and a style
-	 * value describing its behavior and appearance.
+	 * Constructs a new instance of this class given its parent and a style value describing its
+	 * behavior and appearance.
 	 * <p>
-	 * The style value is either one of the style constants defined in class
-	 * <code>SWT</code> which is applicable to instances of this class, or must
-	 * be built by <em>bitwise OR</em>'ing together (that is, using the
-	 * <code>int</code> "|" operator) two or more of those <code>SWT</code>
-	 * style constants. The class description lists the style constants that are
+	 * The style value is either one of the style constants defined in class <code>SWT</code> which
+	 * is applicable to instances of this class, or must be built by <em>bitwise OR</em>'ing
+	 * together (that is, using the <code>int</code> "|" operator) two or more of those
+	 * <code>SWT</code> style constants. The class description lists the style constants that are
 	 * applicable to the class. Style bits are also inherited from superclasses.
 	 * </p>
 	 * 
-	 * @param parent a composite control which will be the parent of the new
-	 *            instance (cannot be null)
-	 * @param style the style of control to construct
+	 * @param parent
+	 *            a composite control which will be the parent of the new instance (cannot be null)
+	 * @param style
+	 *            the style of control to construct
 	 * 
-	 * @exception IllegalArgumentException <ul>
+	 * @exception IllegalArgumentException
+	 *                <ul>
 	 *                <li>ERROR_NULL_ARGUMENT - if the parent is null</li>
 	 *                </ul>
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the parent</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the parent</li>
 	 *                </ul>
 	 * 
 	 */
 	public RangeSlider(final Composite parent, final int style) {
-		super(parent, SWT.DOUBLE_BUFFERED | ((style & SWT.BORDER) == SWT.BORDER ? SWT.BORDER : SWT.NONE));
+		super(parent, SWT.DOUBLE_BUFFERED
+				| ((style & SWT.BORDER) == SWT.BORDER ? SWT.BORDER : SWT.NONE));
 		this.cursorValue = 0;
 		this.mayShowTooltip = false;
 		this.minimum = this.lowerValue = 0;
 		this.maximum = this.upperValue = 100;
-		this.listeners = new ArrayList<SelectionListener>();
+		this.listeners = new ArrayList<>();
 		this.increment = 1;
 		this.pageIncrement = 10;
 		this.lastSelected = SELECTED_KNOB.NONE;
-		this.slider = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/slider-normal.png"));
-		this.sliderHover = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/slider-hover.png"));
-		this.sliderDrag = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/slider-drag.png"));
-		this.sliderSelected = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/slider-selected.png"));
+		this.slider = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/slider-normal.png"));
+		this.sliderHover = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/slider-hover.png"));
+		this.sliderDrag = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/slider-drag.png"));
+		this.sliderSelected = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/slider-selected.png"));
 
-		this.vSlider = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/h-slider-normal.png"));
-		this.vSliderHover = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/h-slider-hover.png"));
-		this.vSliderDrag = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/h-slider-drag.png"));
-		this.vSliderSelected = new Image(getDisplay(), this.getClass().getClassLoader().getResourceAsStream("images/h-slider-selected.png"));
+		this.vSlider = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/h-slider-normal.png"));
+		this.vSliderHover = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/h-slider-hover.png"));
+		this.vSliderDrag = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/h-slider-drag.png"));
+		this.vSliderSelected = new Image(getDisplay(), this.getClass().getClassLoader()
+				.getResourceAsStream("images/h-slider-selected.png"));
 
 		if ((style & SWT.VERTICAL) == SWT.VERTICAL) {
 			this.orientation = SWT.VERTICAL;
@@ -207,12 +217,13 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Code executed when the mouse is down
 	 * 
-	 * @param e event
+	 * @param e
+	 *            event
 	 */
 	private void handleMouseDown(final Event e) {
 
 		logger.debug("mouse down {}", this);
-		
+
 		if (this.upperHover) {
 			logger.debug("mouse down upper value {}", this.upperValue);
 			this.dragInProgress = true;
@@ -236,7 +247,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Code executed when the mouse is up
 	 * 
-	 * @param e event
+	 * @param e
+	 *            event
 	 */
 	private void handleMouseUp(final Event e) {
 		if (!this.dragInProgress) {
@@ -260,9 +272,9 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Fire all selection listeners
 	 * 
-	 * @param event selection event
-	 * @return <code>true</code> if no listener cancels the selection,
-	 *         <code>false</code> otherwise
+	 * @param event
+	 *            selection event
+	 * @return <code>true</code> if no listener cancels the selection, <code>false</code> otherwise
 	 */
 	private boolean fireSelectionListeners(final Event event) {
 		for (final SelectionListener selectionListener : this.listeners) {
@@ -278,26 +290,32 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Code executed when the mouse pointer is moving
 	 * 
-	 * @param e event
+	 * @param e
+	 *            event
 	 */
 	private void handleMouseMove(final Event e) {
 		final int x = e.x, y = e.y;
 		final Image img = this.orientation == SWT.HORIZONTAL ? this.slider : this.vSlider;
-		this.upperHover = x >= this.coordUpper.x && x <= this.coordUpper.x + img.getBounds().width && y >= this.coordUpper.y && y <= this.coordUpper.y + img.getBounds().height;
-		this.lowerHover = x >= this.coordLower.x && x <= this.coordLower.x + img.getBounds().width && y >= this.coordLower.y && y <= this.coordLower.y + img.getBounds().height;
-		
+		this.upperHover = x >= this.coordUpper.x && x <= this.coordUpper.x + img.getBounds().width
+				&& y >= this.coordUpper.y && y <= this.coordUpper.y + img.getBounds().height;
+		this.lowerHover = x >= this.coordLower.x && x <= this.coordLower.x + img.getBounds().width
+				&& y >= this.coordLower.y && y <= this.coordLower.y + img.getBounds().height;
+
 		if (this.orientation == SWT.HORIZONTAL) {
-			this.cursorValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider()) + this.minimum;	
+			this.cursorValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
+					+ this.minimum;
 		} else {
-			this.cursorValue = (long) ((y - 9f) / computePixelSizeForHorizonalSlider()) + this.minimum;
+			this.cursorValue = (long) ((y - 9f) / computePixelSizeForHorizonalSlider())
+					+ this.minimum;
 		}
-		if (cursorValue<=this.maximum && cursorValue>=this.minimum) {
+		if (cursorValue <= this.maximum && cursorValue >= this.minimum) {
 			this.mayShowTooltip = true;
 		}
-		
+
 		if (this.dragInProgress) {
 			if (this.orientation == SWT.HORIZONTAL) {
-				final long mouseValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider()) + this.minimum;
+				final long mouseValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
+						+ this.minimum;
 				logger.debug("mouse value {}", mouseValue);
 				if (this.lastSelected == SELECTED_KNOB.UPPER) {
 					logger.debug("upper value before {}", this.upperValue);
@@ -312,7 +330,8 @@ public class RangeSlider extends Canvas {
 				}
 
 			} else {
-				final long mouseValue = (long) ((y - 9f) / computePixelSizeForVerticalSlider()) + this.minimum;
+				final long mouseValue = (long) ((y - 9f) / computePixelSizeForVerticalSlider())
+						+ this.minimum;
 				if (this.lastSelected == SELECTED_KNOB.UPPER) {
 					logger.debug("upper value before {}", this.upperValue);
 					this.upperValue = (long) (Math.ceil(mouseValue / this.increment) * this.increment);
@@ -335,7 +354,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Code executed when the mouse wheel is activated
 	 * 
-	 * @param e event
+	 * @param e
+	 *            event
 	 */
 	private void handleMouseWheel(final Event e) {
 		if (this.lastSelected == SELECTED_KNOB.NONE) {
@@ -389,7 +409,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draws the widget
 	 * 
-	 * @param e paint event
+	 * @param e
+	 *            paint event
 	 */
 	private void drawWidget(final PaintEvent e) {
 		final Rectangle rect = this.getClientArea();
@@ -405,14 +426,15 @@ public class RangeSlider extends Canvas {
 		}
 		if (this.mayShowTooltip) {
 			// TODO: show tooltip (you have to manually print the rectangle and the inner text)
-			logger.debug("value under cursor: {}", 	cursorValue);
+			logger.debug("value under cursor: {}", cursorValue);
 		}
 	}
 
 	/**
 	 * Draw the range slider (horizontal)
 	 * 
-	 * @param gc graphic context
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawHorizontalRangeSlider(final GC gc) {
 		drawBackgroundHorizontal(gc);
@@ -424,7 +446,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draw the background
 	 * 
-	 * @param gc graphic context
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawBackgroundHorizontal(final GC gc) {
 		final Rectangle clientArea = this.getClientArea();
@@ -449,7 +472,7 @@ public class RangeSlider extends Canvas {
 		} else {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
-		gc.fillRectangle(12 + startX, ybar, endX - startX - 6, BARHEIGHT);		
+		gc.fillRectangle(12 + startX, ybar, endX - startX - 6, BARHEIGHT);
 	}
 
 	/**
@@ -457,14 +480,15 @@ public class RangeSlider extends Canvas {
 	 */
 	private double computePixelSizeForHorizonalSlider() {
 		int width = getClientArea().width;
-		double d = ( width - 20f) / (this.maximum - this.minimum); 
+		double d = (width - 20f) / (this.maximum - this.minimum);
 		return d;
 	}
 
 	/**
 	 * Draw the bars
 	 * 
-	 * @param gc graphic context
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawBarsHorizontal(final GC gc) {
 
@@ -483,12 +507,15 @@ public class RangeSlider extends Canvas {
 
 			if (showGrads) {
 				NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-				String value = formatter.format(((this.maximum - this.minimum) / 10) * i + this.minimum);
-				gc.setFont(new Font(getDisplay(),gc.getFont().getFontData()[0].getName(), 8, SWT.NONE));
+				String value = formatter.format(((this.maximum - this.minimum) / 10) * i
+						+ this.minimum);
+				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
+						SWT.NONE));
 				Point textSize = gc.textExtent(value);
-				gc.drawText(value, x - textSize.x/2, -2);				
+				gc.drawText(value, x - textSize.x / 2, -2);
 			}
-			gc.drawLine(x, getClientArea().height-BARHEIGHT-BARSIZE-BOTTOM, x, getClientArea().height-BARHEIGHT-BOTTOM);
+			gc.drawLine(x, getClientArea().height - BARHEIGHT - BARSIZE - BOTTOM, x,
+					getClientArea().height - BARHEIGHT - BOTTOM);
 		}
 
 	}
@@ -496,10 +523,13 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draws an horizontal knob
 	 * 
-	 * @param gc graphic context
-	 * @param value corresponding value
-	 * @param upper if <code>true</code>, draws the upper knob. If
-	 *            <code>false</code>, draws the lower knob
+	 * @param gc
+	 *            graphic context
+	 * @param value
+	 *            corresponding value
+	 * @param upper
+	 *            if <code>true</code>, draws the upper knob. If <code>false</code>, draws the lower
+	 *            knob
 	 * @return the coordinate of the upper left corner of the knob
 	 */
 	private Point drawHorizontalKnob(final GC gc, final long value, final boolean upper) {
@@ -523,7 +553,8 @@ public class RangeSlider extends Canvas {
 				image = this.slider;
 			}
 		}
-		int yknob = getClientArea().height -BOTTOM + 1 - BARHEIGHT/2 - this.slider.getBounds().height / 2;
+		int yknob = getClientArea().height - BOTTOM + 1 - BARHEIGHT / 2
+				- this.slider.getBounds().height / 2;
 		if (isEnabled()) {
 			gc.drawImage(image, x + 5, yknob);
 		} else {
@@ -537,7 +568,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draw the range slider (vertical)
 	 * 
-	 * @param gc graphic context
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawVerticalRangeSlider(final GC gc) {
 		drawBackgroundVertical(gc);
@@ -549,7 +581,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draws the background
 	 * 
-	 * @param gc graphic context
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawBackgroundVertical(final GC gc) {
 		final Rectangle clientArea = this.getClientArea();
@@ -583,9 +616,10 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Draws the bars
-	 * TODO: grads
-	 * @param gc graphic context
+	 * Draws the bars TODO: grads
+	 * 
+	 * @param gc
+	 *            graphic context
 	 */
 	private void drawBarsVertical(final GC gc) {
 		final Rectangle clientArea = this.getClientArea();
@@ -608,10 +642,13 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Draws a vertical knob
 	 * 
-	 * @param gc graphic context
-	 * @param value corresponding value
-	 * @param upper if <code>true</code>, draws the upper knob. If
-	 *            <code>false</code>, draws the lower knob
+	 * @param gc
+	 *            graphic context
+	 * @param value
+	 *            corresponding value
+	 * @param upper
+	 *            if <code>true</code>, draws the upper knob. If <code>false</code>, draws the lower
+	 *            knob
 	 * @return the coordinate of the upper left corner of the knob
 	 */
 	private Point drawVerticalKnob(final GC gc, final long value, final boolean upper) {
@@ -651,7 +688,8 @@ public class RangeSlider extends Canvas {
 	/**
 	 * Code executed when a key is typed
 	 * 
-	 * @param event event
+	 * @param event
+	 *            event
 	 */
 	private void handleKeyDown(final Event event) {
 
@@ -729,24 +767,26 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Adds the listener to the collection of listeners who will be notified
-	 * when the user changes the receiver's value, by sending it one of the
-	 * messages defined in the <code>SelectionListener</code> interface.
+	 * Adds the listener to the collection of listeners who will be notified when the user changes
+	 * the receiver's value, by sending it one of the messages defined in the
+	 * <code>SelectionListener</code> interface.
 	 * <p>
-	 * <code>widgetSelected</code> is called when the user changes the
-	 * receiver's value. <code>widgetDefaultSelected</code> is not called.
+	 * <code>widgetSelected</code> is called when the user changes the receiver's value.
+	 * <code>widgetDefaultSelected</code> is not called.
 	 * </p>
 	 * 
-	 * @param listener the listener which should be notified
+	 * @param listener
+	 *            the listener which should be notified
 	 * 
-	 * @exception IllegalArgumentException <ul>
+	 * @exception IllegalArgumentException
+	 *                <ul>
 	 *                <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
 	 *                </ul>
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 * 
 	 * @see SelectionListener
@@ -794,16 +834,16 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the amount that the selected receiver's value will be modified by
-	 * when the up/down (or right/left) arrows are pressed.
+	 * Returns the amount that the selected receiver's value will be modified by when the up/down
+	 * (or right/left) arrows are pressed.
 	 * 
 	 * @return the increment
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getIncrement() {
@@ -816,11 +856,11 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @return the selection
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getLowerValue() {
@@ -833,11 +873,11 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @return the maximum
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getMaximum() {
@@ -850,11 +890,11 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @return the minimum
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getMinimum() {
@@ -863,16 +903,16 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the amount that the selected receiver's value will be modified by
-	 * when the page increment/decrement areas are selected.
+	 * Returns the amount that the selected receiver's value will be modified by when the page
+	 * increment/decrement areas are selected.
 	 * 
 	 * @return the page increment
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getPageIncrement() {
@@ -881,16 +921,16 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the 'selection', which is an array where the first element is the
-	 * lower selection, and the second element is the upper selection
+	 * Returns the 'selection', which is an array where the first element is the lower selection,
+	 * and the second element is the upper selection
 	 * 
 	 * @return the selection
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long[] getSelection() {
@@ -906,11 +946,11 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @return the selection
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public long getUpperValue() {
@@ -919,19 +959,21 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Removes the listener from the collection of listeners who will be
-	 * notified when the user changes the receiver's value.
+	 * Removes the listener from the collection of listeners who will be notified when the user
+	 * changes the receiver's value.
 	 * 
-	 * @param listener the listener which should no longer be notified
+	 * @param listener
+	 *            the listener which should no longer be notified
 	 * 
-	 * @exception IllegalArgumentException <ul>
+	 * @exception IllegalArgumentException
+	 *                <ul>
 	 *                <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
 	 *                </ul>
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 * 
 	 * @see SelectionListener
@@ -943,17 +985,17 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the amount that the selected receiver's value will be modified by
-	 * when the up/down (or right/left) arrows are pressed to the argument,
-	 * which must be at least one.
+	 * Sets the amount that the selected receiver's value will be modified by when the up/down (or
+	 * right/left) arrows are pressed to the argument, which must be at least one.
 	 * 
-	 * @param increment the new increment (must be greater than zero)
+	 * @param increment
+	 *            the new increment (must be greater than zero)
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setIncrement(final long increment) {
@@ -963,16 +1005,17 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'lower selection', which is the receiver's lower value, to the
-	 * argument which must be greater than or equal to zero.
+	 * Sets the 'lower selection', which is the receiver's lower value, to the argument which must
+	 * be greater than or equal to zero.
 	 * 
-	 * @param value the new selection (must be zero or greater)
+	 * @param value
+	 *            the new selection (must be zero or greater)
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setLowerValue(final long value) {
@@ -987,19 +1030,18 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the maximum value that the receiver will allow. This new value will
-	 * be ignored if it is not greater than the receiver's current minimum
-	 * value. If the new maximum is applied then the receiver's selection value
-	 * will be adjusted if necessary to fall within its new range.
+	 * Sets the maximum value that the receiver will allow. This new value will be ignored if it is
+	 * not greater than the receiver's current minimum value. If the new maximum is applied then the
+	 * receiver's selection value will be adjusted if necessary to fall within its new range.
 	 * 
-	 * @param value the new maximum, which must be greater than the current
-	 *            minimum
+	 * @param value
+	 *            the new maximum, which must be greater than the current minimum
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setMaximum(final long value) {
@@ -1021,20 +1063,19 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the minimum value that the receiver will allow. This new value will
-	 * be ignored if it is negative or is not less than the receiver's current
-	 * maximum value. If the new minimum is applied then the receiver's
-	 * selection value will be adjusted if necessary to fall within its new
-	 * range.
+	 * Sets the minimum value that the receiver will allow. This new value will be ignored if it is
+	 * negative or is not less than the receiver's current maximum value. If the new minimum is
+	 * applied then the receiver's selection value will be adjusted if necessary to fall within its
+	 * new range.
 	 * 
-	 * @param value the new minimum, which must be nonnegative and less than the
-	 *            current maximum
+	 * @param value
+	 *            the new minimum, which must be nonnegative and less than the current maximum
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setMinimum(final long value) {
@@ -1056,29 +1097,28 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the minimum and maximum values that the receiver will allow. 
-	 * This new values will be ignored if the minimum is greater than the
-	 * maximum. If the new values are applied then the receiver's selection 
-	 * value will be adjusted if necessary to fall within its new range.
+	 * Sets the minimum and maximum values that the receiver will allow. This new values will be
+	 * ignored if the minimum is greater than the maximum. If the new values are applied then the
+	 * receiver's selection value will be adjusted if necessary to fall within its new range.
 	 * 
-	 * @param min the new minimum, which must be nonnegative and less than the
-	 *            maximum
-	 * @param max the new maximum, which must be nonnegative and greater than the
-	 *            minimum
+	 * @param min
+	 *            the new minimum, which must be nonnegative and less than the maximum
+	 * @param max
+	 *            the new maximum, which must be nonnegative and greater than the minimum
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 
 	public void setExtrema(final long min, final long max) {
 		logger.debug("set extrema before {}", this);
-		if (min<0)
+		if (min < 0)
 			return;
-		if (max<min)
+		if (max < min)
 			return;
 		checkWidget();
 		this.minimum = min;
@@ -1106,18 +1146,19 @@ public class RangeSlider extends Canvas {
 		logger.debug("set extrema after {}", this);
 		redraw();
 	}
+
 	/**
-	 * Sets the amount that the receiver's value will be modified by when the
-	 * page increment/decrement areas are selected to the argument, which must
-	 * be at least one.
+	 * Sets the amount that the receiver's value will be modified by when the page
+	 * increment/decrement areas are selected to the argument, which must be at least one.
 	 * 
-	 * @param pageIncrement the page increment (must be greater than zero)
+	 * @param pageIncrement
+	 *            the page increment (must be greater than zero)
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setPageIncrement(final long pageIncrement) {
@@ -1126,17 +1167,17 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'selection', which is the receiver's value, to the argument
-	 * which must be greater than or equal to zero.
+	 * Sets the 'selection', which is the receiver's value, to the argument which must be greater
+	 * than or equal to zero.
 	 * 
-	 * @param values the new selection (first value is lower value, second value
-	 *            is upper value)
+	 * @param values
+	 *            the new selection (first value is lower value, second value is upper value)
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setSelection(final long[] values) {
@@ -1149,29 +1190,33 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'selection', which is the receiver's value, argument which must
-	 * be greater than or equal to zero.
+	 * Sets the 'selection', which is the receiver's value, argument which must be greater than or
+	 * equal to zero.
 	 * 
-	 * @param lowerValue the new lower selection (must be zero or greater)
-	 * @param upperValue the new upper selection (must be zero or greater)
-	 * @param notifyListeners notify the selection listeners or not
+	 * @param lowerValue
+	 *            the new lower selection (must be zero or greater)
+	 * @param upperValue
+	 *            the new upper selection (must be zero or greater)
+	 * @param notifyListeners
+	 *            notify the selection listeners or not
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setSelection(final long lowerValue, final long upperValue, boolean notifyListeners) {
 		checkWidget();
 
 		if (lowerValue >= upperValue) {
-			logger.error("Invalid selection. Lower: "+ lowerValue + ", Upper: " + upperValue);
+			logger.error("Invalid selection. Lower: " + lowerValue + ", Upper: " + upperValue);
 			return;
 		}
-		
-		if (this.minimum <= lowerValue && lowerValue <= this.maximum && this.minimum <= upperValue && upperValue <= this.maximum) {
+
+		if (this.minimum <= lowerValue && lowerValue <= this.maximum && this.minimum <= upperValue
+				&& upperValue <= this.maximum) {
 			logger.debug("upper value before {}", this.upperValue);
 			logger.debug("lower value before {}", this.lowerValue);
 			this.lowerValue = lowerValue;
@@ -1179,31 +1224,32 @@ public class RangeSlider extends Canvas {
 			logger.debug("upper value after {}", this.upperValue);
 			logger.debug("lower value after {}", this.lowerValue);
 		} else {
-			logger.error("Invalid selection. Lower: "+ lowerValue + ", Upper: " + upperValue);
-			return;			
+			logger.error("Invalid selection. Lower: " + lowerValue + ", Upper: " + upperValue);
+			return;
 		}
 
 		redraw();
-		
+
 		if (notifyListeners) {
 			Event e = new Event();
 			e.doit = true;
-			e.widget = this;		
+			e.widget = this;
 			fireSelectionListeners(e);
 		}
 	}
 
 	/**
-	 * Sets the 'upper selection', which is the upper receiver's value, argument
-	 * which must be greater than or equal to zero.
+	 * Sets the 'upper selection', which is the upper receiver's value, argument which must be
+	 * greater than or equal to zero.
 	 * 
-	 * @param value the new selection (must be zero or greater)
+	 * @param value
+	 *            the new selection (must be zero or greater)
 	 * 
-	 * @exception SWTException <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
-	 *                disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
-	 *                thread that created the receiver</li>
+	 * @exception SWTException
+	 *                <ul>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
+	 *                the receiver</li>
 	 *                </ul>
 	 */
 	public void setUpperValue(final long value) {
@@ -1218,6 +1264,7 @@ public class RangeSlider extends Canvas {
 
 	/**
 	 * XXX only implemented for HORIZONTAL slider
+	 * 
 	 * @return the showGrads
 	 */
 	public boolean isShowGrads() {
@@ -1226,7 +1273,9 @@ public class RangeSlider extends Canvas {
 
 	/**
 	 * XXX only implemented for HORIZONTAL slider
-	 * @param showGrads the showGrads to set
+	 * 
+	 * @param showGrads
+	 *            the showGrads to set
 	 */
 	public void setShowGrads(boolean showGrads) {
 		this.showGrads = showGrads;
@@ -1234,9 +1283,8 @@ public class RangeSlider extends Canvas {
 
 	@Override
 	public String toString() {
-		return "RangeSlider [minimum=" + minimum + ", maximum=" + maximum
-				+ ", lowerValue=" + lowerValue + ", upperValue=" + upperValue
-				+ "]";
+		return "RangeSlider [minimum=" + minimum + ", maximum=" + maximum + ", lowerValue="
+				+ lowerValue + ", upperValue=" + upperValue + "]";
 	}
-	
+
 }
