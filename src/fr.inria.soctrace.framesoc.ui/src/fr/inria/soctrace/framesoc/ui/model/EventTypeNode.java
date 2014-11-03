@@ -68,7 +68,7 @@ public class EventTypeNode implements ITreeNode {
 	/**
 	 * @return the type
 	 */
-	public EventType getTrace() {
+	public EventType getEventType() {
 		return type;
 	}
 

@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -29,6 +30,8 @@ import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -67,6 +70,7 @@ import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
@@ -78,11 +82,14 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
+import fr.inria.soctrace.lib.model.EventProducer;
+import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
+ * TODO:
+ * buttons: check all, unckeck all, synch with chart (tooltip), load (tooltip)
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- * 
  */
 public class HistogramView extends FramesocPart {
 	public HistogramView() {
@@ -148,6 +155,11 @@ public class HistogramView extends FramesocPart {
 
 	private ITreeNode[] checkedTypes;
 
+	/**
+	 * Flag stating if producers and types have been loaded
+	 */
+	private boolean parametersLoaded = false;
+
 	private final static Comparator<ITreeNode> TREE_NODE_COMPARATOR = new Comparator<ITreeNode>() {
 		@Override
 		public int compare(ITreeNode o1, ITreeNode o2) {
@@ -207,6 +219,7 @@ public class HistogramView extends FramesocPart {
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(labelProvider);
 		typeTree.getViewer().setComparator(treeComparator);
+		typeTree.addCheckStateListener(new CheckStateListener(typeTree));
 		typeTree.addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(CheckStateChangedEvent event) {
@@ -229,6 +242,7 @@ public class HistogramView extends FramesocPart {
 		producerTree.getViewer().setContentProvider(contentProvider);
 		producerTree.getViewer().setLabelProvider(labelProvider);
 		producerTree.getViewer().setComparator(treeComparator);
+		producerTree.addCheckStateListener(new CheckStateListener(producerTree));
 		producerTree.addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(CheckStateChangedEvent event) {
@@ -246,12 +260,27 @@ public class HistogramView extends FramesocPart {
 		btnReset.setText("Reset");
 		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
 		btnReset.setEnabled(false);
+		btnReset.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				producerTree.setCheckedElements(checkedProducers);
+				typeTree.setCheckedElements(checkedTypes);
+				btnReset.setEnabled(false);
+				btnLoad.setEnabled(false);
+			}
+		});
 
 		btnLoad = new Button(compositeBtn, SWT.NONE);
 		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnLoad.setText("Load");
 		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
 		btnLoad.setEnabled(false);
+		btnLoad.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				showTrace(currentShownTrace, null);
+			}
+		});
 
 		sashForm.setWeights(new int[] { 80, 20 });
 
@@ -262,19 +291,6 @@ public class HistogramView extends FramesocPart {
 		GanttTraceIntervalAction.add(toolBar, createGanttAction());
 		PieTraceIntervalAction.add(toolBar, createPieAction());
 		enableActions(false);
-	}
-
-	private void selectionChanged(ITreeNode[] checked, FilteredCheckboxTree tree) {
-		// if checked elements changed, enable buttons, disable them otherwise
-		Object[] objs = tree.getCheckedElements();
-		ITreeNode[] currentChecked = new ITreeNode[objs.length];
-		for (int i = 0; i < currentChecked.length; i++) {
-			currentChecked[i] = (ITreeNode) objs[i];
-		}
-		Arrays.sort(currentChecked, TREE_NODE_COMPARATOR);
-		boolean changed = !Arrays.equals(checked, currentChecked);
-		btnReset.setEnabled(changed);
-		btnLoad.setEnabled(changed);
 	}
 
 	@Override
@@ -357,6 +373,32 @@ public class HistogramView extends FramesocPart {
 			c.dispose();
 		}
 
+		List<EventProducer> producers = null;
+		List<EventType> types = null;
+		if (parametersLoaded) {
+			Object[] prod = producerTree.getCheckedElements();
+			checkedProducers = new ITreeNode[prod.length];
+			producers = new ArrayList<>(prod.length);
+			for (int i=0; i<prod.length; i++) {
+				checkedProducers[i] = (ITreeNode) prod[i];
+				producers.add(((EventProducerNode) prod[i]).getEventProducer());
+			}
+			Arrays.sort(checkedProducers, TREE_NODE_COMPARATOR);
+			
+			Object[] tp = typeTree.getCheckedElements();
+			checkedTypes = new ITreeNode[tp.length];
+			types = new ArrayList<>(tp.length);
+			for (int i=0; i<tp.length; i++) {
+				checkedTypes[i] = (ITreeNode) tp[i];
+				if (tp[i] instanceof EventTypeNode) {
+					types.add(((EventTypeNode) tp[i]).getEventType());
+				}
+			}
+			Arrays.sort(checkedTypes, TREE_NODE_COMPARATOR);
+		}
+		final List<EventProducer> producersToLoad = producers;
+		final List<EventType> typesToLoad = types;
+
 		Job job = new Job("Loading Event Density Chart...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -377,13 +419,20 @@ public class HistogramView extends FramesocPart {
 
 					// prepare dataset
 					DensityHistogramLoader loader = new DensityHistogramLoader();
-					HistogramDataset dataset = loader.load(currentShownTrace, null, null); // TODO
+					HistogramDataset dataset = loader.load(currentShownTrace, typesToLoad,
+							producersToLoad);
 
-					// load producers and types
-					final EventProducerNode[] prodRoots = loader.loadProducers(currentShownTrace);
-					final CategoryNode[] typeRoots = loader.loadEventTypes(currentShownTrace);
-					checkedProducers = linearizeAndSort(prodRoots);
-					checkedTypes = linearizeAndSort(typeRoots);
+					// load producers and types if necessary
+					EventProducerNode[] prodRoots = null;
+					CategoryNode[] typeRoots = null;
+					if (!parametersLoaded) {
+						prodRoots = loader.loadProducers(currentShownTrace);
+						typeRoots = loader.loadEventTypes(currentShownTrace);
+						checkedProducers = linearizeAndSort(prodRoots);
+						checkedTypes = linearizeAndSort(typeRoots);
+					}
+					final EventProducerNode[] finalProdRoots = prodRoots;
+					final CategoryNode[] finalTypeRoots = typeRoots;
 
 					// prepare chart
 					final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL,
@@ -450,14 +499,23 @@ public class HistogramView extends FramesocPart {
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
 
 							// producers and types
-							producerTree.getViewer().setInput(prodRoots);
-							producerTree.setCheckedElements(checkedProducers);
-							producerTree.getViewer().refresh();
-							producerTree.getViewer().expandAll();
-							typeTree.getViewer().setInput(typeRoots);
-							typeTree.setCheckedElements(checkedTypes);
-							typeTree.getViewer().refresh();
-							typeTree.getViewer().expandAll();
+							if (!parametersLoaded) {
+								producerTree.getViewer().setInput(finalProdRoots);
+								producerTree.setCheckedElements(checkedProducers);
+								producerTree.getViewer().refresh();
+								producerTree.getViewer().expandAll();
+								typeTree.getViewer().setInput(finalTypeRoots);
+								typeTree.setCheckedElements(checkedTypes);
+								typeTree.getViewer().refresh();
+								typeTree.getViewer().expandAll();
+								parametersLoaded = true;
+							}
+							
+							// buttons
+							btnReset.setEnabled(false);
+							btnLoad.setEnabled(false);
+							
+							// actions
 							enableActions(true);
 						}
 					});
@@ -488,6 +546,85 @@ public class HistogramView extends FramesocPart {
 		for (ITreeNode n : node.getChildren()) {
 			linearize(n, nodes);
 		}
+	}
+
+	/*
+	 * Tree selection management
+	 */
+
+	private class CheckStateListener implements ICheckStateListener {
+
+		private FilteredCheckboxTree tree;
+
+		public CheckStateListener(FilteredCheckboxTree tree) {
+			this.tree = tree;
+		}
+
+		@Override
+		public void checkStateChanged(CheckStateChangedEvent event) {
+			try {
+				ITreeNode entry = (ITreeNode) event.getElement();
+				boolean checked = event.getChecked();
+				if (checked) {
+					checkElement(entry);
+				} else {
+					uncheckElement(entry);
+				}
+			} catch (ClassCastException e) {
+				return;
+			}
+		}
+
+		/**
+		 * Check an element and all its parents.
+		 * 
+		 * @param element
+		 *            The element to check.
+		 */
+		private void checkElement(Object element) {
+			tree.setChecked(element, true);
+			Object parent = ((TreeContentProvider) tree.getViewer().getContentProvider())
+					.getParent(element);
+			if (parent != null && !tree.getChecked(parent)) {
+				checkElement(parent);
+			}
+		}
+
+		/**
+		 * Uncheck an element and all its children.
+		 * 
+		 * @param element
+		 *            The element to uncheck.
+		 */
+		private void uncheckElement(Object element) {
+			tree.setChecked(element, false);
+			TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+					.getContentProvider();
+			for (Object child : provider.getChildren(element)) {
+				uncheckElement(child);
+			}
+		}
+	}
+
+	/**
+	 * Check if the checked elements changed for the given tree.
+	 * 
+	 * @param checked
+	 *            old checked elements
+	 * @param tree
+	 *            tree
+	 */
+	private void selectionChanged(ITreeNode[] checked, FilteredCheckboxTree tree) {
+		// if checked elements changed, enable buttons, disable them otherwise
+		Object[] objs = tree.getCheckedElements();
+		ITreeNode[] currentChecked = new ITreeNode[objs.length];
+		for (int i = 0; i < currentChecked.length; i++) {
+			currentChecked[i] = (ITreeNode) objs[i];
+		}
+		Arrays.sort(currentChecked, TREE_NODE_COMPARATOR);
+		boolean changed = !Arrays.equals(checked, currentChecked);
+		btnReset.setEnabled(changed);
+		btnLoad.setEnabled(changed);
 	}
 
 }
