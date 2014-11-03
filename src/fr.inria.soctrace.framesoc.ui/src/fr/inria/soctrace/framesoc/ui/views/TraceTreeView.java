@@ -82,8 +82,8 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	public static final String ID = FramesocViews.TRACE_TREE_VIEW_ID;
 
 	/**
-	 * TODO get the command from the extension point ID of the commands we have to remove for
-	 * multiple selection
+	 * TODO get the command from the extension point ID of the commands we have
+	 * to remove for multiple selection
 	 */
 	private static final String COMMAND_PREFIX = Activator.PLUGIN_ID + ".commands"; //$NON-NLS-1$
 	private static final String COMMAND_DENSITY = COMMAND_PREFIX + ".showEventDensityHistogram"; //$NON-NLS-1$
@@ -158,7 +158,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 		viewer = new TreeViewer(parent, SWT.MULTI);
 		viewer.setContentProvider(new TreeContentProvider());
 		viewer.setLabelProvider(new TreeLabelProvider());
-		viewer.setInput(TraceLoader.getRoots(tracesLoader.loadFromDB()));
+		viewer.setInput(tracesLoader.loadFromDB());
 
 		// default comparator
 		viewer.setComparator(new ViewerComparator());
@@ -263,7 +263,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 * Load the traces from the System DB.
 	 */
 	private void loadTracesFromDB() {
-		viewer.setInput(TraceLoader.getRoots(tracesLoader.loadFromDB()));
+		viewer.setInput(tracesLoader.loadFromDB());
 		viewer.refresh();
 		applyChecked(true);
 	}
@@ -272,14 +272,14 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 * Synchronize Traces view with the System DB.
 	 */
 	private void synchTracesWithDB() {
-		FolderNode root = tracesLoader.getRoot();
+		FolderNode[] roots = tracesLoader.getRoots();
 		Object[] path = viewer.getExpandedElements();
 		try {
-			root = tracesLoader.synchWithDB();
+			roots = tracesLoader.synchWithDB();
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(getSite().getShell(), "Exception", e.getMessage());
 		}
-		viewer.setInput(TraceLoader.getRoots(root));
+		viewer.setInput(roots);
 		viewer.setExpandedElements(path);
 		applyChecked(true);
 	}
@@ -289,7 +289,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 */
 	private void synchTracesWithModel() {
 		Object[] path = viewer.getExpandedElements();
-		viewer.setInput(TraceLoader.getRoots(tracesLoader.synchWithModel()));
+		viewer.setInput(tracesLoader.synchWithModel());
 		viewer.setExpandedElements(path);
 		applyChecked(true);
 	}
