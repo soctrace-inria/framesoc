@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.FillLayout;
@@ -58,6 +59,8 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
 import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
+import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
+import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
@@ -109,15 +112,20 @@ public class HistogramView extends FramesocPart {
 	private Composite compositeChart;
 
 	/**
+	 * The configuration composite
+	 */
+	private Composite compositeConf;
+
+	/**
 	 * Event producer tree
 	 */
 	private FilteredCheckboxTree producerTree;
-	
+
 	/**
 	 * Event type tree (grouped by category)
 	 */
 	private FilteredCheckboxTree typeTree;
-	
+
 	/**
 	 * The chart frame
 	 */
@@ -130,7 +138,7 @@ public class HistogramView extends FramesocPart {
 	public void createPartControl(Composite parent) {
 		createFramesocPartControl(parent);
 	}
-	
+
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 		// Empty view at the beginning
@@ -138,56 +146,78 @@ public class HistogramView extends FramesocPart {
 
 		// Sash
 		SashForm sashForm = new SashForm(parent, SWT.NONE);
-		
+
 		// Chart
 		compositeChart = new Composite(sashForm, SWT.BORDER);
 		compositeChart.setLayout(new FillLayout(SWT.HORIZONTAL));
-		
+
 		// Configuration
-		Composite compositeConf = new Composite(sashForm, SWT.BORDER);
-		compositeConf.setLayout(new GridLayout(1, false));
+		compositeConf = new Composite(sashForm, SWT.NONE);
+		GridLayout gl_compositeConf = new GridLayout(1, false);
+		gl_compositeConf.marginHeight = 1;
+		gl_compositeConf.verticalSpacing = 0;
+		gl_compositeConf.marginWidth = 0;
+		compositeConf.setLayout(gl_compositeConf);
 
 		// tab
 		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
+		tabFolder.setLayout(new GridLayout(1, false));
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-        PatternFilter filter = new TreePatternFilter();
-        TreeContentProvider contentProvider = new TreeContentProvider();
-        TreeLabelProvider labelProvider = new TreeLabelProvider();
+		PatternFilter filter = new TreePatternFilter();
+		TreeContentProvider contentProvider = new TreeContentProvider();
+		TreeLabelProvider labelProvider = new TreeLabelProvider();
+		ViewerComparator treeComparator = new ViewerComparator();
 
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setText("Event Types");
-        filter.setIncludeLeadingWildcard(true);
-        Composite typeComposite = new Composite(tabFolder, SWT.NONE);
-        tbtmEventTypes.setControl(typeComposite);
-        typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER | SWT.MULTI, filter, true);
-        typeTree.getViewer().setContentProvider(contentProvider);
-        typeTree.getViewer().setLabelProvider(labelProvider);
-		
+		filter.setIncludeLeadingWildcard(true);
+		Composite typeComposite = new Composite(tabFolder, SWT.NONE);
+		GridLayout gl_typeComposite = new GridLayout(1, false);
+		gl_typeComposite.marginBottom = 2;
+		gl_typeComposite.marginHeight = 0;
+		gl_typeComposite.marginWidth = 0;
+		gl_typeComposite.verticalSpacing = 0;
+		typeComposite.setLayout(gl_typeComposite);
+		typeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tbtmEventTypes.setControl(typeComposite);
+		typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER | SWT.MULTI, filter, true);
+		typeTree.getViewer().setContentProvider(contentProvider);
+		typeTree.getViewer().setLabelProvider(labelProvider);
+		typeTree.getViewer().setComparator(treeComparator);
+
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setText("Event Producers");
 		Composite producersComposite = new Composite(tabFolder, SWT.NONE);
+		GridLayout gl_producersComposite = new GridLayout(1, false);
+		gl_producersComposite.marginHeight = 0;
+		gl_producersComposite.marginWidth = 0;
+		gl_producersComposite.verticalSpacing = 0;
+		producersComposite.setLayout(gl_producersComposite);
+		producersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tbtmEventProducers.setControl(producersComposite);
-        producerTree = new FilteredCheckboxTree(producersComposite, SWT.BORDER | SWT.MULTI, filter, true);
-        producerTree.getViewer().setContentProvider(contentProvider);
-        producerTree.getViewer().setLabelProvider(labelProvider);
-		
+		producerTree = new FilteredCheckboxTree(producersComposite, SWT.BORDER | SWT.MULTI, filter,
+				true);
+		producerTree.getViewer().setContentProvider(contentProvider);
+		producerTree.getViewer().setLabelProvider(labelProvider);
+		producerTree.getViewer().setComparator(treeComparator);
+
 		// Buttons
 		Composite compositeBtn = new Composite(compositeConf, SWT.NONE);
 		compositeBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		compositeBtn.setLayout(new GridLayout(2, false));
-		
+
 		Button btnReset = new Button(compositeBtn, SWT.NONE);
 		btnReset.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnReset.setText("Reset");
 		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
-		
+
 		Button btnLoad = new Button(compositeBtn, SWT.NONE);
 		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnLoad.setText("Load");
 		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
-		
-		sashForm.setWeights(new int[] {80, 20});
+
+		sashForm.setWeights(new int[] { 80, 20 });
 
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
@@ -289,14 +319,20 @@ public class HistogramView extends FramesocPart {
 						return Status.CANCEL_STATUS;
 					currentShownTrace = trace;
 
-					// Activate the view after setting the current shown trace, otherwise
-					// the set focus triggered by the activation send the old shown trace
-					// on the FramesocBus
+					/*
+					 * Activate the view after setting the current shown trace,
+					 * otherwise the set focus triggered by the activation send
+					 * the old shown trace on the FramesocBus
+					 */
 					activateView();
 
 					// prepare dataset
 					DensityHistogramLoader loader = new DensityHistogramLoader();
 					HistogramDataset dataset = loader.load(currentShownTrace);
+
+					// load producers and types
+					final EventProducerNode[] epRoots = loader.loadProducers(currentShownTrace);
+					final CategoryNode[] etRoots = loader.loadEventTypes(currentShownTrace);
 
 					// prepare chart
 					final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL,
@@ -354,10 +390,19 @@ public class HistogramView extends FramesocPart {
 							setContentDescription("Trace: " + currentShownTrace.getAlias());
 							if (chartFrame != null)
 								chartFrame.dispose();
-							chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER);
-							chartFrame.setSize(compositeChart.getSize()); // size
-							chartFrame.setRangeZoomable(false); // prevent y zooming
+							chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart,
+									USE_BUFFER);
+							// size
+							chartFrame.setSize(compositeChart.getSize());
+							// prevent y zooming
+							chartFrame.setRangeZoomable(false);
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
+
+							// producers and types
+							producerTree.getViewer().setInput(epRoots);
+							producerTree.getViewer().refresh();
+							typeTree.getViewer().setInput(etRoots);
+							typeTree.getViewer().refresh();
 							enableActions(true);
 						}
 					});
