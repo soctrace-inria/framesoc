@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.dialogs.PatternFilter;
+import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
+import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
@@ -156,13 +158,17 @@ public class HistogramView extends FramesocPart {
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setText("Event Types");
         filter.setIncludeLeadingWildcard(true);
-        typeTree = new FilteredCheckboxTree(parent, SWT.BORDER | SWT.MULTI, filter, true);
+        Composite typeComposite = new Composite(tabFolder, SWT.NONE);
+        tbtmEventTypes.setControl(typeComposite);
+        typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER | SWT.MULTI, filter, true);
         typeTree.getViewer().setContentProvider(contentProvider);
         typeTree.getViewer().setLabelProvider(labelProvider);
 		
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setText("Event Producers");
-        producerTree = new FilteredCheckboxTree(parent, SWT.BORDER | SWT.MULTI, filter, true);
+		Composite producersComposite = new Composite(tabFolder, SWT.NONE);
+		tbtmEventProducers.setControl(producersComposite);
+        producerTree = new FilteredCheckboxTree(producersComposite, SWT.BORDER | SWT.MULTI, filter, true);
         producerTree.getViewer().setContentProvider(contentProvider);
         producerTree.getViewer().setLabelProvider(labelProvider);
 		
@@ -174,10 +180,13 @@ public class HistogramView extends FramesocPart {
 		Button btnReset = new Button(compositeBtn, SWT.NONE);
 		btnReset.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnReset.setText("Reset");
+		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
 		
 		Button btnLoad = new Button(compositeBtn, SWT.NONE);
 		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnLoad.setText("Load");
+		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+		
 		sashForm.setWeights(new int[] {80, 20});
 
 		// build toolbar
