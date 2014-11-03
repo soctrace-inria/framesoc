@@ -27,10 +27,12 @@ public class EventProducerNode implements ITreeNode {
 	private EventProducer producer = null;
 	private ITreeNode parent = null;
 	private List<ITreeNode> children = new ArrayList<>();
-	
+
 	/**
 	 * Constructor
-	 * @param name folder label
+	 * 
+	 * @param name
+	 *            folder label
 	 */
 	public EventProducerNode(EventProducer ep) {
 		this.producer = ep;
@@ -60,10 +62,12 @@ public class EventProducerNode implements ITreeNode {
 	public ITreeNode getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * Add a child node to the folder.
-	 * @param child a tree node
+	 * 
+	 * @param child
+	 *            a tree node
 	 */
 	public void addChild(ITreeNode child) {
 		children.add(child);
@@ -76,22 +80,25 @@ public class EventProducerNode implements ITreeNode {
 	public void removeAll() {
 		children.clear();
 	}
-	
+
 	@Override
 	public void setParent(ITreeNode parent) {
-		this.parent = parent;		
+		this.parent = parent;
 	}
 
 	@Override
 	public String toString() {
-		return "EventProducerNode [name=" + getName() + ", parent=" + parent.getName() + "]";
+		return "EventProducerNode [name=" + getName() + ", parent="
+				+ ((parent != null) ? parent.getName() : "none") + "]";
 	}
 
 	public EventProducer getEventProducer() {
 		return producer;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -127,5 +134,5 @@ public class EventProducerNode implements ITreeNode {
 			return false;
 		return true;
 	}
-	
+
 }

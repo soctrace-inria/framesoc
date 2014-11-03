@@ -27,10 +27,12 @@ public class CategoryNode implements ITreeNode {
 	private int category;
 	private ITreeNode parent = null;
 	private List<ITreeNode> children = new ArrayList<>();
-	
+
 	/**
 	 * Constructor
-	 * @param category the category
+	 * 
+	 * @param category
+	 *            the category
 	 */
 	public CategoryNode(int category) {
 		this.category = category;
@@ -60,10 +62,12 @@ public class CategoryNode implements ITreeNode {
 	public ITreeNode getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * Add a child node to the folder.
-	 * @param child a tree node
+	 * 
+	 * @param child
+	 *            a tree node
 	 */
 	public void addChild(ITreeNode child) {
 		children.add(child);
@@ -76,15 +80,16 @@ public class CategoryNode implements ITreeNode {
 	public void removeAll() {
 		children.clear();
 	}
-	
+
 	@Override
 	public void setParent(ITreeNode parent) {
-		this.parent = (CategoryNode)parent;		
+		this.parent = (CategoryNode) parent;
 	}
 
 	@Override
 	public String toString() {
-		return "EventCategory [name=" + getName() + ", parent=" + parent.getName() + "]";
+		return "EventCategory [name=" + getName() + ", parent="
+				+ ((parent != null) ? parent.getName() : "none") + "]";
 	}
 
 	public int getCategory() {
@@ -121,5 +126,5 @@ public class CategoryNode implements ITreeNode {
 			return false;
 		return true;
 	}
-	
+
 }

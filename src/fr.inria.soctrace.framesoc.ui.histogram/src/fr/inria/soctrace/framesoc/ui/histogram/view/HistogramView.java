@@ -15,6 +15,7 @@ import java.awt.Font;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -147,6 +148,13 @@ public class HistogramView extends FramesocPart {
 
 	private ITreeNode[] checkedTypes;
 
+	private final static Comparator<ITreeNode> TREE_NODE_COMPARATOR = new Comparator<ITreeNode>() {
+		@Override
+		public int compare(ITreeNode o1, ITreeNode o2) {
+			return o1.getName().compareTo(o2.getName());
+		}
+	};
+
 	// Uncomment this to use the window builder
 	@Override
 	public void createPartControl(Composite parent) {
@@ -199,6 +207,12 @@ public class HistogramView extends FramesocPart {
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(labelProvider);
 		typeTree.getViewer().setComparator(treeComparator);
+		typeTree.addCheckStateListener(new ICheckStateListener() {
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				selectionChanged(checkedTypes, typeTree);
+			}
+		});
 
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setText("Event Producers");
@@ -218,13 +232,7 @@ public class HistogramView extends FramesocPart {
 		producerTree.addCheckStateListener(new ICheckStateListener() {
 			@Override
 			public void checkStateChanged(CheckStateChangedEvent event) {
-				System.out.println("Selection changed");
-				// if checked elements changed, enable buttons, disable them otherwise
-				boolean changed = !Arrays.equals(checkedProducers,
-						producerTree.getCheckedElements());
-				System.out.println("Changed: " + changed);
-				btnReset.setEnabled(changed);
-				btnLoad.setEnabled(changed);
+				selectionChanged(checkedProducers, producerTree);
 			}
 		});
 
@@ -254,6 +262,19 @@ public class HistogramView extends FramesocPart {
 		GanttTraceIntervalAction.add(toolBar, createGanttAction());
 		PieTraceIntervalAction.add(toolBar, createPieAction());
 		enableActions(false);
+	}
+
+	private void selectionChanged(ITreeNode[] checked, FilteredCheckboxTree tree) {
+		// if checked elements changed, enable buttons, disable them otherwise
+		Object[] objs = tree.getCheckedElements();
+		ITreeNode[] currentChecked = new ITreeNode[objs.length];
+		for (int i = 0; i < currentChecked.length; i++) {
+			currentChecked[i] = (ITreeNode) objs[i];
+		}
+		Arrays.sort(currentChecked, TREE_NODE_COMPARATOR);
+		boolean changed = !Arrays.equals(checked, currentChecked);
+		btnReset.setEnabled(changed);
+		btnLoad.setEnabled(changed);
 	}
 
 	@Override
@@ -359,10 +380,10 @@ public class HistogramView extends FramesocPart {
 					HistogramDataset dataset = loader.load(currentShownTrace, null, null); // TODO
 
 					// load producers and types
-					final EventProducerNode[] producersRoots = loader.loadProducers(currentShownTrace);
-					final CategoryNode[] typesRoots = loader.loadEventTypes(currentShownTrace);
-					checkedProducers = linearize(producersRoots);
-					checkedTypes = linearize(typesRoots);
+					final EventProducerNode[] prodRoots = loader.loadProducers(currentShownTrace);
+					final CategoryNode[] typeRoots = loader.loadEventTypes(currentShownTrace);
+					checkedProducers = linearizeAndSort(prodRoots);
+					checkedTypes = linearizeAndSort(typeRoots);
 
 					// prepare chart
 					final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL,
@@ -429,11 +450,11 @@ public class HistogramView extends FramesocPart {
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
 
 							// producers and types
-							producerTree.getViewer().setInput(producersRoots);
+							producerTree.getViewer().setInput(prodRoots);
 							producerTree.setCheckedElements(checkedProducers);
 							producerTree.getViewer().refresh();
 							producerTree.getViewer().expandAll();
-							typeTree.getViewer().setInput(typesRoots);
+							typeTree.getViewer().setInput(typeRoots);
 							typeTree.setCheckedElements(checkedTypes);
 							typeTree.getViewer().refresh();
 							typeTree.getViewer().expandAll();
@@ -451,13 +472,15 @@ public class HistogramView extends FramesocPart {
 		job.setUser(true);
 		job.schedule();
 	}
-	
-	private ITreeNode[] linearize(ITreeNode[] roots) {
+
+	private ITreeNode[] linearizeAndSort(ITreeNode[] roots) {
 		List<ITreeNode> nodes = new LinkedList<>();
 		for (ITreeNode root : roots) {
 			linearize(root, nodes);
 		}
-		return nodes.toArray(new ITreeNode[nodes.size()]);
+		ITreeNode[] array = nodes.toArray(new ITreeNode[nodes.size()]);
+		Arrays.sort(array, TREE_NODE_COMPARATOR);
+		return array;
 	}
 
 	private void linearize(ITreeNode node, List<ITreeNode> nodes) {
