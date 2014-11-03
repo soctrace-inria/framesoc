@@ -65,10 +65,15 @@ public class DensityHistogramLoader {
 	 * 
 	 * @param trace
 	 *            trace to work with
+	 * @param types
+	 *            TODO
+	 * @param producers
+	 *            TODO
 	 * @return the histogram dataset
 	 * @throws SoCTraceException
 	 */
-	public HistogramDataset load(Trace trace) throws SoCTraceException {
+	public HistogramDataset load(Trace trace, List<EventType> types, List<EventProducer> producers)
+			throws SoCTraceException {
 
 		DeltaManager dm = new DeltaManager();
 		HistogramDataset dataset = new HistogramDataset();
@@ -120,10 +125,12 @@ public class DensityHistogramLoader {
 		if (nodeMap.containsKey(ep.getId()))
 			return nodeMap.get(ep.getId());
 		EventProducerNode current = new EventProducerNode(ep);
+		nodeMap.put(ep.getId(), current);
 		if (ep.getParentId() != EventProducer.NO_PARENT_ID) {
 			EventProducerNode parent = getProducerNode(prodMap.get(ep.getParentId()), prodMap,
 					nodeMap);
 			parent.addChild(current);
+			nodeMap.put(parent.getEventProducer().getId(), parent);
 		}
 		return current;
 	}

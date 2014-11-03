@@ -90,4 +90,42 @@ public class EventProducerNode implements ITreeNode {
 	public EventProducer getEventProducer() {
 		return producer;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((producer == null) ? 0 : producer.hashCode());
+		return result;
+	}
+
+	/**
+	 * children not considered to avoid recursion.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EventProducerNode other = (EventProducerNode) obj;
+		if (parent == null) {
+			if (other.parent != null)
+				return false;
+		} else if (!parent.equals(other.parent))
+			return false;
+		if (producer == null) {
+			if (other.producer != null)
+				return false;
+		} else if (!producer.equals(other.producer))
+			return false;
+		return true;
+	}
+	
 }

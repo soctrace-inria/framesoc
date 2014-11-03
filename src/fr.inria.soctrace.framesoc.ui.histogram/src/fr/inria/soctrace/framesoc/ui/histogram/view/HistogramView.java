@@ -14,12 +14,17 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -62,6 +67,7 @@ import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
@@ -133,6 +139,14 @@ public class HistogramView extends FramesocPart {
 
 	protected XYPlot plot;
 
+	private Button btnReset;
+
+	private Button btnLoad;
+
+	private ITreeNode[] checkedProducers;
+
+	private ITreeNode[] checkedTypes;
+
 	// Uncomment this to use the window builder
 	@Override
 	public void createPartControl(Composite parent) {
@@ -201,21 +215,35 @@ public class HistogramView extends FramesocPart {
 		producerTree.getViewer().setContentProvider(contentProvider);
 		producerTree.getViewer().setLabelProvider(labelProvider);
 		producerTree.getViewer().setComparator(treeComparator);
+		producerTree.addCheckStateListener(new ICheckStateListener() {
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				System.out.println("Selection changed");
+				// if checked elements changed, enable buttons, disable them otherwise
+				boolean changed = !Arrays.equals(checkedProducers,
+						producerTree.getCheckedElements());
+				System.out.println("Changed: " + changed);
+				btnReset.setEnabled(changed);
+				btnLoad.setEnabled(changed);
+			}
+		});
 
 		// Buttons
 		Composite compositeBtn = new Composite(compositeConf, SWT.NONE);
 		compositeBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		compositeBtn.setLayout(new GridLayout(2, false));
 
-		Button btnReset = new Button(compositeBtn, SWT.NONE);
+		btnReset = new Button(compositeBtn, SWT.NONE);
 		btnReset.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnReset.setText("Reset");
 		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
+		btnReset.setEnabled(false);
 
-		Button btnLoad = new Button(compositeBtn, SWT.NONE);
+		btnLoad = new Button(compositeBtn, SWT.NONE);
 		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnLoad.setText("Load");
 		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+		btnLoad.setEnabled(false);
 
 		sashForm.setWeights(new int[] { 80, 20 });
 
@@ -328,11 +356,13 @@ public class HistogramView extends FramesocPart {
 
 					// prepare dataset
 					DensityHistogramLoader loader = new DensityHistogramLoader();
-					HistogramDataset dataset = loader.load(currentShownTrace);
+					HistogramDataset dataset = loader.load(currentShownTrace, null, null); // TODO
 
 					// load producers and types
-					final EventProducerNode[] epRoots = loader.loadProducers(currentShownTrace);
-					final CategoryNode[] etRoots = loader.loadEventTypes(currentShownTrace);
+					final EventProducerNode[] producersRoots = loader.loadProducers(currentShownTrace);
+					final CategoryNode[] typesRoots = loader.loadEventTypes(currentShownTrace);
+					checkedProducers = linearize(producersRoots);
+					checkedTypes = linearize(typesRoots);
 
 					// prepare chart
 					final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL,
@@ -399,10 +429,14 @@ public class HistogramView extends FramesocPart {
 							chartFrame.addChartMouseListener(new HistogramMouseListener());
 
 							// producers and types
-							producerTree.getViewer().setInput(epRoots);
+							producerTree.getViewer().setInput(producersRoots);
+							producerTree.setCheckedElements(checkedProducers);
 							producerTree.getViewer().refresh();
-							typeTree.getViewer().setInput(etRoots);
+							producerTree.getViewer().expandAll();
+							typeTree.getViewer().setInput(typesRoots);
+							typeTree.setCheckedElements(checkedTypes);
 							typeTree.getViewer().refresh();
+							typeTree.getViewer().expandAll();
 							enableActions(true);
 						}
 					});
@@ -417,4 +451,20 @@ public class HistogramView extends FramesocPart {
 		job.setUser(true);
 		job.schedule();
 	}
+	
+	private ITreeNode[] linearize(ITreeNode[] roots) {
+		List<ITreeNode> nodes = new LinkedList<>();
+		for (ITreeNode root : roots) {
+			linearize(root, nodes);
+		}
+		return nodes.toArray(new ITreeNode[nodes.size()]);
+	}
+
+	private void linearize(ITreeNode node, List<ITreeNode> nodes) {
+		nodes.add(node);
+		for (ITreeNode n : node.getChildren()) {
+			linearize(n, nodes);
+		}
+	}
+
 }
