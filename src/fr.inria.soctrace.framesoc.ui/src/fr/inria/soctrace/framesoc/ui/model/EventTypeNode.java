@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -17,7 +18,7 @@ import org.eclipse.swt.graphics.Image;
 import fr.inria.soctrace.lib.model.EventType;
 
 /**
- * Tree node for Trace elements (leaves).
+ * Tree node for Event Type elements (leaves).
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -46,7 +47,7 @@ public class EventTypeNode implements ITreeNode {
 
 	@Override
 	public List<ITreeNode> getChildren() {
-		return null;
+		return Collections.emptyList();
 	}
 
 	@Override

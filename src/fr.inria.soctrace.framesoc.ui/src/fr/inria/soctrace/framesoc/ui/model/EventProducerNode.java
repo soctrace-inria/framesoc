@@ -10,7 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -26,7 +26,7 @@ public class EventProducerNode implements ITreeNode {
 
 	private EventProducer producer = null;
 	private ITreeNode parent = null;
-	private List<ITreeNode> children = null;
+	private List<ITreeNode> children = new ArrayList<>();
 	
 	/**
 	 * Constructor
@@ -53,7 +53,7 @@ public class EventProducerNode implements ITreeNode {
 
 	@Override
 	public boolean hasChildren() {
-		return (children!=null && children.size()>0);
+		return !children.isEmpty();
 	}
 
 	@Override
@@ -66,9 +66,6 @@ public class EventProducerNode implements ITreeNode {
 	 * @param child a tree node
 	 */
 	public void addChild(ITreeNode child) {
-		if (children == null) {
-			children = new LinkedList<>();
-		}
 		children.add(child);
 		child.setParent(this);
 	}
@@ -77,8 +74,7 @@ public class EventProducerNode implements ITreeNode {
 	 * Remove all the children from this folder.
 	 */
 	public void removeAll() {
-		if (children!=null)
-			children.clear();
+		children.clear();
 	}
 	
 	@Override

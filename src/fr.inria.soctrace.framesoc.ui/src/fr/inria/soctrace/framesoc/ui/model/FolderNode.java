@@ -10,7 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -25,8 +25,8 @@ import org.eclipse.ui.PlatformUI;
 public class FolderNode implements ITreeNode {
 
 	private String name;
-	private FolderNode parent = null;
-	private List<ITreeNode> children = null;
+	private ITreeNode parent = null;
+	private List<ITreeNode> children = new ArrayList<>();
 	
 	/**
 	 * Constructor
@@ -53,7 +53,7 @@ public class FolderNode implements ITreeNode {
 
 	@Override
 	public boolean hasChildren() {
-		return (children!=null && children.size()>0);
+		return !children.isEmpty();
 	}
 
 	@Override
@@ -66,9 +66,6 @@ public class FolderNode implements ITreeNode {
 	 * @param child a tree node
 	 */
 	public void addChild(ITreeNode child) {
-		if (children == null) {
-			children = new LinkedList<ITreeNode>();
-		}
 		children.add(child);
 		child.setParent(this);
 	}
@@ -77,8 +74,7 @@ public class FolderNode implements ITreeNode {
 	 * Remove all the children from this folder.
 	 */
 	public void removeAll() {
-		if (children!=null)
-			children.clear();
+		children.clear();
 	}
 	
 	@Override
