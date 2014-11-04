@@ -88,15 +88,11 @@ import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
- * TODO: buttons: check all, unckeck all, synch with chart (tooltip), load
- * (tooltip)
+ * Framesoc Bar Chart view.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class HistogramView extends FramesocPart {
-
-	public HistogramView() {
-	}
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -194,10 +190,10 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	// Uncomment this to use the window builder
-	@Override
-	public void createPartControl(Composite parent) {
-		createFramesocPartControl(parent);
-	}
+	// @Override
+	// public void createPartControl(Composite parent) {
+	// createFramesocPartControl(parent);
+	// }
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -249,16 +245,15 @@ public class HistogramView extends FramesocPart {
 
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setText("Event Producers");
-		Composite producersComposite = new Composite(tabFolder, SWT.NONE);
+		Composite prodComposite = new Composite(tabFolder, SWT.NONE);
 		GridLayout gl_producersComposite = new GridLayout(1, false);
 		gl_producersComposite.marginHeight = 0;
 		gl_producersComposite.marginWidth = 0;
 		gl_producersComposite.verticalSpacing = 0;
-		producersComposite.setLayout(gl_producersComposite);
-		producersComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tbtmEventProducers.setControl(producersComposite);
-		producerTree = new FilteredCheckboxTree(producersComposite, SWT.BORDER | SWT.MULTI, filter,
-				true);
+		prodComposite.setLayout(gl_producersComposite);
+		prodComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tbtmEventProducers.setControl(prodComposite);
+		producerTree = new FilteredCheckboxTree(prodComposite, SWT.BORDER | SWT.MULTI, filter, true);
 		producerTree.getViewer().setContentProvider(contentProvider);
 		producerTree.getViewer().setLabelProvider(labelProvider);
 		producerTree.getViewer().setComparator(treeComparator);
@@ -272,8 +267,6 @@ public class HistogramView extends FramesocPart {
 		btnCheckall = new Button(compositeBtn, SWT.NONE);
 		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnCheckall.setText("Check all");
-		// btnCheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-		// "icons/reset.png"));
 		btnCheckall.setEnabled(false);
 		btnCheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -289,8 +282,6 @@ public class HistogramView extends FramesocPart {
 		btnUncheckall = new Button(compositeBtn, SWT.NONE);
 		btnUncheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnUncheckall.setText("Uncheck all");
-		// btnUncheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-		// "icons/reset.png"));
 		btnUncheckall.setEnabled(false);
 		btnUncheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -327,6 +318,7 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 
+		// sash weights
 		sashForm.setWeights(new int[] { 80, 20 });
 
 		// build toolbar
@@ -457,9 +449,8 @@ public class HistogramView extends FramesocPart {
 					currentShownTrace = trace;
 
 					/*
-					 * Activate the view after setting the current shown trace,
-					 * otherwise the set focus triggered by the activation send
-					 * the old shown trace on the FramesocBus
+					 * Activate the view after setting the current shown trace, otherwise the set
+					 * focus triggered by the activation send the old shown trace on the FramesocBus
 					 */
 					activateView();
 
@@ -582,7 +573,7 @@ public class HistogramView extends FramesocPart {
 		btnCheckall.setEnabled((checkedProds < prodTreeItems) || (checkedTypes < typeTreeItems));
 		btnUncheckall.setEnabled((checkedProds != 0) || (checkedTypes != 0));
 	}
-	
+
 	private int getTreeItemCount(FilteredCheckboxTree tree) {
 		TreeItem[] roots = tree.getViewer().getTree().getItems();
 		int count = 0;
@@ -591,10 +582,10 @@ public class HistogramView extends FramesocPart {
 		}
 		return count;
 	}
-	
+
 	private int countItems(TreeItem item) {
 		int count = 1;
-		for (TreeItem i: item.getItems()) {
+		for (TreeItem i : item.getItems()) {
 			count += countItems(i);
 		}
 		return count;

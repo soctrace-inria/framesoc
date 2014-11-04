@@ -14,9 +14,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
@@ -32,6 +34,7 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventProducerQuery;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
+import fr.inria.soctrace.lib.query.ValueListString;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
@@ -85,9 +88,11 @@ public class DensityHistogramLoader {
 		TraceDBObject traceDB = null;
 		try {
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
-			double timestamps[] = getTimestapsSeries(traceDB);
-			dataset.setType(HISTOGRAM_TYPE);
-			dataset.addSeries(DATASET_NAME, timestamps, NUMBER_OF_BINS);
+			double timestamps[] = getTimestapsSeries(traceDB, types, producers);
+			if (timestamps.length != 0) {
+				dataset.setType(HISTOGRAM_TYPE);
+				dataset.addSeries(DATASET_NAME, timestamps, NUMBER_OF_BINS);
+			}
 			logger.debug(dm.endMessage("Prepared Histogram dataset"));
 		} finally {
 			DBObject.finalClose(traceDB);
@@ -156,26 +161,46 @@ public class DensityHistogramLoader {
 	}
 
 	/**
+	 * @return the min timestamp
+	 */
+	public long getMin() {
+		return min;
+	}
+
+	/**
+	 * @return the max timestamp
+	 */
+	public long getMax() {
+		return max;
+	}
+
+	/**
 	 * Load timestamps vector, considering only positive times.
 	 * 
-	 * Note that for States and Links, a single event is counted at the start
-	 * timestamp. This is consistent with the data model where a State (Link) is
-	 * a single event of type State (Link).
+	 * Note that for States and Links, a single event is counted at the start timestamp. This is
+	 * consistent with the data model where a State (Link) is a single event of type State (Link).
 	 * 
 	 * @param traceDB
 	 *            trace DB object
+	 * @param producers
+	 *            event producers to consider
+	 * @param types
+	 *            event types to consider
 	 * @return timestamps vector
 	 * @throws SoCTraceException
 	 */
-	private double[] getTimestapsSeries(TraceDBObject traceDB) throws SoCTraceException {
+	private double[] getTimestapsSeries(TraceDBObject traceDB, List<EventType> types,
+			List<EventProducer> producers) throws SoCTraceException {
 		Statement stm;
 		ResultSet rs;
 		try {
 			DeltaManager dm = new DeltaManager();
 			stm = traceDB.getConnection().createStatement();
 			List<Long> tsl = new LinkedList<Long>();
-			rs = stm.executeQuery("SELECT TIMESTAMP FROM " + FramesocTable.EVENT
-					+ " WHERE TIMESTAMP >= 0");
+
+			String query = prepareQuery(traceDB, types, producers);
+			logger.debug(query);
+			rs = stm.executeQuery(query);
 			while (rs.next()) {
 				tsl.add(rs.getLong(1));
 			}
@@ -200,18 +225,104 @@ public class DensityHistogramLoader {
 		}
 	}
 
-	/**
-	 * @return the min timestamp
-	 */
-	public long getMin() {
-		return min;
+	private String prepareQuery(TraceDBObject traceDB, List<EventType> types,
+			List<EventProducer> producers) throws SoCTraceException {
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT TIMESTAMP FROM ");
+		sb.append(FramesocTable.EVENT.toString());
+		sb.append(" WHERE TIMESTAMP >= 0");
+
+		if (producers != null && getNumberOfProducers(traceDB) != producers.size()) {
+			ValueListString vls = new ValueListString();
+			for (EventProducer ep : producers) {
+				vls.addValue(String.valueOf(ep.getId()));
+			}
+			sb.append(" AND EVENT_PRODUCER_ID IN ");
+			sb.append(vls.getValueString());
+		}
+
+		if (types != null) {
+			Map<Integer, Integer> tpc = getTypesPerCategory(traceDB);
+			Map<Integer, List<EventType>> requested = new HashMap<>();
+			for (EventType et : types) {
+				if (!requested.containsKey(et.getCategory())) {
+					requested.put(et.getCategory(), new LinkedList<EventType>());
+				}
+				requested.get(et.getCategory()).add(et);
+			}
+			ValueListString categories = new ValueListString();
+			ValueListString typeIds = new ValueListString();
+			Iterator<Entry<Integer, List<EventType>>> it = requested.entrySet().iterator();
+			int totTypes = 0;
+			while (it.hasNext()) {
+				Entry<Integer, List<EventType>> e = it.next();
+				int category = e.getKey();
+				List<EventType> tl = e.getValue();
+				totTypes += tl.size();
+				if (tl.size() == tpc.get(category)) {
+					categories.addValue(String.valueOf(category));
+				} else {
+					for (EventType et : tl) {
+						typeIds.addValue(String.valueOf(et.getId()));
+					}
+				}
+			}
+			if (totTypes != types.size()) {
+				sb.append(" AND ");
+				boolean both = false;
+				if (categories.size() > 0 && typeIds.size() > 0) {
+					both = true;
+				}
+				if (both) {
+					sb.append("( ( ");
+				}
+				if (categories.size() > 0) {
+					sb.append("CATEGORY IN ");
+					sb.append(categories.getValueString());
+				}
+				if (both) {
+					sb.append(" ) OR ( ");
+				}
+				if (typeIds.size() > 0) {
+					sb.append("EVENT_TYPE_ID IN ");
+					sb.append(typeIds.getValueString());
+				}
+				if (both) {
+					sb.append(" ) ) ");
+				}
+			}
+		}
+
+		return sb.toString();
 	}
 
-	/**
-	 * @return the max timestamp
-	 */
-	public long getMax() {
-		return max;
+	private Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB)
+			throws SoCTraceException {
+		Map<Integer, Integer> typesPerCategory = new HashMap<>();
+		EventTypeQuery etq = new EventTypeQuery(traceDB);
+		List<EventType> etl = etq.getList();
+		for (EventType et : etl) {
+			if (!typesPerCategory.containsKey(et.getCategory())) {
+				typesPerCategory.put(et.getCategory(), 0);
+			}
+			typesPerCategory.put(et.getCategory(), typesPerCategory.get(et.getCategory()) + 1);
+		}
+		return typesPerCategory;
+	}
+
+	private int getNumberOfProducers(TraceDBObject traceDB) throws SoCTraceException {
+		int count = 0;
+		try {
+			Statement stm = traceDB.getConnection().createStatement();
+			ResultSet rs = stm.executeQuery("SELECT COUNT(*) FROM EVENT_PRODUCER");
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new SoCTraceException(e);
+		}
+		return count;
 	}
 
 }
