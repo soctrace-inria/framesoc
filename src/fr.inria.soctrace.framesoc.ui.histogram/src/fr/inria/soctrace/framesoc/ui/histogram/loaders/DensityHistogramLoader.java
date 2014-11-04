@@ -99,7 +99,10 @@ public class DensityHistogramLoader {
 		if (trace == null)
 			return dataset;
 
-		if (types.size() == 0 || producers.size() == 0)
+		if (types != null && types.size() == 0)
+			return dataset;
+
+		if (producers != null && producers.size() == 0)
 			return dataset;
 
 		dm.start();
