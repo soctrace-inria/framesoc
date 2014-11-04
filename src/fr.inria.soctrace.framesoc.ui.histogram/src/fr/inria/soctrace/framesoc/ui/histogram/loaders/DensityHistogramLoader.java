@@ -69,9 +69,9 @@ public class DensityHistogramLoader {
 	 * @param trace
 	 *            trace to work with
 	 * @param types
-	 *            TODO
+	 *            event types to load
 	 * @param producers
-	 *            TODO
+	 *            event producers to load
 	 * @return the histogram dataset
 	 * @throws SoCTraceException
 	 */
@@ -101,6 +101,28 @@ public class DensityHistogramLoader {
 		return dataset;
 	}
 
+	/**
+	 * @return the min timestamp
+	 */
+	public long getMin() {
+		return min;
+	}
+
+	/**
+	 * @return the max timestamp
+	 */
+	public long getMax() {
+		return max;
+	}
+
+	/**
+	 * Get the trace event producer hierarchy
+	 * 
+	 * @param trace
+	 *            trace
+	 * @return the event producer roots
+	 * @throws SoCTraceException
+	 */
 	public EventProducerNode[] loadProducers(Trace trace) throws SoCTraceException {
 		List<EventProducerNode> roots = new LinkedList<>();
 		TraceDBObject traceDB = null;
@@ -125,21 +147,14 @@ public class DensityHistogramLoader {
 		return roots.toArray(new EventProducerNode[roots.size()]);
 	}
 
-	private EventProducerNode getProducerNode(EventProducer ep,
-			Map<Integer, EventProducer> prodMap, Map<Integer, EventProducerNode> nodeMap) {
-		if (nodeMap.containsKey(ep.getId()))
-			return nodeMap.get(ep.getId());
-		EventProducerNode current = new EventProducerNode(ep);
-		nodeMap.put(ep.getId(), current);
-		if (ep.getParentId() != EventProducer.NO_PARENT_ID) {
-			EventProducerNode parent = getProducerNode(prodMap.get(ep.getParentId()), prodMap,
-					nodeMap);
-			parent.addChild(current);
-			nodeMap.put(parent.getEventProducer().getId(), parent);
-		}
-		return current;
-	}
-
+	/**
+	 * Get the event type hierarchy. Types are grouped by category.
+	 * 
+	 * @param trace
+	 *            trace
+	 * @return the root nodes, corresponding to the event category
+	 * @throws SoCTraceException
+	 */
 	public CategoryNode[] loadEventTypes(Trace trace) throws SoCTraceException {
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		TraceDBObject traceDB = null;
@@ -160,18 +175,19 @@ public class DensityHistogramLoader {
 		return categories.values().toArray(new CategoryNode[categories.values().size()]);
 	}
 
-	/**
-	 * @return the min timestamp
-	 */
-	public long getMin() {
-		return min;
-	}
-
-	/**
-	 * @return the max timestamp
-	 */
-	public long getMax() {
-		return max;
+	private EventProducerNode getProducerNode(EventProducer ep,
+			Map<Integer, EventProducer> prodMap, Map<Integer, EventProducerNode> nodeMap) {
+		if (nodeMap.containsKey(ep.getId()))
+			return nodeMap.get(ep.getId());
+		EventProducerNode current = new EventProducerNode(ep);
+		nodeMap.put(ep.getId(), current);
+		if (ep.getParentId() != EventProducer.NO_PARENT_ID) {
+			EventProducerNode parent = getProducerNode(prodMap.get(ep.getParentId()), prodMap,
+					nodeMap);
+			parent.addChild(current);
+			nodeMap.put(parent.getEventProducer().getId(), parent);
+		}
+		return current;
 	}
 
 	/**
@@ -254,11 +270,13 @@ public class DensityHistogramLoader {
 			ValueListString typeIds = new ValueListString();
 			Iterator<Entry<Integer, List<EventType>>> it = requested.entrySet().iterator();
 			int totTypes = 0;
+			for (Integer numberPerCategory : tpc.values()) {
+				totTypes += numberPerCategory;
+			}
 			while (it.hasNext()) {
 				Entry<Integer, List<EventType>> e = it.next();
 				int category = e.getKey();
 				List<EventType> tl = e.getValue();
-				totTypes += tl.size();
 				if (tl.size() == tpc.get(category)) {
 					categories.addValue(String.valueOf(category));
 				} else {
