@@ -74,10 +74,9 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
 import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
-import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
-import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
-import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
+import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader.ConfigurationDimension;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.IModelElementNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
@@ -88,9 +87,6 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
-import fr.inria.soctrace.lib.model.EventProducer;
-import fr.inria.soctrace.lib.model.EventType;
-import fr.inria.soctrace.lib.model.IModelElement;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
@@ -98,28 +94,12 @@ import fr.inria.soctrace.lib.model.Trace;
  * 
  * <pre>
  * TODO
- * - multi selection
  * - new icon for uncheck subtree
- * - uncheck all must act only on visible items
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class HistogramView extends FramesocPart {
-
-	private enum ConfigurationDimension {
-		PRODUCERS("Event Producers"), TYPE("Event Type");
-
-		private String name;
-
-		ConfigurationDimension(String str) {
-			name = str;
-		}
-
-		public String getName() {
-			return name;
-		}
-	}
 
 	private class ConfigurationData {
 		ConfigurationDimension dimension;
@@ -131,8 +111,6 @@ public class HistogramView extends FramesocPart {
 			this.dimension = dimension;
 		}
 	}
-
-	private ConfigurationDimension currentTab = ConfigurationDimension.TYPE;
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -189,7 +167,8 @@ public class HistogramView extends FramesocPart {
 	private Button btnReset;
 	private Button btnLoad;
 
-	private Map<ConfigurationDimension, ConfigurationData> treeMap;
+	private ConfigurationDimension currentDimension = ConfigurationDimension.TYPE;
+	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
 
 	/**
 	 * Tree node comparator
@@ -234,9 +213,9 @@ public class HistogramView extends FramesocPart {
 		tabFolder.setLayout(new GridLayout(1, false));
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		treeMap = new HashMap<>();
+		configurationMap = new HashMap<>();
 		for (ConfigurationDimension tab : ConfigurationDimension.values()) {
-			treeMap.put(tab, new ConfigurationData(tab));
+			configurationMap.put(tab, new ConfigurationData(tab));
 		}
 
 		PatternFilter filter = new TreePatternFilter();
@@ -244,6 +223,7 @@ public class HistogramView extends FramesocPart {
 		TreeLabelProvider labelProvider = new TreeLabelProvider();
 		ViewerComparator treeComparator = new ViewerComparator();
 		SelectionChangedListener selectionChangeListener = new SelectionChangedListener();
+		CheckStateListener checkStateListener = new CheckStateListener();
 
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
@@ -259,13 +239,13 @@ public class HistogramView extends FramesocPart {
 		typeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tbtmEventTypes.setControl(typeComposite);
 
-		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER
-				| SWT.MULTI, filter, true);
-		treeMap.get(ConfigurationDimension.TYPE).tree = typeTree;
+		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER, filter,
+				true);
+		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(labelProvider);
 		typeTree.getViewer().setComparator(treeComparator);
-		typeTree.addCheckStateListener(new CheckStateListener(typeTree));
+		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
@@ -281,17 +261,17 @@ public class HistogramView extends FramesocPart {
 		tbtmEventProducers.setControl(prodComposite);
 		FilteredCheckboxTree producerTree = new FilteredCheckboxTree(prodComposite, SWT.BORDER
 				| SWT.MULTI, filter, true);
-		treeMap.get(ConfigurationDimension.PRODUCERS).tree = producerTree;
+		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = producerTree;
 		producerTree.getViewer().setContentProvider(contentProvider);
 		producerTree.getViewer().setLabelProvider(labelProvider);
 		producerTree.getViewer().setComparator(treeComparator);
-		producerTree.addCheckStateListener(new CheckStateListener(producerTree));
+		producerTree.addCheckStateListener(checkStateListener);
 		producerTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 
 		// tab switch
 		tabFolder.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				currentTab = (ConfigurationDimension) event.item.getData();
+				currentDimension = (ConfigurationDimension) event.item.getData();
 				enableTreeButtons();
 				enableSubTreeButtons();
 			}
@@ -311,9 +291,14 @@ public class HistogramView extends FramesocPart {
 		btnCheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (treeMap.get(currentTab).roots != null) {
-					treeMap.get(currentTab).tree.setCheckedElements(linearizeAndSort(treeMap
-							.get(currentTab).roots));
+				if (configurationMap.get(currentDimension).roots != null) {
+					FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
+					TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+							.getContentProvider();
+					Object[] roots = provider.getElements(tree.getViewer().getInput());
+					for (Object root : roots) {
+						checkElementAndSubtree(root);
+					}
 					selectionChanged();
 				}
 			}
@@ -328,7 +313,7 @@ public class HistogramView extends FramesocPart {
 		btnUncheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				treeMap.get(currentTab).tree.setCheckedElements(EMPTY_ARRAY);
+				configurationMap.get(currentDimension).tree.setCheckedElements(EMPTY_ARRAY);
 				selectionChanged();
 			}
 		});
@@ -342,11 +327,11 @@ public class HistogramView extends FramesocPart {
 		btnCheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (treeMap.get(currentTab).roots != null) {
-					ITreeNode node = getCurrentSelection(treeMap.get(currentTab).tree);
+				if (configurationMap.get(currentDimension).roots != null) {
+					ITreeNode node = getCurrentSelection(configurationMap.get(currentDimension).tree);
 					if (node == null)
 						return;
-					checkElementAndSubtree(treeMap.get(currentTab).tree, node);
+					checkElementAndSubtree(node);
 					selectionChanged();
 				}
 			}
@@ -361,12 +346,12 @@ public class HistogramView extends FramesocPart {
 		btnUncheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (treeMap.get(currentTab).roots != null) {
-					ITreeNode node = getCurrentSelection(treeMap.get(currentTab).tree);
+				if (configurationMap.get(currentDimension).roots != null) {
+					ITreeNode node = getCurrentSelection(configurationMap.get(currentDimension).tree);
 					if (node == null)
 						return;
-					uncheckElement(treeMap.get(currentTab).tree, node);
-					uncheckAncestors(treeMap.get(currentTab).tree, node);
+					uncheckElement(node);
+					uncheckAncestors(node);
 					selectionChanged();
 				}
 			}
@@ -380,7 +365,7 @@ public class HistogramView extends FramesocPart {
 		btnReset.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				for (ConfigurationData data : treeMap.values()) {
+				for (ConfigurationData data : configurationMap.values()) {
 					data.tree.setCheckedElements(data.checked);
 				}
 				enableResetLoadButtons(false);
@@ -501,24 +486,20 @@ public class HistogramView extends FramesocPart {
 		}
 
 		// prepare the configuration for the loader
-		final Map<ConfigurationDimension, List<IModelElement>> confMap = new HashMap<>();
-		for (ConfigurationData confData : treeMap.values()) {
+		final Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
+		for (ConfigurationData confData : configurationMap.values()) {
 			if (confData.roots == null) {
 				continue;
 			}
 			Object[] currentChecked = confData.tree.getCheckedElements();
 			confData.checked = new ITreeNode[currentChecked.length];
-			List<IModelElement> toLoad = new ArrayList<IModelElement>(currentChecked.length);
+			List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
 			confMap.put(confData.dimension, toLoad);
 			for (int i = 0; i < currentChecked.length; i++) {
 				confData.checked[i] = (ITreeNode) currentChecked[i];
-				if (confData.dimension.equals(ConfigurationDimension.TYPE)) {
-					if (currentChecked[i] instanceof CategoryNode)
-						continue;
-					toLoad.add(((EventTypeNode) currentChecked[i]).getEventType());
-				} else {
-					toLoad.add(((EventProducerNode) currentChecked[i]).getEventProducer());
-				}
+				if (!(currentChecked[i] instanceof IModelElementNode))
+					continue;
+				toLoad.add(((IModelElementNode) currentChecked[i]).getId());
 			}
 			Arrays.sort(confData.checked, TREE_NODE_COMPARATOR);
 		}
@@ -535,39 +516,22 @@ public class HistogramView extends FramesocPart {
 					currentShownTrace = trace;
 
 					/*
-					 * Activate the view after setting the current shown trace, otherwise the set
-					 * focus triggered by the activation send the old shown trace on the FramesocBus
+					 * Activate the view after setting the current shown trace,
+					 * otherwise the set focus triggered by the activation send
+					 * the old shown trace on the FramesocBus
 					 */
 					activateView();
 
 					// prepare dataset
 					DensityHistogramLoader loader = new DensityHistogramLoader();
-					List<EventProducer> producers = null;
-					List<EventType> types = null;
-					if (confMap.containsKey(ConfigurationDimension.PRODUCERS)) {
-						List<IModelElement> toLoad = confMap.get(ConfigurationDimension.PRODUCERS);
-						producers = new ArrayList<>(toLoad.size());
-						for (IModelElement e : toLoad) {
-							producers.add((EventProducer) e);
-						}
-					}
-					if (confMap.containsKey(ConfigurationDimension.TYPE)) {
-						List<IModelElement> toLoad = confMap.get(ConfigurationDimension.TYPE);
-						types = new ArrayList<>(toLoad.size());
-						for (IModelElement e : toLoad) {
-							types.add((EventType) e);
-						}
-					}
+					List<Integer> producers = confMap.get(ConfigurationDimension.PRODUCERS);
+					List<Integer> types = confMap.get(ConfigurationDimension.TYPE);
 					HistogramDataset dataset = loader.load(currentShownTrace, types, producers);
 
 					// load producers and types if necessary
-					for (ConfigurationData data : treeMap.values()) {
+					for (ConfigurationData data : configurationMap.values()) {
 						if (data.roots == null) {
-							if (data.dimension.equals(ConfigurationDimension.TYPE)) {
-								data.roots = loader.loadEventTypes(currentShownTrace);
-							} else {
-								data.roots = loader.loadProducers(currentShownTrace);
-							}
+							data.roots = loader.loadDimension(data.dimension, currentShownTrace);
 							data.checked = linearizeAndSort(data.roots);
 						}
 					}
@@ -641,7 +605,7 @@ public class HistogramView extends FramesocPart {
 							plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
 
 							// producers and types
-							for (ConfigurationData data : treeMap.values()) {
+							for (ConfigurationData data : configurationMap.values()) {
 								data.tree.getViewer().setInput(data.roots);
 								data.tree.setCheckedElements(data.checked);
 								data.tree.getViewer().refresh();
@@ -670,40 +634,12 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Enable/disable the reset and load buttons.
+	 * Linearize the tree whose roots are passed
 	 * 
-	 * @param enabledResetLoad
-	 *            flag stating if we must enable or not the load and reset buttons
+	 * @param roots
+	 *            root nodes
+	 * @return the linearized tree in an array
 	 */
-	private void enableResetLoadButtons(boolean enabledResetLoad) {
-		btnReset.setEnabled(enabledResetLoad);
-		btnLoad.setEnabled(enabledResetLoad);
-	}
-
-	private void enableTreeButtons() {
-		int checked = treeMap.get(currentTab).tree.getCheckedElements().length;
-		int treeItems = getTreeItemCount(treeMap.get(currentTab).tree);
-		btnCheckall.setEnabled(checked < treeItems);
-		btnUncheckall.setEnabled(checked != 0);
-	}
-
-	private int getTreeItemCount(FilteredCheckboxTree tree) {
-		TreeItem[] roots = tree.getViewer().getTree().getItems();
-		int count = 0;
-		for (TreeItem r : roots) {
-			count += countItems(r);
-		}
-		return count;
-	}
-
-	private int countItems(TreeItem item) {
-		int count = 1;
-		for (TreeItem i : item.getItems()) {
-			count += countItems(i);
-		}
-		return count;
-	}
-
 	private ITreeNode[] linearizeAndSort(ITreeNode[] roots) {
 		List<ITreeNode> nodes = new LinkedList<>();
 		for (ITreeNode root : roots) {
@@ -725,24 +661,30 @@ public class HistogramView extends FramesocPart {
 	 * Tree selection and button enable/disable status management
 	 */
 
-	private class CheckStateListener implements ICheckStateListener {
-
-		private FilteredCheckboxTree tree;
-
-		public CheckStateListener(FilteredCheckboxTree tree) {
-			this.tree = tree;
+	/**
+	 * Listener for tree selection
+	 */
+	private class SelectionChangedListener implements ISelectionChangedListener {
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+			enableSubTreeButtons();
 		}
+	}
 
+	/**
+	 * Listener for check state change
+	 */
+	private class CheckStateListener implements ICheckStateListener {
 		@Override
 		public void checkStateChanged(CheckStateChangedEvent event) {
 			try {
 				ITreeNode entry = (ITreeNode) event.getElement();
 				boolean checked = event.getChecked();
 				if (checked) {
-					checkElement(tree, entry);
+					checkElement(entry);
 				} else {
-					uncheckElement(tree, entry);
-					uncheckAncestors(tree, entry);
+					uncheckElement(entry);
+					uncheckAncestors(entry);
 				}
 			} catch (ClassCastException e) {
 				return;
@@ -750,12 +692,59 @@ public class HistogramView extends FramesocPart {
 				selectionChanged();
 			}
 		}
-
 	}
 
+	/**
+	 * Enable/disable the reset and load buttons.
+	 * 
+	 * @param enable
+	 *            flag stating if we must enable or not the load and reset
+	 *            buttons
+	 */
+	private void enableResetLoadButtons(boolean enable) {
+		btnReset.setEnabled(enable);
+		btnLoad.setEnabled(enable);
+	}
+
+	/**
+	 * Enable/disable the checkAll/uncheckAll buttons, according to the context.
+	 */
+	private void enableTreeButtons() {
+		int checked = configurationMap.get(currentDimension).tree.getCheckedElements().length;
+		int treeItems = getTreeItemCount(configurationMap.get(currentDimension).tree);
+		btnCheckall.setEnabled(checked < treeItems);
+		btnUncheckall.setEnabled(checked != 0);
+	}
+
+	/**
+	 * Enable/disable the checkSubTree/uncheckSubTree buttons, according to the
+	 * context.
+	 */
+	private void enableSubTreeButtons() {
+		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
+		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
+		IStructuredSelection sel = (IStructuredSelection) tree.getViewer().getSelection();
+		if (sel.isEmpty()) {
+			btnCheckSubtree.setEnabled(false);
+			btnUncheckSubtree.setEnabled(false);
+		} else {
+			ITreeNode node = (ITreeNode) sel.getFirstElement();
+			if (!provider.hasChildren(node)) {
+				btnCheckSubtree.setEnabled(false);
+				btnUncheckSubtree.setEnabled(false);
+			} else {
+				btnUncheckSubtree.setEnabled(hasCheckedSon(node, provider, tree));
+				btnCheckSubtree.setEnabled(hasUncheckedSon(node, provider, tree));
+			}
+		}
+	}
+
+	/**
+	 * Enable / disable all the buttons when there is a change in check status.
+	 */
 	private void selectionChanged() {
 		boolean enable = false;
-		for (ConfigurationData data : treeMap.values()) {
+		for (ConfigurationData data : configurationMap.values()) {
 			enable = enable || selectionChanged(data.checked, data.tree);
 			if (enable)
 				break;
@@ -785,57 +774,46 @@ public class HistogramView extends FramesocPart {
 		return !Arrays.equals(checked, currentChecked);
 	}
 
-	private class SelectionChangedListener implements ISelectionChangedListener {
-
-		@Override
-		public void selectionChanged(SelectionChangedEvent event) {
-			enableSubTreeButtons();
-		}
-	}
-
 	/**
-	 * Check an element and all its parents.
+	 * Check an element and all its parents in the current tree.
 	 * 
-	 * @param tree
-	 *            the filtered checkbox tree
 	 * @param element
 	 *            The element to check.
 	 */
-	private void checkElement(FilteredCheckboxTree tree, Object element) {
+	private void checkElement(Object element) {
+		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		tree.setChecked(element, true);
 		Object parent = ((TreeContentProvider) tree.getViewer().getContentProvider())
 				.getParent(element);
 		if (parent != null && !tree.getChecked(parent)) {
-			checkElement(tree, parent);
+			checkElement(parent);
 		}
 	}
 
 	/**
-	 * Uncheck an element and all its children.
+	 * Uncheck an element and all its children in the current tree.
 	 * 
-	 * @param tree
-	 *            the filtered checkbox tree
 	 * @param element
 	 *            The element to uncheck.
 	 */
-	private void uncheckElement(FilteredCheckboxTree tree, Object element) {
+	private void uncheckElement(Object element) {
+		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		tree.setChecked(element, false);
 		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
 		for (Object child : provider.getChildren(element)) {
-			uncheckElement(tree, child);
+			uncheckElement(child);
 		}
 	}
 
 	/**
-	 * Uncheck all the ancestors of an element if all the elements siblings are unchecked. This is
-	 * done recursively.
+	 * Uncheck all the ancestors of an element if all the elements siblings are
+	 * unchecked, in the current tree. This is done recursively.
 	 * 
-	 * @param tree
-	 *            the filtered checkbox tree
 	 * @param element
 	 *            the element to start with
 	 */
-	private void uncheckAncestors(FilteredCheckboxTree tree, Object element) {
+	private void uncheckAncestors(Object element) {
+		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
 		Object parent = provider.getParent(element);
 		if (parent == null)
@@ -850,42 +828,23 @@ public class HistogramView extends FramesocPart {
 		}
 		if (uncheckParent) {
 			tree.setChecked(parent, false);
-			uncheckAncestors(tree, parent);
+			uncheckAncestors(parent);
 		}
 	}
 
 	/**
-	 * Check an element, all its parents and all its children.
+	 * Check an element, all its parents and all its children, in the current
+	 * tree.
 	 * 
-	 * @param tree
-	 *            the filtered checkbox tree
 	 * @param element
 	 *            The element to check.
 	 */
-	private void checkElementAndSubtree(FilteredCheckboxTree tree, Object element) {
-		checkElement(tree, element);
+	private void checkElementAndSubtree(Object element) {
+		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
+		checkElement(element);
 		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
 		for (Object child : provider.getChildren(element)) {
-			checkElementAndSubtree(tree, child);
-		}
-	}
-
-	private void enableSubTreeButtons() {
-		FilteredCheckboxTree tree = treeMap.get(currentTab).tree;
-		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
-		IStructuredSelection sel = (IStructuredSelection) tree.getViewer().getSelection();
-		if (sel.isEmpty()) {
-			btnCheckSubtree.setEnabled(false);
-			btnUncheckSubtree.setEnabled(false);
-		} else {
-			ITreeNode node = (ITreeNode) sel.getFirstElement();
-			if (!provider.hasChildren(node)) {
-				btnCheckSubtree.setEnabled(false);
-				btnUncheckSubtree.setEnabled(false);
-			} else {
-				btnUncheckSubtree.setEnabled(hasCheckedSon(node, provider, tree));
-				btnCheckSubtree.setEnabled(hasUncheckedSon(node, provider, tree));
-			}
+			checkElementAndSubtree(child);
 		}
 	}
 
@@ -915,6 +874,23 @@ public class HistogramView extends FramesocPart {
 				return true;
 		}
 		return false;
+	}
+
+	private int getTreeItemCount(FilteredCheckboxTree tree) {
+		TreeItem[] roots = tree.getViewer().getTree().getItems();
+		int count = 0;
+		for (TreeItem r : roots) {
+			count += countItems(r);
+		}
+		return count;
+	}
+
+	private int countItems(TreeItem item) {
+		int count = 1;
+		for (TreeItem i : item.getItems()) {
+			count += countItems(i);
+		}
+		return count;
 	}
 
 }

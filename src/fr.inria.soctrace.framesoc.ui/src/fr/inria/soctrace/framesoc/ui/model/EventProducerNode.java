@@ -22,7 +22,7 @@ import fr.inria.soctrace.lib.model.EventProducer;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventProducerNode implements ITreeNode {
+public class EventProducerNode implements ITreeNode, IModelElementNode {
 
 	private EventProducer producer = null;
 	private ITreeNode parent = null;
@@ -133,6 +133,11 @@ public class EventProducerNode implements ITreeNode {
 		} else if (!producer.equals(other.producer))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int getId() {
+		return producer.getId();
 	}
 
 }

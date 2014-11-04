@@ -22,7 +22,7 @@ import fr.inria.soctrace.lib.model.EventType;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventTypeNode implements ITreeNode {
+public class EventTypeNode implements ITreeNode, IModelElementNode {
 
 	private ITreeNode parent = null;
 	private EventType type = null;
@@ -106,6 +106,11 @@ public class EventTypeNode implements ITreeNode {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int getId() {
+		return type.getId();
 	}
 	
 }

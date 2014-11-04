@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -47,6 +48,20 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class DensityHistogramLoader {
+
+	public enum ConfigurationDimension {
+		PRODUCERS("Event Producers"), TYPE("Event Type");
+
+		private String name;
+
+		ConfigurationDimension(String str) {
+			name = str;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
 
 	/**
 	 * Logger
@@ -69,19 +84,22 @@ public class DensityHistogramLoader {
 	 * @param trace
 	 *            trace to work with
 	 * @param types
-	 *            event types to load
+	 *            event type ids to load
 	 * @param producers
-	 *            event producers to load
+	 *            event producer ids to load
 	 * @return the histogram dataset
 	 * @throws SoCTraceException
 	 */
-	public HistogramDataset load(Trace trace, List<EventType> types, List<EventProducer> producers)
+	public HistogramDataset load(Trace trace, List<Integer> types, List<Integer> producers)
 			throws SoCTraceException {
 
 		DeltaManager dm = new DeltaManager();
 		HistogramDataset dataset = new HistogramDataset();
 
 		if (trace == null)
+			return dataset;
+
+		if (types.size() == 0 || producers.size() == 0)
 			return dataset;
 
 		dm.start();
@@ -113,6 +131,27 @@ public class DensityHistogramLoader {
 	 */
 	public long getMax() {
 		return max;
+	}
+
+	/**
+	 * Load the hierarchy of items for the given configuration dimension.
+	 * 
+	 * @param dimension
+	 *            configuration dimension
+	 * @param trace
+	 *            trace
+	 * @return the hierarchy of items for the passed dimension
+	 * @throws SoCTraceException
+	 */
+	public ITreeNode[] loadDimension(ConfigurationDimension dimension, Trace trace)
+			throws SoCTraceException {
+		switch (dimension) {
+		case TYPE:
+			return loadEventTypes(trace);
+		case PRODUCERS:
+			return loadProducers(trace);
+		}
+		throw new SoCTraceException("Unknown dimension: " + dimension.getName());
 	}
 
 	/**
@@ -193,20 +232,21 @@ public class DensityHistogramLoader {
 	/**
 	 * Load timestamps vector, considering only positive times.
 	 * 
-	 * Note that for States and Links, a single event is counted at the start timestamp. This is
-	 * consistent with the data model where a State (Link) is a single event of type State (Link).
+	 * Note that for States and Links, a single event is counted at the start
+	 * timestamp. This is consistent with the data model where a State (Link) is
+	 * a single event of type State (Link).
 	 * 
 	 * @param traceDB
 	 *            trace DB object
 	 * @param producers
-	 *            event producers to consider
+	 *            event producer ids to consider
 	 * @param types
-	 *            event types to consider
+	 *            event type ids to consider
 	 * @return timestamps vector
 	 * @throws SoCTraceException
 	 */
-	private double[] getTimestapsSeries(TraceDBObject traceDB, List<EventType> types,
-			List<EventProducer> producers) throws SoCTraceException {
+	private double[] getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
+			List<Integer> producers) throws SoCTraceException {
 		Statement stm;
 		ResultSet rs;
 		String query = "";
@@ -242,8 +282,8 @@ public class DensityHistogramLoader {
 		}
 	}
 
-	private String prepareQuery(TraceDBObject traceDB, List<EventType> types,
-			List<EventProducer> producers) throws SoCTraceException {
+	private String prepareQuery(TraceDBObject traceDB, List<Integer> types, List<Integer> producers)
+			throws SoCTraceException {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT TIMESTAMP FROM ");
 		sb.append(FramesocTable.EVENT.toString());
@@ -251,42 +291,45 @@ public class DensityHistogramLoader {
 
 		if (producers != null && getNumberOfProducers(traceDB) != producers.size()) {
 			ValueListString vls = new ValueListString();
-			for (EventProducer ep : producers) {
-				vls.addValue(String.valueOf(ep.getId()));
+			for (Integer epId : producers) {
+				vls.addValue(String.valueOf(epId));
 			}
 			sb.append(" AND EVENT_PRODUCER_ID IN ");
 			sb.append(vls.getValueString());
 		}
 
 		if (types != null) {
-			Map<Integer, Integer> tpc = getTypesPerCategory(traceDB);
-			Map<Integer, List<EventType>> requested = new HashMap<>();
-			for (EventType et : types) {
-				if (!requested.containsKey(et.getCategory())) {
-					requested.put(et.getCategory(), new LinkedList<EventType>());
+			Map<Integer, EventType> typesMap = new HashMap<>();
+			Map<Integer, Integer> tpc = getTypesPerCategory(traceDB, typesMap);
+			Map<Integer, List<Integer>> requested = new HashMap<>();
+			for (Integer etId : types) {
+				int category = typesMap.get(etId).getCategory();
+				if (!requested.containsKey(category)) {
+					requested.put(category, new LinkedList<Integer>());
 				}
-				requested.get(et.getCategory()).add(et);
+				requested.get(category).add(etId);
 			}
 			ValueListString categories = new ValueListString();
 			ValueListString typeIds = new ValueListString();
-			Iterator<Entry<Integer, List<EventType>>> it = requested.entrySet().iterator();
+			Iterator<Entry<Integer, List<Integer>>> it = requested.entrySet().iterator();
 			int totTypes = 0;
 			for (Integer numberPerCategory : tpc.values()) {
 				totTypes += numberPerCategory;
 			}
 			while (it.hasNext()) {
-				Entry<Integer, List<EventType>> e = it.next();
+				Entry<Integer, List<Integer>> e = it.next();
 				int category = e.getKey();
-				List<EventType> tl = e.getValue();
+				List<Integer> tl = e.getValue();
 				if (tl.size() == tpc.get(category)) {
 					categories.addValue(String.valueOf(category));
 				} else {
-					for (EventType et : tl) {
-						typeIds.addValue(String.valueOf(et.getId()));
+					for (Integer etId : tl) {
+						typeIds.addValue(String.valueOf(etId));
 					}
 				}
 			}
-			// FIXME: with ctf trace requesting only punctual events I get this query
+			// FIXME: with ctf trace requesting only punctual events I get this
+			// query
 			// "SELECT TIMESTAMP FROM EVENT WHERE TIMESTAMP >= 0 AND"
 			if (totTypes != types.size()) {
 				sb.append(" AND ");
@@ -317,12 +360,13 @@ public class DensityHistogramLoader {
 		return sb.toString();
 	}
 
-	private Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB)
-			throws SoCTraceException {
+	private Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB,
+			Map<Integer, EventType> typesMap) throws SoCTraceException {
 		Map<Integer, Integer> typesPerCategory = new HashMap<>();
 		EventTypeQuery etq = new EventTypeQuery(traceDB);
 		List<EventType> etl = etq.getList();
 		for (EventType et : etl) {
+			typesMap.put(et.getId(), et);
 			if (!typesPerCategory.containsKey(et.getCategory())) {
 				typesPerCategory.put(et.getCategory(), 0);
 			}
