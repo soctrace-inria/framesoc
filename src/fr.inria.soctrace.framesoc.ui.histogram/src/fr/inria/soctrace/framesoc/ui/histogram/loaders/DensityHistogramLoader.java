@@ -209,12 +209,13 @@ public class DensityHistogramLoader {
 			List<EventProducer> producers) throws SoCTraceException {
 		Statement stm;
 		ResultSet rs;
+		String query = "";
 		try {
 			DeltaManager dm = new DeltaManager();
 			stm = traceDB.getConnection().createStatement();
 			List<Long> tsl = new LinkedList<Long>();
 
-			String query = prepareQuery(traceDB, types, producers);
+			query = prepareQuery(traceDB, types, producers);
 			logger.debug(query);
 			rs = stm.executeQuery(query);
 			while (rs.next()) {
@@ -237,7 +238,7 @@ public class DensityHistogramLoader {
 			logger.debug(dm.endMessage("get timestamps"));
 			return timestamps;
 		} catch (SQLException e) {
-			throw new SoCTraceException(e);
+			throw new SoCTraceException("Query: " + query, e);
 		}
 	}
 
@@ -285,6 +286,8 @@ public class DensityHistogramLoader {
 					}
 				}
 			}
+			// FIXME: with ctf trace requesting only punctual events I get this query
+			// "SELECT TIMESTAMP FROM EVENT WHERE TIMESTAMP >= 0 AND"
 			if (totTypes != types.size()) {
 				sb.append(" AND ");
 				boolean both = false;
