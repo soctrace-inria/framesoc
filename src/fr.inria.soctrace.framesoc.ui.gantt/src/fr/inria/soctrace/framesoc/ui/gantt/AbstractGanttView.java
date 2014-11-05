@@ -726,7 +726,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		arrowPercentageLabel = new Label(parent, SWT.NONE);
 		setArrowPercentage(0.0);
-		
+
 		// -------------------------------
 		// COMBO VIEWER
 		// -------------------------------
@@ -985,6 +985,12 @@ public abstract class AbstractGanttView extends FramesocPart {
 	// Internal
 	// ------------------------------------------------------------------------
 
+	/**
+	 * Draw the percentage of shown arrows
+	 * 
+	 * @param percentage
+	 *            percentage of shown arrows
+	 */
 	protected void setArrowPercentage(double percentage) {
 		DecimalFormat decim = new DecimalFormat("##.#");
 		DecimalFormatSymbols custom = new DecimalFormatSymbols();
@@ -996,13 +1002,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 		sb.append(percent);
 		sb.append("%");
 		arrowPercentageLabel.setText(sb.toString());
-		arrowPercentageLabel.redraw();
-		arrowPercentageLabel.update();
-		arrowPercentageLabel.redraw();
 		arrowPercentageLabel.pack();
-		redraw();
 	}
-	
+
 	/**
 	 * Gets the list of links (displayed as arrows) for a trace in a given time
 	 * range. Default implementation returns an empty list.
