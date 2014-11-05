@@ -64,6 +64,11 @@ public class DensityHistogramLoader {
 			return name;
 		}
 	}
+	
+	/**
+	 * Average number of event to load in each query
+	 */
+	protected final int EVENTS_PER_QUERY = 1000000;
 
 	/**
 	 * Logger
@@ -90,9 +95,9 @@ public class DensityHistogramLoader {
 	 * @param producers
 	 *            event producer ids to load
 	 * @param monitor
-	 *            TODO use
+	 *            progress monitor
 	 * @param dataset
-	 *            TODO stream in
+	 *            loader dataset
 	 * @throws SoCTraceException
 	 */
 	public void load(Trace trace, List<Integer> types, List<Integer> producers,
@@ -109,11 +114,18 @@ public class DensityHistogramLoader {
 		TraceDBObject traceDB = null;
 		try {
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
+			
+			
+			
 			double timestamps[] = getTimestapsSeries(traceDB, types, producers);
 			if (timestamps.length != 0) {
 				dataset.setSnapshot(timestamps, new TimeInterval(min, max));
 				dataset.setComplete();
 			}
+			
+			
+			
+			
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		} finally {

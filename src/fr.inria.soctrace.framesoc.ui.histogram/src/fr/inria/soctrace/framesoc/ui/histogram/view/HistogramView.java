@@ -13,7 +13,6 @@ package fr.inria.soctrace.framesoc.ui.histogram.view;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,6 +60,7 @@ import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
@@ -131,7 +131,7 @@ public class HistogramView extends FramesocPart {
 	public static final Logger logger = LoggerFactory.getLogger(HistogramView.class);
 
 	/**
-	 * Constants
+	 * UI Constants
 	 */
 	public final static String TOOLTIP_FORMAT = "bin central timestamp: {1}, events: {2}";
 	public final static String POPUP_MENU_SHOW_EVENT_TABLE = "Show Event Table page for timestamp ";
@@ -144,6 +144,17 @@ public class HistogramView extends FramesocPart {
 	public static final boolean HAS_TOOLTIPS = true;
 	public static final boolean HAS_URLS = true;
 	public static final boolean USE_BUFFER = true;
+
+	private final static Color BACKGROUND_PAINT = new Color(255, 255, 255);
+	private final static Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
+	private final static Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
+
+	private final DecimalFormat X_FORMAT = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+	private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
+	private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
+			TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
+	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
+	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
 
 	/**
 	 * Build update timeout
@@ -184,6 +195,11 @@ public class HistogramView extends FramesocPart {
 	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
 
 	/**
+	 * Loader dataset
+	 */
+	private HistogramLoaderDataset dataset;
+
+	/**
 	 * Tree node comparator
 	 */
 	private final static Comparator<ITreeNode> TREE_NODE_COMPARATOR = new Comparator<ITreeNode>() {
@@ -196,10 +212,10 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	// Uncomment this to use the window builder
-	//@Override
-	//public void createPartControl(Composite parent) {
-	//	createFramesocPartControl(parent);
-	//}
+	// @Override
+	// public void createPartControl(Composite parent) {
+	// createFramesocPartControl(parent);
+	// }
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -491,8 +507,6 @@ public class HistogramView extends FramesocPart {
 		return ID;
 	}
 
-	private HistogramLoaderDataset dataset = new HistogramLoaderDataset();
-
 	@Override
 	public void showTrace(final Trace trace, Object data) {
 
@@ -614,12 +628,12 @@ public class HistogramView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
-					refresh();
+					refresh(!refreshed);
 					refreshed = true;
 				}
 				if (!refreshed) {
 					// refresh at least once when there is no data.
-					refresh();
+					refresh(true);
 				}
 				return Status.OK_STATUS;
 			} finally {
@@ -657,9 +671,14 @@ public class HistogramView extends FramesocPart {
 
 	/**
 	 * Refresh the UI using the current dataset
+	 * 
+	 * @param first
+	 *            flag indicating if it is the first refresh for a given load
 	 */
-	private void refresh() {
+	private void refresh(final boolean first) {
 		// prepare chart
+		DeltaManager dm = new DeltaManager();
+		dm.start();
 		TimeInterval loadedInterval = new TimeInterval(0, 0);
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
@@ -667,22 +686,18 @@ public class HistogramView extends FramesocPart {
 		// Customization
 		plot = chart.getXYPlot();
 		// background color
-		plot.setBackgroundPaint(new Color(255, 255, 255));
-		plot.setDomainGridlinePaint(new Color(230, 230, 230));
-		plot.setRangeGridlinePaint(new Color(200, 200, 200));
+		plot.setBackgroundPaint(BACKGROUND_PAINT);
+		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
+		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
 		// tooltip
 		XYItemRenderer renderer = plot.getRenderer();
-		renderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator(TOOLTIP_FORMAT,
-				new DecimalFormat(Constants.TIMESTAMPS_FORMAT), new DecimalFormat("0")));
+		renderer.setBaseToolTipGenerator(TOOLTIP_GENERATOR);
 		// axis
-		Font tickLabelFont = new Font("Tahoma", 0, 11);
-		Font labelFont = new Font("Tahoma", 0, 12);
 		NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
-		xaxis.setTickLabelFont(tickLabelFont);
-		xaxis.setLabelFont(labelFont);
+		xaxis.setTickLabelFont(TICK_LABEL_FONT);
+		xaxis.setLabelFont(LABEL_FONT);
 		// x tick format
-		NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-		xaxis.setNumberFormatOverride(formatter);
+		xaxis.setNumberFormatOverride(X_FORMAT);
 		// x tick units
 		double unit = (currentShownTrace.getMaxTimestamp() - currentShownTrace.getMinTimestamp()) / 10.0;
 		xaxis.setTickUnit(new NumberTickUnit(unit));
@@ -698,10 +713,10 @@ public class HistogramView extends FramesocPart {
 					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
 			}
 		});
-
+		// y font
 		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
-		yaxis.setTickLabelFont(tickLabelFont);
-		yaxis.setLabelFont(labelFont);
+		yaxis.setTickLabelFont(TICK_LABEL_FONT);
+		yaxis.setLabelFont(LABEL_FONT);
 		// disable bar white stripe
 		XYBarRenderer barRenderer = (XYBarRenderer) plot.getRenderer();
 		barRenderer.setBarPainter(new StandardXYBarPainter());
@@ -734,14 +749,17 @@ public class HistogramView extends FramesocPart {
 				plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
 				plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
 				// producers and types
-				for (ConfigurationData data : configurationMap.values()) {
-					data.tree.getViewer().setInput(data.roots);
-					data.tree.setCheckedElements(data.checked);
-					data.tree.getViewer().refresh();
-					data.tree.getViewer().expandAll();
+				if (first) {
+					for (ConfigurationData data : configurationMap.values()) {
+						data.tree.getViewer().setInput(data.roots);
+						data.tree.setCheckedElements(data.checked);
+						data.tree.getViewer().refresh();
+						data.tree.getViewer().expandAll();
+					}
 				}
 			}
 		});
+		logger.debug(dm.endMessage("Finished refreshing"));
 	}
 
 	/**
