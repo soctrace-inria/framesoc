@@ -94,7 +94,9 @@ import fr.inria.soctrace.lib.model.Trace;
  * 
  * <pre>
  * TODO
- * - new icon for uncheck subtree
+ * - multi selection
+ * - min size for button sash
+ * - dezoom
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -261,8 +263,8 @@ public class HistogramView extends FramesocPart {
 		prodComposite.setLayout(gl_producersComposite);
 		prodComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tbtmEventProducers.setControl(prodComposite);
-		FilteredCheckboxTree producerTree = new FilteredCheckboxTree(prodComposite, SWT.BORDER
-				| SWT.MULTI, filter, true);
+		FilteredCheckboxTree producerTree = new FilteredCheckboxTree(prodComposite, SWT.BORDER,
+				filter, true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = producerTree;
 		producerTree.getViewer().setContentProvider(contentProvider);
 		producerTree.getViewer().setLabelProvider(labelProvider);
@@ -594,7 +596,15 @@ public class HistogramView extends FramesocPart {
 							if (chartFrame != null)
 								chartFrame.dispose();
 							chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart,
-									USE_BUFFER);
+									USE_BUFFER) {
+								@Override
+								public void restoreAutoBounds() {
+									// restore domain axis to trace range when dezooming
+									plot.getDomainAxis().setRange(
+											currentShownTrace.getMinTimestamp(),
+											currentShownTrace.getMaxTimestamp());
+								}
+							};
 							// size
 							chartFrame.setSize(compositeChart.getSize());
 							// prevent y zooming
