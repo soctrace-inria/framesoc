@@ -20,15 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.jfree.data.statistics.HistogramDataset;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.jfree.data.statistics.HistogramType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -71,9 +73,9 @@ public class DensityHistogramLoader {
 	/**
 	 * Dataset constants
 	 */
-	private static int NUMBER_OF_BINS = 1000;
-	private static final String DATASET_NAME = "Event frequency";
-	private static HistogramType HISTOGRAM_TYPE = HistogramType.FREQUENCY;
+	public final static int NUMBER_OF_BINS = 1000;
+	public final static String DATASET_NAME = "Event frequency";
+	public final static HistogramType HISTOGRAM_TYPE = HistogramType.FREQUENCY;
 
 	private long min;
 	private long max;
@@ -87,53 +89,41 @@ public class DensityHistogramLoader {
 	 *            event type ids to load
 	 * @param producers
 	 *            event producer ids to load
-	 * @return the histogram dataset
+	 * @param monitor
+	 *            TODO use
+	 * @param dataset
+	 *            TODO stream in
 	 * @throws SoCTraceException
 	 */
-	public HistogramDataset load(Trace trace, List<Integer> types, List<Integer> producers)
-			throws SoCTraceException {
+	public void load(Trace trace, List<Integer> types, List<Integer> producers,
+			HistogramLoaderDataset dataset, IProgressMonitor monitor) {
 
 		DeltaManager dm = new DeltaManager();
-		HistogramDataset dataset = new HistogramDataset();
-
-		if (trace == null)
-			return dataset;
-
-		if (types != null && types.size() == 0)
-			return dataset;
-
-		if (producers != null && producers.size() == 0)
-			return dataset;
-
 		dm.start();
+
+		if ((trace == null) || (types != null && types.size() == 0)
+				|| (producers != null && producers.size() == 0)) {
+			dataset.setStop();
+			return;
+		}
 		TraceDBObject traceDB = null;
 		try {
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
 			double timestamps[] = getTimestapsSeries(traceDB, types, producers);
 			if (timestamps.length != 0) {
-				dataset.setType(HISTOGRAM_TYPE);
-				dataset.addSeries(DATASET_NAME, timestamps, NUMBER_OF_BINS);
+				dataset.setSnapshot(timestamps, new TimeInterval(min, max));
+				dataset.setComplete();
+			}
+		} catch (SoCTraceException e) {
+			e.printStackTrace();
+		} finally {
+			if (!dataset.isStop() && !dataset.isComplete()) {
+				// something went wrong, respect the map contract anyway
+				dataset.setStop();
 			}
 			logger.debug(dm.endMessage("Prepared Histogram dataset"));
-		} finally {
 			DBObject.finalClose(traceDB);
 		}
-
-		return dataset;
-	}
-
-	/**
-	 * @return the min timestamp
-	 */
-	public long getMin() {
-		return min;
-	}
-
-	/**
-	 * @return the max timestamp
-	 */
-	public long getMax() {
-		return max;
 	}
 
 	/**
@@ -235,9 +225,8 @@ public class DensityHistogramLoader {
 	/**
 	 * Load timestamps vector, considering only positive times.
 	 * 
-	 * Note that for States and Links, a single event is counted at the start
-	 * timestamp. This is consistent with the data model where a State (Link) is
-	 * a single event of type State (Link).
+	 * Note that for States and Links, a single event is counted at the start timestamp. This is
+	 * consistent with the data model where a State (Link) is a single event of type State (Link).
 	 * 
 	 * @param traceDB
 	 *            trace DB object

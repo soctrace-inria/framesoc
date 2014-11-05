@@ -89,8 +89,9 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
- * @author "Generoso Pagano <generoso.pagano@inria.fr>"
+ * Statistics pie chart view
  * 
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class StatisticsPieChartView extends FramesocPart {
 

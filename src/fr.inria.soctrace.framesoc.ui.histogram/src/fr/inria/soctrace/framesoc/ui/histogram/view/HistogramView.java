@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IToolBarManager;
@@ -75,11 +76,13 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
 import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader.ConfigurationDimension;
+import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.IModelElementNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
@@ -88,6 +91,8 @@ import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * Framesoc Bar Chart view.
@@ -96,7 +101,6 @@ import fr.inria.soctrace.lib.model.Trace;
  * TODO
  * - multi selection
  * - min size for button sash
- * - dezoom
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -140,6 +144,11 @@ public class HistogramView extends FramesocPart {
 	public static final boolean HAS_TOOLTIPS = true;
 	public static final boolean HAS_URLS = true;
 	public static final boolean USE_BUFFER = true;
+
+	/**
+	 * Build update timeout
+	 */
+	private static final long BUILD_UPDATE_TIMEOUT = 300;
 
 	/**
 	 * The chart composite
@@ -187,10 +196,10 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	// Uncomment this to use the window builder
-	@Override
-	public void createPartControl(Composite parent) {
-		createFramesocPartControl(parent);
-	}
+	//@Override
+	//public void createPartControl(Composite parent) {
+	//	createFramesocPartControl(parent);
+	//}
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -482,54 +491,40 @@ public class HistogramView extends FramesocPart {
 		return ID;
 	}
 
+	private HistogramLoaderDataset dataset = new HistogramLoaderDataset();
+
 	@Override
 	public void showTrace(final Trace trace, Object data) {
-		// Clean parent
-		for (Control c : compositeChart.getChildren()) {
-			c.dispose();
-		}
 
-		// prepare the configuration for the loader
-		final Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
-		for (ConfigurationData confData : configurationMap.values()) {
-			if (confData.roots == null) {
-				continue;
-			}
-			Object[] currentChecked = confData.tree.getCheckedElements();
-			confData.checked = new ITreeNode[currentChecked.length];
-			List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
-			confMap.put(confData.dimension, toLoad);
-			for (int i = 0; i < currentChecked.length; i++) {
-				confData.checked[i] = (ITreeNode) currentChecked[i];
-				if (!(currentChecked[i] instanceof IModelElementNode))
-					continue;
-				toLoad.add(((IModelElementNode) currentChecked[i]).getId());
-			}
-			Arrays.sort(confData.checked, TREE_NODE_COMPARATOR);
-		}
+		if (trace == null)
+			return;
+		currentShownTrace = trace;
 
-		Job job = new Job("Loading Event Density Chart...") {
+		Thread showThread = new Thread() {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-
-				monitor.beginTask("Loading Event Density Chart", IProgressMonitor.UNKNOWN);
+			public void run() {
 				try {
-					// update trace selection
-					if (trace == null)
-						return Status.CANCEL_STATUS;
-					currentShownTrace = trace;
+					// prepare the configuration for the loader
+					Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
+					for (ConfigurationData confData : configurationMap.values()) {
+						if (confData.roots == null) {
+							continue;
+						}
+						Object[] currentChecked = confData.tree.getCheckedElements();
+						confData.checked = new ITreeNode[currentChecked.length];
+						List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
+						confMap.put(confData.dimension, toLoad);
+						for (int i = 0; i < currentChecked.length; i++) {
+							confData.checked[i] = (ITreeNode) currentChecked[i];
+							if (!(currentChecked[i] instanceof IModelElementNode))
+								continue;
+							toLoad.add(((IModelElementNode) currentChecked[i]).getId());
+						}
+						Arrays.sort(confData.checked, TREE_NODE_COMPARATOR);
+					}
 
-					/*
-					 * Activate the view after setting the current shown trace, otherwise the set
-					 * focus triggered by the activation send the old shown trace on the FramesocBus
-					 */
-					activateView();
-
-					// prepare dataset
+					// create loader
 					DensityHistogramLoader loader = new DensityHistogramLoader();
-					List<Integer> producers = confMap.get(ConfigurationDimension.PRODUCERS);
-					List<Integer> types = confMap.get(ConfigurationDimension.TYPE);
-					HistogramDataset dataset = loader.load(currentShownTrace, types, producers);
 
 					// load producers and types if necessary
 					for (ConfigurationData data : configurationMap.values()) {
@@ -539,109 +534,214 @@ public class HistogramView extends FramesocPart {
 						}
 					}
 
-					// prepare chart
-					final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL,
-							Y_LABEL, dataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS,
-							HAS_URLS);
+					// create a new loader dataset
+					dataset = new HistogramLoaderDataset();
 
-					// Customization
-					plot = chart.getXYPlot();
-					// background color
-					plot.setBackgroundPaint(new Color(255, 255, 255));
-					plot.setDomainGridlinePaint(new Color(230, 230, 230));
-					plot.setRangeGridlinePaint(new Color(200, 200, 200));
-					// tooltip
-					XYItemRenderer renderer = plot.getRenderer();
-					renderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator(TOOLTIP_FORMAT,
-							new DecimalFormat(Constants.TIMESTAMPS_FORMAT), new DecimalFormat("0")));
-					// axis
-					Font tickLabelFont = new Font("Tahoma", 0, 11);
-					Font labelFont = new Font("Tahoma", 0, 12);
-					NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
-					xaxis.setTickLabelFont(tickLabelFont);
-					xaxis.setLabelFont(labelFont);
-					// x tick format
-					NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-					xaxis.setNumberFormatOverride(formatter);
-					// x tick units
-					double unit = (loader.getMax() - loader.getMin()) / 10.0;
-					xaxis.setTickUnit(new NumberTickUnit(unit));
-					xaxis.addChangeListener(new AxisChangeListener() {
-						@Override
-						public void axisChanged(AxisChangeEvent arg) {
-							long max = ((Double) plot.getDomainAxis().getRange().getUpperBound())
-									.longValue();
-							long min = ((Double) plot.getDomainAxis().getRange().getLowerBound())
-									.longValue();
-							NumberTickUnit newUnit = new NumberTickUnit((max - min) / 10.0);
-							NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
-							// ensure we don't loop
-							if (!currentUnit.equals(newUnit))
-								((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
-						}
-					});
-
-					NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
-					yaxis.setTickLabelFont(tickLabelFont);
-					yaxis.setLabelFont(labelFont);
-					// disable bar white stripe
-					XYBarRenderer barRenderer = (XYBarRenderer) plot.getRenderer();
-					barRenderer.setBarPainter(new StandardXYBarPainter());
-
-					// prepare the new histogram UI
-					Display.getDefault().syncExec(new Runnable() {
-						@Override
-						public void run() {
-							setContentDescription("Trace: " + currentShownTrace.getAlias());
-							if (chartFrame != null)
-								chartFrame.dispose();
-							chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart,
-									USE_BUFFER) {
-								@Override
-								public void restoreAutoBounds() {
-									// restore domain axis to trace range when dezooming
-									plot.getDomainAxis().setRange(
-											currentShownTrace.getMinTimestamp(),
-											currentShownTrace.getMaxTimestamp());
-								}
-							};
-							// size
-							chartFrame.setSize(compositeChart.getSize());
-							// prevent y zooming
-							chartFrame.setRangeZoomable(false);
-							chartFrame.addChartMouseListener(new HistogramMouseListener());
-
-							// time bounds
-							plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
-							plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
-
-							// producers and types
-							for (ConfigurationData data : configurationMap.values()) {
-								data.tree.getViewer().setInput(data.roots);
-								data.tree.setCheckedElements(data.checked);
-								data.tree.getViewer().refresh();
-								data.tree.getViewer().expandAll();
-							}
-
-							// buttons
-							enableResetLoadButtons(false);
-							enableTreeButtons();
-							enableSubTreeButtons();
-
-							// actions
-							enableActions(true);
-						}
-					});
-					monitor.done();
-				} catch (Exception e) {
+					// create loader and builder threads
+					LoaderThread loaderThread = new LoaderThread(new TimeInterval(0, 0), loader,
+							confMap.get(ConfigurationDimension.TYPE),
+							confMap.get(ConfigurationDimension.PRODUCERS));
+					BuilderJob builderJob = new BuilderJob("Event Density Builder Job",
+							loaderThread);
+					loaderThread.start();
+					builderJob.schedule();
+				} catch (SoCTraceException e) {
 					e.printStackTrace();
-					return Status.CANCEL_STATUS;
 				}
-				return Status.OK_STATUS;
 			}
 		};
-		job.setUser(true);
-		job.schedule();
+		showThread.start();
+	}
+
+	/**
+	 * Loader thread.
+	 */
+	private class LoaderThread extends Thread {
+
+		@SuppressWarnings("unused")
+		private final TimeInterval loadInterval; // / TODO: use it
+		private final DensityHistogramLoader loader;
+		private final IProgressMonitor monitor;
+		private List<Integer> types;
+		private List<Integer> producer;
+
+		public LoaderThread(TimeInterval loadInterval, DensityHistogramLoader loader,
+				List<Integer> types, List<Integer> producers) {
+			this.loadInterval = loadInterval;
+			this.loader = loader;
+			this.types = types;
+			this.producer = producers;
+			this.monitor = new NullProgressMonitor();
+		}
+
+		@Override
+		public void run() {
+			loader.load(currentShownTrace, types, producer, dataset, monitor);
+		}
+
+		public void cancel() {
+			monitor.setCanceled(true);
+		}
+	}
+
+	/**
+	 * Builder job.
+	 */
+	private class BuilderJob extends Job {
+
+		private final LoaderThread loaderThread;
+
+		public BuilderJob(String name, LoaderThread loaderThread) {
+			super(name);
+			this.loaderThread = loaderThread;
+		}
+
+		@Override
+		protected IStatus run(IProgressMonitor monitor) {
+			DeltaManager dm = new DeltaManager();
+			dm.start();
+			try {
+				disableButtons();
+				boolean done = false;
+				boolean refreshed = false;
+				while (!done) {
+					done = dataset.waitUntilDone(BUILD_UPDATE_TIMEOUT);
+					if (!dataset.isDirty()) {
+						continue;
+					}
+					if (monitor.isCanceled()) {
+						loaderThread.cancel();
+						logger.debug("Drawer thread cancelled");
+						return Status.CANCEL_STATUS;
+					}
+					refresh();
+					refreshed = true;
+				}
+				if (!refreshed) {
+					// refresh at least once when there is no data.
+					refresh();
+				}
+				return Status.OK_STATUS;
+			} finally {
+				enableButtons();
+				logger.debug(dm.endMessage("finished drawing"));
+			}
+		}
+
+		private void disableButtons() {
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					enableActions(false);
+					enableResetLoadButtons(false);
+					btnCheckall.setEnabled(false);
+					btnCheckSubtree.setEnabled(false);
+					btnUncheckall.setEnabled(false);
+					btnUncheckSubtree.setEnabled(false);
+				}
+			});
+		}
+
+		private void enableButtons() {
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					enableResetLoadButtons(false);
+					enableTreeButtons();
+					enableSubTreeButtons();
+					enableActions(true);
+				}
+			});
+		}
+	}
+
+	/**
+	 * Refresh the UI using the current dataset
+	 */
+	private void refresh() {
+		// prepare chart
+		TimeInterval loadedInterval = new TimeInterval(0, 0);
+		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
+		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
+				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
+		// Customization
+		plot = chart.getXYPlot();
+		// background color
+		plot.setBackgroundPaint(new Color(255, 255, 255));
+		plot.setDomainGridlinePaint(new Color(230, 230, 230));
+		plot.setRangeGridlinePaint(new Color(200, 200, 200));
+		// tooltip
+		XYItemRenderer renderer = plot.getRenderer();
+		renderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator(TOOLTIP_FORMAT,
+				new DecimalFormat(Constants.TIMESTAMPS_FORMAT), new DecimalFormat("0")));
+		// axis
+		Font tickLabelFont = new Font("Tahoma", 0, 11);
+		Font labelFont = new Font("Tahoma", 0, 12);
+		NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
+		xaxis.setTickLabelFont(tickLabelFont);
+		xaxis.setLabelFont(labelFont);
+		// x tick format
+		NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+		xaxis.setNumberFormatOverride(formatter);
+		// x tick units
+		double unit = (currentShownTrace.getMaxTimestamp() - currentShownTrace.getMinTimestamp()) / 10.0;
+		xaxis.setTickUnit(new NumberTickUnit(unit));
+		xaxis.addChangeListener(new AxisChangeListener() {
+			@Override
+			public void axisChanged(AxisChangeEvent arg) {
+				long max = ((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue();
+				long min = ((Double) plot.getDomainAxis().getRange().getLowerBound()).longValue();
+				NumberTickUnit newUnit = new NumberTickUnit((max - min) / 10.0);
+				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
+				// ensure we don't loop
+				if (!currentUnit.equals(newUnit))
+					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
+			}
+		});
+
+		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
+		yaxis.setTickLabelFont(tickLabelFont);
+		yaxis.setLabelFont(labelFont);
+		// disable bar white stripe
+		XYBarRenderer barRenderer = (XYBarRenderer) plot.getRenderer();
+		barRenderer.setBarPainter(new StandardXYBarPainter());
+
+		// prepare the new histogram UI
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				// Clean parent
+				for (Control c : compositeChart.getChildren()) {
+					c.dispose();
+				}
+				// trace name
+				setContentDescription("Trace: " + currentShownTrace.getAlias());
+				// histogram chart
+				chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER) {
+					@Override
+					public void restoreAutoBounds() {
+						// restore domain axis to trace range when dezooming
+						plot.getDomainAxis().setRange(currentShownTrace.getMinTimestamp(),
+								currentShownTrace.getMaxTimestamp());
+					}
+				};
+				// - size
+				chartFrame.setSize(compositeChart.getSize());
+				// - prevent y zooming
+				chartFrame.setRangeZoomable(false);
+				chartFrame.addChartMouseListener(new HistogramMouseListener());
+				// - time bounds
+				plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
+				plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
+				// producers and types
+				for (ConfigurationData data : configurationMap.values()) {
+					data.tree.getViewer().setInput(data.roots);
+					data.tree.setCheckedElements(data.checked);
+					data.tree.getViewer().refresh();
+					data.tree.getViewer().expandAll();
+				}
+			}
+		});
 	}
 
 	/**
