@@ -10,6 +10,8 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.gantt;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,6 +47,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
@@ -77,8 +80,8 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 /**
  * An abstract view all time graph views can inherit
  * 
- * This view contains a time graph combo which is divided between a tree viewer on the left and a
- * time graph viewer on the right.
+ * This view contains a time graph combo which is divided between a tree viewer
+ * on the left and a time graph viewer on the right.
  * 
  */
 public abstract class AbstractGanttView extends FramesocPart {
@@ -91,6 +94,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private enum State {
 		IDLE, BUSY, PENDING
 	}
+
+	/** Suffix text for link percentage label */
+	private final static String LINK_PERCENTAGE = "Percentage of displayed links: ";
 
 	// ------------------------------------------------------------------------
 	// Fields
@@ -109,7 +115,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private long fEndTime;
 
 	/**
-	 * Flag indicating if the user changed the selection (via the timebar or the viewer)
+	 * Flag indicating if the user changed the selection (via the timebar or the
+	 * viewer)
 	 */
 	private boolean fUserChangedTimeRange = false;
 
@@ -177,6 +184,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The button to load a new interval */
 	private Button fBtnDraw;
+
+	/** Label displaying arrow percentage */
+	private Label arrowPercentageLabel;
 
 	// ------------------------------------------------------------------------
 	// Classes
@@ -341,8 +351,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Base class to provide the labels for the tree viewer. Views extending this class typically
-	 * need to override the getColumnText method if they have more than one column to display
+	 * Base class to provide the labels for the tree viewer. Views extending
+	 * this class typically need to override the getColumnText method if they
+	 * have more than one column to display
 	 */
 	protected static class TreeLabelProvider implements ITableLabelProvider, ILabelProvider {
 
@@ -497,18 +508,20 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the relative weight of each part of the time graph combo. This should be called from the
-	 * constructor.
+	 * Sets the relative weight of each part of the time graph combo. This
+	 * should be called from the constructor.
 	 * 
 	 * @param weights
-	 *            The array (length 2) of relative weights of each part of the combo
+	 *            The array (length 2) of relative weights of each part of the
+	 *            combo
 	 */
 	protected void setWeight(final int[] weights) {
 		fWeight = weights;
 	}
 
 	/**
-	 * Sets the filter column labels. This should be called from the constructor.
+	 * Sets the filter column labels. This should be called from the
+	 * constructor.
 	 * 
 	 * @param filterColumns
 	 *            The array of filter column labels
@@ -518,7 +531,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the filter label provider. This should be called from the constructor.
+	 * Sets the filter label provider. This should be called from the
+	 * constructor.
 	 * 
 	 * @param labelProvider
 	 *            The filter label provider
@@ -710,6 +724,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 
+		arrowPercentageLabel = new Label(parent, SWT.NONE);
+		setArrowPercentage(0.0);
+		
 		// -------------------------------
 		// COMBO VIEWER
 		// -------------------------------
@@ -896,7 +913,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		// time manager
 		fTimeBar = new TimeBar(timeComposite, SWT.NONE);
 		fTimeBar.setEnabled(false);
-	    fTimeBar.setStatusLineManager(statusLineManager);
+		fTimeBar.setStatusLineManager(statusLineManager);
 		fTimeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -968,9 +985,27 @@ public abstract class AbstractGanttView extends FramesocPart {
 	// Internal
 	// ------------------------------------------------------------------------
 
+	protected void setArrowPercentage(double percentage) {
+		DecimalFormat decim = new DecimalFormat("##.#");
+		DecimalFormatSymbols custom = new DecimalFormatSymbols();
+		custom.setDecimalSeparator('.');
+		decim.setDecimalFormatSymbols(custom);
+		Double percent = Double.parseDouble(decim.format(percentage));
+		StringBuilder sb = new StringBuilder();
+		sb.append(LINK_PERCENTAGE);
+		sb.append(percent);
+		sb.append("%");
+		arrowPercentageLabel.setText(sb.toString());
+		arrowPercentageLabel.redraw();
+		arrowPercentageLabel.update();
+		arrowPercentageLabel.redraw();
+		arrowPercentageLabel.pack();
+		redraw();
+	}
+	
 	/**
-	 * Gets the list of links (displayed as arrows) for a trace in a given time range. Default
-	 * implementation returns an empty list.
+	 * Gets the list of links (displayed as arrows) for a trace in a given time
+	 * range. Default implementation returns an empty list.
 	 * 
 	 * @param startTime
 	 *            Start of the time range
@@ -1109,7 +1144,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Refresh only the passed interval after a request to show a part of an already loaded window.
+	 * Refresh only the passed interval after a request to show a part of an
+	 * already loaded window.
 	 * 
 	 * @param interval
 	 *            time interval to show
@@ -1180,5 +1216,5 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fUserChangedSelection = false;
 		fUserChangedTimeRange = false;
 	}
-	
+
 }

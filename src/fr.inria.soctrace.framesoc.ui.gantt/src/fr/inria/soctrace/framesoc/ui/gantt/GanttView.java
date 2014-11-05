@@ -10,8 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.gantt;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -22,7 +20,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -107,7 +104,7 @@ public class GanttView extends AbstractGanttView {
 	/**
 	 * Percentage of displayed arrows
 	 */
-	private double arrowsPercentage;
+	private double arrowPercentage;
 
 	/**
 	 * Constructor
@@ -435,9 +432,7 @@ public class GanttView extends AbstractGanttView {
 
 		// Links
 		hideArrowsAction = createHideArrowsAction();
-		ActionContributionItem hideArrowCI = new ActionContributionItem(hideArrowsAction);
-		hideArrowCI.setMode(ActionContributionItem.MODE_FORCE_TEXT);
-		manager.add(hideArrowCI);
+		manager.add(hideArrowsAction);
 		manager.add(new Separator());
 
 		// Framesoc
@@ -485,7 +480,7 @@ public class GanttView extends AbstractGanttView {
 		// ignore dialog settings (null is passed)
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
 				null);
-		hideArrowsAction = new Action("", IAction.AS_CHECK_BOX) {
+		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				boolean hideArrows = hideArrowsAction.isChecked();
@@ -493,17 +488,15 @@ public class GanttView extends AbstractGanttView {
 				defaultAction.run();
 				refresh();
 				if (hideArrows) {
-					hideArrowsAction.setText(getPercentageString(0.0));
+					setArrowPercentage(0.0);
 				} else {
-					hideArrowsAction.setText(getPercentageString(arrowsPercentage));
+					setArrowPercentage(arrowPercentage);
 				}
 			}
 		};
-		hideArrowsAction.setImageDescriptor(defaultAction.getImageDescriptor());
-		hideArrowsAction.setText(getPercentageString(0.0));
-		hideArrowsAction
-				.setToolTipText(defaultAction.getToolTipText() + " [% of displayed arrows]");
-		return hideArrowsAction;
+		action.setImageDescriptor(defaultAction.getImageDescriptor());
+		action.setToolTipText(defaultAction.getToolTipText());
+		return action;
 	}
 
 	private void updateLinksText(final double shown, final double intersecting) {
@@ -511,32 +504,15 @@ public class GanttView extends AbstractGanttView {
 			@Override
 			public void run() {
 				if (intersecting == 0) {
-					arrowsPercentage = 100;
+					arrowPercentage = 100;
 				} else {
-					arrowsPercentage = (shown / intersecting) * 100;
+					arrowPercentage = (shown / intersecting) * 100;
 				}
 				if (hideArrowsAction != null && !hideArrowsAction.isChecked()) {
-					hideArrowsAction.setText(getPercentageString(arrowsPercentage));
+					setArrowPercentage(arrowPercentage);
 				}
 			}
 		});
-	}
-
-	// TODO find a nicer solution to manage width
-	private String getPercentageString(double p) {
-		DecimalFormat decim = new DecimalFormat("##.#");
-		DecimalFormatSymbols custom = new DecimalFormatSymbols();
-		custom.setDecimalSeparator('.');
-		decim.setDecimalFormatSymbols(custom);
-		Double percent = Double.parseDouble(decim.format(p));
-		StringBuilder sb = new StringBuilder();
-		if (percent < 100)
-			sb.append(" ");
-		if (percent < 10)
-			sb.append("   ");
-		sb.append(percent);
-		sb.append("%");
-		return sb.toString();
 	}
 
 }
