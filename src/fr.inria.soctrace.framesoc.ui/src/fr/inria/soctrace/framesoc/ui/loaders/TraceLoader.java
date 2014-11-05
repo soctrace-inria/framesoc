@@ -100,8 +100,8 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Load traces from System DB. Note that this method loads new trace
-	 * objects. Any existing root content is lost.
+	 * Load traces from System DB. Note that this method loads new trace objects. Any existing root
+	 * content is lost.
 	 * 
 	 * @return an array containing the root folder nodes.
 	 */
@@ -131,10 +131,9 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Synchronize current model with DB. Note that an old model input must be
-	 * already present. This method keeps the existing trace objects (possibly
-	 * updating them) and tree nodes, thus fixing any selection service issues
-	 * with other views.
+	 * Synchronize current model with DB. Note that an old model input must be already present. This
+	 * method keeps the existing trace objects (possibly updating them) and tree nodes, thus fixing
+	 * any selection service issues with other views.
 	 * 
 	 * @return the model input (an array containing the root folder nodes)
 	 * @throws SoCTraceException
@@ -209,8 +208,8 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Synchronize the trace nodes with the trace objects contained, in order to
-	 * get nodes with updated labels. The System DB is not used.
+	 * Synchronize the trace nodes with the trace objects contained, in order to get nodes with
+	 * updated labels. The System DB is not used.
 	 * 
 	 * @return the model input (an array containing the root folder nodes)
 	 */
@@ -227,8 +226,8 @@ public class TraceLoader {
 	}
 
 	/**
-	 * Get the traces. You have to call the methods that actually load traces
-	 * from DB before calling this method.
+	 * Get the traces. You have to call the methods that actually load traces from DB before calling
+	 * this method.
 	 * 
 	 * @return the loaded traces
 	 */
@@ -399,29 +398,27 @@ public class TraceLoader {
 	 * Recursively looks for a trace node for the given trace.
 	 * 
 	 * @param n
-	 *            category folder node
+	 *            node
 	 * @param t
 	 *            trace to look for
 	 * @return the trace node, or null if not found
 	 */
 	private TraceNode getTraceNode(ITreeNode n, Trace t) {
-		for (ITreeNode node : n.getChildren()) {
+		if (!n.hasChildren()) {
 			// leaf
-			if (!node.hasChildren()) {
-				// tracenode
-				if (node instanceof TraceNode) {
-					TraceNode tnode = (TraceNode) node;
-					if (tnode.getTrace().equals(t))
-						return tnode;
-				}
-				continue;
+			if (n instanceof TraceNode) {
+				// trace node
+				System.out.println(n.getName());
+				TraceNode tnode = (TraceNode) n;
+				if (tnode.getTrace().equals(t))
+					return tnode;
 			}
-			// folder
-			for (ITreeNode son : node.getChildren()) {
-				TraceNode ret = getTraceNode(son, t);
-				if (ret != null)
-					return ret;
-			}
+			return null;
+		}
+		for (ITreeNode son : n.getChildren()) {
+			TraceNode ret = getTraceNode(son, t);
+			if (ret != null)
+				return ret;
 		}
 		return null;
 	}
