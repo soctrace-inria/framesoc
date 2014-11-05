@@ -100,6 +100,8 @@ import fr.inria.soctrace.lib.model.Trace;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class HistogramView extends FramesocPart {
+	public HistogramView() {
+	}
 
 	private class ConfigurationData {
 		ConfigurationDimension dimension;
@@ -183,10 +185,10 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	// Uncomment this to use the window builder
-	// @Override
-	// public void createPartControl(Composite parent) {
-	// createFramesocPartControl(parent);
-	// }
+	@Override
+	public void createPartControl(Composite parent) {
+		createFramesocPartControl(parent);
+	}
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -279,14 +281,14 @@ public class HistogramView extends FramesocPart {
 
 		// Buttons
 		Composite compositeBtn = new Composite(compositeConf, SWT.BORDER);
-		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		compositeBtn.setLayout(new GridLayout(6, false));
+		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+		compositeBtn.setLayout(new GridLayout(8, false));
 
 		btnCheckall = new Button(compositeBtn, SWT.NONE);
 		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
 		btnCheckall.setToolTipText("Check all");
-		btnCheckall
-				.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/check.png"));
+		btnCheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
+				"icons/check_all.png"));
 		btnCheckall.setEnabled(false);
 		btnCheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -308,7 +310,7 @@ public class HistogramView extends FramesocPart {
 		btnUncheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnUncheckall.setToolTipText("Uncheck all");
 		btnUncheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/uncheck.png"));
+				"icons/uncheck_all.png"));
 		btnUncheckall.setEnabled(false);
 		btnUncheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -322,7 +324,7 @@ public class HistogramView extends FramesocPart {
 		btnCheckSubtree.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnCheckSubtree.setToolTipText("Check subtree");
 		btnCheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/check_tree.png"));
+				"icons/check_subtree.png"));
 		btnCheckSubtree.setEnabled(false);
 		btnCheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -341,7 +343,7 @@ public class HistogramView extends FramesocPart {
 		btnUncheckSubtree.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnUncheckSubtree.setToolTipText("Uncheck subtree");
 		btnUncheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/uncheck_tree.png"));
+				"icons/uncheck_subtree.png"));
 		btnUncheckSubtree.setEnabled(false);
 		btnUncheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -516,9 +518,8 @@ public class HistogramView extends FramesocPart {
 					currentShownTrace = trace;
 
 					/*
-					 * Activate the view after setting the current shown trace,
-					 * otherwise the set focus triggered by the activation send
-					 * the old shown trace on the FramesocBus
+					 * Activate the view after setting the current shown trace, otherwise the set
+					 * focus triggered by the activation send the old shown trace on the FramesocBus
 					 */
 					activateView();
 
@@ -698,8 +699,7 @@ public class HistogramView extends FramesocPart {
 	 * Enable/disable the reset and load buttons.
 	 * 
 	 * @param enable
-	 *            flag stating if we must enable or not the load and reset
-	 *            buttons
+	 *            flag stating if we must enable or not the load and reset buttons
 	 */
 	private void enableResetLoadButtons(boolean enable) {
 		btnReset.setEnabled(enable);
@@ -717,8 +717,7 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Enable/disable the checkSubTree/uncheckSubTree buttons, according to the
-	 * context.
+	 * Enable/disable the checkSubTree/uncheckSubTree buttons, according to the context.
 	 */
 	private void enableSubTreeButtons() {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
@@ -806,8 +805,8 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Uncheck all the ancestors of an element if all the elements siblings are
-	 * unchecked, in the current tree. This is done recursively.
+	 * Uncheck all the ancestors of an element if all the elements siblings are unchecked, in the
+	 * current tree. This is done recursively.
 	 * 
 	 * @param element
 	 *            the element to start with
@@ -833,8 +832,7 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Check an element, all its parents and all its children, in the current
-	 * tree.
+	 * Check an element, all its parents and all its children, in the current tree.
 	 * 
 	 * @param element
 	 *            The element to check.

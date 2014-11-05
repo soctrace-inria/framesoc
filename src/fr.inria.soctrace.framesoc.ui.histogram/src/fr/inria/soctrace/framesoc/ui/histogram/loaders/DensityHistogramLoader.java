@@ -331,9 +331,6 @@ public class DensityHistogramLoader {
 					}
 				}
 			}
-			// FIXME: with ctf trace requesting only punctual events I get this
-			// query
-			// "SELECT TIMESTAMP FROM EVENT WHERE TIMESTAMP >= 0 AND"
 			if (totTypes != types.size()) {
 				sb.append(" AND ");
 				boolean both = false;
