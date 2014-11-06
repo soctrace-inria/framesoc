@@ -12,6 +12,8 @@ package fr.inria.soctrace.framesoc.ui.piechart.view;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,6 +64,8 @@ import org.jfree.experimental.chart.swt.ChartComposite;
 import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+
 
 
 // TODO create a fragment plugin for jfreechart
@@ -663,7 +667,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @param dataReady
 	 */
 	private void refresh() {
-
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
@@ -814,8 +817,11 @@ public class StatisticsPieChartView extends FramesocPart {
 					rc = v1.compareTo(v2);
 				} else if (this.col.equals(StatisticsTableColumn.PERCENTAGE)) {
 					// percentage comparison 'xx.xx %'
-					Double v1 = Double.valueOf(r1.get(this.col).split(" ")[0]);
-					Double v2 = Double.valueOf(r2.get(this.col).split(" ")[0]);
+					NumberFormat format = NumberFormat.getInstance();
+					Double v1 = format.parse(r1.get(this.col).split(" ")[0])
+							.doubleValue();
+					Double v2 = format.parse(r2.get(this.col).split(" ")[0])
+							.doubleValue();
 					rc = v1.compareTo(v2);
 				} else {
 					// string comparison
@@ -824,6 +830,9 @@ public class StatisticsPieChartView extends FramesocPart {
 					rc = v1.compareTo(v2);
 				}
 			} catch (SoCTraceException e) {
+				e.printStackTrace();
+				rc = 0;
+			} catch (ParseException e) {
 				e.printStackTrace();
 				rc = 0;
 			}
