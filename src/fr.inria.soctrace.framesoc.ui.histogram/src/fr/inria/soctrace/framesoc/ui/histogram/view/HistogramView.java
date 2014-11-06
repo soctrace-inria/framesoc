@@ -93,6 +93,7 @@ import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import org.eclipse.swt.widgets.Label;
 
 /**
  * Framesoc Bar Chart view.
@@ -212,10 +213,10 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	// Uncomment this to use the window builder
-	// @Override
-	// public void createPartControl(Composite parent) {
-	// createFramesocPartControl(parent);
-	// }
+	 @Override
+	 public void createPartControl(Composite parent) {
+	 createFramesocPartControl(parent);
+	 }
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -309,7 +310,10 @@ public class HistogramView extends FramesocPart {
 		// Buttons
 		Composite compositeBtn = new Composite(compositeConf, SWT.BORDER);
 		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-		compositeBtn.setLayout(new GridLayout(8, false));
+		GridLayout gl_compositeBtn = new GridLayout(10, false);
+		gl_compositeBtn.marginWidth = 1;
+		gl_compositeBtn.horizontalSpacing = 1;
+		compositeBtn.setLayout(gl_compositeBtn);
 
 		btnCheckall = new Button(compositeBtn, SWT.NONE);
 		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
@@ -334,7 +338,7 @@ public class HistogramView extends FramesocPart {
 		});
 
 		btnUncheckall = new Button(compositeBtn, SWT.NONE);
-		btnUncheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnUncheckall.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnUncheckall.setToolTipText("Uncheck all");
 		btnUncheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/uncheck_all.png"));
@@ -346,9 +350,16 @@ public class HistogramView extends FramesocPart {
 				selectionChanged();
 			}
 		});
+		
+		Label separator1 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
+		GridData gd_separator1 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		gd_separator1.horizontalIndent = 2;
+		gd_separator1.widthHint = 5;
+		gd_separator1.heightHint = 20;
+		separator1.setLayoutData(gd_separator1);
 
 		btnCheckSubtree = new Button(compositeBtn, SWT.NONE);
-		btnCheckSubtree.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnCheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnCheckSubtree.setToolTipText("Check subtree");
 		btnCheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/check_subtree.png"));
@@ -367,7 +378,7 @@ public class HistogramView extends FramesocPart {
 		});
 
 		btnUncheckSubtree = new Button(compositeBtn, SWT.NONE);
-		btnUncheckSubtree.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnUncheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnUncheckSubtree.setToolTipText("Uncheck subtree");
 		btnUncheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/uncheck_subtree.png"));
@@ -385,9 +396,16 @@ public class HistogramView extends FramesocPart {
 				}
 			}
 		});
+		
+		Label separator2 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
+		GridData gd_separator2 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		gd_separator2.horizontalIndent = 2;
+		gd_separator2.widthHint = 5;
+		gd_separator2.heightHint = 20;
+		separator2.setLayoutData(gd_separator2);
 
 		btnReset = new Button(compositeBtn, SWT.NONE);
-		btnReset.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnReset.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnReset.setToolTipText("Reset");
 		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
 		btnReset.setEnabled(false);
@@ -404,10 +422,12 @@ public class HistogramView extends FramesocPart {
 		});
 
 		btnLoad = new Button(compositeBtn, SWT.NONE);
-		btnLoad.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnLoad.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnLoad.setToolTipText("Load");
 		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
 		btnLoad.setEnabled(false);
+		new Label(compositeBtn, SWT.NONE);
+		new Label(compositeBtn, SWT.NONE);
 		btnLoad.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -416,7 +436,7 @@ public class HistogramView extends FramesocPart {
 		});
 
 		// sash weights
-		sashForm.setWeights(new int[] { 80, 20 });
+		sashForm.setWeights(new int[] {80, 20});
 
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
@@ -512,6 +532,12 @@ public class HistogramView extends FramesocPart {
 
 		if (trace == null)
 			return;
+		
+		if (currentShownTrace!=null && currentShownTrace.equals(trace)) {
+			activateView();
+			return;
+		}
+		
 		currentShownTrace = trace;
 
 		Thread showThread = new Thread() {
