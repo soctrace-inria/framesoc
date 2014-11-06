@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.jfree.data.statistics.HistogramType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
+import fr.inria.soctrace.framesoc.ui.loaders.LoaderUtils;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
@@ -118,14 +118,8 @@ public class DensityHistogramLoader {
 		try {
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
 
-			// TODO factorize this
 			// compute interval duration
-			long duration = trace.getMaxTimestamp() - trace.getMinTimestamp();
-			Assert.isTrue(duration != 0, "The trace duration cannot be 0");
-			double density = ((double) trace.getNumberOfEvents()) / duration;
-			Assert.isTrue(density != 0, "The density cannot be 0");
-			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
-			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
+			long intervalDuration = LoaderUtils.getIntervalDuration(trace, EVENTS_PER_QUERY);
 
 			// read the time window, interval by interval
 			long t0 = trace.getMinTimestamp();

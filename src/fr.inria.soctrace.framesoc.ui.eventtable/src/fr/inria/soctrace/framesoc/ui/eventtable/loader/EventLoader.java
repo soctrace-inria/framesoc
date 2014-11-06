@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.framesoc.ui.loaders.LoaderUtils;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
@@ -83,13 +84,9 @@ public class EventLoader implements IEventLoader {
 			fTimeInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 
 			// compute interval duration
-			long duration = fTrace.getMaxTimestamp() - fTrace.getMinTimestamp();
-			Assert.isTrue(duration != 0, "The trace duration cannot be 0");
-			double density = ((double) fTrace.getNumberOfEvents()) / duration;
-			Assert.isTrue(density != 0, "The density cannot be 0");
-			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
-			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
-			int totalWork = (int) ((double) duration / intervalDuration);
+			long traceDuration = fTrace.getMaxTimestamp() - fTrace.getMinTimestamp();
+			long intervalDuration = LoaderUtils.getIntervalDuration(fTrace, EVENTS_PER_QUERY);
+			int totalWork = (int) ((double) traceDuration / intervalDuration);
 
 			// read the time window, interval by interval
 			monitor.beginTask("Loading Event Table", totalWork);
