@@ -214,10 +214,9 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	/* Uncomment this to use the window builder */
-	@Override
-	public void createPartControl(Composite parent) {
-		createFramesocPartControl(parent);
-	}
+	//public void createPartControl(Composite parent) {
+	//	createFramesocPartControl(parent);
+	//}
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {

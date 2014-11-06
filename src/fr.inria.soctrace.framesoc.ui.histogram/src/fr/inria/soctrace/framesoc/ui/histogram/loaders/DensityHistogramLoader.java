@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.jfree.data.statistics.HistogramType;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.EventProducerQuery;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
 import fr.inria.soctrace.lib.query.ValueListString;
+import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
@@ -64,9 +66,10 @@ public class DensityHistogramLoader {
 			return name;
 		}
 	}
-	
+
 	/**
 	 * Average number of event to load in each query
+	 * TODO make a bench to find the best value
 	 */
 	protected final int EVENTS_PER_QUERY = 1000000;
 
@@ -81,9 +84,6 @@ public class DensityHistogramLoader {
 	public final static int NUMBER_OF_BINS = 1000;
 	public final static String DATASET_NAME = "Event frequency";
 	public final static HistogramType HISTOGRAM_TYPE = HistogramType.FREQUENCY;
-
-	private long min;
-	private long max;
 
 	/**
 	 * Load a dataset for the Event Density Histogram
@@ -106,26 +106,62 @@ public class DensityHistogramLoader {
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 
-		if ((trace == null) || (types != null && types.size() == 0)
-				|| (producers != null && producers.size() == 0)) {
+		if (trace == null || dataset == null || monitor == null)
+			throw new NullPointerException();
+
+		if ((types != null && types.size() == 0) || (producers != null && producers.size() == 0)) {
 			dataset.setStop();
 			return;
 		}
+
 		TraceDBObject traceDB = null;
 		try {
 			traceDB = new TraceDBObject(trace.getDbName(), DBMode.DB_OPEN);
-			
-			
-			
-			double timestamps[] = getTimestapsSeries(traceDB, types, producers);
-			if (timestamps.length != 0) {
-				dataset.setSnapshot(timestamps, new TimeInterval(min, max));
-				dataset.setComplete();
+
+			// TODO factorize this
+			// compute interval duration
+			long duration = trace.getMaxTimestamp() - trace.getMinTimestamp();
+			Assert.isTrue(duration != 0, "The trace duration cannot be 0");
+			double density = ((double) trace.getNumberOfEvents()) / duration;
+			Assert.isTrue(density != 0, "The density cannot be 0");
+			long intervalDuration = (long) (EVENTS_PER_QUERY / density);
+			Assert.isTrue(intervalDuration > 0, "The interval duration must be positive");
+
+			// read the time window, interval by interval
+			long t0 = trace.getMinTimestamp();
+			long end = trace.getMaxTimestamp();
+			TimeInterval loaded = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
+			List<Long> timestamps = new LinkedList<>();
+			while (t0 < end) {
+				// check if cancelled
+				if (checkCancel(dataset, monitor)) {
+					return;
+				}
+
+				// load interval
+				long t1 = Math.min(end, t0 + intervalDuration);
+				boolean last = (t1 >= end);
+				getTimestapsSeries(traceDB, types, producers, t0, t1, last, timestamps);
+				if (checkCancel(dataset, monitor)) {
+					return;
+				}
+
+				loaded.startTimestamp = Math.min(loaded.startTimestamp, t0);
+				loaded.endTimestamp = Math.max(loaded.endTimestamp, t1);
+				if (timestamps.size() > 0) {
+					double ts[] = new double[timestamps.size()];
+					int i = 0;
+					for (Long l : timestamps) {
+						ts[i++] = l.doubleValue();
+					}
+					dataset.setSnapshot(ts, loaded);
+				}
+
+				t0 = t1;
 			}
-			
-			
-			
-			
+
+			dataset.setComplete();
+
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		} finally {
@@ -136,6 +172,14 @@ public class DensityHistogramLoader {
 			logger.debug(dm.endMessage("Prepared Histogram dataset"));
 			DBObject.finalClose(traceDB);
 		}
+	}
+
+	protected boolean checkCancel(HistogramLoaderDataset dataset, IProgressMonitor monitor) {
+		if (monitor.isCanceled()) {
+			dataset.setStop();
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -235,7 +279,7 @@ public class DensityHistogramLoader {
 	}
 
 	/**
-	 * Load timestamps vector, considering only positive times.
+	 * Load the timestamps.
 	 * 
 	 * Note that for States and Links, a single event is counted at the start timestamp. This is
 	 * consistent with the data model where a State (Link) is a single event of type State (Link).
@@ -246,20 +290,25 @@ public class DensityHistogramLoader {
 	 *            event producer ids to consider
 	 * @param types
 	 *            event type ids to consider
-	 * @return timestamps vector
+	 * @param t0
+	 *            start timestamp
+	 * @param t1
+	 *            end timestamp
+	 * @param last
+	 *            flag indicating if we are loading the last interval
 	 * @throws SoCTraceException
 	 */
-	private double[] getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
-			List<Integer> producers) throws SoCTraceException {
+	private void getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
+			List<Integer> producers, long t0, long t1, boolean last, List<Long> tsl)
+			throws SoCTraceException {
 		Statement stm;
 		ResultSet rs;
 		String query = "";
 		try {
 			DeltaManager dm = new DeltaManager();
 			stm = traceDB.getConnection().createStatement();
-			List<Long> tsl = new LinkedList<Long>();
 
-			query = prepareQuery(traceDB, types, producers);
+			query = prepareQuery(traceDB, types, producers, t0, t1, last);
 			logger.debug(query);
 			rs = stm.executeQuery(query);
 			while (rs.next()) {
@@ -267,31 +316,25 @@ public class DensityHistogramLoader {
 			}
 			stm.close();
 			logger.debug("Real events: {}", tsl.size());
-			double timestamps[] = new double[tsl.size()];
-			int i = 0;
-			min = Long.MAX_VALUE;
-			max = Long.MIN_VALUE;
-			for (Long l : tsl) {
-				Long lv = l;
-				timestamps[i++] = lv;
-				if (lv < min)
-					min = lv;
-				if (lv > max)
-					max = lv;
-			}
 			logger.debug(dm.endMessage("get timestamps"));
-			return timestamps;
 		} catch (SQLException e) {
 			throw new SoCTraceException("Query: " + query, e);
 		}
 	}
 
-	private String prepareQuery(TraceDBObject traceDB, List<Integer> types, List<Integer> producers)
-			throws SoCTraceException {
+	private String prepareQuery(TraceDBObject traceDB, List<Integer> types,
+			List<Integer> producers, long t0, long t1, boolean last) throws SoCTraceException {
+
+		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT TIMESTAMP FROM ");
 		sb.append(FramesocTable.EVENT.toString());
-		sb.append(" WHERE TIMESTAMP >= 0");
+		sb.append(" WHERE TIMESTAMP >= ");
+		sb.append(String.valueOf(t0));
+		sb.append(" AND TIMESTAMP ");
+		sb.append(endComp.toString());
+		sb.append(String.valueOf(t1));
 
 		if (producers != null && getNumberOfProducers(traceDB) != producers.size()) {
 			ValueListString vls = new ValueListString();
