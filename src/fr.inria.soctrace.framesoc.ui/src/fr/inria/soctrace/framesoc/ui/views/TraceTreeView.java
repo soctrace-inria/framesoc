@@ -82,8 +82,8 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	public static final String ID = FramesocViews.TRACE_TREE_VIEW_ID;
 
 	/**
-	 * TODO get the command from the extension point ID of the commands we have
-	 * to remove for multiple selection
+	 * TODO get the command from the extension point ID of the commands we have to remove for
+	 * multiple selection
 	 */
 	private static final String COMMAND_PREFIX = Activator.PLUGIN_ID + ".commands"; //$NON-NLS-1$
 	private static final String COMMAND_DENSITY = COMMAND_PREFIX + ".showEventDensityHistogram"; //$NON-NLS-1$
@@ -116,26 +116,28 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				IStructuredSelection ss = (IStructuredSelection) selection;
 				if (!TraceSelection.isSelectionValid(ss))
 					return;
-				FramesocBus.getInstance().setVariable(
-						FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
-						TraceSelection.getTraceFromSelection(ss));
-				FramesocBus.getInstance().setVariable(
-						FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, ss);
-				logger.debug(
-						"Selected trace: {}",
-						FramesocBus.getInstance()
-								.getVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE)
-								.toString());
-				logger.debug(
-						"Current trace selection: {}",
-						FramesocBus
-								.getInstance()
-								.getVariable(FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION)
-								.toString());
-				logger.debug("# of selected: {}", ss.size());
+				setSelectionBusVariables(ss);
 			}
 		}
 	};
+
+	/**
+	 * Set the passed selection on the bus
+	 * 
+	 * @param ss
+	 *            valid structured selection containing traces
+	 */
+	private void setSelectionBusVariables(IStructuredSelection ss) {
+		FramesocBus bus = FramesocBus.getInstance();
+		bus.setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
+				TraceSelection.getTraceFromSelection(ss));
+		bus.setVariable(FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, ss);
+		logger.debug("# of selected: {}", ss.size());
+		logger.debug("Selected Trace: {}",
+				bus.getVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE));
+		logger.debug("Current Trace selection: {}",
+				bus.getVariable(FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION));
+	}
 
 	/**
 	 * Constructor. Register to Framesoc Notification Bus.
@@ -179,6 +181,9 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 								FramesocViews.HISTOGRAM_VIEW_ID)) {
 					return;
 				}
+				
+				setSelectionBusVariables(thisSelection);
+				
 				TraceNode selectedNode = (TraceNode) thisSelection.getFirstElement();
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(selectedNode.getTrace());
@@ -222,6 +227,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 					manager.remove(COMMAND_GANTT);
 					manager.remove(COMMAND_COPY_DB_NAME);
 				}
+				setSelectionBusVariables(selection);
 			}
 
 		});
