@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
 
-import org.eclipse.swt.widgets.Label;
-
 /**
  * Time Bar widget, including a {@link RangeSlider}.
  * 
@@ -50,7 +48,8 @@ public class TimeBar {
 	private Composite parent;
 	private Button prev;
 	private Button next;
-	private Button btnSettings;
+	private Button all;
+	private Button settings;
 	private RangeSlider range;
 
 	public TimeBar(Composite parent, int style) {
@@ -87,13 +86,21 @@ public class TimeBar {
 		next.setToolTipText("Next time window");
 		next.setText(">");
 		next.addSelectionListener(new NextWindowListener());
-		btnSettings = new Button(sliderBar, SWT.NONE);
-		btnSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnSettings.addSelectionListener(new EditListener(parent.getShell()));
-		btnSettings.setToolTipText("Manual editing");
-		btnSettings
-				.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
-		new Label(sliderBar, SWT.NONE);
+		all = new Button(sliderBar, SWT.NONE);
+		all.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		all.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setSelection(range.getMinimum(), range.getMaximum());
+			}
+		});
+		all.setToolTipText("Select whole time interval");
+		all.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/all_timebar.png"));
+		settings = new Button(sliderBar, SWT.NONE);
+		settings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		settings.addSelectionListener(new EditListener(parent.getShell()));
+		settings.setToolTipText("Manual editing");
+		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
 
 	}
 
@@ -202,7 +209,7 @@ public class TimeBar {
 		logger.debug("extrema:" + min + ", " + max);
 		this.range.setExtrema(min, max);
 	}
-	
+
 	public void setMaxTimestamp(long max) {
 		logger.debug("set max:" + max);
 		this.range.setMaximum(max);
@@ -216,7 +223,8 @@ public class TimeBar {
 	public void setEnabled(boolean enabled) {
 		prev.setEnabled(enabled);
 		next.setEnabled(enabled);
-		btnSettings.setEnabled(enabled);
+		all.setEnabled(enabled);
+		settings.setEnabled(enabled);
 		range.setEnabled(enabled);
 	}
 
@@ -241,11 +249,12 @@ public class TimeBar {
 
 	/**
 	 * Returns true if any of the graphical objects has been disposed
+	 * 
 	 * @return true if disposed
 	 */
 	public boolean isDisposed() {
 		return parent.isDisposed() || prev.isDisposed() || next.isDisposed()
-				|| btnSettings.isDisposed() || range.isDisposed();
+				|| settings.isDisposed() || range.isDisposed();
 	}
 
 	@Override
@@ -253,7 +262,7 @@ public class TimeBar {
 		return "TimeBar [start=" + range.getLowerValue() + ", end=" + range.getUpperValue() + ", "
 				+ "min=" + range.getMinimum() + ", max=" + range.getMaximum() + "]";
 	}
-	
+
 	public void setStatusLineManager(IStatusLineManager manager) {
 		range.setStatusLineManager(manager);
 	}
