@@ -44,7 +44,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -53,7 +52,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,8 +78,8 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 /**
  * An abstract view all time graph views can inherit
  * 
- * This view contains a time graph combo which is divided between a tree viewer
- * on the left and a time graph viewer on the right.
+ * This view contains a time graph combo which is divided between a tree viewer on the left and a
+ * time graph viewer on the right.
  * 
  */
 public abstract class AbstractGanttView extends FramesocPart {
@@ -115,8 +113,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private long fEndTime;
 
 	/**
-	 * Flag indicating if the user changed the selection (via the timebar or the
-	 * viewer)
+	 * Flag indicating if the user changed the selection (via the timebar or the viewer)
 	 */
 	private boolean fUserChangedTimeRange = false;
 
@@ -178,12 +175,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The time management bar */
 	private TimeBar fTimeBar;
-
-	/** The button to synchronize the time bar with the loaded interval */
-	private Button fBtnSynch;
-
-	/** The button to load a new interval */
-	private Button fBtnDraw;
 
 	/** Label displaying arrow percentage */
 	private Label arrowPercentageLabel;
@@ -351,9 +342,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Base class to provide the labels for the tree viewer. Views extending
-	 * this class typically need to override the getColumnText method if they
-	 * have more than one column to display
+	 * Base class to provide the labels for the tree viewer. Views extending this class typically
+	 * need to override the getColumnText method if they have more than one column to display
 	 */
 	protected static class TreeLabelProvider implements ITableLabelProvider, ILabelProvider {
 
@@ -508,20 +498,18 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the relative weight of each part of the time graph combo. This
-	 * should be called from the constructor.
+	 * Sets the relative weight of each part of the time graph combo. This should be called from the
+	 * constructor.
 	 * 
 	 * @param weights
-	 *            The array (length 2) of relative weights of each part of the
-	 *            combo
+	 *            The array (length 2) of relative weights of each part of the combo
 	 */
 	protected void setWeight(final int[] weights) {
 		fWeight = weights;
 	}
 
 	/**
-	 * Sets the filter column labels. This should be called from the
-	 * constructor.
+	 * Sets the filter column labels. This should be called from the constructor.
 	 * 
 	 * @param filterColumns
 	 *            The array of filter column labels
@@ -531,8 +519,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Sets the filter label provider. This should be called from the
-	 * constructor.
+	 * Sets the filter label provider. This should be called from the constructor.
 	 * 
 	 * @param labelProvider
 	 *            The filter label provider
@@ -905,13 +892,15 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
 		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		timeComposite.setLayout(new GridLayout(3, false));
+		GridLayout gl_timeComposite = new GridLayout(1, false);
+		gl_timeComposite.horizontalSpacing = 0;
+		timeComposite.setLayout(gl_timeComposite);
 		layout.horizontalSpacing = 0;
 		layout.verticalSpacing = 2;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		// time manager
-		fTimeBar = new TimeBar(timeComposite, SWT.NONE);
+		fTimeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		fTimeBar.setEnabled(false);
 		fTimeBar.setStatusLineManager(statusLineManager);
 		fTimeBar.addSelectionListener(new SelectionAdapter() {
@@ -924,31 +913,23 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 			}
 		});
-
 		// button to synch the timebar with the gantt
-		fBtnSynch = new Button(timeComposite, SWT.NONE);
-		fBtnSynch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		fBtnSynch.addSelectionListener(new SelectionAdapter() {
+		fTimeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo != null && fTimeBar != null) {
 					// clean selection
 					combo.getTimeGraphViewer().setSelectionRange(0, 0);
-					// resynch timebar
+					// re-synch timebar
 					fTimeBar.setSelection(fStartTime, fEndTime);
 					// clean user selection change
 					fUserChangedSelection = false;
 				}
 			}
 		});
-		fBtnSynch.setToolTipText("Synch selection with Gantt");
-		fBtnSynch.setEnabled(false);
-		fBtnSynch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
-
+		fTimeBar.getSynchButton().setToolTipText("Synch selection with Gantt");
 		// draw button
-		fBtnDraw = new Button(timeComposite, SWT.NONE);
-		fBtnDraw.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		fBtnDraw.addSelectionListener(new SelectionAdapter() {
+		fTimeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// reset selection
@@ -961,9 +942,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				showTrace(currentShownTrace, des);
 			}
 		});
-		fBtnDraw.setToolTipText("Draw current selection");
-		fBtnDraw.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
-		fBtnDraw.setEnabled(false);
+		fTimeBar.getLoadButton().setToolTipText("Draw current selection");
 
 		// -------------------------------
 		// TOOL BAR
@@ -1006,8 +985,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Gets the list of links (displayed as arrows) for a trace in a given time
-	 * range. Default implementation returns an empty list.
+	 * Gets the list of links (displayed as arrows) for a trace in a given time range. Default
+	 * implementation returns an empty list.
 	 * 
 	 * @param startTime
 	 *            Start of the time range
@@ -1084,8 +1063,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 
 				fTimeBar.setEnabled(true);
-				fBtnSynch.setEnabled(true);
-				fBtnDraw.setEnabled(true);
 
 				if (!fUserChangedTimeRange) {
 					startZoomThread(fStartTime, fEndTime);
@@ -1146,8 +1123,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	}
 
 	/**
-	 * Refresh only the passed interval after a request to show a part of an
-	 * already loaded window.
+	 * Refresh only the passed interval after a request to show a part of an already loaded window.
 	 * 
 	 * @param interval
 	 *            time interval to show

@@ -50,15 +50,17 @@ public class TimeBar {
 	private Button next;
 	private Button all;
 	private Button settings;
+	private Button synch;
+	private Button load;
 	private RangeSlider range;
 
-	public TimeBar(Composite parent, int style) {
+	public TimeBar(Composite parent, int style, boolean hasSynch, boolean hasLoad) {
 
 		this.parent = parent;
 
 		// Time slider bar
 		Composite sliderBar = new Composite(parent, style);
-		GridLayout gl_sliderBar = new GridLayout(5, false);
+		GridLayout gl_sliderBar = new GridLayout(7, false);
 		gl_sliderBar.horizontalSpacing = 1;
 		gl_sliderBar.marginHeight = 0;
 		gl_sliderBar.verticalSpacing = 0;
@@ -102,6 +104,36 @@ public class TimeBar {
 		settings.setToolTipText("Manual editing");
 		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
 
+		if (hasSynch) {
+			synch = new Button(sliderBar, SWT.NONE);
+			synch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			synch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
+		}
+
+		if (hasLoad) {
+			load = new Button(sliderBar, SWT.NONE);
+			load.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			load.setToolTipText("Draw current selection");
+			load.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+		}
+	}
+
+	/**
+	 * Get the load button. It may be null.
+	 * 
+	 * @return the load button.
+	 */
+	public Button getLoadButton() {
+		return load;
+	}
+
+	/**
+	 * Get the synch button. It may be null.
+	 * 
+	 * @return the synch button
+	 */
+	public Button getSynchButton() {
+		return synch;
 	}
 
 	class NextWindowListener extends SelectionAdapter {
@@ -226,6 +258,12 @@ public class TimeBar {
 		all.setEnabled(enabled);
 		settings.setEnabled(enabled);
 		range.setEnabled(enabled);
+		if (synch != null) {
+			synch.setEnabled(enabled);
+		}
+		if (load != null) {
+			load.setEnabled(enabled);
+		}
 	}
 
 	/**
