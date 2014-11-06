@@ -66,5 +66,9 @@ public class TimeInterval {
 			return false;
 		return true;
 	}
+
+	public long getDuration() {
+		return endTimestamp - startTimestamp;
+	}
 	
 }

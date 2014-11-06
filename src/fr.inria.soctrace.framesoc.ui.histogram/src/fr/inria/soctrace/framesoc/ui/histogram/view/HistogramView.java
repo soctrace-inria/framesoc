@@ -561,6 +561,7 @@ public class HistogramView extends FramesocPart {
 		currentShownTrace = trace;
 
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
+		loadedInterval = new TimeInterval(trace.getMinTimestamp(), trace.getMinTimestamp());
 
 		Thread showThread = new Thread() {
 			@Override
@@ -667,7 +668,6 @@ public class HistogramView extends FramesocPart {
 				disableButtons();
 				boolean done = false;
 				boolean refreshed = false;
-				long loadedEnd = 0;
 				long oldLoadedEnd = 0;
 				final long traceDuration = currentShownTrace.getMaxTimestamp()
 						- currentShownTrace.getMinTimestamp();
@@ -681,11 +681,11 @@ public class HistogramView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
-					oldLoadedEnd = loadedEnd;
-					loadedEnd = refresh(!refreshed);
+					oldLoadedEnd = loadedInterval.endTimestamp;
+					refresh(!refreshed);
 					refreshed = true;
 					
-					double delta = loadedEnd - oldLoadedEnd;
+					double delta = loadedInterval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
 						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
 					}					
@@ -736,11 +736,10 @@ public class HistogramView extends FramesocPart {
 	 * @param first
 	 *            flag indicating if it is the first refresh for a given load
 	 */
-	private long refresh(final boolean first) {
+	private void refresh(final boolean first) {
 		// prepare chart
 		DeltaManager dm = new DeltaManager();
 		dm.start();
-		final TimeInterval loadedInterval = new TimeInterval(0, 0);
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
@@ -826,7 +825,6 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 		logger.debug(dm.endMessage("Finished refreshing"));
-		return loadedInterval.endTimestamp;
 	}
 
 	/**

@@ -560,10 +560,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	private class DrawerJob extends Job {
 
 		private final LoaderThread loaderThread;
+		private final TimeInterval loadInterval;
 
-		public DrawerJob(String name, LoaderThread loaderThread) {
+		public DrawerJob(String name, LoaderThread loaderThread, TimeInterval loadInterval) {
 			super(name);
 			this.loaderThread = loaderThread;
+			this.loadInterval = loadInterval;
 		}
 
 		@Override
@@ -577,8 +579,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				boolean done = false;
 				boolean refreshed = false;
 				long oldLoadedEnd = 0;
-				final long traceDuration = currentShownTrace.getMaxTimestamp()
-						- currentShownTrace.getMinTimestamp();
+				final long intervalDuration = loadInterval.getDuration();
 				while (!done) {
 					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!map.isDirty()) {
@@ -595,7 +596,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					
 					double delta = currentDescriptor.interval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
-						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
+						monitor.worked((int) ((delta / intervalDuration) * TOTAL_WORK));
 					}
 				}
 				if (!refreshed) {
@@ -647,10 +648,14 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// create a new loader map
 		currentDescriptor.map = new PieChartLoaderMap();
+		
+		// reset the loaded interval in the descriptor
+		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
+		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
 
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
-		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread);
+		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
 
