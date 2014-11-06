@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TreeItem;
@@ -68,6 +69,7 @@ import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.experimental.chart.swt.ChartComposite;
+import org.jfree.ui.RectangleInsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +95,6 @@ import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
-import org.eclipse.swt.widgets.Label;
 
 /**
  * Framesoc Bar Chart view.
@@ -212,11 +213,11 @@ public class HistogramView extends FramesocPart {
 
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
-	// Uncomment this to use the window builder
-	 @Override
-	 public void createPartControl(Composite parent) {
-	 createFramesocPartControl(parent);
-	 }
+	/* Uncomment this to use the window builder */
+	@Override
+	public void createPartControl(Composite parent) {
+		createFramesocPartControl(parent);
+	}
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
@@ -228,7 +229,8 @@ public class HistogramView extends FramesocPart {
 
 		// Chart
 		compositeChart = new Composite(sashForm, SWT.BORDER);
-		compositeChart.setLayout(new FillLayout(SWT.HORIZONTAL));
+		FillLayout fl_compositeChart = new FillLayout(SWT.HORIZONTAL);
+		compositeChart.setLayout(fl_compositeChart);
 
 		// Configuration
 		compositeConf = new Composite(sashForm, SWT.NONE);
@@ -350,7 +352,7 @@ public class HistogramView extends FramesocPart {
 				selectionChanged();
 			}
 		});
-		
+
 		Label separator1 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
 		GridData gd_separator1 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
 		gd_separator1.horizontalIndent = 2;
@@ -396,7 +398,7 @@ public class HistogramView extends FramesocPart {
 				}
 			}
 		});
-		
+
 		Label separator2 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
 		GridData gd_separator2 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
 		gd_separator2.horizontalIndent = 2;
@@ -436,7 +438,7 @@ public class HistogramView extends FramesocPart {
 		});
 
 		// sash weights
-		sashForm.setWeights(new int[] {80, 20});
+		sashForm.setWeights(new int[] { 80, 20 });
 
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
@@ -532,12 +534,12 @@ public class HistogramView extends FramesocPart {
 
 		if (trace == null)
 			return;
-		
-		if (currentShownTrace!=null && currentShownTrace.equals(trace)) {
+
+		if (currentShownTrace != null && currentShownTrace.equals(trace)) {
 			activateView();
 			return;
 		}
-		
+
 		currentShownTrace = trace;
 
 		Thread showThread = new Thread() {
@@ -771,6 +773,9 @@ public class HistogramView extends FramesocPart {
 				// - prevent y zooming
 				chartFrame.setRangeZoomable(false);
 				chartFrame.addChartMouseListener(new HistogramMouseListener());
+				// - workaround for last xaxis tick not shown (jfreechart bug)
+				RectangleInsets insets = plot.getInsets();
+				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets.getBottom(), 25));
 				// - time bounds
 				plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
 				plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
