@@ -110,8 +110,6 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class HistogramView extends FramesocPart {
-	public HistogramView() {
-	}
 
 	private class ConfigurationData {
 		ConfigurationDimension dimension;
@@ -164,6 +162,11 @@ public class HistogramView extends FramesocPart {
 	 * Build update timeout
 	 */
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
+
+	/**
+	 * Total work for build job
+	 */
+	private static final int TOTAL_WORK = 1000;
 
 	/**
 	 * The chart composite
@@ -245,7 +248,6 @@ public class HistogramView extends FramesocPart {
 		// Sash
 		SashForm sashForm = new SashForm(parent, SWT.NONE);
 		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		sashForm.setWeights(new int[] { 80, 20 });
 
 		// Chart Composite
 		compositeChart = new Composite(sashForm, SWT.BORDER);
@@ -319,6 +321,8 @@ public class HistogramView extends FramesocPart {
 		prodTree.addCheckStateListener(checkStateListener);
 		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 
+		// sash weights
+		sashForm.setWeights(new int[] { 80, 20 });
 		// tab switch
 		tabFolder.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
@@ -548,12 +552,15 @@ public class HistogramView extends FramesocPart {
 		if (trace == null)
 			return;
 
-		if (currentShownTrace != null && currentShownTrace.equals(trace)) {
+		if (!timeBar.getLoadButton().isEnabled() && currentShownTrace != null
+				&& currentShownTrace.equals(trace)) {
 			activateView();
 			return;
 		}
 
 		currentShownTrace = trace;
+
+		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 
 		Thread showThread = new Thread() {
 			@Override
@@ -655,10 +662,15 @@ public class HistogramView extends FramesocPart {
 		protected IStatus run(IProgressMonitor monitor) {
 			DeltaManager dm = new DeltaManager();
 			dm.start();
+			monitor.beginTask("Loading trace " + currentShownTrace.getAlias(), TOTAL_WORK);
 			try {
 				disableButtons();
 				boolean done = false;
 				boolean refreshed = false;
+				long loadedEnd = 0;
+				long oldLoadedEnd = 0;
+				final long traceDuration = currentShownTrace.getMaxTimestamp()
+						- currentShownTrace.getMinTimestamp();
 				while (!done) {
 					done = dataset.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!dataset.isDirty()) {
@@ -669,8 +681,14 @@ public class HistogramView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
-					refresh(!refreshed);
+					oldLoadedEnd = loadedEnd;
+					loadedEnd = refresh(!refreshed);
 					refreshed = true;
+					
+					double delta = loadedEnd - oldLoadedEnd;
+					if (delta > 0) {
+						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
+					}					
 				}
 				if (!refreshed) {
 					// refresh at least once when there is no data.
@@ -687,8 +705,8 @@ public class HistogramView extends FramesocPart {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
+					timeBar.setEnabled(false);
 					enableActions(false);
-					enableResetLoadButtons(false);
 					btnCheckall.setEnabled(false);
 					btnCheckSubtree.setEnabled(false);
 					btnUncheckall.setEnabled(false);
@@ -701,10 +719,12 @@ public class HistogramView extends FramesocPart {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
-					enableResetLoadButtons(false);
 					enableTreeButtons();
 					enableSubTreeButtons();
 					enableActions(true);
+					timeBar.setEnabled(true);
+					// force disable for synch and load buttons of timebar
+					enableResetLoadButtons(false);
 				}
 			});
 		}
@@ -716,11 +736,11 @@ public class HistogramView extends FramesocPart {
 	 * @param first
 	 *            flag indicating if it is the first refresh for a given load
 	 */
-	private void refresh(final boolean first) {
+	private long refresh(final boolean first) {
 		// prepare chart
 		DeltaManager dm = new DeltaManager();
 		dm.start();
-		TimeInterval loadedInterval = new TimeInterval(0, 0);
+		final TimeInterval loadedInterval = new TimeInterval(0, 0);
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
@@ -802,9 +822,11 @@ public class HistogramView extends FramesocPart {
 						data.tree.getViewer().expandAll();
 					}
 				}
+				timeBar.setSelection(loadedInterval.startTimestamp, loadedInterval.endTimestamp);
 			}
 		});
 		logger.debug(dm.endMessage("Finished refreshing"));
+		return loadedInterval.endTimestamp;
 	}
 
 	/**

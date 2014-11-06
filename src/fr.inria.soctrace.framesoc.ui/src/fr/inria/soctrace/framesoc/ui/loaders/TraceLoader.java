@@ -408,7 +408,6 @@ public class TraceLoader {
 			// leaf
 			if (n instanceof TraceNode) {
 				// trace node
-				System.out.println(n.getName());
 				TraceNode tnode = (TraceNode) n;
 				if (tnode.getTrace().equals(t))
 					return tnode;

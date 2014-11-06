@@ -109,6 +109,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Build update timeout
 	 */
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
+	
+	/**
+	 * Total work for build job
+	 */
+	private static final int TOTAL_WORK = 1000;
 
 	/**
 	 * Constants
@@ -565,11 +570,15 @@ public class StatisticsPieChartView extends FramesocPart {
 		protected IStatus run(IProgressMonitor monitor) {
 			DeltaManager dm = new DeltaManager();
 			dm.start();
+			monitor.beginTask("Loading trace " + currentShownTrace.getAlias(), TOTAL_WORK);
 			try {
 				enableTimeBar(false);
 				PieChartLoaderMap map = currentDescriptor.map;
 				boolean done = false;
 				boolean refreshed = false;
+				long oldLoadedEnd = 0;
+				final long traceDuration = currentShownTrace.getMaxTimestamp()
+						- currentShownTrace.getMinTimestamp();
 				while (!done) {
 					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!map.isDirty()) {
@@ -580,8 +589,14 @@ public class StatisticsPieChartView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
+					oldLoadedEnd = currentDescriptor.interval.endTimestamp;
 					refresh();
 					refreshed = true;
+					
+					double delta = currentDescriptor.interval.endTimestamp - oldLoadedEnd;
+					if (delta > 0) {
+						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
+					}
 				}
 				if (!refreshed) {
 					// refresh at least once when there is no data.
