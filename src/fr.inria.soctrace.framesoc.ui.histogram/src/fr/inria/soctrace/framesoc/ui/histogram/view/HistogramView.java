@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -92,6 +93,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
+import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
@@ -184,14 +186,22 @@ public class HistogramView extends FramesocPart {
 	protected XYPlot plot;
 
 	/**
+	 * Time bar
+	 */
+	private TimeBar timeBar;
+
+	/**
+	 * Current loaded interval
+	 */
+	private TimeInterval loadedInterval;
+
+	/**
 	 * Buttons
 	 */
 	private Button btnCheckall;
 	private Button btnUncheckall;
 	private Button btnCheckSubtree;
 	private Button btnUncheckSubtree;
-	private Button btnReset;
-	private Button btnLoad;
 
 	private ConfigurationDimension currentDimension = ConfigurationDimension.TYPE;
 	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
@@ -214,24 +224,35 @@ public class HistogramView extends FramesocPart {
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
 	/* Uncomment this to use the window builder */
-	//public void createPartControl(Composite parent) {
-	//	createFramesocPartControl(parent);
-	//}
+	// public void createPartControl(Composite parent) {
+	// createFramesocPartControl(parent);
+	// }
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
+
 		// Empty view at the beginning
 		setContentDescription("Trace: <no trace displayed>");
 
+		// parent layout
+		GridLayout gl_parent = new GridLayout(1, false);
+		gl_parent.verticalSpacing = 2;
+		gl_parent.marginWidth = 0;
+		gl_parent.horizontalSpacing = 0;
+		gl_parent.marginHeight = 0;
+		parent.setLayout(gl_parent);
+
 		// Sash
 		SashForm sashForm = new SashForm(parent, SWT.NONE);
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		sashForm.setWeights(new int[] { 80, 20 });
 
-		// Chart
+		// Chart Composite
 		compositeChart = new Composite(sashForm, SWT.BORDER);
 		FillLayout fl_compositeChart = new FillLayout(SWT.HORIZONTAL);
 		compositeChart.setLayout(fl_compositeChart);
 
-		// Configuration
+		// Configuration Composite
 		compositeConf = new Composite(sashForm, SWT.NONE);
 		GridLayout gl_compositeConf = new GridLayout(1, false);
 		gl_compositeConf.marginHeight = 1;
@@ -239,7 +260,7 @@ public class HistogramView extends FramesocPart {
 		gl_compositeConf.marginWidth = 0;
 		compositeConf.setLayout(gl_compositeConf);
 
-		// tab
+		// Tab folder
 		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
 		tabFolder.setLayout(new GridLayout(1, false));
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -256,22 +277,21 @@ public class HistogramView extends FramesocPart {
 		SelectionChangedListener selectionChangeListener = new SelectionChangedListener();
 		CheckStateListener checkStateListener = new CheckStateListener();
 
+		// Tab item types
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
 		tbtmEventTypes.setText(ConfigurationDimension.TYPE.getName());
 		filter.setIncludeLeadingWildcard(true);
-		Composite typeComposite = new Composite(tabFolder, SWT.NONE);
+		Composite typeComp = new Composite(tabFolder, SWT.NONE);
 		GridLayout gl_typeComposite = new GridLayout(1, false);
 		gl_typeComposite.marginBottom = 2;
 		gl_typeComposite.marginHeight = 0;
 		gl_typeComposite.marginWidth = 0;
 		gl_typeComposite.verticalSpacing = 0;
-		typeComposite.setLayout(gl_typeComposite);
-		typeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tbtmEventTypes.setControl(typeComposite);
-
-		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComposite, SWT.BORDER, filter,
-				true);
+		typeComp.setLayout(gl_typeComposite);
+		typeComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tbtmEventTypes.setControl(typeComp);
+		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComp, SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(labelProvider);
@@ -279,25 +299,25 @@ public class HistogramView extends FramesocPart {
 		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 
+		// Tab item producers
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setData(ConfigurationDimension.PRODUCERS);
 		tbtmEventProducers.setText(ConfigurationDimension.PRODUCERS.getName());
-		Composite prodComposite = new Composite(tabFolder, SWT.NONE);
+		Composite prodComp = new Composite(tabFolder, SWT.NONE);
 		GridLayout gl_producersComposite = new GridLayout(1, false);
 		gl_producersComposite.marginHeight = 0;
 		gl_producersComposite.marginWidth = 0;
 		gl_producersComposite.verticalSpacing = 0;
-		prodComposite.setLayout(gl_producersComposite);
-		prodComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tbtmEventProducers.setControl(prodComposite);
-		FilteredCheckboxTree producerTree = new FilteredCheckboxTree(prodComposite, SWT.BORDER,
-				filter, true);
-		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = producerTree;
-		producerTree.getViewer().setContentProvider(contentProvider);
-		producerTree.getViewer().setLabelProvider(labelProvider);
-		producerTree.getViewer().setComparator(treeComparator);
-		producerTree.addCheckStateListener(checkStateListener);
-		producerTree.getViewer().addSelectionChangedListener(selectionChangeListener);
+		prodComp.setLayout(gl_producersComposite);
+		prodComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tbtmEventProducers.setControl(prodComp);
+		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(prodComp, SWT.BORDER, filter, true);
+		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
+		prodTree.getViewer().setContentProvider(contentProvider);
+		prodTree.getViewer().setLabelProvider(labelProvider);
+		prodTree.getViewer().setComparator(treeComparator);
+		prodTree.addCheckStateListener(checkStateListener);
+		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 
 		// tab switch
 		tabFolder.addSelectionListener(new SelectionAdapter() {
@@ -310,11 +330,11 @@ public class HistogramView extends FramesocPart {
 
 		// Buttons
 		Composite compositeBtn = new Composite(compositeConf, SWT.BORDER);
-		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 		GridLayout gl_compositeBtn = new GridLayout(10, false);
 		gl_compositeBtn.marginWidth = 1;
 		gl_compositeBtn.horizontalSpacing = 1;
 		compositeBtn.setLayout(gl_compositeBtn);
+		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 		btnCheckall = new Button(compositeBtn, SWT.NONE);
 		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
@@ -352,12 +372,12 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 
-		Label separator1 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
-		GridData gd_separator1 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
-		gd_separator1.horizontalIndent = 2;
-		gd_separator1.widthHint = 5;
-		gd_separator1.heightHint = 20;
-		separator1.setLayoutData(gd_separator1);
+		Label separator = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
+		GridData gd_separator = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		gd_separator.horizontalIndent = 2;
+		gd_separator.widthHint = 5;
+		gd_separator.heightHint = 20;
+		separator.setLayoutData(gd_separator);
 
 		btnCheckSubtree = new Button(compositeBtn, SWT.NONE);
 		btnCheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
@@ -398,21 +418,24 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 
-		Label separator2 = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
-		GridData gd_separator2 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
-		gd_separator2.horizontalIndent = 2;
-		gd_separator2.widthHint = 5;
-		gd_separator2.heightHint = 20;
-		separator2.setLayoutData(gd_separator2);
-
-		btnReset = new Button(compositeBtn, SWT.NONE);
-		btnReset.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
-		btnReset.setToolTipText("Reset");
-		btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/reset.png"));
-		btnReset.setEnabled(false);
-		btnReset.addSelectionListener(new SelectionAdapter() {
+		// Time management bar
+		Composite timeComposite = new Composite(parent, SWT.BORDER);
+		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		GridLayout gl_timeComposite = new GridLayout(1, false);
+		gl_timeComposite.horizontalSpacing = 0;
+		timeComposite.setLayout(gl_timeComposite);
+		// time manager
+		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
+		timeBar.setEnabled(false);
+		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
+		timeBar.setStatusLineManager(statusLineManager);
+		// button to synch the timebar, producers and type with the current loaded data
+		timeBar.getSynchButton().setToolTipText("Reset timebar, types and producers");
+		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if (loadedInterval != null)
+					timeBar.setSelection(loadedInterval.startTimestamp, loadedInterval.endTimestamp);
 				for (ConfigurationData data : configurationMap.values()) {
 					data.tree.setCheckedElements(data.checked);
 				}
@@ -421,23 +444,14 @@ public class HistogramView extends FramesocPart {
 				enableSubTreeButtons();
 			}
 		});
-
-		btnLoad = new Button(compositeBtn, SWT.NONE);
-		btnLoad.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
-		btnLoad.setToolTipText("Load");
-		btnLoad.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
-		btnLoad.setEnabled(false);
-		new Label(compositeBtn, SWT.NONE);
-		new Label(compositeBtn, SWT.NONE);
-		btnLoad.addSelectionListener(new SelectionAdapter() {
+		// draw button
+		timeBar.getLoadButton().setToolTipText("Load");
+		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				showTrace(currentShownTrace, null);
 			}
 		});
-
-		// sash weights
-		sashForm.setWeights(new int[] { 80, 20 });
 
 		// build toolbar
 		IActionBars actionBars = getViewSite().getActionBars();
@@ -774,7 +788,8 @@ public class HistogramView extends FramesocPart {
 				chartFrame.addChartMouseListener(new HistogramMouseListener());
 				// - workaround for last xaxis tick not shown (jfreechart bug)
 				RectangleInsets insets = plot.getInsets();
-				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets.getBottom(), 25));
+				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets
+						.getBottom(), 25));
 				// - time bounds
 				plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
 				plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
@@ -860,8 +875,8 @@ public class HistogramView extends FramesocPart {
 	 *            flag stating if we must enable or not the load and reset buttons
 	 */
 	private void enableResetLoadButtons(boolean enable) {
-		btnReset.setEnabled(enable);
-		btnLoad.setEnabled(enable);
+		timeBar.getSynchButton().setEnabled(enable);
+		timeBar.getLoadButton().setEnabled(enable);
 	}
 
 	/**
