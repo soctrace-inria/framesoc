@@ -69,7 +69,6 @@ public class DensityHistogramLoader {
 
 	/**
 	 * Average number of event to load in each query
-	 * TODO make a bench to find the best value
 	 */
 	protected final int EVENTS_PER_QUERY = 1000000;
 
