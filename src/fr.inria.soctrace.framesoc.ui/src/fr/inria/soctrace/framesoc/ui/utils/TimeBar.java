@@ -224,7 +224,7 @@ public class TimeBar {
 	}
 
 	/**
-	 * Get a time interval corresponding to the current selection
+	 * Get a new time interval corresponding to the current selection
 	 * 
 	 * @return the current selection
 	 */

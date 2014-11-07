@@ -458,8 +458,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 		des.setTrace(currentShownTrace);
-		des.setStartTimestamp(currentDescriptor.interval.startTimestamp);
-		des.setEndTimestamp(currentDescriptor.interval.endTimestamp);
+		des.setTimeInterval(currentDescriptor.interval);
 		return des;
 	}
 

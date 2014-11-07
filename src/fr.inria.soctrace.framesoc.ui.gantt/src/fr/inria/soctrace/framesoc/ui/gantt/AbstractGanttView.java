@@ -937,8 +937,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				// load new interval
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(currentShownTrace);
-				des.setStartTimestamp(fTimeBar.getStartTimestamp());
-				des.setEndTimestamp(fTimeBar.getEndTimestamp());
+				des.setTimeInterval(fTimeBar.getSelection());
 				showTrace(currentShownTrace, des);
 			}
 		});
