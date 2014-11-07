@@ -10,14 +10,14 @@
  ******************************************************************************/
 package fr.inria.soctrace.tools.importer.pajedump;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
+
+import org.apache.commons.io.FilenameUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ArgumentsManager;
@@ -25,8 +25,8 @@ import fr.inria.soctrace.framesoc.core.tools.management.PluginImporterJob;
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
-import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.DBObject;
+import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.Configuration;
@@ -75,7 +75,6 @@ public class PajeDumpImporter extends FramesocTool {
 				System.out.println("Long option selected");
 			}
 
-			String pattern = Pattern.quote(System.getProperty("file.separator"));
 			int numberOfTraces = argsm.getTokens().size();
 			int currentTrace = 1;
 			Set<String> usedNames = new HashSet<>();
@@ -89,7 +88,7 @@ public class PajeDumpImporter extends FramesocTool {
 				String sysDbName = Configuration.getInstance().get(
 						SoCTraceProperty.soctrace_db_name);
 
-				String traceDbName = getNewTraceDBName(usedNames, traceFile, pattern);
+				String traceDbName = getNewTraceDBName(usedNames, traceFile);
 
 				SystemDBObject sysDB = null;
 				TraceDBObject traceDB = null;
@@ -134,15 +133,16 @@ public class PajeDumpImporter extends FramesocTool {
 		}
 
 	}
-
-	private String getNewTraceDBName(Set<String> usedNames, String traceFile, String pattern) {
-		String t[] = traceFile.split(pattern);
-		String t2 = t[t.length - 1];
-		if (t2.endsWith(PJDumpConstants.TRACE_EXT))
-			t2 = t2.replace(PJDumpConstants.TRACE_EXT, "");
-		String traceDbName = FramesocManager.getInstance().getTraceDBName(t2);
-		int n = 0;
+	
+	private String getNewTraceDBName(Set<String> usedNames, String traceFile) {
+		String basename = FilenameUtils.getBaseName(traceFile);
+		String extension = FilenameUtils.getExtension(traceFile);
+		if (extension.equals(PJDumpConstants.TRACE_EXT)) {
+			basename = basename.replace(PJDumpConstants.TRACE_EXT, "");
+		}
+		final String traceDbName = FramesocManager.getInstance().getTraceDBName(basename);
 		String realName = traceDbName;
+		int n = 0;
 		while (usedNames.contains(realName)) {
 			System.out.println("tested " + realName);
 			realName = traceDbName + "_" + n++;
