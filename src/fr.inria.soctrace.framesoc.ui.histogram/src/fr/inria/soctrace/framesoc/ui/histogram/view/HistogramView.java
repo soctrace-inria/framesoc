@@ -674,7 +674,7 @@ public class HistogramView extends FramesocPart {
 					LoaderThread loaderThread = new LoaderThread(interval, loader,
 							confMap.get(ConfigurationDimension.TYPE),
 							confMap.get(ConfigurationDimension.PRODUCERS));
-					BuilderJob builderJob = new BuilderJob("Event Density Builder Job",
+					BuilderJob builderJob = new BuilderJob("Event Density Chart Job",
 							loaderThread);
 					loaderThread.start();
 					builderJob.schedule();
@@ -890,7 +890,7 @@ public class HistogramView extends FramesocPart {
 						data.tree.getViewer().expandAll();
 					}
 				}
-				timeBar.setSelection(loadedInterval.startTimestamp, loadedInterval.endTimestamp);
+				timeBar.setSelection(loadedInterval);
 			}
 		});
 		logger.debug(dm.endMessage("Finished refreshing"));

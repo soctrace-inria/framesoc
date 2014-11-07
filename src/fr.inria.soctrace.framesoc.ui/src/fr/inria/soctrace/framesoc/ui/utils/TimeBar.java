@@ -289,7 +289,8 @@ public class TimeBar {
 	}
 
 	/**
-	 * Set the selection without notifying listeners
+	 * Set the selection copying the time interval start and end timestamps without notifying
+	 * listeners
 	 * 
 	 * @param timeInterval
 	 *            the time interval to select
