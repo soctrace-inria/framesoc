@@ -59,6 +59,7 @@ import fr.inria.soctrace.framesoc.ui.dialogs.TraceFilterDialog;
 import fr.inria.soctrace.framesoc.ui.handlers.HandlerUtils;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader;
 import fr.inria.soctrace.framesoc.ui.model.FolderNode;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceNode;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
@@ -187,8 +188,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				TraceNode selectedNode = (TraceNode) thisSelection.getFirstElement();
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(selectedNode.getTrace());
-				des.setStartTimestamp(selectedNode.getTrace().getMinTimestamp());
-				des.setEndTimestamp(selectedNode.getTrace().getMaxTimestamp());
+				des.setTimeInterval(TimeInterval.NOT_SPECIFIED);
 				logger.debug(des.toString());
 				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY_TIME_INTERVAL, des);
 			}

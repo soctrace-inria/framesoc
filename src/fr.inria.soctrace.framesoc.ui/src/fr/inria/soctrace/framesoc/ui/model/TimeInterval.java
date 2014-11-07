@@ -18,6 +18,8 @@ package fr.inria.soctrace.framesoc.ui.model;
  */
 public class TimeInterval {
 
+	public static final TimeInterval NOT_SPECIFIED = new TimeInterval(-1, -1);
+	
 	public long startTimestamp;
 	
 	public long endTimestamp;

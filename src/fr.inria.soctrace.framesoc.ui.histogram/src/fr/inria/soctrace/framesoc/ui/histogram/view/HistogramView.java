@@ -571,46 +571,56 @@ public class HistogramView extends FramesocPart {
 		if (trace == null)
 			return;
 
-		if (!timeBar.getLoadButton().isEnabled() && currentShownTrace != null
-				&& currentShownTrace.equals(trace)) {
-			activateView();
-			return;
-		}
-
 		if (data == null) {
 			// called after right click on trace tree menu
-			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMinTimestamp()));
+			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMaxTimestamp()));
 		} else {
-			// called after double click on trace tree menu or Framesoc bus message
-			// (use all types and producers in this case)
+			// called after double click on trace tree or a Framesoc bus message
+			// coming from a "show in" action
+
 			boolean sameConf = true;
-			boolean loaded = true;
-			for (ConfigurationData confData : configurationMap.values()) {
-				// the configuration is not the same if nothing has been loaded
-				// or if at least a node is not selected
-				if (confData.roots == null) {
-					// first time, tree information not loaded yet
-					sameConf = false;
-					loaded = false;
-					break;
+
+			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
+			TimeInterval desInterval = des.getTimeInterval();
+			if (desInterval.equals(TimeInterval.NOT_SPECIFIED)) {
+				// double click
+				if ((currentShownTrace != null && currentShownTrace.equals(trace))) {
+					// same trace: keep interval and configuration
+					return;
 				}
-				Object[] objs = confData.tree.getCheckedElements();
-				for (Object o : objs) {
-					if (!confData.tree.getChecked(o)) {
-						// node not selected
-						sameConf = false;
+				if (currentShownTrace == null) {
+					// load the whole trace
+					Trace t = des.getTrace();
+					desInterval = new TimeInterval(t.getMinTimestamp(), t.getMaxTimestamp());
+				}
+			} else {
+				// message on the bus from "show in" action
+				// - check all producers and types
+				boolean loaded = true;
+				for (ConfigurationData confData : configurationMap.values()) {
+					if (confData.roots == null) {
+						// first time, tree information not loaded yet
+						loaded = false;
 						break;
 					}
+					Object[] objs = linearizeAndSort(confData.roots);
+					for (Object o : objs) {
+						if (!confData.tree.getChecked(o)) {
+							// node not selected
+							sameConf = false;
+							break;
+						}
+					}
+				}
+				if (loaded && !sameConf) {
+					checkAll();
 				}
 			}
-			if (loaded && !sameConf) {
-				checkAll();
+
+			if (loadedInterval == null || (!loadedInterval.equals(desInterval) || !sameConf)) {
+				loadHistogram(des.getTrace(), desInterval);
 			}
-			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
-			TimeInterval descriptorInterval = intDes.getTimeInterval();
-			if (loadedInterval == null || (!loadedInterval.equals(descriptorInterval) || !sameConf)) {
-				loadHistogram(intDes.getTrace(), intDes.getTimeInterval());
-			}
+
 		}
 	}
 
@@ -674,8 +684,7 @@ public class HistogramView extends FramesocPart {
 					LoaderThread loaderThread = new LoaderThread(interval, loader,
 							confMap.get(ConfigurationDimension.TYPE),
 							confMap.get(ConfigurationDimension.PRODUCERS));
-					BuilderJob builderJob = new BuilderJob("Event Density Chart Job",
-							loaderThread);
+					BuilderJob builderJob = new BuilderJob("Event Density Chart Job", loaderThread);
 					loaderThread.start();
 					builderJob.schedule();
 				} catch (SoCTraceException e) {
@@ -691,15 +700,15 @@ public class HistogramView extends FramesocPart {
 	 */
 	private class LoaderThread extends Thread {
 
-		private final TimeInterval loadInterval;
+		private final TimeInterval interval;
 		private final DensityHistogramLoader loader;
 		private final IProgressMonitor monitor;
 		private List<Integer> types;
 		private List<Integer> producer;
 
-		public LoaderThread(TimeInterval loadInterval, DensityHistogramLoader loader,
+		public LoaderThread(TimeInterval interval, DensityHistogramLoader loader,
 				List<Integer> types, List<Integer> producers) {
-			this.loadInterval = loadInterval;
+			this.interval = interval;
 			this.loader = loader;
 			this.types = types;
 			this.producer = producers;
@@ -708,7 +717,7 @@ public class HistogramView extends FramesocPart {
 
 		@Override
 		public void run() {
-			loader.load(currentShownTrace, loadInterval, types, producer, dataset, monitor);
+			loader.load(currentShownTrace, interval, types, producer, dataset, monitor);
 		}
 
 		public void cancel() {
@@ -739,7 +748,7 @@ public class HistogramView extends FramesocPart {
 				boolean refreshed = false;
 				long oldLoadedEnd = 0;
 				final long traceDuration = currentShownTrace.getMaxTimestamp()
-						- currentShownTrace.getMinTimestamp();
+						- currentShownTrace.getMinTimestamp(); // FIXME interval to load here
 				while (!done) {
 					done = dataset.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!dataset.isDirty()) {
