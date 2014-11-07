@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Paje Dump Importer
+Bundle-Name: Pajé Dump Importer
 Bundle-SymbolicName: fr.inria.soctrace.tools.importer.pajedump;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: fr.inria.soctrace.tools.importer.pajedump.Activator

@@ -27,11 +27,11 @@ import fr.inria.soctrace.lib.storage.SystemDBObject;
  */
 public class PJDumpTraceMetadata extends AbstractTraceMetadataManager {
 	
-	private String dbName;
-	private String alias;
-	private int events;
-	private long min;
-	private long max;
+	protected String dbName;
+	protected String alias;
+	protected int events;
+	protected long min;
+	protected long max;
 	
 	@Override
 	public String getTraceTypeName() {
@@ -69,7 +69,7 @@ public class PJDumpTraceMetadata extends AbstractTraceMetadataManager {
 	 * Get the current date.
 	 * @return a string with the current date 
 	 */
-	private String getCurrentDate() {
+	protected String getCurrentDate() {
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
 		sdf.applyPattern("dd MMM yyyy HH:mm:ss z");

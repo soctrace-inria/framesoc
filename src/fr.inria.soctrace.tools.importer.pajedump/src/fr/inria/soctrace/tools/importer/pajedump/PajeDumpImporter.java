@@ -69,6 +69,11 @@ public class PajeDumpImporter extends FramesocTool {
 			ArgumentsManager argsm = new ArgumentsManager();
 			argsm.parseArgs(args);
 			argsm.printArgs();
+			boolean doublePrecision = true;
+			if (!argsm.getFlags().isEmpty() && argsm.getFlags().contains("l")) {
+				doublePrecision = false;
+				System.out.println("Long option selected");
+			}
 
 			String pattern = Pattern.quote(System.getProperty("file.separator"));
 			int numberOfTraces = argsm.getTokens().size();
@@ -83,7 +88,7 @@ public class PajeDumpImporter extends FramesocTool {
 
 				String sysDbName = Configuration.getInstance().get(
 						SoCTraceProperty.soctrace_db_name);
-				
+
 				String traceDbName = getNewTraceDBName(usedNames, traceFile, pattern);
 
 				SystemDBObject sysDB = null;
@@ -97,7 +102,8 @@ public class PajeDumpImporter extends FramesocTool {
 					traceDB = new TraceDBObject(traceDbName, DBMode.DB_CREATE);
 
 					// parsing
-					PJDumpParser parser = new PJDumpParser(sysDB, traceDB, traceFile);
+					PJDumpParser parser = new PJDumpParser(sysDB, traceDB, traceFile,
+							doublePrecision);
 					parser.parseTrace(monitor, currentTrace, numberOfTraces);
 
 				} catch (SoCTraceException ex) {
@@ -144,7 +150,7 @@ public class PajeDumpImporter extends FramesocTool {
 		usedNames.add(realName);
 		return realName;
 	}
-	
+
 	@SuppressWarnings("unused")
 	private boolean checkArgs(ArgumentsManager argsm) {
 		if (argsm.getTokens().size() != 1)
@@ -162,13 +168,27 @@ public class PajeDumpImporter extends FramesocTool {
 
 	@Override
 	public boolean canLaunch(String[] args) {
-		if (args.length < 1)
+		
+		ArgumentsManager argsm = new ArgumentsManager();
+		try {
+			// do this in a try block, since the method is called also for
+			// invalid input (it is called each time input changes)
+			argsm.parseArgs(args);
+		} catch (IllegalArgumentException e) {
 			return false;
+		}
 
-		for (String file : args) {
+		// check if at least one trace file is specified
+		if (argsm.getTokens().size() < 1) {
+			return false;
+		}
+
+		// check trace files
+		for (String file : argsm.getTokens()) {
 			File f = new File(file);
-			if (!f.isFile())
+			if (!f.isFile()) {
 				return false;
+			}
 		}
 
 		return true;

@@ -46,8 +46,8 @@ import fr.inria.soctrace.lib.utils.IdManager;
 /**
  * PJDump Parser core class.
  * 
- * Warning: the current implementation of this parser works under the hypothesis
- * that a producer may be in a single state at a given time.
+ * Warning: the current implementation of this parser works under the hypothesis that a producer may
+ * be in a single state at a given time.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -55,17 +55,17 @@ public class PJDumpParser {
 
 	private static final Logger logger = LoggerFactory.getLogger(PJDumpParser.class);
 
-	private SystemDBObject sysDB;
-	private TraceDBObject traceDB;
-	private String traceFile;
+	protected SystemDBObject sysDB;
+	protected TraceDBObject traceDB;
+	protected String traceFile;
+	protected int numberOfEvents = 0;
+	protected long minTimestamp;
+	protected long maxTimestamp;
 
 	private Map<String, PJDumpLineParser> parserMap = new HashMap<String, PJDumpLineParser>();
 
 	private Map<String, EventProducer> producersMap = new HashMap<String, EventProducer>();
 	private Map<String, EventType> types = new HashMap<String, EventType>();
-	private int numberOfEvents = 0;
-	private long minTimestamp;
-	private long maxTimestamp;
 	private int page = 0;
 	private IdManager eIdManager = new IdManager();
 	private IdManager etIdManager = new IdManager();
@@ -73,10 +73,11 @@ public class PJDumpParser {
 	private List<Event> elist = new LinkedList<Event>();
 	private Map<String, List<Link>> endPendingLinks = new HashMap<String, List<Link>>();
 	private Map<String, List<Link>> startPendingLinks = new HashMap<String, List<Link>>();
-	private long byteRead = 0; // byte read corresponding to events not saved
-								// yet
+	private long byteRead = 0; // byte read corresponding to events not saved yet
+	private boolean doublePrecision = true;
 
-	public PJDumpParser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile) {
+	public PJDumpParser(SystemDBObject sysDB, TraceDBObject traceDB, String traceFile,
+			boolean doublePrecision) {
 
 		this.traceFile = traceFile;
 		this.sysDB = sysDB;
@@ -87,6 +88,7 @@ public class PJDumpParser {
 		parserMap.put(PJDumpConstants.LINK, new LinkParser());
 		parserMap.put(PJDumpConstants.STATE, new StateParser());
 		parserMap.put(PJDumpConstants.VARIABLE, new VariableParser());
+		this.doublePrecision = doublePrecision;
 	}
 
 	/**
@@ -99,13 +101,13 @@ public class PJDumpParser {
 	 */
 	public void parseTrace(IProgressMonitor monitor, int currentTrace, int numberOfTraces)
 			throws SoCTraceException {
-		
+
 		logger.debug("Trace file: {}", traceFile);
 
 		try {
 			monitor.beginTask("Import trace (" + currentTrace + "/" + numberOfTraces + ")",
 					PJDumpConstants.WORK);
-			monitor.subTask("Trace file: " + traceFile );
+			monitor.subTask("Trace file: " + traceFile);
 			// Trace Events, EventTypes and Producers
 			boolean part = parseRawTrace(monitor);
 			saveProducers();
@@ -225,7 +227,7 @@ public class PJDumpParser {
 			if ((strLine = br.readLine()) == null)
 				return null;
 
-			byteRead += strLine.length() + 1; // XXX check for \n
+			byteRead += strLine.length() + 1;
 
 			strLine = strLine.trim();
 			if (strLine.equals(""))
@@ -255,7 +257,7 @@ public class PJDumpParser {
 		}
 	}
 
-	private void saveTraceMetadata(boolean partialImport) throws SoCTraceException {
+	protected void saveTraceMetadata(boolean partialImport) throws SoCTraceException {
 		String alias = FilenameUtils.getBaseName(traceFile);
 		String realAlias = (partialImport) ? (alias + " [part]") : alias;
 		PJDumpTraceMetadata metadata = new PJDumpTraceMetadata(sysDB, traceDB.getDBName(),
@@ -288,9 +290,13 @@ public class PJDumpParser {
 	}
 
 	private long getTimestamp(String ts) {
-		Double timestamp = Double.parseDouble(ts);
-		timestamp = Math.pow(10, PJDumpConstants.TIME_SHIFT) * timestamp;
-		return timestamp.longValue();
+		if (doublePrecision) {
+			Double timestamp = Double.parseDouble(ts);
+			timestamp = Math.pow(10, PJDumpConstants.TIME_SHIFT) * timestamp;
+			return timestamp.longValue();
+		} else {
+			return Long.parseLong(ts);
+		}
 	}
 
 	// entity parsers
