@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
 
+	public static final String PLUGIN_ID = "fr.inria.soctrace.framesoc.core"; //$NON-NLS-1$
+	
 	private static BundleContext context;
 
 	static BundleContext getContext() {
