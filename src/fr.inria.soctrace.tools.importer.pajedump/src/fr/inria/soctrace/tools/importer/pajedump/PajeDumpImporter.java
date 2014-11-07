@@ -151,13 +151,6 @@ public class PajeDumpImporter extends FramesocTool {
 		return realName;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean checkArgs(ArgumentsManager argsm) {
-		if (argsm.getTokens().size() != 1)
-			return false;
-		return true;
-	}
-
 	@Override
 	public void launch(String[] args) {
 		PluginImporterJob job = new PluginImporterJob("Paje Dump Importer",
