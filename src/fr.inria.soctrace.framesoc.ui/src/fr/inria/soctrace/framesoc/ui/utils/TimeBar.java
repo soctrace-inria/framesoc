@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
@@ -93,7 +94,7 @@ public class TimeBar {
 		all.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				setSelection(range.getMinimum(), range.getMaximum());
+				range.setSelection(range.getMinimum(), range.getMaximum(), true);
 			}
 		});
 		all.setToolTipText("Select whole time interval");
@@ -223,6 +224,15 @@ public class TimeBar {
 	}
 
 	/**
+	 * Get a time interval corresponding to the current selection
+	 * 
+	 * @return the current selection
+	 */
+	public TimeInterval getSelection() {
+		return new TimeInterval(range.getLowerValue(), range.getUpperValue());
+	}
+
+	/**
 	 * @return the windowSize
 	 */
 	public long getWindowSize() {
@@ -276,6 +286,16 @@ public class TimeBar {
 	 */
 	public void setSelection(long startTimestamp, long endTimestamp) {
 		range.setSelection(startTimestamp, endTimestamp, false);
+	}
+
+	/**
+	 * Set the selection without notifying listeners
+	 * 
+	 * @param timeInterval
+	 *            the time interval to select
+	 */
+	public void setSelection(TimeInterval timeInterval) {
+		range.setSelection(timeInterval.startTimestamp, timeInterval.endTimestamp, false);
 	}
 
 	/**

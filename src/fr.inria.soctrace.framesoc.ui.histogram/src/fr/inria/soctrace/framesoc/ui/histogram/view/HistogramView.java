@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -76,10 +77,12 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.FilteredCheckboxTree;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TreePatternFilter;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.histogram.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader.ConfigurationDimension;
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
+import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.IModelElementNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
@@ -105,6 +108,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * TODO
  * - multi selection
  * - min size for button sash
+ * - color support for trees and color change event
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -226,6 +230,16 @@ public class HistogramView extends FramesocPart {
 
 	private final static Object[] EMPTY_ARRAY = new Object[0];
 
+	public HistogramView() {
+		super();
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); // TODO use it
+		topics.registerAll();
+		configurationMap = new HashMap<>();
+		for (ConfigurationDimension dimension : ConfigurationDimension.values()) {
+			configurationMap.put(dimension, new ConfigurationData(dimension));
+		}
+	}
+
 	/* Uncomment this to use the window builder */
 	// public void createPartControl(Composite parent) {
 	// createFramesocPartControl(parent);
@@ -266,11 +280,6 @@ public class HistogramView extends FramesocPart {
 		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
 		tabFolder.setLayout(new GridLayout(1, false));
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-		configurationMap = new HashMap<>();
-		for (ConfigurationDimension tab : ConfigurationDimension.values()) {
-			configurationMap.put(tab, new ConfigurationData(tab));
-		}
 
 		PatternFilter filter = new TreePatternFilter();
 		TreeContentProvider contentProvider = new TreeContentProvider();
@@ -433,13 +442,25 @@ public class HistogramView extends FramesocPart {
 		timeBar.setEnabled(false);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
+		timeBar.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				TimeInterval barInterval = timeBar.getSelection();
+				if (!barInterval.equals(loadedInterval)) {
+					enableResetLoadButtons(true);
+				} else {
+					enableResetLoadButtons(false);
+				}
+			}
+		});
 		// button to synch the timebar, producers and type with the current loaded data
 		timeBar.getSynchButton().setToolTipText("Reset timebar, types and producers");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (loadedInterval != null)
-					timeBar.setSelection(loadedInterval.startTimestamp, loadedInterval.endTimestamp);
+				if (loadedInterval != null) {
+					timeBar.setSelection(loadedInterval);
+				}
 				for (ConfigurationData data : configurationMap.values()) {
 					data.tree.setCheckedElements(data.checked);
 				}
@@ -453,7 +474,7 @@ public class HistogramView extends FramesocPart {
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				showTrace(currentShownTrace, null);
+				loadHistogram(currentShownTrace, timeBar.getSelection());
 			}
 		});
 
@@ -512,13 +533,11 @@ public class HistogramView extends FramesocPart {
 	}
 
 	private TraceIntervalDescriptor getIntervalDescriptor() {
-		if (currentShownTrace == null)
+		if (currentShownTrace == null || loadedInterval == null)
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 		des.setTrace(currentShownTrace);
-		des.setStartTimestamp(((Double) plot.getDomainAxis().getRange().getLowerBound())
-				.longValue());
-		des.setEndTimestamp(((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue());
+		des.setTimeInterval(loadedInterval);
 		return des;
 	}
 
@@ -558,10 +577,58 @@ public class HistogramView extends FramesocPart {
 			return;
 		}
 
-		currentShownTrace = trace;
+		if (data == null) {
+			// called after right click on trace tree menu
+			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMinTimestamp()));
+		} else {
+			// called after double click on trace tree menu or Framesoc bus message
+			// (use all types and producers in this case)
+			boolean sameConf = true;
+			boolean loaded = true;
+			for (ConfigurationData confData : configurationMap.values()) {
+				// the configuration is not the same if nothing has been loaded
+				// or if at least a node is not selected
+				if (confData.roots == null) {
+					// first time, tree information not loaded yet
+					sameConf = false;
+					loaded = false;
+					break;
+				}
+				Object[] objs = confData.tree.getCheckedElements();
+				for (Object o : objs) {
+					if (!confData.tree.getChecked(o)) {
+						// node not selected
+						sameConf = false;
+						break;
+					}
+				}
+			}
+			if (loaded && !sameConf) {
+				checkAll();
+			}
+			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
+			TimeInterval descriptorInterval = intDes.getTimeInterval();
+			if (loadedInterval == null || (!loadedInterval.equals(descriptorInterval) || !sameConf)) {
+				loadHistogram(intDes.getTrace(), intDes.getTimeInterval());
+			}
+		}
+	}
 
+	/**
+	 * Load the histogram using the current trace and the information in the type and producer
+	 * trees.
+	 * 
+	 * @param trace
+	 *            trace to load
+	 * @param interval
+	 *            time interval to load
+	 */
+	public void loadHistogram(final Trace trace, final TimeInterval interval) {
+
+		currentShownTrace = trace;
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		loadedInterval = new TimeInterval(trace.getMinTimestamp(), trace.getMinTimestamp());
+		// nothing is loaded so far, so the interval is [start, start] (duration 0)
+		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 
 		Thread showThread = new Thread() {
 			@Override
@@ -571,8 +638,11 @@ public class HistogramView extends FramesocPart {
 					Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
 					for (ConfigurationData confData : configurationMap.values()) {
 						if (confData.roots == null) {
+							// first time, tree information not loaded yet
 							continue;
 						}
+						// store in confData.checked a sorted array containing
+						// a snapshot of checked elements at load time
 						Object[] currentChecked = confData.tree.getCheckedElements();
 						confData.checked = new ITreeNode[currentChecked.length];
 						List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
@@ -601,7 +671,7 @@ public class HistogramView extends FramesocPart {
 					dataset = new HistogramLoaderDataset();
 
 					// create loader and builder threads
-					LoaderThread loaderThread = new LoaderThread(new TimeInterval(0, 0), loader,
+					LoaderThread loaderThread = new LoaderThread(interval, loader,
 							confMap.get(ConfigurationDimension.TYPE),
 							confMap.get(ConfigurationDimension.PRODUCERS));
 					BuilderJob builderJob = new BuilderJob("Event Density Builder Job",
@@ -621,8 +691,7 @@ public class HistogramView extends FramesocPart {
 	 */
 	private class LoaderThread extends Thread {
 
-		@SuppressWarnings("unused")
-		private final TimeInterval loadInterval; // / TODO: use it
+		private final TimeInterval loadInterval;
 		private final DensityHistogramLoader loader;
 		private final IProgressMonitor monitor;
 		private List<Integer> types;
@@ -639,7 +708,7 @@ public class HistogramView extends FramesocPart {
 
 		@Override
 		public void run() {
-			loader.load(currentShownTrace, types, producer, dataset, monitor);
+			loader.load(currentShownTrace, loadInterval, types, producer, dataset, monitor);
 		}
 
 		public void cancel() {
@@ -684,11 +753,11 @@ public class HistogramView extends FramesocPart {
 					oldLoadedEnd = loadedInterval.endTimestamp;
 					refresh(!refreshed);
 					refreshed = true;
-					
+
 					double delta = loadedInterval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
 						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
-					}					
+					}
 				}
 				if (!refreshed) {
 					// refresh at least once when there is no data.
@@ -1039,6 +1108,20 @@ public class HistogramView extends FramesocPart {
 		}
 	}
 
+	/**
+	 * Check all the elements of all configuration dimensions
+	 */
+	private void checkAll() {
+		for (ConfigurationData data : configurationMap.values()) {
+			TreeViewer treeViewer = data.tree.getViewer();
+			TreeContentProvider provider = (TreeContentProvider) treeViewer.getContentProvider();
+			Object[] roots = provider.getElements(treeViewer.getInput());
+			for (Object root : roots) {
+				checkElementAndSubtree(root);
+			}
+		}
+	}
+
 	private boolean hasUncheckedSon(Object node, TreeContentProvider provider,
 			FilteredCheckboxTree tree) {
 		if (!provider.hasChildren(node))
@@ -1082,6 +1165,17 @@ public class HistogramView extends FramesocPart {
 			count += countItems(i);
 		}
 		return count;
+	}
+
+	@Override
+	public void partHandle(FramesocBusTopic topic, Object data) {
+		if (topic.equals(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED)) {
+			if (currentShownTrace == null)
+				return;
+			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
+			logger.debug("Colors changed: {}", des);
+			// TODO reload trees
+		}
 	}
 
 }

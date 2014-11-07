@@ -74,10 +74,8 @@ public enum FramesocBusTopic {
 	/**
 	 * Event fired when we want to display a trace in a density histogram.
 	 * The event body is a TraceIntervalDescriptor.
-	 * XXX: at the moment, the whole trace is always displayed, even if a different
-	 * time interval is specified.
 	 */
-	TOPIC_UI_HISTOGRAM_DISPLAY,
+	TOPIC_UI_HISTOGRAM_DISPLAY_TIME_INTERVAL,
 
 	/**
 	 * Event fired when we want to switch the highlight state of some traces.

@@ -37,6 +37,7 @@ import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -438,6 +439,7 @@ public class GanttView extends AbstractGanttView {
 		// Framesoc
 		TableTraceIntervalAction.add(manager, createTableAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 
 		// TEST ACTION
 		// manager.add(new Action("Test Action", IAction.AS_PUSH_BUTTON) {
@@ -459,6 +461,15 @@ public class GanttView extends AbstractGanttView {
 
 	private TraceIntervalAction createPieAction() {
 		return new PieTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+	
+	private TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();

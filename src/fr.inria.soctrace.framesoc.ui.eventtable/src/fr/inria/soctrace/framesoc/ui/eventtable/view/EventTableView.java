@@ -69,6 +69,7 @@ import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
@@ -262,6 +263,7 @@ public final class EventTableView extends FramesocPart {
 		manager.add(new Separator());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 		enableActions(false);
 
 		// -------------
@@ -525,6 +527,15 @@ public final class EventTableView extends FramesocPart {
 		sb.append(events);
 		sb.append(" loaded events");
 		return sb.toString();
+	}
+
+	private TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
 	}
 
 	private TraceIntervalAction createGanttAction() {

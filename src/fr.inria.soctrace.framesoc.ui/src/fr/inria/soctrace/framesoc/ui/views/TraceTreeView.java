@@ -190,7 +190,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				des.setStartTimestamp(selectedNode.getTrace().getMinTimestamp());
 				des.setEndTimestamp(selectedNode.getTrace().getMaxTimestamp());
 				logger.debug(des.toString());
-				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY, des);
+				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY_TIME_INTERVAL, des);
 			}
 		});
 

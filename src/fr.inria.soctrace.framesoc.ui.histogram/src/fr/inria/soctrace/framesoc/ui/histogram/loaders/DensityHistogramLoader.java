@@ -89,6 +89,8 @@ public class DensityHistogramLoader {
 	 * 
 	 * @param trace
 	 *            trace to work with
+	 * @param loadInterval
+	 *            time interval to load
 	 * @param types
 	 *            event type ids to load
 	 * @param producers
@@ -99,8 +101,8 @@ public class DensityHistogramLoader {
 	 *            loader dataset
 	 * @throws SoCTraceException
 	 */
-	public void load(Trace trace, List<Integer> types, List<Integer> producers,
-			HistogramLoaderDataset dataset, IProgressMonitor monitor) {
+	public void load(Trace trace, TimeInterval loadInterval, List<Integer> types,
+			List<Integer> producers, HistogramLoaderDataset dataset, IProgressMonitor monitor) {
 
 		DeltaManager dm = new DeltaManager();
 		dm.start();
@@ -121,8 +123,8 @@ public class DensityHistogramLoader {
 			long intervalDuration = LoaderUtils.getIntervalDuration(trace, EVENTS_PER_QUERY);
 
 			// read the time window, interval by interval
-			long t0 = trace.getMinTimestamp();
-			long end = trace.getMaxTimestamp();
+			long t0 = loadInterval.startTimestamp;
+			long end = loadInterval.endTimestamp;
 			TimeInterval loaded = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
 			List<Long> timestamps = new LinkedList<>();
 			while (t0 < end) {

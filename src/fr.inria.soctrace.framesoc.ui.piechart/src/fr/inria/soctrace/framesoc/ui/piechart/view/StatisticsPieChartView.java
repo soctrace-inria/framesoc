@@ -63,10 +63,12 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
@@ -109,7 +111,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Build update timeout
 	 */
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
-	
+
 	/**
 	 * Total work for build job
 	 */
@@ -370,16 +372,13 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (timeBar != null) {
-					TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
-							timeBar.getEndTimestamp());
-					if (!barInterval.equals(currentDescriptor.interval)) {
-						timeBar.getLoadButton().setEnabled(true);
-						timeBar.getSynchButton().setEnabled(true);
-					} else {
-						timeBar.getLoadButton().setEnabled(false);
-						timeBar.getSynchButton().setEnabled(false);
-					}
+				TimeInterval barInterval = timeBar.getSelection();
+				if (!barInterval.equals(currentDescriptor.interval)) {
+					timeBar.getLoadButton().setEnabled(true);
+					timeBar.getSynchButton().setEnabled(true);
+				} else {
+					timeBar.getLoadButton().setEnabled(false);
+					timeBar.getSynchButton().setEnabled(false);
 				}
 			}
 		});
@@ -422,6 +421,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 		enableActions(false);
 
 	}
@@ -437,6 +437,15 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	private TraceIntervalAction createGanttAction() {
 		return new GanttTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+	
+	private TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -593,7 +602,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					oldLoadedEnd = currentDescriptor.interval.endTimestamp;
 					refresh();
 					refreshed = true;
-					
+
 					double delta = currentDescriptor.interval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
 						monitor.worked((int) ((delta / intervalDuration) * TOTAL_WORK));
@@ -648,7 +657,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// create a new loader map
 		currentDescriptor.map = new PieChartLoaderMap();
-		
+
 		// reset the loaded interval in the descriptor
 		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
 		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
