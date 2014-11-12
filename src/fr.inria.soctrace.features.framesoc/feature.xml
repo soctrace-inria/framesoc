@@ -6,12 +6,13 @@
       provider-name="INRIA"
       plugin="fr.inria.soctrace.framesoc.brand">
 
-   <description>
+   <description url="http://soctrace-inria.github.io/">
       Framesoc Trace Management and Analysis Infrastructure
    </description>
 
-   <copyright>
-      Copyright (c) 2012-2014 Generoso Pagano &lt;generoso.pagano@inria.fr&gt;, INRIA
+   <copyright url="http://soctrace-inria.github.io/">
+      Copyright (c) 2012-2014 Generoso Pagano &lt;generoso.pagano@inria.fr&gt;,
+Inria
 All rights reserved. This program and the accompanying materials
 are made available under the terms of the Eclipse Public License
 v1.0 which accompanies this distribution, and is available at
@@ -85,9 +86,20 @@ Java and all Java-based trademarks are trademarks of Oracle Corporation in the U
       <import plugin="fr.inria.soctrace.framesoc.ui" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.inria.soctrace.lib.model" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.inria.soctrace.lib.query" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="fr.inria.soctrace.lib.search" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.inria.soctrace.lib.storage" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.inria.soctrace.lib.utils" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="fr.inria.soctrace.lib.search" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.annotation"/>
+      <import plugin="fr.inria.linuxtools.tmf.ui" version="3.0.0" match="greaterOrEqual"/>
+      <import plugin="fr.inria.linuxtools.tmf.core" version="3.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="com.google.guava"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.ui.navigator"/>
+      <import plugin="org.eclipse.ui.navigator.resources"/>
+      <import plugin="org.eclipse.emf.common"/>
+      <import plugin="org.eclipse.emf.ecore"/>
+      <import plugin="org.eclipse.wb.core.lib"/>
    </requires>
 
    <plugin
