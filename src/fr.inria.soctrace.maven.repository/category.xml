@@ -6,12 +6,5 @@
    <feature url="features/fr.inria.soctrace.features.framesoc.source_1.0.0.qualifier.jar" id="fr.inria.soctrace.features.framesoc.source" version="1.0.0.qualifier">
       <category name="framesoc"/>
    </feature>
-   <feature url="features/fr.inria.soctrace.features.tools_1.0.0.qualifier.jar" id="fr.inria.soctrace.features.tools" version="1.0.0.qualifier">
-      <category name="framesoc"/>
-   </feature>
-   <feature url="features/fr.inria.soctrace.features.tools.source_1.0.0.qualifier.jar" id="fr.inria.soctrace.features.tools.source" version="1.0.0.qualifier">
-      <category name="framesoc"/>
-   </feature>
-      
    <category-def name="framesoc" label="Framesoc"/>
 </site>
