@@ -106,9 +106,11 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * <pre>
  * TODO
- * - multi selection
+ * - multi-selection
  * - min size for button sash
  * - color support for trees and color change event
+ * - scroll with CTRL+wheel (as in gantt)
+ * - selection using current zoom mouse gesture (as in gantt)
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
