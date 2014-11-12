@@ -42,7 +42,7 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 
 	@Override
 	public String getStatName() {
-		return "Event Producers";
+		return "Event Producer Instances";
 	}
 
 	@Override

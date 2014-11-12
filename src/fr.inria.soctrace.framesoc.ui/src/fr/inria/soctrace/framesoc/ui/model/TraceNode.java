@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -52,7 +53,7 @@ public class TraceNode implements ITreeNode {
 
 	@Override
 	public List<ITreeNode> getChildren() {
-		return null;
+		return Collections.emptyList();
 	}
 
 	@Override

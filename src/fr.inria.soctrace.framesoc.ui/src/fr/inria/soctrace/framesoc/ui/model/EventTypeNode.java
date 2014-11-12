@@ -10,115 +10,107 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
+
+import fr.inria.soctrace.lib.model.EventType;
 
 /**
- * Tree node for folders.
+ * Tree node for Event Type elements (leaves).
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class FolderNode implements ITreeNode {
+public class EventTypeNode implements ITreeNode, IModelElementNode {
 
-	private String name;
 	private ITreeNode parent = null;
-	private List<ITreeNode> children = new ArrayList<>();
+	private EventType type = null;
 	
 	/**
 	 * Constructor
-	 * @param name folder label
+	 * @param type the type
 	 */
-	public FolderNode(String name) {
-		this.name = name;
+	public EventTypeNode(EventType type) {
+		this.type = type;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return type.getName();
 	}
 
 	@Override
 	public Image getImage() {
-		return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
+		return null;
 	}
 
 	@Override
 	public List<ITreeNode> getChildren() {
-		return children;
+		return Collections.emptyList();
 	}
 
 	@Override
 	public boolean hasChildren() {
-		return !children.isEmpty();
+		return false;
 	}
 
 	@Override
 	public ITreeNode getParent() {
 		return parent;
 	}
-	
-	/**
-	 * Add a child node to the folder.
-	 * @param child a tree node
-	 */
-	public void addChild(ITreeNode child) {
-		children.add(child);
-		child.setParent(this);
+		
+	@Override
+	public void setParent(ITreeNode parent) {
+		this.parent = parent;		
 	}
 
 	/**
-	 * Remove all the children from this folder.
+	 * @return the type
 	 */
-	public void removeAll() {
-		children.clear();
-	}
-	
-	@Override
-	public void setParent(ITreeNode parent) {
-		this.parent = (FolderNode)parent;		
+	public EventType getEventType() {
+		return type;
 	}
 
 	@Override
 	public String toString() {
-		return "FolderNode [name=" + name + ", parent=" + parent + "]";
+		return "EventTypeNode [name=" + getName() + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
 
-	/**
-	 * children not considered to avoid recursion.
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof FolderNode))
+		if (getClass() != obj.getClass())
 			return false;
-		FolderNode other = (FolderNode) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
+		EventTypeNode other = (EventTypeNode) obj;
 		if (parent == null) {
 			if (other.parent != null)
 				return false;
 		} else if (!parent.equals(other.parent))
 			return false;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
 		return true;
 	}
 
+	@Override
+	public int getId() {
+		return type.getId();
+	}
+	
 }

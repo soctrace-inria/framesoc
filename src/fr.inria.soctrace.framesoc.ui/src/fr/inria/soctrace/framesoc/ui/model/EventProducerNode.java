@@ -14,36 +14,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
+
+import fr.inria.soctrace.lib.model.EventProducer;
 
 /**
- * Tree node for folders.
+ * Tree node for event producers.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class FolderNode implements ITreeNode {
+public class EventProducerNode implements ITreeNode, IModelElementNode {
 
-	private String name;
+	private EventProducer producer = null;
 	private ITreeNode parent = null;
 	private List<ITreeNode> children = new ArrayList<>();
-	
+
 	/**
 	 * Constructor
-	 * @param name folder label
+	 * 
+	 * @param name
+	 *            folder label
 	 */
-	public FolderNode(String name) {
-		this.name = name;
+	public EventProducerNode(EventProducer ep) {
+		this.producer = ep;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return producer.getWholeName();
 	}
 
 	@Override
 	public Image getImage() {
-		return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
+		return null;
 	}
 
 	@Override
@@ -60,10 +62,12 @@ public class FolderNode implements ITreeNode {
 	public ITreeNode getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * Add a child node to the folder.
-	 * @param child a tree node
+	 * 
+	 * @param child
+	 *            a tree node
 	 */
 	public void addChild(ITreeNode child) {
 		children.add(child);
@@ -76,23 +80,33 @@ public class FolderNode implements ITreeNode {
 	public void removeAll() {
 		children.clear();
 	}
-	
+
 	@Override
 	public void setParent(ITreeNode parent) {
-		this.parent = (FolderNode)parent;		
+		this.parent = parent;
 	}
 
 	@Override
 	public String toString() {
-		return "FolderNode [name=" + name + ", parent=" + parent + "]";
+		return "EventProducerNode [name=" + getName() + ", parent="
+				+ ((parent != null) ? parent.getName() : "none") + "]";
 	}
 
+	public EventProducer getEventProducer() {
+		return producer;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
+		result = prime * result + ((producer == null) ? 0 : producer.hashCode());
 		return result;
 	}
 
@@ -105,20 +119,25 @@ public class FolderNode implements ITreeNode {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof FolderNode))
+		if (getClass() != obj.getClass())
 			return false;
-		FolderNode other = (FolderNode) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
+		EventProducerNode other = (EventProducerNode) obj;
 		if (parent == null) {
 			if (other.parent != null)
 				return false;
 		} else if (!parent.equals(other.parent))
 			return false;
+		if (producer == null) {
+			if (other.producer != null)
+				return false;
+		} else if (!producer.equals(other.producer))
+			return false;
 		return true;
+	}
+
+	@Override
+	public int getId() {
+		return producer.getId();
 	}
 
 }

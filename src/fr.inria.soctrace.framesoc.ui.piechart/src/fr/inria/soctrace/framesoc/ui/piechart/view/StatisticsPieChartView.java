@@ -43,7 +43,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -54,7 +53,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
@@ -66,12 +64,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
@@ -94,8 +91,9 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
- * @author "Generoso Pagano <generoso.pagano@inria.fr>"
+ * Statistics pie chart view
  * 
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class StatisticsPieChartView extends FramesocPart {
 
@@ -113,6 +111,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Build update timeout
 	 */
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
+
+	/**
+	 * Total work for build job
+	 */
+	private static final int TOTAL_WORK = 1000;
 
 	/**
 	 * Constants
@@ -172,11 +175,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	private Combo combo;
 
 	/**
-	 * Pie load button
-	 */
-	private Button btnLoad;
-
-	/**
 	 * Description text
 	 */
 	private Text txtDescription;
@@ -221,8 +219,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private StatisticsTableRowFilter nameFilter;
 
-	private Button btnSynch;
-
 	/**
 	 * Constructor
 	 */
@@ -238,7 +234,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	// Uncomment this to use the window builder
-	// @Override
 	// public void createPartControl(Composite parent) {
 	// createFramesocPartControl(parent);
 	// }
@@ -366,33 +361,30 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
 		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		timeComposite.setLayout(new GridLayout(4, false));
+		GridLayout gl_timeComposite = new GridLayout(1, false);
+		gl_timeComposite.horizontalSpacing = 0;
+		timeComposite.setLayout(gl_timeComposite);
 		// time manager
-		timeBar = new TimeBar(timeComposite, SWT.NONE);
+		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		timeBar.setEnabled(false);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
 		timeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (btnLoad != null && timeBar != null) {
-					TimeInterval barInterval = new TimeInterval(timeBar.getStartTimestamp(),
-							timeBar.getEndTimestamp());
-					if (!barInterval.equals(currentDescriptor.interval)) {
-						btnLoad.setEnabled(true);
-						btnSynch.setEnabled(true);
-					} else {
-						btnLoad.setEnabled(false);
-						btnSynch.setEnabled(false);
-					}
+				TimeInterval barInterval = timeBar.getSelection();
+				if (!barInterval.equals(currentDescriptor.interval)) {
+					timeBar.getLoadButton().setEnabled(true);
+					timeBar.getSynchButton().setEnabled(true);
+				} else {
+					timeBar.getLoadButton().setEnabled(false);
+					timeBar.getSynchButton().setEnabled(false);
 				}
 			}
 		});
 
 		// button to synch the timebar with the gantt
-		btnSynch = new Button(timeComposite, SWT.NONE);
-		btnSynch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnSynch.addSelectionListener(new SelectionAdapter() {
+		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo != null && timeBar != null && currentDescriptor != null) {
@@ -403,20 +395,15 @@ public class StatisticsPieChartView extends FramesocPart {
 						timeBar.setSelection(currentShownTrace.getMinTimestamp(),
 								currentShownTrace.getMaxTimestamp());
 					}
-					btnSynch.setEnabled(false);
-					btnLoad.setEnabled(!currentDescriptor.dirty);
+					timeBar.getSynchButton().setEnabled(false);
+					timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
 				}
 			}
 		});
-		btnSynch.setToolTipText("Synch selection with Pie Chart");
-		btnSynch.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
-				"icons/load.png"));
-		btnSynch.setEnabled(false);
+		timeBar.getSynchButton().setToolTipText("Synch selection with Pie Chart");
 
 		// load button
-		btnLoad = new Button(timeComposite, SWT.NONE);
-		btnLoad.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnLoad.addSelectionListener(new SelectionAdapter() {
+		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo.getSelectionIndex() == -1)
@@ -425,10 +412,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				loadPieChart();
 			}
 		});
-		btnLoad.setToolTipText("Load metric");
-		btnLoad.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui",
-				"icons/play.png"));
-		btnLoad.setEnabled(false);
+		timeBar.getLoadButton().setToolTipText("Load metric");
 
 		// ----------
 		// TOOL BAR
@@ -437,6 +421,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 		enableActions(false);
 
 	}
@@ -458,14 +443,22 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		};
 	}
+	
+	private TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
 
 	private TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dirty)
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 		des.setTrace(currentShownTrace);
-		des.setStartTimestamp(currentDescriptor.interval.startTimestamp);
-		des.setEndTimestamp(currentDescriptor.interval.endTimestamp);
+		des.setTimeInterval(currentDescriptor.interval);
 		return des;
 	}
 
@@ -575,21 +568,26 @@ public class StatisticsPieChartView extends FramesocPart {
 	private class DrawerJob extends Job {
 
 		private final LoaderThread loaderThread;
+		private final TimeInterval loadInterval;
 
-		public DrawerJob(String name, LoaderThread loaderThread) {
+		public DrawerJob(String name, LoaderThread loaderThread, TimeInterval loadInterval) {
 			super(name);
 			this.loaderThread = loaderThread;
+			this.loadInterval = loadInterval;
 		}
 
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 			DeltaManager dm = new DeltaManager();
 			dm.start();
+			monitor.beginTask("Loading trace " + currentShownTrace.getAlias(), TOTAL_WORK);
 			try {
 				enableTimeBar(false);
 				PieChartLoaderMap map = currentDescriptor.map;
 				boolean done = false;
 				boolean refreshed = false;
+				long oldLoadedEnd = 0;
+				final long intervalDuration = loadInterval.getDuration();
 				while (!done) {
 					done = map.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!map.isDirty()) {
@@ -600,8 +598,14 @@ public class StatisticsPieChartView extends FramesocPart {
 						logger.debug("Drawer thread cancelled");
 						return Status.CANCEL_STATUS;
 					}
+					oldLoadedEnd = currentDescriptor.interval.endTimestamp;
 					refresh();
 					refreshed = true;
+
+					double delta = currentDescriptor.interval.endTimestamp - oldLoadedEnd;
+					if (delta > 0) {
+						monitor.worked((int) ((delta / intervalDuration) * TOTAL_WORK));
+					}
 				}
 				if (!refreshed) {
 					// refresh at least once when there is no data.
@@ -653,9 +657,13 @@ public class StatisticsPieChartView extends FramesocPart {
 		// create a new loader map
 		currentDescriptor.map = new PieChartLoaderMap();
 
+		// reset the loaded interval in the descriptor
+		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
+		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
+
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
-		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread);
+		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
 
@@ -667,12 +675,13 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @param dataReady
 	 */
 	private void refresh() {
+
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		final PieDataset dataset = loader.getPieDataset(values);
-		final StatisticsTableFolderRow root = loader.getTableDataset(values);
+		final StatisticsTableRow[] roots = loader.getTableDataset(values);
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 
@@ -711,14 +720,14 @@ public class StatisticsPieChartView extends FramesocPart {
 				chartFrame.setLocation(location);
 
 				// update other elements
-				if (!root.hasChildren()) {
+				if (roots.length == 0) {
 					tableTreeViewer.setInput(null);
 				} else {
-					tableTreeViewer.setInput(root);
+					tableTreeViewer.setInput(roots);
 				}
 				tableTreeViewer.expandAll();
-				btnLoad.setEnabled(!currentDescriptor.dirty);
-				btnSynch.setEnabled(false);
+				timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
+				timeBar.getSynchButton().setEnabled(false);
 				if (currentDescriptor.dirty) {
 					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 							currentDescriptor.interval.endTimestamp);
@@ -818,10 +827,8 @@ public class StatisticsPieChartView extends FramesocPart {
 				} else if (this.col.equals(StatisticsTableColumn.PERCENTAGE)) {
 					// percentage comparison 'xx.xx %'
 					NumberFormat format = NumberFormat.getInstance();
-					Double v1 = format.parse(r1.get(this.col).split(" ")[0])
-							.doubleValue();
-					Double v2 = format.parse(r2.get(this.col).split(" ")[0])
-							.doubleValue();
+					Double v1 = format.parse(r1.get(this.col).split(" ")[0]).doubleValue();
+					Double v2 = format.parse(r2.get(this.col).split(" ")[0]).doubleValue();
 					rc = v1.compareTo(v2);
 				} else {
 					// string comparison
@@ -880,7 +887,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		} else {
 			combo.select(0);
-			btnLoad.setEnabled(true);
+			timeBar.getLoadButton().setEnabled(true);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
 			txtDescription.setVisible(true);
 		}

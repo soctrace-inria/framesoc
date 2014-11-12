@@ -39,7 +39,7 @@ public class TreeContentProvider implements ITreeContentProvider {
  
 	@Override
 	public Object[] getElements(Object inputElement) {
-		return getChildren(inputElement);
+		return (Object[])inputElement;
 	}
  
 	@Override

@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
@@ -50,15 +51,17 @@ public class TimeBar {
 	private Button next;
 	private Button all;
 	private Button settings;
+	private Button synch;
+	private Button load;
 	private RangeSlider range;
 
-	public TimeBar(Composite parent, int style) {
+	public TimeBar(Composite parent, int style, boolean hasSynch, boolean hasLoad) {
 
 		this.parent = parent;
 
 		// Time slider bar
 		Composite sliderBar = new Composite(parent, style);
-		GridLayout gl_sliderBar = new GridLayout(5, false);
+		GridLayout gl_sliderBar = new GridLayout(7, false);
 		gl_sliderBar.horizontalSpacing = 1;
 		gl_sliderBar.marginHeight = 0;
 		gl_sliderBar.verticalSpacing = 0;
@@ -91,7 +94,7 @@ public class TimeBar {
 		all.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				setSelection(range.getMinimum(), range.getMaximum());
+				range.setSelection(range.getMinimum(), range.getMaximum(), true);
 			}
 		});
 		all.setToolTipText("Select whole time interval");
@@ -102,6 +105,36 @@ public class TimeBar {
 		settings.setToolTipText("Manual editing");
 		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
 
+		if (hasSynch) {
+			synch = new Button(sliderBar, SWT.NONE);
+			synch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			synch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
+		}
+
+		if (hasLoad) {
+			load = new Button(sliderBar, SWT.NONE);
+			load.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			load.setToolTipText("Draw current selection");
+			load.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+		}
+	}
+
+	/**
+	 * Get the load button. It may be null.
+	 * 
+	 * @return the load button.
+	 */
+	public Button getLoadButton() {
+		return load;
+	}
+
+	/**
+	 * Get the synch button. It may be null.
+	 * 
+	 * @return the synch button
+	 */
+	public Button getSynchButton() {
+		return synch;
 	}
 
 	class NextWindowListener extends SelectionAdapter {
@@ -191,6 +224,15 @@ public class TimeBar {
 	}
 
 	/**
+	 * Get a new time interval corresponding to the current selection
+	 * 
+	 * @return the current selection
+	 */
+	public TimeInterval getSelection() {
+		return new TimeInterval(range.getLowerValue(), range.getUpperValue());
+	}
+
+	/**
 	 * @return the windowSize
 	 */
 	public long getWindowSize() {
@@ -226,6 +268,12 @@ public class TimeBar {
 		all.setEnabled(enabled);
 		settings.setEnabled(enabled);
 		range.setEnabled(enabled);
+		if (synch != null) {
+			synch.setEnabled(enabled);
+		}
+		if (load != null) {
+			load.setEnabled(enabled);
+		}
 	}
 
 	/**
@@ -238,6 +286,17 @@ public class TimeBar {
 	 */
 	public void setSelection(long startTimestamp, long endTimestamp) {
 		range.setSelection(startTimestamp, endTimestamp, false);
+	}
+
+	/**
+	 * Set the selection copying the time interval start and end timestamps without notifying
+	 * listeners
+	 * 
+	 * @param timeInterval
+	 *            the time interval to select
+	 */
+	public void setSelection(TimeInterval timeInterval) {
+		setSelection(timeInterval.startTimestamp, timeInterval.endTimestamp);
 	}
 
 	/**

@@ -14,36 +14,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
+
+import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 
 /**
- * Tree node for folders.
+ * Tree node for categories (folder node for types).
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class FolderNode implements ITreeNode {
+public class CategoryNode implements ITreeNode {
 
-	private String name;
+	private int category;
 	private ITreeNode parent = null;
 	private List<ITreeNode> children = new ArrayList<>();
-	
+
 	/**
 	 * Constructor
-	 * @param name folder label
+	 * 
+	 * @param category
+	 *            the category
 	 */
-	public FolderNode(String name) {
-		this.name = name;
+	public CategoryNode(int category) {
+		this.category = category;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return EventCategory.categoryToString(category);
 	}
 
 	@Override
 	public Image getImage() {
-		return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
+		return null;
 	}
 
 	@Override
@@ -60,10 +62,12 @@ public class FolderNode implements ITreeNode {
 	public ITreeNode getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * Add a child node to the folder.
-	 * @param child a tree node
+	 * 
+	 * @param child
+	 *            a tree node
 	 */
 	public void addChild(ITreeNode child) {
 		children.add(child);
@@ -76,22 +80,27 @@ public class FolderNode implements ITreeNode {
 	public void removeAll() {
 		children.clear();
 	}
-	
+
 	@Override
 	public void setParent(ITreeNode parent) {
-		this.parent = (FolderNode)parent;		
+		this.parent = (CategoryNode) parent;
 	}
 
 	@Override
 	public String toString() {
-		return "FolderNode [name=" + name + ", parent=" + parent + "]";
+		return "EventCategory [name=" + getName() + ", parent="
+				+ ((parent != null) ? parent.getName() : "none") + "]";
+	}
+
+	public int getCategory() {
+		return category;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + category;
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
 		return result;
 	}
@@ -105,13 +114,10 @@ public class FolderNode implements ITreeNode {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof FolderNode))
+		if (getClass() != obj.getClass())
 			return false;
-		FolderNode other = (FolderNode) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		CategoryNode other = (CategoryNode) obj;
+		if (category != other.category)
 			return false;
 		if (parent == null) {
 			if (other.parent != null)

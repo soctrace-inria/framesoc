@@ -13,23 +13,22 @@ package fr.inria.soctrace.framesoc.ui.model;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
- * Trace time interval descriptor.
- * It is used for inter-view communication.
+ * Trace time interval descriptor. It is used for inter-view communication.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class TraceIntervalDescriptor {
-	
+
 	/**
 	 * Trace to be processed
 	 */
 	private Trace trace;
-	
+
 	/**
 	 * Timestamp at which we start processing
 	 */
 	private long startTimestamp;
-	
+
 	/**
 	 * Timestamp at which we end processing
 	 */
@@ -43,7 +42,8 @@ public class TraceIntervalDescriptor {
 	}
 
 	/**
-	 * @param trace the trace to set
+	 * @param trace
+	 *            the trace to set
 	 */
 	public void setTrace(Trace trace) {
 		this.trace = trace;
@@ -57,7 +57,8 @@ public class TraceIntervalDescriptor {
 	}
 
 	/**
-	 * @param startTimestamp the startTimestamp to set
+	 * @param startTimestamp
+	 *            the startTimestamp to set
 	 */
 	public void setStartTimestamp(long startTimestamp) {
 		this.startTimestamp = startTimestamp;
@@ -71,15 +72,37 @@ public class TraceIntervalDescriptor {
 	}
 
 	/**
-	 * @param endTimestamp the endTimestamp to set
+	 * @param endTimestamp
+	 *            the endTimestamp to set
 	 */
 	public void setEndTimestamp(long endTimestamp) {
 		this.endTimestamp = endTimestamp;
 	}
 
+	/**
+	 * Set the time interval
+	 * 
+	 * @param interval
+	 *            time interval to set
+	 */
+	public void setTimeInterval(TimeInterval interval) {
+		this.startTimestamp = interval.startTimestamp;
+		this.endTimestamp = interval.endTimestamp;
+	}
+
+	/**
+	 * Get the time interval
+	 * 
+	 * @return the time interval
+	 */
+	public TimeInterval getTimeInterval() {
+		return new TimeInterval(this.startTimestamp, this.endTimestamp);
+	}
+
 	@Override
 	public String toString() {
-		return "TraceIntervalDescriptor [trace=" + trace.getAlias() + ", startTimestamp=" + startTimestamp + ", endTimestamp=" + endTimestamp + "]";
+		return "TraceIntervalDescriptor [trace=" + trace.getAlias() + ", startTimestamp="
+				+ startTimestamp + ", endTimestamp=" + endTimestamp + "]";
 	}
-		
+
 }

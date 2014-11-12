@@ -85,9 +85,9 @@ public interface IPieChartLoader {
 	 * 
 	 * @param map
 	 *            loaded map
-	 * @return the root folder row
+	 * @return the roots row
 	 * @throws SoCTraceException
 	 */
-	StatisticsTableFolderRow getTableDataset(Map<String, Double> values);
+	StatisticsTableRow[] getTableDataset(Map<String, Double> values);
 
 }

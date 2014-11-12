@@ -313,7 +313,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			}
 		}
 	}
-
+	
 	/**
 	 * Method called in the handle() method of this base class.
 	 * 

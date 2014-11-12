@@ -46,7 +46,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
@@ -70,6 +69,7 @@ import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
@@ -126,16 +126,6 @@ public final class EventTableView extends FramesocPart {
 	private TimeBar timeBar;
 
 	/**
-	 * Synch time bar with table
-	 */
-	private Button btnSynch;
-
-	/**
-	 * Draw current selected time interval
-	 */
-	private Button btnDraw;
-
-	/**
 	 * Start timestamp currently loaded
 	 */
 	private long startTimestamp;
@@ -190,7 +180,7 @@ public final class EventTableView extends FramesocPart {
 	public void createFramesocPartControl(Composite parent) {
 
 		setContentDescription("Trace: <no trace displayed>");
-		
+
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
 		gl_parent.verticalSpacing = 2;
@@ -273,6 +263,7 @@ public final class EventTableView extends FramesocPart {
 		manager.add(new Separator());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 		enableActions(false);
 
 		// -------------
@@ -298,33 +289,25 @@ public final class EventTableView extends FramesocPart {
 
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
 		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		timeComposite.setLayout(new GridLayout(3, false));
+		GridLayout gl_timeComposite = new GridLayout(1, false);
+		gl_timeComposite.horizontalSpacing = 0;
+		timeComposite.setLayout(gl_timeComposite);
 		// time manager
-		timeBar = new TimeBar(timeComposite, SWT.NONE);
+		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		timeBar.setEnabled(false);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
-
 		// button to synch the timeline with the table
-		btnSynch = new Button(timeComposite, SWT.NONE);
-		btnSynch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnSynch.setToolTipText("Synch with table");
-		btnSynch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
-		btnSynch.setEnabled(false);
-		btnSynch.addSelectionListener(new SelectionAdapter() {
+		timeBar.getSynchButton().setToolTipText("Synch with table");
+		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				timeBar.setSelection(startTimestamp, endTimestamp);
 			}
 		});
-
 		// draw button
-		btnDraw = new Button(timeComposite, SWT.NONE);
-		btnDraw.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnDraw.setToolTipText("Draw current selection");
-		btnDraw.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
-		btnDraw.setEnabled(false);
-		btnDraw.addSelectionListener(new SelectionAdapter() {
+		timeBar.getLoadButton().setToolTipText("Draw current selection");
+		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				showWindow(currentShownTrace, timeBar.getStartTimestamp(),
@@ -546,6 +529,15 @@ public final class EventTableView extends FramesocPart {
 		return sb.toString();
 	}
 
+	private TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
 	private TraceIntervalAction createGanttAction() {
 		return new GanttTraceIntervalAction() {
 			@Override
@@ -671,7 +663,7 @@ public final class EventTableView extends FramesocPart {
 		if (trace.equals(currentShownTrace) && cache.contains(interval)) {
 			cache.index(interval);
 			table.clearAll();
-			table.setItemCount(cache.getIndexedRowCount()+1); // +1 for header
+			table.setItemCount(cache.getIndexedRowCount() + 1); // +1 for header
 			table.refresh();
 			table.setSelection(0);
 			startTimestamp = interval.startTimestamp;
@@ -852,11 +844,9 @@ public final class EventTableView extends FramesocPart {
 				@Override
 				public void run() {
 					filterEnabled = enabled;
-					if (btnSynch.isDisposed() || btnDraw.isDisposed() || timeBar.isDisposed()) {
+					if (timeBar.isDisposed()) {
 						return;
 					}
-					btnSynch.setEnabled(enabled);
-					btnDraw.setEnabled(enabled);
 					timeBar.setEnabled(enabled);
 					enableActions(enabled);
 				}
