@@ -115,7 +115,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  */
 public class HistogramView extends FramesocPart {
 
-	private class ConfigurationData {
+	private static class ConfigurationData {
 		ConfigurationDimension dimension;
 		FilteredCheckboxTree tree;
 		ITreeNode[] roots;
@@ -196,6 +196,11 @@ public class HistogramView extends FramesocPart {
 	 * Time bar
 	 */
 	private TimeBar timeBar;
+
+	/**
+	 * Last requested interval
+	 */
+	private TimeInterval requestedInterval;
 
 	/**
 	 * Current loaded interval
@@ -639,6 +644,7 @@ public class HistogramView extends FramesocPart {
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
+		requestedInterval = new TimeInterval(interval);
 
 		Thread showThread = new Thread() {
 			@Override
@@ -745,10 +751,8 @@ public class HistogramView extends FramesocPart {
 			try {
 				disableButtons();
 				boolean done = false;
-				boolean refreshed = false;
+				boolean first = true;
 				long oldLoadedEnd = 0;
-				final long traceDuration = currentShownTrace.getMaxTimestamp()
-						- currentShownTrace.getMinTimestamp(); // FIXME interval to load here
 				while (!done) {
 					done = dataset.waitUntilDone(BUILD_UPDATE_TIMEOUT);
 					if (!dataset.isDirty()) {
@@ -757,20 +761,23 @@ public class HistogramView extends FramesocPart {
 					if (monitor.isCanceled()) {
 						loaderThread.cancel();
 						logger.debug("Drawer thread cancelled");
+						// refresh one last time
+						refresh(first, true);
+						first = false;
 						return Status.CANCEL_STATUS;
 					}
 					oldLoadedEnd = loadedInterval.endTimestamp;
-					refresh(!refreshed);
-					refreshed = true;
+					refresh(first, false);
+					first = false;
 
 					double delta = loadedInterval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
-						monitor.worked((int) ((delta / traceDuration) * TOTAL_WORK));
+						monitor.worked((int) ((delta / requestedInterval.getDuration()) * TOTAL_WORK));
 					}
 				}
-				if (!refreshed) {
+				if (first) {
 					// refresh at least once when there is no data.
-					refresh(true);
+					refresh(first, false);
 				}
 				return Status.OK_STATUS;
 			} finally {
@@ -814,11 +821,18 @@ public class HistogramView extends FramesocPart {
 	 * @param first
 	 *            flag indicating if it is the first refresh for a given load
 	 */
-	private void refresh(final boolean first) {
+	private void refresh(final boolean first, final boolean cancelled) {
 		// prepare chart
 		DeltaManager dm = new DeltaManager();
 		dm.start();
+		// get the last snapshot
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
+		// if we have not been cancelled, the x range corresponds to the requested interval
+		final TimeInterval histogramInterval = new TimeInterval(requestedInterval);
+		if (cancelled) {
+			// we have been cancelled, the x range corresponds to the actual loaded interval
+			histogramInterval.copy(loadedInterval);
+		}
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
 		// Customization
@@ -837,8 +851,7 @@ public class HistogramView extends FramesocPart {
 		// x tick format
 		xaxis.setNumberFormatOverride(X_FORMAT);
 		// x tick units
-		double unit = (currentShownTrace.getMaxTimestamp() - currentShownTrace.getMinTimestamp()) / 10.0;
-		xaxis.setTickUnit(new NumberTickUnit(unit));
+		xaxis.setTickUnit(new NumberTickUnit((histogramInterval.getDuration() / 10.0)));
 		xaxis.addChangeListener(new AxisChangeListener() {
 			@Override
 			public void axisChanged(AxisChangeEvent arg) {
@@ -874,8 +887,8 @@ public class HistogramView extends FramesocPart {
 					@Override
 					public void restoreAutoBounds() {
 						// restore domain axis to trace range when dezooming
-						plot.getDomainAxis().setRange(currentShownTrace.getMinTimestamp(),
-								currentShownTrace.getMaxTimestamp());
+						plot.getDomainAxis().setRange(histogramInterval.startTimestamp,
+								histogramInterval.endTimestamp);
 					}
 				};
 				// - size
@@ -888,8 +901,8 @@ public class HistogramView extends FramesocPart {
 				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets
 						.getBottom(), 25));
 				// - time bounds
-				plot.getDomainAxis().setLowerBound(currentShownTrace.getMinTimestamp());
-				plot.getDomainAxis().setUpperBound(currentShownTrace.getMaxTimestamp());
+				plot.getDomainAxis().setLowerBound(histogramInterval.startTimestamp);
+				plot.getDomainAxis().setUpperBound(histogramInterval.endTimestamp);
 				// producers and types
 				if (first) {
 					for (ConfigurationData data : configurationMap.values()) {

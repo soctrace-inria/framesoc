@@ -296,7 +296,7 @@ public class TimeBar {
 	 *            the time interval to select
 	 */
 	public void setSelection(TimeInterval timeInterval) {
-		range.setSelection(timeInterval.startTimestamp, timeInterval.endTimestamp, false);
+		setSelection(timeInterval.startTimestamp, timeInterval.endTimestamp);
 	}
 
 	/**
