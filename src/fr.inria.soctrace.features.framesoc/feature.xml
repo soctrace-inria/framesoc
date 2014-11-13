@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="fr.inria.soctrace.features.framesoc"
-      label="Framesoc Infrastructure"
+      label="Framesoc"
       version="1.0.0.qualifier"
       provider-name="INRIA"
       plugin="fr.inria.soctrace.framesoc.brand">
