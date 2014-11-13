@@ -8,17 +8,17 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<artifactId>fr.inria.soctrace.maven.master</artifactId>
-		<groupId>fr.inria.soctrace.maven</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../fr.inria.soctrace.maven.master</relativePath>
-	</parent>
-
+	<name>Linux Tools State System Core Plug-in</name>
 	<artifactId>fr.inria.linuxtools.statesystem.core</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Linux Tools State System Core Plug-in</name>
+	<parent>
+		<groupId>fr.inria.soctrace.maven</groupId>
+		<artifactId>fr.inria.soctrace.maven.master</artifactId>
+		<relativePath>../fr.inria.soctrace.maven.master</relativePath>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -34,5 +34,4 @@
 		</plugins>
 	</build>
 
-	<version>3.0.0-SNAPSHOT</version>
 </project>
