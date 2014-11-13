@@ -14,17 +14,15 @@ This archive contains:
   In details, the feature contained are:
   - Framesoc binary feature
   - Framesoc source feature
-  - Framesoc Tools feature
-  - Framesoc Tools source feature 
 
-  The tools features contain three simple importer tools for the following formats:
-  - gstreamer  
-  - pjdump
-  These features contain also two tools enabling the import/export of traces already
+  These features contain two tools enabling the import/export of traces already
   in Framesoc DB format:
   - Framesoc DB Exporter
   - Framesoc DB Importer
 
+  To have other importers, please install the framesoc.importers feature:
+  https://github.com/soctrace-inria/framesoc.importers
+  
   All the license files are included in the feature, as specified by the 
   Eclipse guidelines: http://www.eclipse.org/legal/guidetolegaldoc.php
 
