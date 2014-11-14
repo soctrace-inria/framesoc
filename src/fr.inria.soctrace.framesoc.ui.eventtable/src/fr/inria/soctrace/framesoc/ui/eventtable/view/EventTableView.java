@@ -72,7 +72,6 @@ import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
-import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
@@ -529,34 +528,7 @@ public final class EventTableView extends FramesocPart {
 		return sb.toString();
 	}
 
-	private TraceIntervalAction createHistogramAction() {
-		return new HistogramTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-
-	private TraceIntervalAction createGanttAction() {
-		return new GanttTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-
-	private TraceIntervalAction createPieAction() {
-		return new PieTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-
-	private TraceIntervalDescriptor getIntervalDescriptor() {
+	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null)
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();

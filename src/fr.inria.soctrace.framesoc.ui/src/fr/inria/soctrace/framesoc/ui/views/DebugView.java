@@ -37,10 +37,10 @@ public class DebugView extends FramesocPart {
 
 	public static final String ID = "fr.inria.soctrace.framesoc.ui.views.DebugView"; //$NON-NLS-1$
 	private Label label;
-	
+
 	@Override
 	public void createFramesocPartControl(Composite parent) {
-		
+
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(1, false));
 		Button btnNewButton = new Button(composite, SWT.NONE);
@@ -48,23 +48,24 @@ public class DebugView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Trace t = TraceSelection.getCurrentSelectedTrace();
-				if (t==null) {
+				if (t == null) {
 					System.out.println("Select a trace!");
 					return;
 				}
-				OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(ID, null);
-				if (status.part!=null)
+				OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(
+						ID, null);
+				if (status.part != null)
 					status.part.showTrace(TraceSelection.getCurrentSelectedTrace(), null);
-				else 
+				else
 					MessageDialog.openError(getSite().getShell(), "Error", status.message);
 			}
 		});
 		btnNewButton.setText("Fake load");
-		
+
 		label = new Label(composite, SWT.NONE);
 		label.setText("                                                                       ");
-		
-		setContentDescription("View secondary ID: " + getViewSite().getSecondaryId());			
+
+		setContentDescription("View secondary ID: " + getViewSite().getSecondaryId());
 	}
 
 	@Override
@@ -73,20 +74,20 @@ public class DebugView extends FramesocPart {
 	}
 
 	@Override
-	public void dispose() {		
+	public void dispose() {
 		super.dispose();
 	}
-	
+
 	@Override
 	public String getId() {
 		return ID;
 	}
 
 	@Override
-	public void showTrace(Trace trace, Object data) {		
+	public void showTrace(Trace trace, Object data) {
 		currentShownTrace = trace;
 		label.setText(currentShownTrace.getAlias());
-		setContentDescription("View secondary ID: " + getViewSite().getSecondaryId());			
+		setContentDescription("View secondary ID: " + getViewSite().getSecondaryId());
 	}
 
 }

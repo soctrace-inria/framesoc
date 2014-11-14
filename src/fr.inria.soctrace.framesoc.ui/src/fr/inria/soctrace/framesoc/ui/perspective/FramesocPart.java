@@ -30,6 +30,12 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopicList;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
 import fr.inria.soctrace.framesoc.core.bus.IFramesocBusListener;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
+import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.TraceQuery;
@@ -313,7 +319,59 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			}
 		}
 	}
-	
+
+	protected TraceIntervalAction createTableAction() {
+		return new TableTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	protected TraceIntervalAction createGanttAction() {
+		return new GanttTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	protected TraceIntervalAction createPieAction() {
+		return new PieTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	protected TraceIntervalAction createHistogramAction() {
+		return new HistogramTraceIntervalAction() {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
+	/**
+	 * Return the trace interval descriptor corresponding to the current shown interval. The base
+	 * class implementation returns the current shown trace and the whole trace duration.
+	 * 
+	 * @return the trace interval descriptor for the current shown interval
+	 */
+	protected TraceIntervalDescriptor getIntervalDescriptor() {
+		if (currentShownTrace == null)
+			return null;
+		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(currentShownTrace.getMinTimestamp());
+		des.setEndTimestamp(currentShownTrace.getMaxTimestamp());
+		return des;
+	}
+
 	/**
 	 * Method called in the handle() method of this base class.
 	 * 

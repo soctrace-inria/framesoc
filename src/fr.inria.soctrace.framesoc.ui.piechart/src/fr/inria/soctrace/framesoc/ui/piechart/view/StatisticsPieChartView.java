@@ -63,7 +63,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -71,7 +70,6 @@ import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
-import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -426,34 +424,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	}
 
-	private TraceIntervalAction createTableAction() {
-		return new TableTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-
-	private TraceIntervalAction createGanttAction() {
-		return new GanttTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-	
-	private TraceIntervalAction createHistogramAction() {
-		return new HistogramTraceIntervalAction() {
-			@Override
-			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
-				return getIntervalDescriptor();
-			}
-		};
-	}
-
-	private TraceIntervalDescriptor getIntervalDescriptor() {
+	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dirty)
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
