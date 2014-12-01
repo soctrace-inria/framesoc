@@ -281,6 +281,9 @@ public class ManageColorsDialog extends Dialog {
     @Override
     protected void cancelPressed() {
     	loadColors();
+    	ColorsChangeDescriptor des = new ColorsChangeDescriptor();
+    	des.setEntity(entity);
+    	FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
     	super.cancelPressed();
     }
     
