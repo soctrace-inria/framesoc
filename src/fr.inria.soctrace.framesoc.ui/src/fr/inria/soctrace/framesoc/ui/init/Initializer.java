@@ -108,9 +108,8 @@ public enum Initializer {
 	}
 
 	/**
-	 * Manage Framesoc tools registering all the plugin tools in the runtime not
-	 * yet registered, and removing all the plugin tools registered but not
-	 * present in the runtime.
+	 * Manage Framesoc tools registering all the plugin tools in the runtime not yet registered, and
+	 * removing all the plugin tools registered but not present in the runtime.
 	 */
 	public void manageTools(Shell shell) {
 
@@ -134,17 +133,21 @@ public enum Initializer {
 				if (!t.isPlugin())
 					continue;
 				if (!runMap.containsKey(t.getName())) {
-					boolean remove = MessageDialog.openQuestion(shell, "Missing tool", "The tool "
-							+ t.getName()
-							+ " is no longer present in the current Eclipse runtime.\n"
-							+ "Do you want to remove it and all its results (if any)?");
+					boolean remove = true;
+					boolean ask = Configuration.getInstance()
+							.get(SoCTraceProperty.ask_for_tool_removal).equals("true");
+					if (ask) {
+						remove = MessageDialog.openQuestion(shell, "Missing tool",
+								"The tool " + t.getName()
+										+ " is no longer present in the current Eclipse runtime.\n"
+										+ "Do you want to remove it and all its results (if any)?");
+					}
 					if (remove) {
 						// unregister
 						logger.debug("Unregister tool " + t.getName()
 								+ " because no longer present");
 						FramesocManager.getInstance().removeTool(t);
 					}
-
 				}
 			}
 
@@ -166,8 +169,7 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing, removing them if
-	 * it is not the case.
+	 * Check if all the registered TraceDBs are still existing, removing them if it is not the case.
 	 */
 	public void manageDatabases() {
 
