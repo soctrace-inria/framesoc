@@ -98,6 +98,32 @@ public class FramesocColorManager {
 	}	
 	
 	/**
+	 * Add the event type colors that are NOT already known to
+	 * the system. 
+	 * 
+	 * This method is used by importers to set default colors.
+	 * 
+	 * @param colors map between event type names and colors
+	 */
+	public void addEventTypeColors(Map<String, FramesocColor> colors) {
+		addColors(colors, etColors);
+		updateFile(etColors, ET_FILE);
+	}
+
+	/**
+	 * Add the event producer colors that are NOT already known to
+	 * the system. 
+	 * 
+	 * This method is used by importers to set default colors.
+	 * 
+	 * @param colors map between event producer names and colors
+	 */
+	public void addEventProducerColors(Map<String, FramesocColor> colors) {
+		addColors(colors, epColors);
+		updateFile(epColors, EP_FILE);
+	}
+
+	/**
 	 * Get the event type color, given the name.
 	 * @param name event type name, defined as the return of {@link EventType#getName()}
 	 * @return the event type color
@@ -244,6 +270,16 @@ public class FramesocColorManager {
 		return builder.toString();
 	}
 		
+	private void addColors(Map<String, FramesocColor> newColors,
+			Map<String, FramesocColor> colors) {
+		for (String newName: newColors.keySet()) {
+			if (!colors.containsKey(newName)) {
+				colors.put(newName, newColors.get(newName));
+				setDirty(colors, true);
+			}
+		}
+	}
+	
 	private FramesocColor getColor(String name, Map<String, FramesocColor> colors) {
 		if (!colors.containsKey(name)) {
 			colors.put(name, FramesocColor.generateFramesocColor(name));
