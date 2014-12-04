@@ -246,7 +246,7 @@ public class FramesocColorManager {
 		
 	private FramesocColor getColor(String name, Map<String, FramesocColor> colors) {
 		if (!colors.containsKey(name)) {
-			colors.put(name, getRandomColor());
+			colors.put(name, FramesocColor.generateFramesocColor(name));
 			setDirty(colors, true);
 		}
 		return colors.get(name);
@@ -342,10 +342,6 @@ public class FramesocColorManager {
 	
 	private String getString(FramesocColor color) {
 		return color.red + SEPARATOR + color.green + SEPARATOR + color.blue;
-	}
-	
-	private FramesocColor getRandomColor() {
-		return new FramesocColor((int) (Math.random()*255), (int) (Math.random()*255), (int) (Math.random()*255));
 	}
 	
 	private void disposeColors(Map<String, FramesocColor> colors) {
