@@ -278,6 +278,8 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				cleanFilter();
+				refreshFilter();
 				refresh();
 			}
 		});
@@ -313,16 +315,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		textFilter.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == SWT.CR) {
-					if (nameFilter == null || tableTreeViewer == null || statusText == null)
-						return;
-					if (currentDescriptor == null || currentDescriptor.map == null)
-						return;
-					nameFilter.setSearchText(textFilter.getText());
-					tableTreeViewer.refresh();
-					tableTreeViewer.expandAll();
-					logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
-					statusText.setText(getStatus(currentDescriptor.map.size(),
-							getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
+					refreshFilter();
 				}
 			}
 		});
@@ -407,6 +400,8 @@ public class StatisticsPieChartView extends FramesocPart {
 				if (combo.getSelectionIndex() == -1)
 					return;
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				cleanFilter();
+				refreshFilter();
 				loadPieChart();
 			}
 		});
@@ -640,6 +635,24 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	}
 
+	private void cleanFilter() {
+		textFilter.setText("");
+	}
+
+	private void refreshFilter() {
+		if (nameFilter == null || tableTreeViewer == null || statusText == null)
+			return;
+		if (currentDescriptor == null || currentDescriptor.map == null)
+			return;
+		nameFilter.setSearchText(textFilter.getText());
+		tableTreeViewer.refresh();
+		tableTreeViewer.expandAll();
+		logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
+		statusText.setText(getStatus(currentDescriptor.map.size(),
+				getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
+
+	}
+
 	/**
 	 * Refresh the UI using the current trace and the current descriptor.
 	 * 
@@ -742,7 +755,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		plot.setSectionOutlinesVisible(false);
 		plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
 		plot.setNoDataMessage("No data available "
-				+ (dataRequested ? "in this time interval" : "yet"));
+				+ (dataRequested ? "in this time interval" : "yet. Press the Load button."));
 		plot.setCircular(true);
 		plot.setLabelGenerator(null); // hide labels
 		plot.setBackgroundPaint(Color.WHITE);
