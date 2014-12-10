@@ -28,12 +28,16 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -53,6 +57,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.themes.ColorUtil;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
@@ -122,6 +127,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	public static final boolean HAS_TOOLTIPS = true;
 	public static final boolean HAS_URLS = true;
 	public static final boolean USE_BUFFER = true;
+
+	/**
+	 * Hint for filter row
+	 */
+	private static final String FILTER_HINT = "<Name filter>";
 
 	/**
 	 * Loader data
@@ -217,6 +227,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private StatisticsTableRowFilter nameFilter;
 
+	// SWT resources
+	private LocalResourceManager resourceManager = new LocalResourceManager(
+			JFaceResources.getResources());
+	private org.eclipse.swt.graphics.Color grayColor;
+	private org.eclipse.swt.graphics.Color blackColor;
+
 	/**
 	 * Constructor
 	 */
@@ -238,7 +254,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
-
 		setContentDescription("Trace: <no trace displayed>");
 
 		// parent layout
@@ -311,10 +326,32 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// filter
 		textFilter = new Text(compositeTable, SWT.BORDER);
+		cleanFilter();
 		textFilter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		textFilter.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				String filter = textFilter.getText().trim();
+				if (filter.isEmpty()) {
+					cleanFilter();
+				}
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				String filter = textFilter.getText().trim();
+				if (filter.equals(FILTER_HINT)) {
+					textFilter.setText("");
+					textFilter.setData("");
+					textFilter.setForeground(blackColor);
+				}
+			}
+		});
 		textFilter.addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.keyCode == SWT.CR) {
+				if (e.keyCode == SWT.CR || textFilter.getText().trim().isEmpty()) {
+					textFilter.setData(textFilter.getText());
 					refreshFilter();
 				}
 			}
@@ -417,6 +454,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 		enableActions(false);
 
+		// create SWT resources
+		createResources();
+
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
@@ -440,6 +480,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	// GUI creation
+
+	private void createResources() {
+		grayColor = resourceManager.createColor(ColorUtil.blend(tableTreeViewer.getTree()
+				.getBackground().getRGB(), tableTreeViewer.getTree().getForeground().getRGB()));
+		blackColor = tableTreeViewer.getTree().getDisplay().getSystemColor(SWT.COLOR_BLACK);
+	}
 
 	private String getStatus(int events, int matched) {
 		StringBuilder sb = new StringBuilder();
@@ -636,7 +682,9 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private void cleanFilter() {
-		textFilter.setText("");
+		textFilter.setText(FILTER_HINT);
+		textFilter.setData("");
+		textFilter.setForeground(grayColor);
 	}
 
 	private void refreshFilter() {
@@ -644,13 +692,15 @@ public class StatisticsPieChartView extends FramesocPart {
 			return;
 		if (currentDescriptor == null || currentDescriptor.map == null)
 			return;
-		nameFilter.setSearchText(textFilter.getText());
-		tableTreeViewer.refresh();
-		tableTreeViewer.expandAll();
-		logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
-		statusText.setText(getStatus(currentDescriptor.map.size(),
-				getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
-
+		String data = (String) textFilter.getData();
+		if (data != null) {
+			nameFilter.setSearchText(data);
+			tableTreeViewer.refresh();
+			tableTreeViewer.expandAll();
+			logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
+			statusText.setText(getStatus(currentDescriptor.map.size(),
+					getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
+		}
 	}
 
 	/**
