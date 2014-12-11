@@ -48,7 +48,6 @@ public interface IFramesocTool {
 	public class ParameterCheckStatus {
 		public boolean valid = true;
 		public String message = "";
-
 		public ParameterCheckStatus(boolean valid, String message) {
 			this.valid = valid;
 			this.message = message;

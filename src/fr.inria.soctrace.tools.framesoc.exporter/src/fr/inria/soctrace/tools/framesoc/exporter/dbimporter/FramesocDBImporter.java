@@ -396,14 +396,14 @@ public class FramesocDBImporter extends FramesocTool {
 
 		if (!file.endsWith(".db")) {
 			status.valid = false;
-			status.message = "The provided file does not end with '.db'";
+			status.message = "The provided file does not end with '.db'.";
 			return status;
 		}
 
 		File f = new File(file);
 		if (!f.exists()) {
 			status.valid = false;
-			status.message = "The provided file does not exist";
+			status.message = "The provided file does not exist.";
 			return status;			
 		}
 
