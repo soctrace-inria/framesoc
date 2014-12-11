@@ -171,7 +171,7 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
     	IFramesocTool tool = getToolLauncher();
     	if (tool == null)
     		return true;
-    	return tool.canLaunch(getArgs()); 
+    	return tool.canLaunch(getArgs()).valid; 
     }
     	
 	private IFramesocTool getToolLauncher() {

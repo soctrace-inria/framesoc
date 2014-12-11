@@ -43,8 +43,8 @@ public class FramesocDBExporter extends FramesocTool {
 	}
 	
 	@Override 
-	public boolean canLaunch(String[] args) {
-		return true;
+	public ParameterCheckStatus canLaunch(String[] args) {
+		return new ParameterCheckStatus(true, "");
 	}
 
 }

@@ -119,6 +119,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
         		docText.setText(toolsMap.get(importerNameCombo.getText()).getDoc());
+        		updateOk();
         	}
 		});
 
@@ -185,12 +186,12 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
         docText.setText(toolsMap.get(importerNameCombo.getText()).getDoc());
         
         groupMessage = new Group(composite, SWT.V_SCROLL);
-        groupMessage.setText("Message");
+        groupMessage.setText("Error message");
         groupMessage.setLayout(new GridLayout(1, false));
-        groupMessage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        message = new Label(groupMessage, SWT.BORDER | SWT.WRAP | SWT.HORIZONTAL);
+        groupMessage.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        message = new Label(groupMessage, SWT.WRAP);
         message.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
+        
         return composite;
     }	
     
@@ -202,7 +203,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		createButton(parent, IDialogConstants.CANCEL_ID,
 				IDialogConstants.CANCEL_LABEL, false);
 		// OK enabled only if the Framesoc tool says so
-		getButton(IDialogConstants.OK_ID).setEnabled(canLaunch().valid);
+        updateOk();
 	}
 	
     private ParameterCheckStatus canLaunch() {
@@ -245,7 +246,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	}
 	
 	protected Point getInitialSize() {
-		return new Point(625, 500);
+		return new Point(625, 450);
 	}
 
 	@Override
@@ -255,6 +256,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 			return;
 		ParameterCheckStatus status = canLaunch();
 		message.setText(status.message);
+		message.setToolTipText(status.message);
 		ok.setEnabled(status.valid);
 	}
 

@@ -28,8 +28,8 @@ public abstract class FramesocTool implements IFramesocTool {
 	public abstract void launch(String[] args);
 
 	@Override
-	public boolean canLaunch(String[] args) {
-		return true;
+	public ParameterCheckStatus canLaunch(String[] args) {
+		return new ParameterCheckStatus(true, "");
 	}
 
 	/**
