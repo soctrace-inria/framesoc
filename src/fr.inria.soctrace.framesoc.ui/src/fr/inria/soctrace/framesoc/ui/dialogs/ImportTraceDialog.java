@@ -13,6 +13,8 @@ package fr.inria.soctrace.framesoc.ui.dialogs;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -36,6 +38,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ArgumentsManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool.ParameterCheckStatus;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.Portability;
@@ -71,6 +74,8 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
     private Text otherArgsText;
 	private Label docLabel;
 	private Text docText;
+	private Group groupMessage;
+	private Label message;
 
 	public ImportTraceDialog(Shell parentShell, List<Tool> tools) throws SoCTraceException {
 		super(parentShell);
@@ -146,7 +151,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
         			String filter = dlg.getFilterPath();
         			for (int i=0; i<names.length; ++i) {
         				String name = Portability.normalize(filter + "/" + names[i]);
-        				traceFileText.append(name + " ");
+        				traceFileText.append("\"" + name + "\" ");
         			}
         		}
         	}
@@ -178,6 +183,13 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
         data = new GridData(GridData.FILL_BOTH);
         docText.setLayoutData(data);
         docText.setText(toolsMap.get(importerNameCombo.getText()).getDoc());
+        
+        groupMessage = new Group(composite, SWT.V_SCROLL);
+        groupMessage.setText("Message");
+        groupMessage.setLayout(new GridLayout(1, false));
+        groupMessage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        message = new Label(groupMessage, SWT.BORDER | SWT.WRAP | SWT.HORIZONTAL);
+        message.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         return composite;
     }	
@@ -190,16 +202,21 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		createButton(parent, IDialogConstants.CANCEL_ID,
 				IDialogConstants.CANCEL_LABEL, false);
 		// OK enabled only if the Framesoc tool says so
-		getButton(IDialogConstants.OK_ID).setEnabled(canLaunch());
+		getButton(IDialogConstants.OK_ID).setEnabled(canLaunch().valid);
 	}
 	
-    private boolean canLaunch() {
+    private ParameterCheckStatus canLaunch() {
+    	ParameterCheckStatus status = new ParameterCheckStatus(false, "");
     	Tool t = getTool();
-    	if (t == null)
-    		return true;
+    	if (t == null) {
+    		status.message = "Importer not existing";
+    		return status;
+    	}
     	IFramesocTool tool = getToolLauncher();
-    	if (tool == null)
-    		return true;
+    	if (tool == null) {
+    		status.message = "Importer not existing";
+    		return status;
+    	}
     	return tool.canLaunch(getArgs()); 
     }
     	
@@ -210,7 +227,14 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	private String[] getTraceFiles() {
 		if (traceFileListener.getText().matches("\\s*"))
 			return EMPTY_STRING_ARRAY;
-		String[] tokens = traceFileListener.getText().split("\\s+");
+		String[] tokens = traceFileListener.getText().split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+		Pattern pattern = Pattern.compile("^\"(.*)\"$");
+		for (int i=0; i<tokens.length; i++) {
+			Matcher matcher = pattern.matcher(tokens[i]);
+			if (matcher.find()) {
+			    tokens[i] = matcher.group(1);
+			}
+		}
 		return tokens;
 	}
 
@@ -221,7 +245,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	}
 	
 	protected Point getInitialSize() {
-		return new Point(625, 407);
+		return new Point(625, 500);
 	}
 
 	@Override
@@ -229,7 +253,9 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		Button ok = getButton(IDialogConstants.OK_ID);
 		if (ok == null)
 			return;
-		ok.setEnabled(canLaunch());
+		ParameterCheckStatus status = canLaunch();
+		message.setText(status.message);
+		ok.setEnabled(status.valid);
 	}
 
 	public Tool getTool() {
@@ -252,5 +278,4 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		
 		return args;
 	}
-
 }
