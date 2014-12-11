@@ -246,7 +246,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	}
 	
 	protected Point getInitialSize() {
-		return new Point(625, 450);
+		return new Point(625, 465);
 	}
 
 	@Override

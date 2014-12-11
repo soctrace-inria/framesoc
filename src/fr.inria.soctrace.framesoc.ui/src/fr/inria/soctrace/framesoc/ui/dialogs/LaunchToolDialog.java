@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Text;
 import fr.inria.soctrace.framesoc.core.tools.management.ArgumentsManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool.ParameterCheckStatus;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -64,6 +65,8 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
     private Text argsText;
     private Text docText;
     private Label docLabel;
+    private Group group;
+    private Label message;
 
 	public LaunchToolDialog(Shell parentShell, List<Tool> tools) throws SoCTraceException {
 		super(parentShell);
@@ -108,6 +111,7 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
         		docText.setText(toolsMap.get(toolCombo.getText()).getDoc());
+        		updateOk();
         	}
 		});
         
@@ -137,6 +141,16 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
         data = new GridData(GridData.FILL_BOTH);
         docText.setLayoutData(data);
         docText.setText(toolsMap.get(toolCombo.getText()).getDoc());
+        
+        group = new Group(composite, SWT.NONE);
+        group.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        group.setText("Error message");
+        group.setLayout(new GridLayout(1, false));
+        
+        message = new Label(group, SWT.WRAP);
+        message.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        message.setToolTipText("");
+        message.setText("");
 
         return composite;
     }	
@@ -150,7 +164,7 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
 	}
 
 	protected Point getInitialSize() {
-		return new Point(517, 360);
+		return new Point(625, 465);
 	}
 	
     @Override
@@ -161,29 +175,36 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
 		createButton(parent, IDialogConstants.CANCEL_ID,
 				IDialogConstants.CANCEL_LABEL, false);
 		// OK enabled only if the Framesoc tool says so
-		getButton(IDialogConstants.OK_ID).setEnabled(canLaunch());
+		updateOk();
 	}
 	
-    private boolean canLaunch() {
+    private ParameterCheckStatus canLaunch() {
+    	ParameterCheckStatus status = new ParameterCheckStatus(false, "");
     	Tool t = getTool();
-    	if (t == null)
-    		return true;
+    	if (t == null) {
+    		status.message = "Tool not existing";
+    		return status;
+    	}
     	IFramesocTool tool = getToolLauncher();
-    	if (tool == null)
-    		return true;
-    	return tool.canLaunch(getArgs()).valid; 
+    	if (tool == null) {
+    		status.message = "Tool not existing";
+    		return status;
+    	}
+    	return tool.canLaunch(getArgs()); 
     }
     	
 	private IFramesocTool getToolLauncher() {
 		return fsToolsMap.get(toolListener.getText());
 	}
-
+	
 	@Override
 	public void updateOk() {
 		Button ok = getButton(IDialogConstants.OK_ID);
 		if (ok == null)
 			return;
-		ok.setEnabled(canLaunch());
+		ParameterCheckStatus status = canLaunch();
+		message.setText(status.message);
+		message.setToolTipText(status.message);
+		ok.setEnabled(status.valid);
 	}
-
 }
