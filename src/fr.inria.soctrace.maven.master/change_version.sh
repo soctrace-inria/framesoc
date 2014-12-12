@@ -10,7 +10,7 @@ fi
 NEW=$1
 
 FEATURE="../fr.inria.soctrace.features.framesoc/feature.xml"
-CATEGORY=""
+CATEGORY="../fr.inria.soctrace.maven.repository/category.xml"
 
 BV="Bundle-Version:.*.qualifier"
 NBV="Bundle-Version: ${NEW}.qualifier"
@@ -25,10 +25,9 @@ mv tmp $FEATURE
 rm $FEATURE.bkp
 
 echo "Updating repository category.xml"
-sed s/"_.*.qualifier"/"_${NEW}.qualifier"/ <$CATEGORY > tmp
+sed s/"\_.*.qualifier.jar"/"\_${NEW}.qualifier.jar"/ <$CATEGORY > tmp
 sed s/"version=\".*.qualifier\""/"version=\"${NEW}.qualifier\""/ <tmp > $CATEGORY
 rm tmp
 
-exit
 echo "Update pom.xml in all modules"
 mvn versions:set -DnewVersion="${NEW}-SNAPSHOT" -DgenerateBackupPoms=false
