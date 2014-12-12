@@ -24,6 +24,11 @@ mv $FEATURE $FEATURE.bkp
 mv tmp $FEATURE
 rm $FEATURE.bkp
 
+echo "Updating repository category.xml"
+sed s/"_.*.qualifier"/"_${NEW}.qualifier"/ <$CATEGORY > tmp
+sed s/"version=\".*.qualifier\""/"version=\"${NEW}.qualifier\""/ <tmp > $CATEGORY
+rm tmp
+
 exit
 echo "Update pom.xml in all modules"
 mvn versions:set -DnewVersion="${NEW}-SNAPSHOT" -DgenerateBackupPoms=false
