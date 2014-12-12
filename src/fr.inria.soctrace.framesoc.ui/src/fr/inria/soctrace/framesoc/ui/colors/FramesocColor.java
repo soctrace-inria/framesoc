@@ -24,12 +24,11 @@ import org.eclipse.swt.widgets.Display;
  * Utility class able to manage a color, seen as a RGB triplet.
  * 
  * <p>
- * Internally both an SWT and an AWT colors are used. Both color objects are
- * lazily initialized on demand, based on the RGB description of the color.
+ * Internally both an SWT and an AWT colors are used. Both color objects are lazily initialized on
+ * demand, based on the RGB description of the color.
  * 
  * <p>
- * Disposing an object of this class, dispose all the lazily initialized
- * internal color objects.
+ * Disposing an object of this class, dispose all the lazily initialized internal color objects.
  * 
  * @author "Damien Dosimont <damien.dosimont@imag.fr>"
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -75,8 +74,7 @@ public class FramesocColor {
 	 *            blue
 	 */
 	public FramesocColor(final int r, final int g, final int b) {
-		if ((r > 255) || (r < 0) || (g > 255) || (g < 0) || (b > 255)
-				|| (b < 0))
+		if ((r > 255) || (r < 0) || (g > 255) || (g < 0) || (b > 255) || (b < 0))
 			throw new IllegalArgumentException();
 		this.red = r;
 		this.green = g;
@@ -84,23 +82,20 @@ public class FramesocColor {
 	}
 
 	/**
-	 * Get the SWT color corresponding to the RGB triplet. The SWT color is
-	 * lazily initialized.
+	 * Get the SWT color corresponding to the RGB triplet. The SWT color is lazily initialized.
 	 * 
 	 * @return the SWT color
 	 */
 	public org.eclipse.swt.graphics.Color getSwtColor() {
 		if (swtColor == null || swtColor.isDisposed()) {
 			final Device device = Display.getDefault();
-			swtColor = new org.eclipse.swt.graphics.Color(device, red, green,
-					blue);
+			swtColor = new org.eclipse.swt.graphics.Color(device, red, green, blue);
 		}
 		return swtColor;
 	}
 
 	/**
-	 * Get the AWT color corresponding to the RGB triplet. The AWT color is
-	 * lazily initialized.
+	 * Get the AWT color corresponding to the RGB triplet. The AWT color is lazily initialized.
 	 * 
 	 * @return the AWT color
 	 */
@@ -141,15 +136,38 @@ public class FramesocColor {
 	}
 
 	/**
-	 * Deterministically generate a FramesocColor given a string. If
-	 * deterministic generation is not possible (i.e., in case of exception), a
-	 * random color is returned.
+	 * Deterministically generate a FramesocColor given a string. If deterministic generation is not
+	 * possible (i.e., in case of exception), a random color is returned.
 	 * 
 	 * @param name
 	 *            entity name
 	 * @return a FramesocColor deterministically linked to the entity name
 	 */
 	public static FramesocColor generateFramesocColor(String name) {
+		FramesocColor c = null;
+		FramesocColor darkest = new FramesocColor(255, 255, 255);
+		// try to return a color that is not too light
+		final int MAX_ATTEMPT = 10;
+		for (int i = 0; i < MAX_ATTEMPT; i++) {
+			c = nameToColor(name);
+			if (!c.isTooLight()) {
+				return c;
+			} else {
+				name = name + "a";
+				darkest = getDarkest(c, darkest);
+			}
+		}
+		return darkest;
+	}
+
+	private static FramesocColor getDarkest(FramesocColor c1, FramesocColor c2) {
+		if (c1.red + c1.green + c1.blue > c2.red + c2.green + c2.blue) {
+			return c2;
+		}
+		return c1;
+	}
+
+	private static FramesocColor nameToColor(String name) {
 		try {
 			// using SHA-1: 20 bytes
 			MessageDigest md = MessageDigest.getInstance("SHA");
@@ -175,8 +193,8 @@ public class FramesocColor {
 	 * @return a random FramesocColor.
 	 */
 	public static FramesocColor generateRandomColor() {
-		return new FramesocColor((int) (Math.random() * 255),
-				(int) (Math.random() * 255), (int) (Math.random() * 255));
+		return new FramesocColor((int) (Math.random() * 255), (int) (Math.random() * 255),
+				(int) (Math.random() * 255));
 	}
 
 }
