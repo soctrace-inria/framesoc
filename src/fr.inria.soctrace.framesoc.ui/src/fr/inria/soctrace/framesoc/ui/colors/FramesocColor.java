@@ -39,6 +39,8 @@ public class FramesocColor {
 	 * Constant used to identify too light color components.
 	 */
 	public final static int TOO_LIGHT = 180;
+	
+	public final static int TOO_DARK = 90;
 
 	/**
 	 * Framesoc color representing BLACK.
@@ -119,6 +121,18 @@ public class FramesocColor {
 	}
 
 	/**
+	 * Check if the color is too dark.
+	 * 
+	 * @return true if the color is too dark, false otherwise
+	 */
+	public boolean isTooDark() {
+		if (blue < TOO_DARK && green < TOO_DARK && red < TOO_DARK)
+			return true;
+		else
+			return false;
+	}
+
+	/**
 	 * Dispose both the SWT and the AWT colors, if initialized.
 	 */
 	public void dispose() {
@@ -144,27 +158,18 @@ public class FramesocColor {
 	 * @return a FramesocColor deterministically linked to the entity name
 	 */
 	public static FramesocColor generateFramesocColor(String name) {
-		FramesocColor c = null;
-		FramesocColor darkest = new FramesocColor(255, 255, 255);
+		FramesocColor c = new FramesocColor(0, 255, 0);
 		// try to return a color that is not too light
 		final int MAX_ATTEMPT = 10;
 		for (int i = 0; i < MAX_ATTEMPT; i++) {
 			c = nameToColor(name);
-			if (!c.isTooLight()) {
+			if (!c.isTooLight() && !c.isTooDark()) {
 				return c;
 			} else {
 				name = name + "a";
-				darkest = getDarkest(c, darkest);
 			}
 		}
-		return darkest;
-	}
-
-	private static FramesocColor getDarkest(FramesocColor c1, FramesocColor c2) {
-		if (c1.red + c1.green + c1.blue > c2.red + c2.green + c2.blue) {
-			return c2;
-		}
-		return c1;
+		return c;
 	}
 
 	private static FramesocColor nameToColor(String name) {
@@ -197,4 +202,32 @@ public class FramesocColor {
 				(int) (Math.random() * 255));
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + blue;
+		result = prime * result + green;
+		result = prime * result + red;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FramesocColor other = (FramesocColor) obj;
+		if (blue != other.blue)
+			return false;
+		if (green != other.green)
+			return false;
+		if (red != other.red)
+			return false;
+		return true;
+	}
+	
 }
