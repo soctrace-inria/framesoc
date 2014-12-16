@@ -83,15 +83,10 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	public static final String ID = FramesocViews.TRACE_TREE_VIEW_ID;
 
 	/**
-	 * TODO get the command from the extension point ID of the commands we have to remove for
-	 * multiple selection
+	 * Commands to remove at multi selection
 	 */
-	private static final String COMMAND_PREFIX = Activator.PLUGIN_ID + ".commands"; //$NON-NLS-1$
-	private static final String COMMAND_DENSITY = COMMAND_PREFIX + ".showEventDensityHistogram"; //$NON-NLS-1$
-	private static final String COMMAND_PIE = COMMAND_PREFIX + ".ShowStatisticsPieChart"; //$NON-NLS-1$
-	private static final String COMMAND_TABLE = COMMAND_PREFIX + ".showEventTable"; //$NON-NLS-1$
-	private static final String COMMAND_GANTT = COMMAND_PREFIX + ".ShowGantt"; //$NON-NLS-1$
-	private static final String COMMAND_COPY_DB_NAME = COMMAND_PREFIX + ".CopyToClipboard"; //$NON-NLS-1$
+	private static final String COMMAND_FRAMESOC_PARTS = "fr.inria.soctrace.framesoc.ui.popup.parts"; //$NON-NLS-1$
+	private static final String COMMAND_COPY_DB_NAME = Activator.PLUGIN_ID + ".commands.CopyToClipboard"; //$NON-NLS-1$
 
 	/**
 	 * Logger
@@ -221,10 +216,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 					return;
 				}
 				if (selection.size() > 1) {
-					manager.remove(COMMAND_DENSITY);
-					manager.remove(COMMAND_PIE);
-					manager.remove(COMMAND_TABLE);
-					manager.remove(COMMAND_GANTT);
+					manager.remove(COMMAND_FRAMESOC_PARTS);
 					manager.remove(COMMAND_COPY_DB_NAME);
 				}
 				setSelectionBusVariables(selection);
