@@ -207,7 +207,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	}
 
 	private IAction createDelParamsAction() {
-		delParamsAction = new Action("reset changes") {
+		delParamsAction = new Action("Delete parameter") {
 			@Override
 			public void run() {
 
@@ -255,7 +255,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	}
 
 	private IAction createAddParamAction() {
-		addParamAction = new Action("reset changes") {
+		addParamAction = new Action("Add parameter") {
 			@Override
 			public void run() {
 
@@ -523,7 +523,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		// utilities
 
 		public Action createSaveAction() {
-			saveAction = new Action("save") {
+			saveAction = new Action("Save changes") {
 				@Override
 				public void run() {
 					if (!modified)
@@ -540,7 +540,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		}
 
 		public Action createResetAction() {
-			resetAction = new Action("reset changes") {
+			resetAction = new Action("Reset changes") {
 				@Override
 				public void run() {
 					if (!modified)
