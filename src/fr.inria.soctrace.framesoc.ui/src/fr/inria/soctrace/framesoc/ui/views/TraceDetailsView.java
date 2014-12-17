@@ -200,14 +200,14 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 					.openWarning(
 							getSite().getShell(),
 							"Warning",
-							"There are unsaved changes in trace details. Save or rollback them before adding or removing parameters.");
+							"There are unsaved changes in trace details. Save or rollback them before adding or removing properties.");
 			return false;
 		}
 		return true;
 	}
 
 	private IAction createDelParamsAction() {
-		delParamsAction = new Action("Delete parameter") {
+		delParamsAction = new Action("Delete property") {
 			@Override
 			public void run() {
 
@@ -220,8 +220,8 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				List<String> params = new ArrayList<>(rows.length);
 
 				StringBuilder sb = new StringBuilder();
-				sb.append("Remove the following parameters from the selected traces?\n\n");
-				sb.append("Parameters to remove:\n");
+				sb.append("Remove the following properties from the selected traces?\n\n");
+				sb.append("Properties to remove:\n");
 				for (Object row : rows) {
 					String name = (String) ((DetailsTableRow) row).getName();
 					params.add(name);
@@ -230,7 +230,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 					sb.append("\n");
 				}
 
-				if (!MessageDialog.openQuestion(getSite().getShell(), "Remove parameters",
+				if (!MessageDialog.openQuestion(getSite().getShell(), "Remove properties",
 						sb.toString())) {
 					return;
 				}
@@ -242,7 +242,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 					showSelection();
 				} catch (SoCTraceException e) {
 					MessageDialog.openError(getSite().getShell(), "Error",
-							"An error occurred removing the parameters.\n" + e.getMessage());
+							"An error occurred removing the properties.\n" + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -255,7 +255,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	}
 
 	private IAction createAddParamAction() {
-		addParamAction = new Action("Add parameter") {
+		addParamAction = new Action("Add property") {
 			@Override
 			public void run() {
 
@@ -272,7 +272,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 						showSelection();
 					} catch (SoCTraceException e) {
 						MessageDialog.openError(getSite().getShell(), "Error",
-								"An error occurred saving the parameters.\n" + e.getMessage());
+								"An error occurred saving the properties.\n" + e.getMessage());
 						e.printStackTrace();
 					}
 				}
