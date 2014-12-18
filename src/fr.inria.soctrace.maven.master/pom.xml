@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.inria.soctrace.maven</groupId>
 	<artifactId>fr.inria.soctrace.maven.master</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Framesoc Maven Master</name>
 	<description>Maven master project for Framesoc. It contains the parent pom.xml.	</description>
