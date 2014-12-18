@@ -54,7 +54,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
 public class DensityHistogramLoader {
 
 	public enum ConfigurationDimension {
-		PRODUCERS("Event Producers"), TYPE("Event Type");
+		PRODUCERS("Event Producers"), TYPE("Event Types");
 
 		private String name;
 
