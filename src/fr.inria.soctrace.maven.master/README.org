@@ -1,0 +1,18 @@
+Master project for Framesoc Maven management.
+
+To make a Framesoc release:
+
+* change the version 
+#+begin_src 
+./change_framesoc_version.sh 1.2.3
+#+end_src
+
+* build Framesoc
+#+begin_src 
+./maven_build.sh
+#+end_src
+
+* upload the update site
+#+begin_src 
+./upload_framesoc.sh 
+#+end_src

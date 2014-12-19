@@ -1,10 +1,9 @@
 #!/bin/bash
                                                                                         
 #####################################################################
-# Change the version number to framesoc.
+# Upload Framesoc update site.
 # 
-# This is simply a convenience shortcut for the change_version.sh
-# script.
+# This is simply a convenience shortcut for the upload-site.sh script.
 #
 # IMPORTANT
 #
@@ -16,12 +15,7 @@
 # Author: Generoso Pagano
 #####################################################################
 
-SCRIPT="../../../soctrace-inria.github.io/updatesite/change_version.sh"
-MASTER="."
-FEATURE="../fr.inria.soctrace.features.framesoc/feature.xml"
-CATEGORY="../fr.inria.soctrace.maven.repository/category.xml"
-
-# parameter check is done in the change_version.sh script
-NEW=$1
-$SCRIPT $MASTER $FEATURE $CATEGORY $NEW
-
+SCRIPT="../../../soctrace-inria.github.io/updatesite/upload-site.sh"
+REPO="../fr.inria.soctrace.maven.repository/target/repository/"
+PROJECT="framesoc"
+$SCRIPT $REPO $PROJECT
