@@ -7,10 +7,6 @@
 # Author: Generoso Pagano
 #####################################################################
 
-# Constants
-BV="Bundle-Version:.*.qualifier"
-NBV="Bundle-Version: ${NEW}.qualifier"
-
 # Input parameters
 MASTER=""
 FEATURE=""
@@ -71,11 +67,16 @@ function print_params() {
 
 function main() {
 
+    BV="Bundle-Version:.*.qualifier"
+    NBV="Bundle-Version: ${NEW}.qualifier"
+
     OLDDIR=`pwd`
     cd $MASTER
 
     echo "Updating MANIFEST.MF in all plugins"
     find .. -wholename "*META-INF/MANIFEST.MF" | grep -v "linuxtools" | xargs sed -i s/"$BV"/"$NBV"/
+
+    exit
 
     echo "Updating framesoc feature.xml"
     sed -i s/"version=\".*.qualifier\""/"version=\"${NEW}.qualifier\""/ $FEATURE 
