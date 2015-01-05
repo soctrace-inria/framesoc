@@ -11,9 +11,13 @@
 package fr.inria.soctrace.framesoc.ui.gantt;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -27,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
@@ -36,8 +41,11 @@ import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
+import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -45,6 +53,7 @@ import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
+import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.ModelEntity;
 import fr.inria.soctrace.lib.utils.DeltaManager;
@@ -105,6 +114,11 @@ public class GanttView extends AbstractGanttView {
 	 * Percentage of displayed arrows
 	 */
 	private double arrowPercentage;
+
+	/**
+	 * Type hierarchy
+	 */
+	private CategoryNode[] typeHierarchy;
 
 	/**
 	 * Constructor
@@ -240,7 +254,9 @@ public class GanttView extends AbstractGanttView {
 			protected IStatus run(IProgressMonitor monitor) {
 				DeltaManager all = new DeltaManager();
 				all.start();
-				fPresentationProvider.setTypes(loader.getTypes().values());
+				Collection<EventType> types = loader.getTypes().values();
+				fPresentationProvider.setTypes(types);
+				typeHierarchy = getTypeHierarchy(types);
 				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
 				loader.release();
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
@@ -496,6 +512,71 @@ public class GanttView extends AbstractGanttView {
 				}
 			}
 		});
+	}
+
+	public CategoryNode[] getTypeHierarchy(Collection<EventType> types) {
+		Map<Integer, CategoryNode> categories = new HashMap<>();
+		for (EventType et : types) {
+			EventTypeNode etn = new EventTypeNode(et);
+			if (!categories.containsKey(et.getCategory())) {
+				categories.put(et.getCategory(), new CategoryNode(et.getCategory()));
+			}
+			categories.get(et.getCategory()).addChild(etn);
+		}
+		return categories.values().toArray(new CategoryNode[categories.values().size()]);
+	}
+
+	/**
+	 * Explores the list of top-level inputs and returns all the inputs
+	 * 
+	 * @param inputs
+	 *            The top-level inputs
+	 * @return All the inputs
+	 */
+	private List<ITreeNode> listAllInputs(List<? extends ITreeNode> inputs) {
+		ArrayList<ITreeNode> items = new ArrayList<>();
+		for (ITreeNode entry : inputs) {
+			items.add(entry);
+			if (entry.hasChildren()) {
+				items.addAll(listAllInputs(entry.getChildren()));
+			}
+		}
+		return items;
+	}
+
+	/**
+	 * Callback for the show type filter action
+	 */
+	private void showTypeFilterAction() {
+		if (typeHierarchy.length > 0) {
+			typeFilterDialog.setInput(typeHierarchy);
+			typeFilterDialog.setTitle("TODO");
+			typeFilterDialog.setMessage("TODO");
+
+			List<ITreeNode> allElements = listAllInputs(Arrays.asList(typeHierarchy));
+			typeFilterDialog.setExpandedElements(allElements.toArray());
+			ArrayList<ITreeNode> nonFilteredElements = new ArrayList<>(allElements);
+			nonFilteredElements.removeAll(fPresentationProvider.getFilteredTypes());
+			typeFilterDialog.setInitialElementSelections(nonFilteredElements);
+			typeFilterDialog.create();
+			typeFilterDialog.open();
+
+			// Process selected elements
+			if (typeFilterDialog.getResult() != null) {
+				if (typeFilterDialog.getResult().length != allElements.size()) {
+					ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
+					filteredElements.removeAll(Arrays.asList(typeFilterDialog.getResult()));
+					List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
+					for (Object o : filteredElements) {
+						filteredTypes.add((Integer) o);
+					}
+					fPresentationProvider.setFilteredTypes(filteredTypes);
+				} else {
+					fPresentationProvider.setFilteredTypes(new ArrayList<Integer>());
+				}
+				getTimeGraphViewer().refresh();
+			}
+		}
 	}
 
 }

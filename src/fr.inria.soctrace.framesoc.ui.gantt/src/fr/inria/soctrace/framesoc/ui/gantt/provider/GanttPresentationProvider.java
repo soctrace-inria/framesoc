@@ -10,9 +10,13 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.gantt.provider;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.swt.graphics.RGB;
 
@@ -32,8 +36,9 @@ import fr.inria.soctrace.lib.model.EventType;
  */
 public class GanttPresentationProvider extends TimeGraphPresentationProvider {
 		
-	private Map<Integer, Integer> typeIndex = new HashMap<Integer, Integer>();
+	private Map<Integer, Integer> typeIndex = new HashMap<>();
 	private StateItem[] stateTable;
+	private Set<Integer> filteredTypes = new HashSet<>();
 	
     /**
      * Default constructor
@@ -43,6 +48,7 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
     }
 
     public void setTypes(Collection<EventType> types) {
+    	filteredTypes = new HashSet<>();
     	typeIndex = new HashMap<Integer, Integer>();
     	stateTable = new StateItem[types.size()];
     	int i=0;
@@ -53,6 +59,19 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
         	typeIndex.put(type.getId(), i);
         	i++;
     	}
+    }
+    
+    public void setFilteredTypes(Collection<Integer> types) {
+    	filteredTypes = new HashSet<>();
+    	filteredTypes.addAll(types);
+    }
+    
+    public List<Integer> getFilteredTypes() {
+    	List<Integer> filtered = new ArrayList<>(filteredTypes.size());
+    	for (Integer t : filteredTypes) {
+    		filtered.add(t);
+    	}
+    	return filtered;
     }
     
     public void updateColors() {
@@ -72,8 +91,12 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
     public int getStateTableIndex(ITimeEvent event) {
         if (event instanceof TimeEvent && ((TimeEvent) event).hasValue()) {
             int type = ((TimeEvent) event).getValue();
-            if (typeIndex.containsKey(type))
+            if (filteredTypes.contains(type)) {
+            	return TRANSPARENT;
+            }
+            if (typeIndex.containsKey(type)) {
             	return typeIndex.get(type);
+            }
         }
         return TRANSPARENT;
     }

@@ -17,6 +17,7 @@
 package fr.inria.linuxtools.tmf.ui.widgets.timegraph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
@@ -47,6 +48,7 @@ import org.eclipse.swt.widgets.Slider;
 import fr.inria.linuxtools.internal.tmf.ui.Activator;
 import fr.inria.linuxtools.internal.tmf.ui.ITmfImageConstants;
 import fr.inria.linuxtools.internal.tmf.ui.Messages;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphLegend;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
@@ -58,6 +60,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphScale;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphTooltipHandler;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 
 /**
  * Generic time graph viewer implementation
@@ -110,6 +113,9 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private int fBorderWidth = 0;
     private int fTimeScaleHeight = DEFAULT_HEIGHT;
 
+    // Type filter dialog
+    private TimeGraphFilterDialog fTypeFilterDialog;
+
     private Action fResetScaleAction;
     private Action fShowLegendAction;
     private Action fNextEventAction;
@@ -121,6 +127,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private Action fHideArrowsAction;
     private Action fFollowArrowFwdAction;
     private Action fFollowArrowBwdAction;
+    private Action fShowTypeFilterAction;
 
     /**
      * Standard constructor.
@@ -1559,6 +1566,46 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
             }
         }
         return fHideArrowsAction;
+    }
+
+    private IAction getShowTypeFilterAction() {
+        IAction action = new Action(Messages.TmfTimeGraphViewer_ShowTypeFilterActionNameText, IAction.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                if (typeHierarchy.length > 0) {
+                    typeFilterDialog.setInput(typeHierarchy);
+                    typeFilterDialog.setTitle("TODO");
+                    typeFilterDialog.setMessage("TODO");
+
+                    List<ITreeNode> allElements = listAllInputs(Arrays.asList(typeHierarchy));
+                    typeFilterDialog.setExpandedElements(allElements.toArray());
+                    ArrayList<ITreeNode> nonFilteredElements = new ArrayList<>(allElements);
+                    nonFilteredElements.removeAll(fPresentationProvider.getFilteredTypes());
+                    typeFilterDialog.setInitialElementSelections(nonFilteredElements);
+                    typeFilterDialog.create();
+                    typeFilterDialog.open();
+
+                    // Process selected elements
+                    if (typeFilterDialog.getResult() != null) {
+                        if (typeFilterDialog.getResult().length != allElements.size()) {
+                            ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
+                            filteredElements.removeAll(Arrays.asList(typeFilterDialog.getResult()));
+                            List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
+                            for (Object o : filteredElements) {
+                                filteredTypes.add((Integer) o);
+                            }
+                            fPresentationProvider.setFilteredTypes(filteredTypes);
+                        } else {
+                            fPresentationProvider.setFilteredTypes(new ArrayList<Integer>());
+                        }
+                        getTimeGraphViewer().refresh();
+                    }
+                }
+            }
+        };
+        action.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ITmfImageConstants.IMG_UI_HIDE_ARROWS));
+        action.setToolTipText(Messages.TmfTimeGraphViewer_ShowTypeFilterActionToolTipText);
+        return action;
     }
 
     /**
