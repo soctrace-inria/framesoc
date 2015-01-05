@@ -49,6 +49,8 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
+ * Trace filter dialog.
+ * 
  * <pre>
  * TODO:
  * - allow to hide columns, and store in local settings the hidden columns 
@@ -66,10 +68,12 @@ public class TraceFilterDialog extends Dialog {
 	private static final int DEFAULT_WIDTH = 1200;
 	private static final int DEFAULT_HEIGHT = 500;
 
+	private Label fStatusText;
 	private TmfVirtualTable fTable;
 	private TraceTableCache fCache;
 	private Set<Trace> fChecked;
 	private TableItem fFilterItem;
+	private int fNumTraces;
 
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
@@ -77,7 +81,7 @@ public class TraceFilterDialog extends Dialog {
 	private Color grayColor;
 	private Color blackColor;
 	private Font boldFont;
-
+	
 	/**
 	 * Keys for table data
 	 */
@@ -104,6 +108,7 @@ public class TraceFilterDialog extends Dialog {
 		fCache = new TraceTableCache();
 		fCache.init(traces);
 		fChecked = checked;
+		fNumTraces = traces.size();
 	}
 
 	public Set<Trace> getChecked() {
@@ -129,7 +134,10 @@ public class TraceFilterDialog extends Dialog {
 
 		Label messageLabel = createMessage(composite);
 		TmfVirtualTable table = createTable(composite);
-
+		fStatusText = new Label(composite, SWT.NONE);
+		fStatusText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		fStatusText.setText(getStatus(fNumTraces, fCache.getItemCount()));
+		
 		if (fCache.getItemCount() == 0) {
 			messageLabel.setEnabled(false);
 			table.setEnabled(false);
@@ -276,6 +284,7 @@ public class TraceFilterDialog extends Dialog {
 		fTable.setItemCount(1 + fCache.getItemCount());
 		fTable.setSelection(0);
 		fTable.refresh();
+		fStatusText.setText(getStatus(fNumTraces, fCache.getItemCount()));
 	}
 
 	@Override
@@ -497,6 +506,7 @@ public class TraceFilterDialog extends Dialog {
 				fTable.setData(Key.FILTER_FLAG, true);
 				fTable.setItemCount(1 + fCache.getItemCount()); // +1 for header
 				fTable.refresh();
+				fStatusText.setText(getStatus(fNumTraces, fCache.getItemCount()));
 			}
 		});
 	}
@@ -506,6 +516,16 @@ public class TraceFilterDialog extends Dialog {
 		messageLabel.setText(MESSAGE);
 		messageLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		return messageLabel;
+	}
+	
+	private String getStatus(int traces, int matched) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Filter matched ");
+		sb.append(matched);
+		sb.append(" of ");
+		sb.append(traces);
+		sb.append(" traces");
+		return sb.toString();
 	}
 
 }
