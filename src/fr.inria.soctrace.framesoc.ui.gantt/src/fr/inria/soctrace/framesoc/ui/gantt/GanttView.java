@@ -16,8 +16,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,6 +30,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.ModelEntity;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
@@ -116,9 +120,34 @@ public class GanttView extends AbstractGanttView {
 	private double arrowPercentage;
 
 	/**
-	 * Type hierarchy
+	 * Show type filter dialog action
+	 */
+	private IAction showTypeFilterAction;
+
+	/**
+	 * Roots of type hierarchy
 	 */
 	private CategoryNode[] typeHierarchy;
+
+	/**
+	 * All link tree nodes (including the category node).
+	 */
+	private List<Object> linkNodes;
+
+	/**
+	 * Link event type ids
+	 */
+	private Set<Integer> linkTypeIds;
+
+	/**
+	 * Visible link event type ids
+	 */
+	private Set<Integer> visibleLinkTypeIds;
+
+	/**
+	 * Tree nodes corresponding to checked nodes.
+	 */
+	private List<Object> visibleNodes;
 
 	/**
 	 * Constructor
@@ -126,9 +155,9 @@ public class GanttView extends AbstractGanttView {
 	public GanttView() {
 		super(ID, new GanttPresentationProvider());
 		setTreeColumns(new String[] { PRODUCER });
-		setTreeLabelProvider(new TreeLabelProvider());
+		setTreeLabelProvider(new TimeGraphTreeLabelProvider());
 		setFilterColumns(new String[] { PRODUCER });
-		setFilterLabelProvider(new TreeLabelProvider());
+		setFilterLabelProvider(new TimeGraphTreeLabelProvider());
 		setEntryComparator(new GanttViewEntryComparator());
 		fPresentationProvider = (GanttPresentationProvider) getPresentationProvider();
 
@@ -257,6 +286,7 @@ public class GanttView extends AbstractGanttView {
 				Collection<EventType> types = loader.getTypes().values();
 				fPresentationProvider.setTypes(types);
 				typeHierarchy = getTypeHierarchy(types);
+				visibleNodes = listAllInputs(Arrays.asList(typeHierarchy));
 				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
 				loader.release();
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
@@ -446,6 +476,10 @@ public class GanttView extends AbstractGanttView {
 
 		super.fillLocalToolBar(manager);
 
+		// Types
+		showTypeFilterAction = createShowTypeFilterAction();
+		manager.add(showTypeFilterAction);
+
 		// Links
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
@@ -475,6 +509,19 @@ public class GanttView extends AbstractGanttView {
 		return des;
 	}
 
+	private IAction createShowTypeFilterAction() {
+		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+			@Override
+			public void run() {
+				showTypeFilterAction();
+			}
+		};
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/filter_types.gif"));
+		action.setToolTipText("Show type filter dialog");
+		return action;
+	}
+
 	private IAction createHideArrowsAction() {
 		// ignore dialog settings (null is passed)
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
@@ -487,8 +534,10 @@ public class GanttView extends AbstractGanttView {
 				defaultAction.run();
 				refresh();
 				if (hideArrows) {
+					visibleNodes.removeAll(linkNodes);
 					setArrowPercentage(0.0);
 				} else {
+					visibleNodes.addAll(linkNodes);
 					setArrowPercentage(arrowPercentage);
 				}
 			}
@@ -514,14 +563,34 @@ public class GanttView extends AbstractGanttView {
 		});
 	}
 
+	/**
+	 * Get the event type hierarchy
+	 * 
+	 * @param types
+	 *            collection of event types
+	 * @return an array containing the roots of the type hierarchy
+	 */
 	public CategoryNode[] getTypeHierarchy(Collection<EventType> types) {
+		visibleLinkTypeIds = new HashSet<>();
+		linkNodes = new ArrayList<>();
+		linkTypeIds = new HashSet<>();
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		for (EventType et : types) {
 			EventTypeNode etn = new EventTypeNode(et);
 			if (!categories.containsKey(et.getCategory())) {
 				categories.put(et.getCategory(), new CategoryNode(et.getCategory()));
+				if (et.getCategory() == EventCategory.LINK) {
+					linkNodes.add(categories.get(EventCategory.LINK));
+				}
 			}
 			categories.get(et.getCategory()).addChild(etn);
+			if (et.getCategory() == EventCategory.LINK) {
+				linkNodes.add(etn);
+				linkTypeIds.add(etn.getId());
+				if (!hideArrowsAction.isChecked()) {
+					visibleLinkTypeIds.add(etn.getId());
+				}
+			}
 		}
 		return categories.values().toArray(new CategoryNode[categories.values().size()]);
 	}
@@ -533,8 +602,8 @@ public class GanttView extends AbstractGanttView {
 	 *            The top-level inputs
 	 * @return All the inputs
 	 */
-	private List<ITreeNode> listAllInputs(List<? extends ITreeNode> inputs) {
-		ArrayList<ITreeNode> items = new ArrayList<>();
+	private List<Object> listAllInputs(List<? extends ITreeNode> inputs) {
+		ArrayList<Object> items = new ArrayList<>();
 		for (ITreeNode entry : inputs) {
 			items.add(entry);
 			if (entry.hasChildren()) {
@@ -548,35 +617,62 @@ public class GanttView extends AbstractGanttView {
 	 * Callback for the show type filter action
 	 */
 	private void showTypeFilterAction() {
+
+		TimeGraphFilterDialog typeFilterDialog = getTypeFilterDialog();
+
 		if (typeHierarchy.length > 0) {
 			typeFilterDialog.setInput(typeHierarchy);
-			typeFilterDialog.setTitle("TODO");
-			typeFilterDialog.setMessage("TODO");
+			typeFilterDialog.setTitle("Event type filter");
+			typeFilterDialog.setMessage("Check/uncheck the event types to show/hide them");
 
-			List<ITreeNode> allElements = listAllInputs(Arrays.asList(typeHierarchy));
+			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());
-			ArrayList<ITreeNode> nonFilteredElements = new ArrayList<>(allElements);
-			nonFilteredElements.removeAll(fPresentationProvider.getFilteredTypes());
-			typeFilterDialog.setInitialElementSelections(nonFilteredElements);
+			typeFilterDialog.setInitialElementSelections(visibleNodes);
 			typeFilterDialog.create();
 			typeFilterDialog.open();
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				if (typeFilterDialog.getResult().length != allElements.size()) {
-					ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
-					filteredElements.removeAll(Arrays.asList(typeFilterDialog.getResult()));
-					List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
-					for (Object o : filteredElements) {
-						filteredTypes.add((Integer) o);
+
+				// get visible elements
+				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
+
+				// get visible links (if there are links)
+				if (linkTypeIds.size() > 0) {
+					visibleLinkTypeIds = new HashSet<>();
+					for (Object o : visibleNodes) {
+						if (o instanceof EventTypeNode) {
+							EventTypeNode node = (EventTypeNode) o;
+							if (linkTypeIds.contains(node.getId())) {
+								visibleLinkTypeIds.add(node.getId());
+							}
+						}
 					}
-					fPresentationProvider.setFilteredTypes(filteredTypes);
-				} else {
-					fPresentationProvider.setFilteredTypes(new ArrayList<Integer>());
+					if (visibleLinkTypeIds.size() > 0) {
+						hideArrowsAction.setChecked(false);						
+					} else {
+						hideArrowsAction.setChecked(true);
+					}
+
 				}
-				getTimeGraphViewer().refresh();
+				
+				// compute filtered elements
+				ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
+				filteredElements.removeAll(visibleNodes);
+				List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
+				for (Object o : filteredElements) {
+					if (o instanceof EventTypeNode) {
+						EventTypeNode type = (EventTypeNode) o;
+						filteredTypes.add(type.getId());
+					}
+				}
+				fPresentationProvider.setFilteredTypes(filteredTypes);
+			} else {
+				fPresentationProvider.setFilteredTypes(Collections.<Integer> emptyList());
 			}
+			getTimeGraphViewer().refresh();
 		}
+
 	}
 
 }

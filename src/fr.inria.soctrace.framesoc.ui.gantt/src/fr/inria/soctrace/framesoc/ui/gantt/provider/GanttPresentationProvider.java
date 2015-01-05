@@ -36,8 +36,10 @@ import fr.inria.soctrace.lib.model.EventType;
  */
 public class GanttPresentationProvider extends TimeGraphPresentationProvider {
 		
+	/** Map: type id -> index in the state table */
 	private Map<Integer, Integer> typeIndex = new HashMap<>();
 	private StateItem[] stateTable;
+	/** Set of ID of filtered types */
 	private Set<Integer> filteredTypes = new HashSet<>();
 	
     /**
@@ -92,7 +94,7 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
         if (event instanceof TimeEvent && ((TimeEvent) event).hasValue()) {
             int type = ((TimeEvent) event).getValue();
             if (filteredTypes.contains(type)) {
-            	return TRANSPARENT;
+            	return INVISIBLE;
             }
             if (typeIndex.containsKey(type)) {
             	return typeIndex.get(type);

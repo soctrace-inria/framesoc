@@ -66,6 +66,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphRangeUpdateEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphSelectionEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphViewer;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
@@ -73,6 +74,8 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
+import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
+import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 
 /**
@@ -159,7 +162,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private String[] fColumns;
 
 	/** The tree label provider, or null if combo is not used */
-	private TreeLabelProvider fLabelProvider = null;
+	private TimeGraphTreeLabelProvider fLabelProvider = null;
 
 	/** The relative weight of the sash, ignored if combo is not used */
 	private int[] fWeight = { 1, 4 };
@@ -168,7 +171,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private String[] fFilterColumns;
 
 	/** The filter label provider, or null if filter is not used */
-	private TreeLabelProvider fFilterLabelProvider;
+	private TimeGraphTreeLabelProvider fFilterLabelProvider;
 
 	/** The pack done flag */
 	private boolean fPackDone = false;
@@ -178,6 +181,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** Label displaying arrow percentage */
 	private Label arrowPercentageLabel;
+
+	/** Type filter dialog */
+	private TimeGraphFilterDialog fTypeFilterDialog;
 
 	// ------------------------------------------------------------------------
 	// Classes
@@ -284,7 +290,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		}
 	}
 
-	private class TreeContentProvider implements ITreeContentProvider {
+	private class TimeGraphTreeContentProvider implements ITreeContentProvider {
 
 		@Override
 		public void dispose() {
@@ -345,7 +351,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * Base class to provide the labels for the tree viewer. Views extending this class typically
 	 * need to override the getColumnText method if they have more than one column to display
 	 */
-	protected static class TreeLabelProvider implements ITableLabelProvider, ILabelProvider {
+	protected static class TimeGraphTreeLabelProvider implements ITableLabelProvider, ILabelProvider {
 
 		@Override
 		public void addListener(ILabelProviderListener listener) {
@@ -430,7 +436,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * Constructs a time graph view that contains a time graph combo.
 	 * 
 	 * The subclass constructor must call {@link #setTreeColumns(String[])} and
-	 * {@link #setTreeLabelProvider(TreeLabelProvider)}.
+	 * {@link #setTreeLabelProvider(TimeGraphTreeLabelProvider)}.
 	 * 
 	 * @param id
 	 *            The id of the view
@@ -493,7 +499,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * @param tlp
 	 *            The tree label provider
 	 */
-	protected void setTreeLabelProvider(final TreeLabelProvider tlp) {
+	protected void setTreeLabelProvider(final TimeGraphTreeLabelProvider tlp) {
 		fLabelProvider = tlp;
 	}
 
@@ -526,7 +532,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * 
 	 * @since 3.0
 	 */
-	protected void setFilterLabelProvider(final TreeLabelProvider labelProvider) {
+	protected void setFilterLabelProvider(final TimeGraphTreeLabelProvider labelProvider) {
 		fFilterLabelProvider = labelProvider;
 	}
 
@@ -715,6 +721,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 		setArrowPercentage(0.0);
 
 		// -------------------------------
+		// TYPE FILTER DIALOG
+		// -------------------------------
+		fTypeFilterDialog = new TimeGraphFilterDialog(parent.getShell());
+		fTypeFilterDialog.setColumnNames(new String[] { "Event Type" });
+		fTypeFilterDialog.setContentProvider(new TreeContentProvider());
+		fTypeFilterDialog.setLabelProvider(new TreeLabelProvider());
+
+		// -------------------------------
 		// COMBO VIEWER
 		// -------------------------------
 
@@ -726,7 +740,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		final TimeGraphCombo combo = wrapper.getTimeGraphCombo();
 
 		// Event Producer Tree
-		combo.setTreeContentProvider(new TreeContentProvider());
+		combo.setTreeContentProvider(new TimeGraphTreeContentProvider());
 		combo.setTreeLabelProvider(fLabelProvider);
 		combo.setTreeColumns(fColumns);
 
@@ -824,7 +838,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		});
 
 		// Event Producer Filter
-		combo.setFilterContentProvider(new TreeContentProvider());
+		combo.setFilterContentProvider(new TimeGraphTreeContentProvider());
 		combo.setFilterLabelProvider(fFilterLabelProvider);
 		combo.setFilterColumns(fFilterColumns);
 
@@ -1192,6 +1206,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected void resetBeforeLoad() {
 		fUserChangedSelection = false;
 		fUserChangedTimeRange = false;
+	}
+
+	protected TimeGraphFilterDialog getTypeFilterDialog() {
+		return fTypeFilterDialog;
 	}
 
 }
