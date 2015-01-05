@@ -16,10 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -64,6 +62,17 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
  * Gantt View using the Lttng Time Graph Viewer.
+ * 
+ * <pre>
+ * TODO: add support for filtering (making invisible) specific links, 
+ * as done for states and punctual events.
+ * Constraints:
+ * - invisible links must not be considered when filtering because of resolution
+ * - if at least one link type is visible, the hide arrows action must be unchecked
+ * - if all links are invisible the hide arrows action must be checked
+ * - if the hide arrows action is checked, all link types must be invisible
+ * - if the hide arrows action is unchecked, all the link types must be visible
+ * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -128,21 +137,6 @@ public class GanttView extends AbstractGanttView {
 	 * Roots of type hierarchy
 	 */
 	private CategoryNode[] typeHierarchy;
-
-	/**
-	 * All link tree nodes (including the category node).
-	 */
-	private List<Object> linkNodes;
-
-	/**
-	 * Link event type ids
-	 */
-	private Set<Integer> linkTypeIds;
-
-	/**
-	 * Visible link event type ids
-	 */
-	private Set<Integer> visibleLinkTypeIds;
 
 	/**
 	 * Tree nodes corresponding to checked nodes.
@@ -534,10 +528,8 @@ public class GanttView extends AbstractGanttView {
 				defaultAction.run();
 				refresh();
 				if (hideArrows) {
-					visibleNodes.removeAll(linkNodes);
 					setArrowPercentage(0.0);
 				} else {
-					visibleNodes.addAll(linkNodes);
 					setArrowPercentage(arrowPercentage);
 				}
 			}
@@ -571,26 +563,17 @@ public class GanttView extends AbstractGanttView {
 	 * @return an array containing the roots of the type hierarchy
 	 */
 	public CategoryNode[] getTypeHierarchy(Collection<EventType> types) {
-		visibleLinkTypeIds = new HashSet<>();
-		linkNodes = new ArrayList<>();
-		linkTypeIds = new HashSet<>();
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		for (EventType et : types) {
 			EventTypeNode etn = new EventTypeNode(et);
+			if (et.getCategory() == EventCategory.LINK || et.getCategory() == EventCategory.VARIABLE) {
+				// skip links and variables
+				continue;
+			}
 			if (!categories.containsKey(et.getCategory())) {
 				categories.put(et.getCategory(), new CategoryNode(et.getCategory()));
-				if (et.getCategory() == EventCategory.LINK) {
-					linkNodes.add(categories.get(EventCategory.LINK));
-				}
 			}
 			categories.get(et.getCategory()).addChild(etn);
-			if (et.getCategory() == EventCategory.LINK) {
-				linkNodes.add(etn);
-				linkTypeIds.add(etn.getId());
-				if (!hideArrowsAction.isChecked()) {
-					visibleLinkTypeIds.add(etn.getId());
-				}
-			}
 		}
 		return categories.values().toArray(new CategoryNode[categories.values().size()]);
 	}
@@ -633,30 +616,7 @@ public class GanttView extends AbstractGanttView {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-
-				// get visible elements
 				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
-
-				// get visible links (if there are links)
-				if (linkTypeIds.size() > 0) {
-					visibleLinkTypeIds = new HashSet<>();
-					for (Object o : visibleNodes) {
-						if (o instanceof EventTypeNode) {
-							EventTypeNode node = (EventTypeNode) o;
-							if (linkTypeIds.contains(node.getId())) {
-								visibleLinkTypeIds.add(node.getId());
-							}
-						}
-					}
-					if (visibleLinkTypeIds.size() > 0) {
-						hideArrowsAction.setChecked(false);						
-					} else {
-						hideArrowsAction.setChecked(true);
-					}
-
-				}
-				
-				// compute filtered elements
 				ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
 				filteredElements.removeAll(visibleNodes);
 				List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
@@ -670,7 +630,7 @@ public class GanttView extends AbstractGanttView {
 			} else {
 				fPresentationProvider.setFilteredTypes(Collections.<Integer> emptyList());
 			}
-			getTimeGraphViewer().refresh();
+			refresh();
 		}
 
 	}

@@ -53,7 +53,6 @@ import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.ui.dialogs.SelectionStatusDialog;
 
 import fr.inria.linuxtools.internal.tmf.ui.Messages;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 
 /**
  * Filter dialog for the time graphs This class is derived from the
@@ -552,7 +551,8 @@ public class TimeGraphFilterDialog extends SelectionStatusDialog {
         @Override
         public void checkStateChanged(CheckStateChangedEvent event) {
             try {
-                ITimeGraphEntry entry = (ITimeGraphEntry) event.getElement();
+                // @Framesoc removed useless dependency with time graph entry
+                Object entry = event.getElement();
                 boolean checked = event.getChecked();
                 if (checked) {
                     checkElement(entry);
