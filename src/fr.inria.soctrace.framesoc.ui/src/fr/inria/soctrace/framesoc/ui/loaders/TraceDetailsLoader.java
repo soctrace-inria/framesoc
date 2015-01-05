@@ -354,7 +354,7 @@ public class TraceDetailsLoader {
 		}
 
 		// notify the bus to refresh trace view
-		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_REFRESH_TRACES_NEEDED, null);
+		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED, true);
 
 		if (argError) {
 			throw new SoCTraceException("Illegal format for some parameters. Skipped.");
