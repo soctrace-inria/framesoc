@@ -39,6 +39,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.gantt.Activator;
 import fr.inria.soctrace.framesoc.ui.gantt.GanttContributionManager;
+import fr.inria.soctrace.framesoc.ui.gantt.loaders.CpuEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
@@ -271,6 +272,39 @@ public class GanttView extends AbstractGanttView {
 		launchDrawerThread(drawer, interval, trace, queue);
 	}
 
+	private void reloadWindow(Trace trace, long start, long end, boolean forceCpuDrawer) {
+
+		if (trace == null) {
+			return;
+		}
+
+		// create the queue
+		LoaderQueue<ReducedEvent> queue = new LoaderQueue<>();
+
+		// create the event loader
+		IEventLoader loader = GanttContributionManager.getEventLoader(trace.getType().getId());
+		loader.setTrace(trace);
+		loader.setQueue(queue);
+
+		// compute the actual time interval to load
+		TimeInterval interval = new TimeInterval(start, end);
+
+		// create the event drawer
+		IEventDrawer drawer = null;
+		if (forceCpuDrawer) {
+			drawer = new CpuEventDrawer();
+		} else {
+			drawer = GanttContributionManager.getEventDrawer(trace.getType().getId());
+		}
+		drawer.setProducers(loader.getProducers());
+
+		// launch the job loading the queue
+		launchLoaderJob(loader, interval);
+
+		// update the viewer
+		launchDrawerThread(drawer, interval, trace, queue);
+	}
+
 	private boolean checkReuse(Trace trace, TimeInterval interval) {
 		if (trace.equals(currentShownTrace)
 				&& (interval.startTimestamp >= loadedInterval.startTimestamp)
@@ -490,7 +524,7 @@ public class GanttView extends AbstractGanttView {
 		// Links
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
-		
+
 		manager.add(new Separator());
 
 		// CPU drawer
@@ -498,7 +532,7 @@ public class GanttView extends AbstractGanttView {
 		manager.add(useCpuDrawerAction);
 
 		manager.add(new Separator());
-		
+
 		// Framesoc
 		TableTraceIntervalAction.add(manager, createTableAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
@@ -535,7 +569,7 @@ public class GanttView extends AbstractGanttView {
 		action.setToolTipText("Show type filter dialog");
 		return action;
 	}
-	
+
 	private IAction createHideArrowsAction() {
 		// ignore dialog settings (null is passed)
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
@@ -564,7 +598,7 @@ public class GanttView extends AbstractGanttView {
 			@Override
 			public void run() {
 				// TODO
-				System.out.println("TODO");
+				reloadWindow(currentShownTrace, getStartTime(), getEndTime(), isChecked());
 			}
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
