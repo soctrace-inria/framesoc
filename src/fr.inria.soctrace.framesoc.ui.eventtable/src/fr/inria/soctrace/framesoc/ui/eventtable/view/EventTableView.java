@@ -575,6 +575,7 @@ public final class EventTableView extends FramesocPart {
 		if (timeBar != null)
 			timeBar.dispose();
 		timeBar = null;
+		resourceManager.dispose();
 		super.dispose();
 	}
 

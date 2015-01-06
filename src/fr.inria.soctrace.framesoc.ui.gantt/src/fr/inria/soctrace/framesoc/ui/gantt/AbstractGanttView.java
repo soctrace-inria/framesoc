@@ -74,8 +74,8 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
+import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
-import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 
 /**
@@ -726,7 +726,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fTypeFilterDialog = new TimeGraphFilterDialog(parent.getShell());
 		fTypeFilterDialog.setColumnNames(new String[] { "Event Type" });
 		fTypeFilterDialog.setContentProvider(new TreeContentProvider());
-		fTypeFilterDialog.setLabelProvider(new TreeLabelProvider());
+		fTypeFilterDialog.setLabelProvider(new EventTypeTreeLabelProvider());
 
 		// -------------------------------
 		// COMBO VIEWER

@@ -538,6 +538,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			descriptor.dispose();
 		}
 		loaderDescriptors = null;
+		resourceManager.dispose();
 		disposeImages();
 		images = null;
 	}

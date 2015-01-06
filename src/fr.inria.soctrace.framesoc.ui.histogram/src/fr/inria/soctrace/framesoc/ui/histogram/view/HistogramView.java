@@ -92,8 +92,9 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
+import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
+import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
-import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
@@ -289,7 +290,6 @@ public class HistogramView extends FramesocPart {
 
 		PatternFilter filter = new TreePatternFilter();
 		TreeContentProvider contentProvider = new TreeContentProvider();
-		TreeLabelProvider labelProvider = new TreeLabelProvider();
 		ViewerComparator treeComparator = new ViewerComparator();
 		SelectionChangedListener selectionChangeListener = new SelectionChangedListener();
 		CheckStateListener checkStateListener = new CheckStateListener();
@@ -311,7 +311,7 @@ public class HistogramView extends FramesocPart {
 		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComp, SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
-		typeTree.getViewer().setLabelProvider(labelProvider);
+		typeTree.getViewer().setLabelProvider(new EventTypeTreeLabelProvider());
 		typeTree.getViewer().setComparator(treeComparator);
 		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
@@ -331,7 +331,7 @@ public class HistogramView extends FramesocPart {
 		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(prodComp, SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
 		prodTree.getViewer().setContentProvider(contentProvider);
-		prodTree.getViewer().setLabelProvider(labelProvider);
+		prodTree.getViewer().setLabelProvider(new EventProducerTreeLabelProvider());
 		prodTree.getViewer().setComparator(treeComparator);
 		prodTree.addCheckStateListener(checkStateListener);
 		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
