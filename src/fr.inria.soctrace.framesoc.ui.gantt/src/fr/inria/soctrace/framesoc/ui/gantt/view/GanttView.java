@@ -146,6 +146,11 @@ public class GanttView extends AbstractGanttView {
 	private List<Object> visibleNodes;
 
 	/**
+	 * Action to use the CPU drawer
+	 */
+	private IAction useCpuDrawerAction;
+
+	/**
 	 * Constructor
 	 */
 	public GanttView() {
@@ -485,8 +490,15 @@ public class GanttView extends AbstractGanttView {
 		// Links
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
+		
 		manager.add(new Separator());
 
+		// CPU drawer
+		useCpuDrawerAction = createCpuDrawerAction();
+		manager.add(useCpuDrawerAction);
+
+		manager.add(new Separator());
+		
 		// Framesoc
 		TableTraceIntervalAction.add(manager, createTableAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
@@ -523,7 +535,7 @@ public class GanttView extends AbstractGanttView {
 		action.setToolTipText("Show type filter dialog");
 		return action;
 	}
-
+	
 	private IAction createHideArrowsAction() {
 		// ignore dialog settings (null is passed)
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
@@ -544,6 +556,20 @@ public class GanttView extends AbstractGanttView {
 		};
 		action.setImageDescriptor(defaultAction.getImageDescriptor());
 		action.setToolTipText(defaultAction.getToolTipText());
+		return action;
+	}
+
+	private IAction createCpuDrawerAction() {
+		IAction action = new Action("", IAction.AS_CHECK_BOX) {
+			@Override
+			public void run() {
+				// TODO
+				System.out.println("TODO");
+			}
+		};
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/cpu_node.png"));
+		action.setToolTipText("Use CPU drawer");
 		return action;
 	}
 
