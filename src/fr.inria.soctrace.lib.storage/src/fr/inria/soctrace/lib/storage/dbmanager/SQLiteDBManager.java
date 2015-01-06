@@ -141,8 +141,7 @@ public class SQLiteDBManager extends DBManager {
 		if (!dir.exists())
 			throw new SoCTraceException(
 					"Directory " + sqlitePath + " does not exists. \n" +
-					"Create it or write the correct path in the configuration file: " + 
-					Configuration.CONF_FILE_PATH + " " + 
+					"Create it or write the correct path in the configuration file " + 
 					"("+Configuration.SoCTraceProperty.sqlite_db_directory+" property).");
 		return Portability.normalize(sqlitePath + "/" + dbName);
 	}

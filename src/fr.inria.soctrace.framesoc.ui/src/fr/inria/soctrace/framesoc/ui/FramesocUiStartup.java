@@ -9,6 +9,7 @@
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui;
+
 import java.io.File;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -55,21 +56,23 @@ public class FramesocUiStartup implements IStartup {
 		FramesocPartManager.getInstance().cleanFramesocParts(); // asyncExec
 
 		// Check configuration file
-		if (!fileExist(Configuration.CONF_FILE_PATH)) {
+		if (!Configuration.getInstance().fileExists()) {
 			logger.debug("No configuration file found");
 			setup();
 		} else {
 			logger.debug("Configuration file found");
 			if (!validateConfFile(true))
-				setup(); // the first time the configuration file is found invalid, we propose the setup
+				setup(); // the first time the configuration file is found invalid, we propose the
+							// setup
 		}
-		
+
 		if (!validateConfFile(false)) {
-			message("The configuration file still contains non valid parameters.\nPlease initialize the system with correct values, using the menu Framesoc > Management > Initialize System.", true);
+			message("The configuration file still contains non valid parameters.\nPlease initialize the system with correct values, using the menu Framesoc > Management > Initialize System.",
+					true);
 			logger.error("Configuration file still not valid.");
 			return; // the second time, if still not valid, we terminate
 		}
-		
+
 		// Manage tools if a System DB exists (it should be the case...)
 
 		try {
@@ -88,11 +91,9 @@ public class FramesocUiStartup implements IStartup {
 		new FramesocColorService();
 
 	}
-		
+
 	/**
-	 * Validate the configuration file.
-	 * The file is considered valid if:
-	 * - the DBMS is correctly set
+	 * Validate the configuration file. The file is considered valid if: - the DBMS is correctly set
 	 * - it is possible to successfully open a connection to the System DB
 	 * 
 	 * @return true if the file is valid, false otherwise
@@ -105,22 +106,22 @@ public class FramesocUiStartup implements IStartup {
 			return false;
 		} else {
 			// check connection to DB
-			if ( dbms.equals(DBMS.SQLITE) ) {
+			if (dbms.equals(DBMS.SQLITE)) {
 				if (!validateSQLite(show))
 					return false;
 			} else if (dbms.equals(DBMS.MYSQL)) {
 				if (!validateMySQL(show))
-					return false;					
+					return false;
 			}
 		}
-		return true;		
+		return true;
 	}
-	
+
 	private boolean validateMySQL(boolean show) {
 		// check the connection trying to open the SystemDB
 		try {
 			return FramesocManager.getInstance().isSystemDBExisting();
-		} catch(SoCTraceException e) {
+		} catch (SoCTraceException e) {
 			message("The MySQL parameters found in the configuration file are wrong.", show);
 			return false;
 		}
@@ -129,20 +130,21 @@ public class FramesocUiStartup implements IStartup {
 	private boolean validateSQLite(boolean show) {
 		// check if the DB folder exists
 		String dbPath = Configuration.getInstance().get(SoCTraceProperty.sqlite_db_directory);
-		if (!fileExist(dbPath) ) {
+		File file = new File(dbPath);
+		if (!file.exists()) {
 			message("The SQLite database directory has not been found", show);
 			return false;
 		}
-		
+
 		// check the connection trying to open the SystemDB
 		try {
 			return FramesocManager.getInstance().isSystemDBExisting();
-		} catch(SoCTraceException e) {
+		} catch (SoCTraceException e) {
 			message("The SQLite parameters found in the configuration file are wrong.", show);
 			return false;
 		}
 	}
-	
+
 	private void message(final String s, boolean show) {
 		if (!show) {
 			logger.debug(s);
@@ -151,11 +153,12 @@ public class FramesocUiStartup implements IStartup {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				MessageDialog.openError(Display.getDefault().getActiveShell(), "Configuration Error", s);
+				MessageDialog.openError(Display.getDefault().getActiveShell(),
+						"Configuration Error", s);
 			}
 		});
 	}
-	
+
 	private void setup() {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
@@ -166,7 +169,7 @@ public class FramesocUiStartup implements IStartup {
 				if (Initializer.INSTANCE.initializeSystem(window.getShell(), true)) {
 					Initializer.INSTANCE.manageTools(window.getShell());
 				}
-				
+
 				try {
 					// XXX
 					// If we don't remove the welcome screen (if present) programmatically
@@ -191,15 +194,9 @@ public class FramesocUiStartup implements IStartup {
 				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 				Initializer.INSTANCE.manageDatabases();
 				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED, true);
-				Initializer.INSTANCE.manageTools(window.getShell());				
+				Initializer.INSTANCE.manageTools(window.getShell());
 			}
 		});
-	}
-
-
-	private boolean fileExist(String path) {
-		File file = new File(path);
-		return file.exists();
 	}
 
 }

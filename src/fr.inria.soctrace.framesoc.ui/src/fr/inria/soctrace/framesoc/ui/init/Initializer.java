@@ -78,9 +78,7 @@ public enum Initializer {
 			Configuration.getInstance().saveOnFile();
 
 			StringBuilder sb = new StringBuilder();
-			sb.append("Configuration file saved: ");
-			sb.append(Configuration.CONF_FILE_PATH);
-			sb.append("\n");
+			sb.append("Configuration saved. ");
 
 			if (FramesocManager.getInstance().isSystemDBExisting()) {
 				sb.append("A System DB instance is already existing.");

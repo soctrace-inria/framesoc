@@ -17,22 +17,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.eclipse.core.runtime.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Singleton for managing the configuration variables of SoC-Trace Infrastructure.
+ * Singleton for managing the configuration variables of Framesoc Infrastructure.
  * 
  * <p>
  * Properties are accessed via the {@link #get(SoCTraceProperty)} or {@link #get(String)} methods.
  * 
- * <p>
- * Note: it is not possible to use IWorkspace Eclipse facilities if we want to let external
- * application (non-Eclipse application) to use the Configuration class.
- * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class Configuration {
+
+	/**
+	 * Logger
+	 */
+	private final static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
 	/**
 	 * Enumeration for SoC-Trace configuration variables names.
@@ -78,19 +80,21 @@ public class Configuration {
 	}
 
 	/**
-	 * Configuration file path. It is in the user's home and its name is hard-coded in the static
-	 * initialization.
+	 * Configuration file name.
 	 */
-	public final static String CONF_FILE_PATH;
-
-	static {
-		CONF_FILE_PATH = Portability.normalize(Portability.getUserHome() + "/.soctrace.conf");
-	}
+	private final static String CONF_FILE_NAME = "soctrace.conf";
 
 	/**
-	 * Logger
+	 * Configuration directory, relative to eclipse installation directory.
 	 */
-	private final static Logger logger = LoggerFactory.getLogger(Configuration.class);
+	private final static String CONF_DIR = "configuration" + File.separator + Activator.PLUGIN_ID
+			+ File.separator;
+
+	/**
+	 * Configuration file full path. Statically initialized.
+	 */
+	private final static String CONF_FILE_PATH = Platform.getInstallLocation().getURL().getPath()
+			+ CONF_DIR + CONF_FILE_NAME;
 
 	/**
 	 * File heading
@@ -185,6 +189,9 @@ public class Configuration {
 	 * Save current values onto the configuration file.
 	 */
 	public void saveOnFile() {
+		File dir = new File(Platform.getInstallLocation().getURL().getPath() + CONF_DIR);
+		if (!dir.exists())
+			dir.mkdir();
 		File file = new File(CONF_FILE_PATH);
 		checkPaths();
 		try {
@@ -253,7 +260,7 @@ public class Configuration {
 				logger.debug(">>> PLEASE CHECK THESE VALUES! <<< \n\n" + baos.toString());
 				logger.debug("##########################################################################");
 
-				config.store(new FileOutputStream(file), HEADING);
+				saveOnFile();
 
 			} else {
 				logger.debug("Configuration file: " + CONF_FILE_PATH);
@@ -295,6 +302,11 @@ public class Configuration {
 		}
 		System.out
 				.println("--------------------------------------------------------------------------------");
+	}
+
+	public boolean fileExists() {
+		File file = new File(CONF_FILE_PATH);
+		return file.exists();
 	}
 
 }
