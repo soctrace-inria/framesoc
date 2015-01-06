@@ -15,8 +15,6 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +40,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -206,11 +203,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Status text
 	 */
 	private Text statusText;
-
-	/**
-	 * Images
-	 */
-	private Map<String, Image> images = new HashMap<String, Image>();
 
 	/**
 	 * Column comparator
@@ -507,7 +499,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				tableTreeViewer.addFilter(nameFilter);
 
 				// the label provider puts also the image
-				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col, images));
+				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col));
 			} else
 				elemsViewerCol.setLabelProvider(new TableRowLabelProvider(col));
 
@@ -539,16 +531,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 		loaderDescriptors = null;
 		resourceManager.dispose();
-		disposeImages();
-		images = null;
-	}
-
-	private void disposeImages() {
-		Iterator<Image> it = images.values().iterator();
-		while (it.hasNext()) {
-			it.next().dispose();
-		}
-		images.clear();
 	}
 
 	/**
@@ -735,7 +717,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				for (Control c : compositePie.getChildren()) {
 					c.dispose();
 				}
-				disposeImages();
 
 				// create new chart
 				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dirty);

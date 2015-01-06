@@ -22,26 +22,19 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TreeItem;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
-import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 
 /**
- * Generic tree label provider with colored square before name.
- * 
- * Works with ITreeNode elements.
+ * Generic label provider with colored square before name.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvider {
+public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 
 	/**
 	 * References to the images (cache).
 	 */
 	private Map<String, Image> images = new HashMap<>();
-
-	private String getText(Object element) {
-		return ((ITreeNode) element).getName();
-	}
-
+	
 	@Override
 	protected void measure(Event event, Object element) {
 		// nothing to do
@@ -62,6 +55,13 @@ public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvide
 				img = new Image(event.display, bounds.height / 2, bounds.height / 2);
 				GC gc = new GC(img);
 				if (!swtColor.isDisposed()) {
+					/* We check for disposed because of the following problem:
+					 * - when I change the color associated to a type in the color manager,
+					 *   the color manager disposes the old color associated to that type
+					 * - the color, however, was cached in the statistic table row object
+					 * - such row was not completed here, due to the exception, thus it was 
+					 *   probably requested twice
+					 */
 					gc.setBackground(swtColor);
 				} else {
 					gc.setBackground(FramesocColor.BLACK.getSwtColor());
@@ -94,6 +94,14 @@ public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvide
 		super.dispose();
 	}
 
+	/**
+	 * Get the element text.
+	 * 
+	 * @param element the element
+	 * @return the element text
+	 */
+	protected abstract String getText(Object element);
+	
 	/**
 	 * Get the element color. If no color is defined, return null. If null is returned, the
 	 * implementation of {@link #paint(Event, Object)} will not draw the image.

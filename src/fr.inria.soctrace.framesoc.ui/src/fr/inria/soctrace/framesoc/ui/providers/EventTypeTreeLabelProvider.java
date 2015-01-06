@@ -14,6 +14,7 @@ import org.eclipse.swt.graphics.Color;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 
 /**
  * Event type tree label provider
@@ -21,8 +22,13 @@ import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  * 
  */
-public class EventTypeTreeLabelProvider extends OwnerDrawerTreeLabelProvider {
+public class EventTypeTreeLabelProvider extends SquareIconLabelProvider {
 
+	@Override
+	protected String getText(Object element) {
+		return ((ITreeNode) element).getName();
+	}
+	
 	@Override
 	protected Color getColor(Object element) {
 		if (element instanceof EventTypeNode) {
