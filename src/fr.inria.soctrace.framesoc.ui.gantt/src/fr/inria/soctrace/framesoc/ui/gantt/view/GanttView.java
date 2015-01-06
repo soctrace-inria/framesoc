@@ -597,7 +597,6 @@ public class GanttView extends AbstractGanttView {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
-				// TODO
 				reloadWindow(currentShownTrace, getStartTime(), getEndTime(), isChecked());
 			}
 		};
