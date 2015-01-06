@@ -8,7 +8,7 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.gantt.defaults;
+package fr.inria.soctrace.framesoc.ui.gantt.loaders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class EventDrawer implements IEventDrawer {
+public class CpuEventDrawer implements IEventDrawer {
 
 	/**
 	 * Interface for reduced event drawers
@@ -53,7 +53,7 @@ public class EventDrawer implements IEventDrawer {
 	}
 
 	// logger
-	private final static Logger logger = LoggerFactory.getLogger(EventDrawer.class);
+	private final static Logger logger = LoggerFactory.getLogger(CpuEventDrawer.class);
 
 	// drawers
 	private Map<Integer, IReducedEventDrawer> drawers = new HashMap<Integer, IReducedEventDrawer>();
@@ -79,7 +79,7 @@ public class EventDrawer implements IEventDrawer {
 	/**
 	 * Constructor.
 	 */
-	public EventDrawer() {
+	public CpuEventDrawer() {
 		drawers.put(EventCategory.PUNCTUAL_EVENT, new PunctualEventDrawer());
 		drawers.put(EventCategory.STATE, new StateDrawer());
 		drawers.put(EventCategory.LINK, new LinkDrawer());

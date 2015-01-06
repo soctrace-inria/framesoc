@@ -11,7 +11,7 @@
 package fr.inria.soctrace.framesoc.ui.gantt.handler;
 
 
-import fr.inria.soctrace.framesoc.ui.gantt.GanttView;
+import fr.inria.soctrace.framesoc.ui.gantt.view.GanttView;
 import fr.inria.soctrace.framesoc.ui.handlers.ShowTraceHandler;
 
 /**

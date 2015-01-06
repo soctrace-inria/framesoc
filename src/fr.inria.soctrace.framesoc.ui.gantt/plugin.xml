@@ -7,7 +7,7 @@
       <view
             allowMultiple="true"
             category="fr.inria.soctrace.framesoc.ui.views.category"
-            class="fr.inria.soctrace.framesoc.ui.gantt.GanttView"
+            class="fr.inria.soctrace.framesoc.ui.gantt.view.GanttView"
             icon="icons/gantt.png"
             id="fr.inria.soctrace.framesoc.ui.GANTT"
             name="Gantt Chart"
@@ -35,12 +35,8 @@
    <extension
          point="fr.inria.soctrace.framesoc.ui.gantt.adapter">
       <ganttAdapter
-            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
-            traceTypeName="pjdump">
-      </ganttAdapter>
-      <ganttAdapter
-            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.nocpu.NoCpuEventDrawer"
-            traceTypeName="CTFTrace.0.0">
+            eventDrawer="fr.inria.soctrace.framesoc.ui.gantt.loaders.CpuEventDrawer"
+            traceTypeName="GStreamer.hadas.0.0">
       </ganttAdapter>
    </extension>
 

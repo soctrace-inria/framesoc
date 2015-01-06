@@ -26,7 +26,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeEvent;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
-import fr.inria.soctrace.framesoc.ui.gantt.GanttView;
+import fr.inria.soctrace.framesoc.ui.gantt.view.GanttView;
 import fr.inria.soctrace.lib.model.EventType;
 
 /**

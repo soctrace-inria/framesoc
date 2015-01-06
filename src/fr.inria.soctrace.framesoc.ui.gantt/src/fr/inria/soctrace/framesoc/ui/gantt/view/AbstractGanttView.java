@@ -8,7 +8,7 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.gantt;
+package fr.inria.soctrace.framesoc.ui.gantt.view;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;

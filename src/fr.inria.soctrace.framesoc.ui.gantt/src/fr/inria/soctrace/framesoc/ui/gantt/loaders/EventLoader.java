@@ -9,7 +9,7 @@
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
 
-package fr.inria.soctrace.framesoc.ui.gantt.defaults;
+package fr.inria.soctrace.framesoc.ui.gantt.loaders;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -8,7 +8,7 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.gantt.nocpu;
+package fr.inria.soctrace.framesoc.ui.gantt.loaders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeLinkEvent;
-import fr.inria.soctrace.framesoc.ui.gantt.defaults.GanttEntry;
-import fr.inria.soctrace.framesoc.ui.gantt.defaults.GanttEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;

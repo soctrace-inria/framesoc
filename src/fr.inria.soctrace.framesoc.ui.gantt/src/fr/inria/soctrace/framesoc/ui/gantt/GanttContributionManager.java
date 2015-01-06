@@ -18,8 +18,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
-import fr.inria.soctrace.framesoc.ui.gantt.defaults.EventDrawer;
-import fr.inria.soctrace.framesoc.ui.gantt.defaults.EventLoader;
+import fr.inria.soctrace.framesoc.ui.gantt.loaders.EventLoader;
+import fr.inria.soctrace.framesoc.ui.gantt.loaders.NoCpuEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.lib.model.IModelElement;
@@ -88,7 +88,7 @@ public class GanttContributionManager {
 				return (IEventDrawer) o;
 			}
 		}
-		return new EventDrawer();
+		return new NoCpuEventDrawer();
 	}
 
 	private static Object getObject(int typeId, String field) {
