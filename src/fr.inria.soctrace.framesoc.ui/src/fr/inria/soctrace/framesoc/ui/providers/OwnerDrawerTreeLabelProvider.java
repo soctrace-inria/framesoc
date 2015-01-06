@@ -27,6 +27,8 @@ import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 /**
  * Generic tree label provider with colored square before name.
  * 
+ * Works with ITreeNode elements.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvider {
@@ -55,25 +57,31 @@ public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvide
 		if (images.containsKey(text)) {
 			img = images.get(text);
 		} else {
-			img = new Image(event.display, bounds.height / 2, bounds.height / 2);
-			GC gc = new GC(img);
 			Color swtColor = getColor(element);
-			if (swtColor != null && !swtColor.isDisposed()) {
-				gc.setBackground(swtColor);
-			} else {
-				gc.setBackground(FramesocColor.BLACK.getSwtColor());
+			if (swtColor != null) {
+				img = new Image(event.display, bounds.height / 2, bounds.height / 2);
+				GC gc = new GC(img);
+				if (!swtColor.isDisposed()) {
+					gc.setBackground(swtColor);
+				} else {
+					gc.setBackground(FramesocColor.BLACK.getSwtColor());
+				}
+				gc.fillRectangle(0, 0, bounds.height / 2, bounds.height / 2);
+				gc.dispose();
+				images.put(text, img);
 			}
-			gc.fillRectangle(0, 0, bounds.height / 2, bounds.height / 2);
-			gc.dispose();
-			images.put(text, img);
 		}
 
-		// center image and text on y
-		bounds.height = bounds.height / 2 - img.getBounds().height / 2;
-		int imgy = bounds.height > 0 ? bounds.y + bounds.height : bounds.y;
-		int texty = bounds.y + 3;
-		event.gc.drawText(text, bounds.x + img.getBounds().width + 5, texty, true);
-		event.gc.drawImage(img, bounds.x, imgy);
+		if (img != null) {
+			// center image and text on y
+			bounds.height = bounds.height / 2 - img.getBounds().height / 2;
+			int imgy = bounds.height > 0 ? bounds.y + bounds.height : bounds.y;
+			int texty = bounds.y + 3;
+			event.gc.drawText(text, bounds.x + img.getBounds().width + 5, texty, true);
+			event.gc.drawImage(img, bounds.x, imgy);
+		} else {
+			event.gc.drawText(text, bounds.x + 2, bounds.y + 3, true);
+		}
 
 	}
 
@@ -88,7 +96,7 @@ public abstract class OwnerDrawerTreeLabelProvider extends OwnerDrawLabelProvide
 
 	/**
 	 * Get the element color. If no color is defined, return null. If null is returned, the
-	 * implementation of {@link #paint(Event, Object)} will choose a default color (e.g., black).
+	 * implementation of {@link #paint(Event, Object)} will not draw the image.
 	 * 
 	 * @param element
 	 *            the element
