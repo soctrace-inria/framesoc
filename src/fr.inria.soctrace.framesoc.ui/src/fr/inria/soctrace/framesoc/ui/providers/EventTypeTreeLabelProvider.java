@@ -25,12 +25,12 @@ import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 public class EventTypeTreeLabelProvider extends SquareIconLabelProvider {
 
 	@Override
-	protected String getText(Object element) {
+	public String getText(Object element) {
 		return ((ITreeNode) element).getName();
 	}
 	
 	@Override
-	protected Color getColor(Object element) {
+	public Color getColor(Object element) {
 		if (element instanceof EventTypeNode) {
 			EventTypeNode node = (EventTypeNode) element;
 			return FramesocColorManager.getInstance().getEventTypeColor(node.getName())

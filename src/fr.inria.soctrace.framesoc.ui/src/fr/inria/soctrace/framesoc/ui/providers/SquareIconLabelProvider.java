@@ -13,28 +13,49 @@ package fr.inria.soctrace.framesoc.ui.providers;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.TreeItem;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 
 /**
- * Generic label provider with colored square before name.
+ * Generic label provider for tree and table viewers, drawing colored squares before names.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
+public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider implements
+		ILabelProvider {
 
 	/**
 	 * References to the images (cache).
 	 */
 	private Map<String, Image> images = new HashMap<>();
-	
+
+	/**
+	 * Get the item bounds.
+	 * 
+	 * @param event paint event
+	 * @return the bounds, or null if the item is not a TreeItem or a TableItem
+	 */
+	private Rectangle getBounds(Event event) {
+		if (event.item instanceof TreeItem) {
+			return ((TreeItem) event.item).getBounds(event.index);
+		}
+		if (event.item instanceof TableItem) {
+			// TODO test for tables
+			return ((TableItem) event.item).getBounds(event.index);
+		}
+		return null;
+	}
+
 	@Override
 	protected void measure(Event event, Object element) {
 		// nothing to do
@@ -43,9 +64,11 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 	@Override
 	protected void paint(Event event, Object element) {
 
+		Rectangle bounds = getBounds(event);
+		Assert.isNotNull(bounds);
+
 		String text = getText(element);
 
-		Rectangle bounds = ((TreeItem) event.item).getBounds(event.index);
 		Image img = null;
 		if (images.containsKey(text)) {
 			img = images.get(text);
@@ -55,12 +78,12 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 				img = new Image(event.display, bounds.height / 2, bounds.height / 2);
 				GC gc = new GC(img);
 				if (!swtColor.isDisposed()) {
-					/* We check for disposed because of the following problem:
-					 * - when I change the color associated to a type in the color manager,
-					 *   the color manager disposes the old color associated to that type
-					 * - the color, however, was cached in the statistic table row object
-					 * - such row was not completed here, due to the exception, thus it was 
-					 *   probably requested twice
+					/*
+					 * We check for disposed because of the following problem: - when I change the
+					 * color associated to a type in the color manager, the color manager disposes
+					 * the old color associated to that type - the color, however, was cached in the
+					 * statistic table row object - such row was not completed here, due to the
+					 * exception, thus it was probably requested twice
 					 */
 					gc.setBackground(swtColor);
 				} else {
@@ -86,6 +109,11 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 	}
 
 	@Override
+	public Image getImage(Object element) {
+		return null;
+	}
+
+	@Override
 	public void dispose() {
 		for (Image img : images.values()) {
 			img.dispose();
@@ -95,14 +123,6 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 	}
 
 	/**
-	 * Get the element text.
-	 * 
-	 * @param element the element
-	 * @return the element text
-	 */
-	protected abstract String getText(Object element);
-	
-	/**
 	 * Get the element color. If no color is defined, return null. If null is returned, the
 	 * implementation of {@link #paint(Event, Object)} will not draw the image.
 	 * 
@@ -110,6 +130,6 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider {
 	 *            the element
 	 * @return the color, or null if no color is defined.
 	 */
-	protected abstract Color getColor(Object element);
+	public abstract Color getColor(Object element);
 
 }

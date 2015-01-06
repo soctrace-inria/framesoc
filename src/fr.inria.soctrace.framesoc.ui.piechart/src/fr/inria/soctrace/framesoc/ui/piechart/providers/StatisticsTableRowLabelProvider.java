@@ -42,7 +42,7 @@ public class StatisticsTableRowLabelProvider extends SquareIconLabelProvider {
 	}
 
 	@Override
-	protected String getText(Object element) {
+	public String getText(Object element) {
 		String text = "";
 		try {
 			text = ((ITableRow) element).get(col);
@@ -53,7 +53,7 @@ public class StatisticsTableRowLabelProvider extends SquareIconLabelProvider {
 	}
 
 	@Override
-	protected Color getColor(Object element) {
+	public Color getColor(Object element) {
 		if (element instanceof StatisticsTableRow) {
 			StatisticsTableRow row = (StatisticsTableRow) element;
 			return row.getColor();
