@@ -219,7 +219,13 @@ public class GanttView extends AbstractGanttView {
 			showWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp());
 		} else {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-			showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
+			if (des.getTimeInterval().equals(TimeInterval.NOT_SPECIFIED)) {
+				// double click
+				showWindow(des.getTrace(), des.getTrace().getMinTimestamp(), des.getTrace()
+						.getMaxTimestamp());
+			} else {
+				showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
+			}
 		}
 	}
 
@@ -566,7 +572,8 @@ public class GanttView extends AbstractGanttView {
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		for (EventType et : types) {
 			EventTypeNode etn = new EventTypeNode(et);
-			if (et.getCategory() == EventCategory.LINK || et.getCategory() == EventCategory.VARIABLE) {
+			if (et.getCategory() == EventCategory.LINK
+					|| et.getCategory() == EventCategory.VARIABLE) {
 				// skip links and variables
 				continue;
 			}

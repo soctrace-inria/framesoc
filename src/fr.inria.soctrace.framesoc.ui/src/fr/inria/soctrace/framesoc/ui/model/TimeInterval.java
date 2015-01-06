@@ -18,6 +18,10 @@ package fr.inria.soctrace.framesoc.ui.model;
  */
 public class TimeInterval {
 
+	/**
+	 * Unspecified time interval. Views should be able to manage it, as it
+	 * is passed when opening a view with double click.
+	 */
 	public static final TimeInterval NOT_SPECIFIED = new TimeInterval(-1, -1);
 	
 	public long startTimestamp;

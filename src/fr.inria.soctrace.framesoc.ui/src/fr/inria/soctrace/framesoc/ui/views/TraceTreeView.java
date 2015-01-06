@@ -86,7 +86,8 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 	 * Commands to remove at multi selection
 	 */
 	private static final String COMMAND_FRAMESOC_PARTS = "fr.inria.soctrace.framesoc.ui.popup.parts"; //$NON-NLS-1$
-	private static final String COMMAND_COPY_DB_NAME = Activator.PLUGIN_ID + ".commands.CopyToClipboard"; //$NON-NLS-1$
+	private static final String COMMAND_COPY_DB_NAME = Activator.PLUGIN_ID
+			+ ".commands.CopyToClipboard"; //$NON-NLS-1$
 
 	/**
 	 * Logger
@@ -174,18 +175,19 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				}
 				if (!TraceSelection.isSelectionValid(thisSelection)
 						|| !FramesocPartManager.getInstance().isFramesocPartExisting(
-								FramesocViews.HISTOGRAM_VIEW_ID)) {
+								FramesocViews.GANTT_CHART_VIEW_ID)) {
 					return;
 				}
-				
+
 				setSelectionBusVariables(thisSelection);
-				
+
 				TraceNode selectedNode = (TraceNode) thisSelection.getFirstElement();
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(selectedNode.getTrace());
 				des.setTimeInterval(TimeInterval.NOT_SPECIFIED);
 				logger.debug(des.toString());
-				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_HISTOGRAM_DISPLAY_TIME_INTERVAL, des);
+				FramesocBus.getInstance().send(
+						FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
 			}
 		});
 
