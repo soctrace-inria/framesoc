@@ -29,19 +29,22 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import fr.inria.soctrace.framesoc.core.tools.management.ArgumentsManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool.ParameterCheckStatus;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
+import fr.inria.soctrace.framesoc.ui.input.CommandLineArgsInputComposite;
+import fr.inria.soctrace.framesoc.ui.listeners.ComboListener;
+import fr.inria.soctrace.framesoc.ui.listeners.LaunchTextListener;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
-import org.eclipse.wb.swt.SWTResourceManager;
-
 /**
  * Eclipse Dialog to launch a Framesoc tool.
+ * 
+ * TODO use new mechanism
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -61,10 +64,7 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
     private Combo toolCombo;
     
     // arguments
-    private Label argsLabel;
-    private Text argsText;
-    private Text docText;
-    private Label docLabel;
+    private CommandLineArgsInputComposite argsComposite;
     private Group group;
     private Label message;
 
@@ -86,22 +86,21 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
     	this.getShell().setText(DIALOG_TITLE);
         Composite composite = (Composite) super.createDialogArea(parent);
        
-        GridData data;
-      
-        Group c = new Group(composite, SWT.NONE);
-        c.setText("Launch analysis tool");
-        GridLayout layout = new GridLayout(2,false);
-        c.setLayout(layout);
-        data = new GridData(GridData.FILL_BOTH);
-        c.setLayoutData(data);
-
+        Group analysisComposite = new Group(composite, SWT.NONE);
+        analysisComposite.setLayout(new GridLayout(1,false));
+        analysisComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        analysisComposite.setText("Launch analysis tool");
+        
+        Composite toolComposite = new Composite(analysisComposite, SWT.NONE);
+        toolComposite.setLayout(new GridLayout(2, false));
+        toolComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         // tool label
-        toolLabel = new Label(c, SWT.NONE);
+        toolLabel = new Label(toolComposite, SWT.NONE);
         toolLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         toolLabel.setText("Tool");
         // tool combo
-        toolCombo = new Combo(c, SWT.BORDER | SWT.READ_ONLY);
-        toolCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+        toolCombo = new Combo(toolComposite, SWT.BORDER | SWT.READ_ONLY);
+        toolCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         for (String s: toolsMap.keySet()) {
         	toolCombo.add(s);
         }
@@ -110,38 +109,16 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
         toolCombo.addSelectionListener(new SelectionAdapter() {
         	@Override
         	public void widgetSelected(SelectionEvent e) {
-        		docText.setText(toolsMap.get(toolCombo.getText()).getDoc());
+        		argsComposite.setDocText(toolsMap.get(toolCombo.getText()).getDoc());
         		updateOk();
         	}
 		});
         
-        // args label
-        argsLabel = new Label(c, SWT.NONE);
-        argsLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-        argsLabel.setText("Arguments");
-
-        // args text
-        argsText = new Text(c, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL | SWT.MULTI);
-        argsText.setEditable(true);
-        data = new GridData(GridData.FILL_BOTH);
-        data.minimumWidth = 400;
-        data.minimumHeight = 50;
-        argsText.addModifyListener(argsListener);
-        argsText.setLayoutData(data);
-
-        // doc label
-        docLabel = new Label(c, SWT.NONE);
-        docLabel.setFont(SWTResourceManager.getFont("Cantarell", 11, SWT.ITALIC));
-        docLabel.setAlignment(SWT.CENTER);
-        docLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-        docLabel.setText("Doc");
+        // arguments and doc
+        argsComposite = new CommandLineArgsInputComposite(analysisComposite, SWT.NONE, true);
+        argsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         
-        // doc text
-        docText = new Text(c, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL | SWT.MULTI);
-        data = new GridData(GridData.FILL_BOTH);
-        docText.setLayoutData(data);
-        docText.setText(toolsMap.get(toolCombo.getText()).getDoc());
-        
+        // message
         group = new Group(composite, SWT.NONE);
         group.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         group.setText("Error message");
@@ -190,7 +167,7 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
     		status.message = "Tool not existing";
     		return status;
     	}
-    	return tool.canLaunch(getArgs()); 
+    	return tool.canLaunch(getInput()); 
     }
     	
 	private IFramesocTool getToolLauncher() {
@@ -206,5 +183,12 @@ public class LaunchToolDialog extends Dialog implements IArgumentDialog {
 		message.setText(status.message);
 		message.setToolTipText(status.message);
 		ok.setEnabled(status.valid);
+	}
+
+	@Override
+	public IFramesocToolInput getInput() {
+		// TODO Auto-generated method stub
+		// Do this
+		throw new UnsupportedOperationException();
 	}
 }

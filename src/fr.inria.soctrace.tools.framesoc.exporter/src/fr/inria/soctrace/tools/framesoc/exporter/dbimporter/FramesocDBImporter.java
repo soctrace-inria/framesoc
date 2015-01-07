@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.core.tools.management.PluginImporterJob;
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
+import fr.inria.soctrace.framesoc.core.tools.model.TraceFileInput;
 import fr.inria.soctrace.lib.model.AnalysisResult;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
@@ -68,7 +70,7 @@ public class FramesocDBImporter extends FramesocTool {
 	 */
 	private class FramesocDBImporterJobBody implements IPluginToolJobBody {
 
-		private String args[];
+		private String args[]; // TODO use input with the new mechanism
 		private String dbFile = "";
 		private String metaFile = "";
 		private ExportMetadata metadata = null;
@@ -77,8 +79,9 @@ public class FramesocDBImporter extends FramesocTool {
 			return !metaFile.equals("");
 		}
 
-		public FramesocDBImporterJobBody(String[] args) {
-			this.args = args;
+		public FramesocDBImporterJobBody(IFramesocToolInput input) {
+			List<String> files= ((TraceFileInput) input).getTraceFiles();
+			this.args = files.toArray(new String[files.size()]);
 		}
 
 		private Trace prepareUnknownTrace(SystemDBObject sysDB) throws SoCTraceException {
@@ -374,25 +377,27 @@ public class FramesocDBImporter extends FramesocTool {
 	}
 
 	@Override
-	public void launch(String[] args) {
+	public void launch(IFramesocToolInput input) {
 		PluginImporterJob job = new PluginImporterJob("Framesoc DB Importer",
-				new FramesocDBImporterJobBody(args));
+				new FramesocDBImporterJobBody(input));
 		job.setUser(true);
 		job.schedule();
 	}
 
 	@Override
-	public ParameterCheckStatus canLaunch(String[] args) {
+	public ParameterCheckStatus canLaunch(IFramesocToolInput input) {
 
 		ParameterCheckStatus status = new ParameterCheckStatus(true, "");
 
-		if (args.length < 1) {
+		List<String> files= ((TraceFileInput) input).getTraceFiles();
+		
+		if (files.size() < 1) {
 			status.message = "Missing *.db file.";
 			status.valid = false;
 			return status;
 		}
 
-		String file = args[0];
+		String file = files.iterator().next();
 
 		if (!file.endsWith(".db")) {
 			status.valid = false;

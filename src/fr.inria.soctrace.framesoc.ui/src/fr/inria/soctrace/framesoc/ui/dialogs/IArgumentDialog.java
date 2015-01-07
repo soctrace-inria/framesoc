@@ -10,6 +10,8 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.dialogs;
 
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
+
 /**
  * Interface for dialogs taking parameters that need validation.
  * 
@@ -18,10 +20,16 @@ package fr.inria.soctrace.framesoc.ui.dialogs;
 public interface IArgumentDialog {
 
 	/**
-	 * Method to update the OK button status.
-	 * It is called inside widget listeners 
-	 * when some argument is changed.
+	 * Method to update the OK button status. It is called inside widget listeners when some
+	 * argument is changed.
 	 */
-	public void updateOk();	
-	
+	public void updateOk();
+
+	/**
+	 * Get the tool input.
+	 * 
+	 * @return the tool input
+	 */
+	public IFramesocToolInput getInput();
+
 }

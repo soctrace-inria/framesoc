@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import fr.inria.soctrace.framesoc.core.FramesocConstants.FramesocToolType;
+import fr.inria.soctrace.framesoc.ui.listeners.ComboListener;
+import fr.inria.soctrace.framesoc.ui.listeners.TextListener;
 
 /**
  * Eclipse Dialog to register a new tool to the infrastructure.

@@ -28,6 +28,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.tools.management.ExternalImporterExecutionManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ExternalToolExecutionManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.AnalysisResult;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
@@ -195,31 +196,20 @@ public final class FramesocManager {
 	 *            arguments
 	 * @throws SoCTraceException
 	 */
-	public void launchTool(Tool tool, String[] args) throws SoCTraceException {
+	public void launchTool(Tool tool, IFramesocToolInput input) throws SoCTraceException {
 
 		// plugin tools
 		if (tool.isPlugin()) {
 			logger.debug("Launcing plugin " + tool.getName());
-			ToolContributionManager.executePluginTool(tool, args);
+			ToolContributionManager.executePluginTool(tool, input);
 			return;
 		}
 
-		// prepare command
-		StringBuilder launchCommand = new StringBuilder(tool.getCommand());
-		for (String arg : args) {
-			launchCommand.append(" " + arg);
-		}
-
-		// launch command
-		String command = launchCommand.toString();
-
-		logger.debug("Launcing tool " + tool.getName());
-		logger.debug("Command " + command);
-
+		// external tools
 		if (tool.getType().equals(FramesocToolType.IMPORT.toString()))
-			new ExternalImporterExecutionManager(tool.getName(), command).execute();
+			new ExternalImporterExecutionManager(tool.getName(), input.getCommand()).execute();
 		else
-			new ExternalToolExecutionManager(tool.getName(), command).execute();
+			new ExternalToolExecutionManager(tool.getName(), input.getCommand()).execute();
 	}
 
 	/**

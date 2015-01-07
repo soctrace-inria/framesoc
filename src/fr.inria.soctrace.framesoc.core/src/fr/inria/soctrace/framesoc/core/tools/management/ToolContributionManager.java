@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SafeRunner;
 
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.utils.IdManager;
 
@@ -105,9 +106,9 @@ public class ToolContributionManager {
 	 * or a class extending it).
 	 * 
 	 * @param tool the plugin tool
-	 * @param args arguments list
+	 * @param input arguments list
 	 */
-	public static void executePluginTool(final Tool tool, final String args[]) {
+	public static void executePluginTool(final Tool tool, final IFramesocToolInput input) {
 		
 		if (!tool.isPlugin())
 			return;
@@ -121,7 +122,7 @@ public class ToolContributionManager {
 			public void run() throws Exception {
 				FramesocTool ftool = getToolLauncher(tool);
 				if (ftool!=null) 
-					ftool.launch(args);
+					ftool.launch(input);
 			}
 		};
 		SafeRunner.run(runnable);

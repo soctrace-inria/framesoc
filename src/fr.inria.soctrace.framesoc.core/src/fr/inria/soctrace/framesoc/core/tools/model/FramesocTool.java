@@ -25,10 +25,10 @@ public abstract class FramesocTool implements IFramesocTool {
 	private Tool tool = null;
 	
 	@Override
-	public abstract void launch(String[] args);
+	public abstract void launch(IFramesocToolInput input);
 
 	@Override
-	public ParameterCheckStatus canLaunch(String[] args) {
+	public ParameterCheckStatus canLaunch(IFramesocToolInput input) {
 		return new ParameterCheckStatus(true, "");
 	}
 

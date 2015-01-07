@@ -86,7 +86,7 @@ public class ImportTraceHandler extends AbstractHandler {
 			return;
 		
 		// launch tool
-		FramesocManager.getInstance().launchTool(dlg.getTool(), dlg.getArgs());		
+		FramesocManager.getInstance().launchTool(dlg.getTool(), dlg.getInput());		
 	}
 
 }

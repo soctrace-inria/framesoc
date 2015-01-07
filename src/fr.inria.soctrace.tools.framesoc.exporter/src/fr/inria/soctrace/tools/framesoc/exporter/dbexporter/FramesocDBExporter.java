@@ -16,6 +16,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -23,16 +24,17 @@ import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
 public class FramesocDBExporter extends FramesocTool {
 
 	@Override
-	public void launch(String[] args) {
+	public void launch(IFramesocToolInput input) {
 
 		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		ExportDBDialog dlg = new ExportDBDialog(window.getShell());
 		if (dlg.open() != Window.OK)
 			return;
 
-		ExporterInput input = dlg.getExporterInput();
-		if (input!=null) {
-			ExporterJob ejob = new ExporterJob("Exporter", input);
+		// TODO use new mechanism
+		ExporterInput exporterInput = dlg.getExporterInput();
+		if (exporterInput!=null) {
+			ExporterJob ejob = new ExporterJob("Exporter", exporterInput);
 			ejob.setUser(true);
 			ejob.schedule(); 
 		} else {
@@ -43,7 +45,7 @@ public class FramesocDBExporter extends FramesocTool {
 	}
 	
 	@Override 
-	public ParameterCheckStatus canLaunch(String[] args) {
+	public ParameterCheckStatus canLaunch(IFramesocToolInput input) {
 		return new ParameterCheckStatus(true, "");
 	}
 

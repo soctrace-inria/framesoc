@@ -61,7 +61,7 @@ public class ExportTraceHandler extends AbstractHandler {
 				return null;
 			
 			// launch tool
-			FramesocManager.getInstance().launchTool(dlg.getTool(), dlg.getArgs());
+			FramesocManager.getInstance().launchTool(dlg.getTool(), dlg.getInput());
 
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(window.getShell(), "Error exporting the trace", e.getMessage());
