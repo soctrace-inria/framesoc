@@ -6,15 +6,25 @@
       <tool
             class="fr.inria.soctrace.tools.framesoc.exporter.dbexporter.FramesocDBExporter"
             doc="no argument needed"
+            id="fr.inria.soctrace.tools.framesoc.exporter.dbexporter"
             name="Framesoc DB Exporter"
             type="EXPORT">
       </tool>
       <tool
             class="fr.inria.soctrace.tools.framesoc.exporter.dbimporter.FramesocDBImporter"
             doc="The &apos;Trace files&apos; field must contain the *.db file exported with the Framesoc DB Exporter. The importer looks for a *.meta file in the same directory with the same base name."
+            id="fr.inria.soctrace.tools.framesoc.exporter.dbimporter"
             name="Framesoc DB Importer"
             type="IMPORT">
       </tool>
+   </extension>
+   <extension
+         point="fr.inria.soctrace.framesoc.ui.input.toolInput">
+      <toolInput
+            composite="fr.inria.soctrace.tools.framesoc.exporter.input.DBExporterInputComposite"
+            compositeFactory="fr.inria.soctrace.tools.framesoc.exporter.input.DBExporterInputCompositeFactory"
+            toolId="fr.inria.soctrace.tools.framesoc.exporter.dbexporter">
+      </toolInput>
    </extension>
 
 </plugin>

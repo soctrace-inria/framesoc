@@ -33,6 +33,7 @@ public class Tool implements IModelElement, Serializable {
 	private String command;
 	private boolean plugin;
 	private String doc;
+	private String extensionId; // meaningful only for plugin tools
 
 	/**
 	 * Constructor 
@@ -45,6 +46,7 @@ public class Tool implements IModelElement, Serializable {
 		this.command = "";
 		this.plugin = false;
 		this.doc = "";
+		this.extensionId="";
 	}
 	
 	/**
@@ -98,9 +100,8 @@ public class Tool implements IModelElement, Serializable {
 
 	@Override
 	public String toString() {
-		return "Tool [id=" + id + ", name=" + name + ", type=" + type
-				+ ", command=" + command + ", plugin=" + plugin + ", doc="
-				+ doc + "]";
+		return "Tool [id=" + id + ", name=" + name + ", type=" + type + ", command=" + command
+				+ ", plugin=" + plugin + ", doc=" + doc + ", extensionId=" + extensionId + "]";
 	}
 
 	@Override
@@ -136,15 +137,29 @@ public class Tool implements IModelElement, Serializable {
 		this.doc = doc;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
+	/**
+	 * 
+	 * @return the extension id
 	 */
+	public String getExtensionId() {
+		return extensionId;
+	}
+
+	/**
+	 * 
+	 * @param extensionId the extension id to set
+	 */
+	public void setExtensionId(String extensionId) {
+		this.extensionId = extensionId;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((command == null) ? 0 : command.hashCode());
 		result = prime * result + ((doc == null) ? 0 : doc.hashCode());
+		result = prime * result + ((extensionId == null) ? 0 : extensionId.hashCode());
 		result = prime * result + id;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + (plugin ? 1231 : 1237);
@@ -152,16 +167,13 @@ public class Tool implements IModelElement, Serializable {
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Tool))
+		if (getClass() != obj.getClass())
 			return false;
 		Tool other = (Tool) obj;
 		if (command == null) {
@@ -173,6 +185,11 @@ public class Tool implements IModelElement, Serializable {
 			if (other.doc != null)
 				return false;
 		} else if (!doc.equals(other.doc))
+			return false;
+		if (extensionId == null) {
+			if (other.extensionId != null)
+				return false;
+		} else if (!extensionId.equals(other.extensionId))
 			return false;
 		if (id != other.id)
 			return false;
@@ -190,5 +207,5 @@ public class Tool implements IModelElement, Serializable {
 			return false;
 		return true;
 	}
-
+	
 }

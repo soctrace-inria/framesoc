@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="fr.inria.soctrace.framesoc.ui.perspective.part" name="Framesoc Part" schema="schema/fr.inria.soctrace.framesoc.ui.perspective.part.exsd"/>
+   <extension-point id="fr.inria.soctrace.framesoc.ui.input.toolInput" name="Tool Input" schema="schema/fr.inria.soctrace.framesoc.ui.input.toolInput.exsd"/>
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective

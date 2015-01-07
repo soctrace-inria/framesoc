@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="fr.inria.soctrace.framesoc.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="fr.inria.soctrace.framesoc.ui" id="fr.inria.soctrace.framesoc.ui.input.toolInput" name="Tool Input"/>
+      </appinfo>
+      <documentation>
+         Extension point used by client applications to contribute custom input composit for launching a Framesoc compliant tool.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <choice minOccurs="1" maxOccurs="unbounded">
+            <element ref="toolInput" minOccurs="1" maxOccurs="unbounded"/>
+         </choice>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="toolInput">
+      <complexType>
+         <attribute name="toolId" type="string">
+            <annotation>
+               <documentation>
+                  The id field of the corresponding Framesoc Tool extension.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="compositeFactory" type="string">
+            <annotation>
+               <documentation>
+                  The class representing the composite factory for custom tool input composite.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn="fr.inria.soctrace.framesoc.ui.input.AbstractToolInputCompositeFactory:"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         1.0.2
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         [Enter extension point usage example here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="apiinfo"/>
+      </appinfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="implementation"/>
+      </appinfo>
+      <documentation>
+         [Enter information about supplied implementation of this extension point.]
+      </documentation>
+   </annotation>
+
+
+</schema>

@@ -6,7 +6,7 @@
          <meta.schema plugin="fr.inria.soctrace.framesoc.core" id="fr.inria.soctrace.framesoc.core.tool" name="Framesoc Tool"/>
       </appinfo>
       <documentation>
-         Extension point used by client application to contribute a Framesoc compliant tool as an Eclipse plugin.
+         Extension point used by client applications to contribute a Framesoc compliant tool as an Eclipse plugin.
       </documentation>
    </annotation>
 
@@ -54,6 +54,13 @@
          </documentation>
       </annotation>
       <complexType>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  The ID of the tool. This is NOT the database ID. It is an identificator having the same format of java packages (i.e., x.y.z.k). Note that each tool must have a globally unique id in the system.
+               </documentation>
+            </annotation>
+         </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
@@ -95,21 +102,6 @@
                </documentation>
             </annotation>
          </attribute>
-         
-         <!-- - ICON - 
-         <attribute name="icon" type="string">
-            <annotation>
-               <documentation>
-                  A relative path of the icon that will be associated with the tool.
-               </documentation>
-            </annotation>
-         </attribute>
-         
-         // Retrieve the bundle: 
-         Bundle hisBundle = Platform.getBundle(IConfigurationElement.getContributor().ge tName());
-         // then get the image from the bundle knowing the path
-         
-         -->
       </complexType>
    </element>
 

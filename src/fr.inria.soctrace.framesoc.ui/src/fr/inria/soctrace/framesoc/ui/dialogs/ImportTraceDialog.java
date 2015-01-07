@@ -35,7 +35,9 @@ import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool.ParameterCheckStatus;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputComposite;
+import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputCompositeFactory;
 import fr.inria.soctrace.framesoc.ui.input.DefaultImporterInputComposite;
+import fr.inria.soctrace.framesoc.ui.input.FramesocToolInputContributionManager;
 import fr.inria.soctrace.framesoc.ui.listeners.ComboListener;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -49,8 +51,14 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 
 	private static final String IMPORT_TRACE_DIALOG_TITLE = "Import a new trace";
 
-	Map<String, Tool> toolsMap;
-	Map<String, IFramesocTool> fsToolsMap; // the tool is null for non plugin tools
+	// tool name -> tool object
+	private Map<String, Tool> toolMap;
+	// tool name -> framesoc tool TODO use extension id
+	private Map<String, IFramesocTool> fsToolMap; // the tool is null for non plugin tools
+	// ext id -> composite factory
+	private Map<String, AbstractToolInputCompositeFactory> factoryMap;
+	// ext id -> composite
+	private Map<String, AbstractToolInputComposite> compositeCache;
 
 	// Importer
 	private ComboListener importerNameListener;
@@ -66,13 +74,15 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 
 	public ImportTraceDialog(Shell parentShell, List<Tool> tools) throws SoCTraceException {
 		super(parentShell);
-		toolsMap = new HashMap<String, Tool>();
-		fsToolsMap = new HashMap<String, IFramesocTool>();
+		compositeCache = new HashMap<>();
+		toolMap = new HashMap<String, Tool>();
+		fsToolMap = new HashMap<String, IFramesocTool>();
 		for (Tool t : tools) {
-			toolsMap.put(t.getName(), t);
-			fsToolsMap.put(t.getName(), ToolContributionManager.getToolLauncher(t));
+			toolMap.put(t.getName(), t);
+			fsToolMap.put(t.getName(), ToolContributionManager.getToolLauncher(t));
 		}
-		importerNameListener = new ComboListener(toolsMap.keySet().iterator().next());
+		importerNameListener = new ComboListener(toolMap.keySet().iterator().next());
+		factoryMap = FramesocToolInputContributionManager.getToolInputComposites();
 	}
 
 	@Override
@@ -83,7 +93,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 
 		// Import group
 
-		Group importGroup = new Group(composite, SWT.NONE);
+		final Group importGroup = new Group(composite, SWT.NONE);
 		importGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		importGroup.setText("Import new trace");
 		importGroup.setLayout(new GridLayout(1, true));
@@ -98,7 +108,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		importerNameLabel.setText("Importer");
 		importerNameCombo = new Combo(importerComposite, SWT.BORDER | SWT.READ_ONLY);
 		importerNameCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		for (String s : toolsMap.keySet()) {
+		for (String s : toolMap.keySet()) {
 			importerNameCombo.add(s);
 		}
 		importerNameCombo.select(0);
@@ -107,15 +117,13 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				updateOk();
+				updateComposite(importGroup);
 				parent.layout(true); // if changing form XXX
 			}
 		});
 
 		// Importer input
-		// TODO read from extension point
-		toolInputComposite = new DefaultImporterInputComposite(importGroup, SWT.NONE);
-		toolInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		toolInputComposite.setArgumentDialog(this);
+		updateComposite(importGroup);
 
 		// Message group
 
@@ -125,12 +133,31 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 		groupMessage.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		message = new Label(groupMessage, SWT.WRAP);
 		message.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		//parent.layout(true);
 
 		return composite;
 	}
 
+	private void updateComposite(Composite parent) {
+		Tool t = getTool(); 
+		
+		// look in the cache first
+		if (compositeCache.containsKey(t.getExtensionId())) {
+			toolInputComposite = compositeCache.get(t.getExtensionId());
+			return;
+		}
+		
+		// create it if not found
+		if (factoryMap.containsKey(t.getExtensionId())) {
+			toolInputComposite = factoryMap.get(t.getExtensionId()).getComposite(parent, SWT.NONE);
+		} else {
+			toolInputComposite = new DefaultImporterInputComposite(parent, SWT.NONE);
+		}
+		toolInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		toolInputComposite.setArgumentDialog(this);
+		compositeCache.put(t.getExtensionId(), toolInputComposite);
+		
+	}
+	
     @Override
 	protected Point getInitialSize() {
 		return new Point(610, 380);
@@ -162,7 +189,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	}
 
 	public Tool getTool() {
-		return toolsMap.get(importerNameListener.getText());
+		return toolMap.get(importerNameCombo.getText());
 	}
 
 	private ParameterCheckStatus canLaunch() {
@@ -181,7 +208,7 @@ public class ImportTraceDialog extends Dialog implements IArgumentDialog {
 	}
 
 	private IFramesocTool getToolLauncher() {
-		return fsToolsMap.get(importerNameListener.getText());
+		return fsToolMap.get(importerNameCombo.getText());
 	}
 
 }

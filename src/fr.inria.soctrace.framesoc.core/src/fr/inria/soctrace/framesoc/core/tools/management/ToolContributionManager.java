@@ -38,6 +38,7 @@ public class ToolContributionManager {
 	
 	// Constants
 	private static final String POINT_ID = "fr.inria.soctrace.framesoc.core.tool"; //$NON-NLS-1$
+	private static final String EP_TOOL_ID = "id"; //$NON-NLS-1$
 	private static final String EP_TOOL_NAME = "name"; //$NON-NLS-1$
 	private static final String EP_TOOL_TYPE = "type"; //$NON-NLS-1$
 	private static final String EP_TOOL_DOC = "doc"; //$NON-NLS-1$
@@ -89,6 +90,7 @@ public class ToolContributionManager {
 			tmp.setCommand("plugin:"+e.getNamespaceIdentifier());
 			tmp.setName(e.getAttribute(EP_TOOL_NAME));
 			tmp.setType(e.getAttribute(EP_TOOL_TYPE));
+			tmp.setExtensionId(e.getAttribute(EP_TOOL_ID));
 			if (e.getAttribute(EP_TOOL_DOC)!=null)
 				tmp.setDoc(e.getAttribute(EP_TOOL_DOC));
 			tools.add(tmp);
@@ -130,7 +132,8 @@ public class ToolContributionManager {
 		
 	/**
 	 * Get the launcher class for a given plugin tool.
-	 * 
+	 *  
+	 *  TODO return a map extid-tool as done in the toolinput extpoint
 	 * @param tool the tool
 	 * @return the launcher class, or null if not found or the tool is not a plugin.
 	 */
@@ -143,7 +146,7 @@ public class ToolContributionManager {
 		IConfigurationElement[] config = reg.getConfigurationElementsFor(POINT_ID);
 		try {
 			for (IConfigurationElement e : config) {
-				if (e.getAttribute(EP_TOOL_NAME).equals(tool.getName())) {
+				if (e.getAttribute(EP_TOOL_ID).equals(tool.getExtensionId())) {
 					final Object o = e.createExecutableExtension(EP_TOOL_CLASS);
 					if (o instanceof FramesocTool) {
 						FramesocTool ft = (FramesocTool) o;
