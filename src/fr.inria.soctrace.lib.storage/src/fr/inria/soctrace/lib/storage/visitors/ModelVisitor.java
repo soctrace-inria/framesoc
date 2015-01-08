@@ -34,6 +34,9 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
 /**
+ * TODO: put the entity name in the descriptor, in order
+ * to be able to print it in the exception message.
+ * 
  * Base class for all model visitors.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"

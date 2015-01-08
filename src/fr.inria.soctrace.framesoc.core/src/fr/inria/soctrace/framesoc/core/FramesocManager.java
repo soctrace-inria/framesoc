@@ -119,10 +119,12 @@ public final class FramesocManager {
 	 *            boolean stating whether the tool is a plugin or not
 	 * @param doc
 	 *            documentation text to be presented to the user
+	 * @param extensionId
+	 *            tool extension id
 	 * @throws SoCTraceException
 	 */
 	public void registerTool(String toolName, String toolCommand, String toolType,
-			boolean isPlugin, String doc) throws SoCTraceException {
+			boolean isPlugin, String doc, String extensionId) throws SoCTraceException {
 
 		if (toolName.equals("") || toolCommand.equals(""))
 			throw new SoCTraceException("Wrong parameters: ( '" + toolName + "', '" + toolCommand
@@ -136,6 +138,7 @@ public final class FramesocManager {
 		tool.setType(toolType);
 		tool.setPlugin(isPlugin);
 		tool.setDoc(doc);
+		tool.setExtensionId(extensionId);
 
 		db.save(tool);
 		db.commit();

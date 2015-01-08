@@ -153,7 +153,8 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 			psd.statement.setString(3, tool.getCommand());
 			psd.statement.setBoolean(4, tool.isPlugin());
 			psd.statement.setString(5, tool.getDoc());
-			psd.statement.setInt(6, tool.getId());
+			psd.statement.setString(6, tool.getExtensionId());
+			psd.statement.setInt(7, tool.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

@@ -25,4 +25,19 @@ public class TraceFileInput implements IFramesocToolInput {
 		return "";
 	}
 	
+	/**
+	 * TODO REMOVE THIS AND USE THE NEW MECHANISM EVERYWHERE
+	 * 
+	 * Temporary method to be use during the transition to the
+	 * new API.
+	 * 
+	 * @param input IFramesocInput of type TraceFileInput
+	 * @return the array of trace names
+	 */
+	@Deprecated
+	public static String[] toArray(IFramesocToolInput input){
+		List<String> files= ((TraceFileInput) input).getTraceFiles();
+		return files.toArray(new String[files.size()]);
+	}
+	
 }

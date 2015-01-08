@@ -155,6 +155,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 			psd.statement.setString(4, tool.getCommand());
 			psd.statement.setBoolean(5, tool.isPlugin());
 			psd.statement.setString(6, tool.getDoc());
+			psd.statement.setString(7, tool.getExtensionId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

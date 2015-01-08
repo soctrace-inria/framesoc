@@ -54,7 +54,7 @@
          </documentation>
       </annotation>
       <complexType>
-         <attribute name="id" type="string">
+         <attribute name="id" type="string" use="required">
             <annotation>
                <documentation>
                   The ID of the tool. This is NOT the database ID. It is an identificator having the same format of java packages (i.e., x.y.z.k). Note that each tool must have a globally unique id in the system.
