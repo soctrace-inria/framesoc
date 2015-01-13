@@ -1,17 +1,17 @@
 package fr.inria.soctrace.tools.framesoc.exporter.input;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
 
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.ui.dialogs.IArgumentDialog;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputComposite;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Text;
 
 /**
  * 
@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Text;
 public class DBExporterInputComposite extends AbstractToolInputComposite {
 	private Text text;
 
+	
 	/**
 	 * @param parent
 	 * @param style

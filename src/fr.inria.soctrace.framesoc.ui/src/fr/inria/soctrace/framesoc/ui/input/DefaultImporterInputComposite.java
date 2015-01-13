@@ -11,7 +11,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
-import fr.inria.soctrace.framesoc.core.tools.model.TraceFileInput;
+import fr.inria.soctrace.framesoc.core.tools.model.FileInput;
 import fr.inria.soctrace.framesoc.ui.dialogs.IArgumentDialog;
 import fr.inria.soctrace.framesoc.ui.listeners.LaunchTextListener;
 
@@ -20,13 +20,13 @@ import fr.inria.soctrace.framesoc.ui.listeners.LaunchTextListener;
  */
 public class DefaultImporterInputComposite extends AbstractToolInputComposite {
 
-	private TraceFileInputComposite traceFiles;
+	private FileInputComposite traceFiles;
 	private LaunchTextListener traceFileListener;
 
 	public DefaultImporterInputComposite(Composite parent, int style) {
 		super(parent, style);
 		setLayout(new GridLayout(1, false));
-		traceFiles = new TraceFileInputComposite(parent, SWT.NONE);
+		traceFiles = new FileInputComposite(parent, SWT.NONE);
 		traceFiles.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 	}
 
@@ -38,7 +38,7 @@ public class DefaultImporterInputComposite extends AbstractToolInputComposite {
 
 	@Override
 	public IFramesocToolInput getToolInput() {
-		TraceFileInput input = new TraceFileInput();
+		FileInput input = new FileInput();
 		input.setTraceFiles(Arrays.asList(LaunchTextListener.getTokens(traceFileListener.getText())));
 		return input;
 	}

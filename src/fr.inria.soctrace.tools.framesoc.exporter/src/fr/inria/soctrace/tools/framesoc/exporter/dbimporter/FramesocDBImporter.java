@@ -36,7 +36,7 @@ import fr.inria.soctrace.framesoc.core.tools.management.PluginImporterJob;
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
-import fr.inria.soctrace.framesoc.core.tools.model.TraceFileInput;
+import fr.inria.soctrace.framesoc.core.tools.model.FileInput;
 import fr.inria.soctrace.lib.model.AnalysisResult;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
@@ -80,7 +80,7 @@ public class FramesocDBImporter extends FramesocTool {
 		}
 
 		public FramesocDBImporterJobBody(IFramesocToolInput input) {
-			List<String> files= ((TraceFileInput) input).getTraceFiles();
+			List<String> files= ((FileInput) input).getTraceFiles();
 			this.args = files.toArray(new String[files.size()]);
 		}
 
@@ -389,7 +389,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 		ParameterCheckStatus status = new ParameterCheckStatus(true, "");
 
-		List<String> files= ((TraceFileInput) input).getTraceFiles();
+		List<String> files= ((FileInput) input).getTraceFiles();
 		
 		if (files.size() < 1) {
 			status.message = "Missing *.db file.";

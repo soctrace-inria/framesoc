@@ -8,16 +8,16 @@ import java.util.List;
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class TraceFileInput implements IFramesocToolInput {
+public class FileInput implements IFramesocToolInput {
 
-	private List<String> traceFiles;
+	private List<String> files;
 
 	public List<String> getTraceFiles() {
-		return traceFiles;
+		return files;
 	}
 
 	public void setTraceFiles(List<String> traceFiles) {
-		this.traceFiles = traceFiles;
+		this.files = traceFiles;
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class TraceFileInput implements IFramesocToolInput {
 	 */
 	@Deprecated
 	public static String[] toArray(IFramesocToolInput input){
-		List<String> files= ((TraceFileInput) input).getTraceFiles();
+		List<String> files= ((FileInput) input).getTraceFiles();
 		return files.toArray(new String[files.size()]);
 	}
 	
