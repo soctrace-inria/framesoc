@@ -20,8 +20,8 @@ import fr.inria.soctrace.framesoc.ui.listeners.LaunchTextListener;
  */
 public class DefaultImporterInputComposite extends AbstractToolInputComposite {
 
-	private FileInputComposite traceFiles;
-	private LaunchTextListener traceFileListener;
+	protected FileInputComposite traceFiles;
+	protected LaunchTextListener traceFileListener;
 
 	public DefaultImporterInputComposite(Composite parent, int style) {
 		super(parent, style);

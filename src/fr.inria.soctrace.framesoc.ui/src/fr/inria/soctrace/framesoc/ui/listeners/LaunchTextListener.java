@@ -57,17 +57,23 @@ public class LaunchTextListener extends StringListener implements ModifyListener
 	 * @return
 	 */
 	public static String[] getTokens(String text) {
-		if (text.matches("\\s*"))
-			return EMPTY_STRING_ARRAY;
-		String[] tokens = text.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-		Pattern pattern = Pattern.compile("^\"(.*)\"$");
-		for (int i = 0; i < tokens.length; i++) {
-			Matcher matcher = pattern.matcher(tokens[i]);
-			if (matcher.find()) {
-				tokens[i] = matcher.group(1);
+		try {
+			if (text.matches("\\s*"))
+				return EMPTY_STRING_ARRAY;
+			String[] tokens = text.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+			Pattern pattern = Pattern.compile("^\"(.*)\"$");
+			for (int i = 0; i < tokens.length; i++) {
+				Matcher matcher = pattern.matcher(tokens[i]);
+				if (matcher.find()) {
+					tokens[i] = matcher.group(1);
+				}
 			}
+			return tokens;
+		} catch (IllegalArgumentException e) {
+			// TODO
+			System.out.println("TODO check this");
 		}
-		return tokens;
+		return new String[0];
 	}
 
 }
