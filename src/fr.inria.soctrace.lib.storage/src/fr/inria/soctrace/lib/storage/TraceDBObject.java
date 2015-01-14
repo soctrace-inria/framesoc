@@ -202,6 +202,15 @@ public class TraceDBObject extends DBObject {
 	public void createTimestampIndex() throws SoCTraceException {
 		dbManager.createIndex(FramesocTable.EVENT.toString(), "TIMESTAMP", "ts_index");
 	}
+	
+	/**
+	 * Create an index on the event id column of EVENT_PARAM table.
+	 * 
+	 * @throws SoCTraceException
+	 */
+	public void createEventParamIndex() throws SoCTraceException {
+		dbManager.createIndex(FramesocTable.EVENT_PARAM.toString(), "EVENT_ID", "ep_index");
+	}
 
 	/**
 	 * Drop the index on the timestamp column of EVENT table.
@@ -210,6 +219,15 @@ public class TraceDBObject extends DBObject {
 	 */
 	public void dropTimestampIndex() throws SoCTraceException {
 		dbManager.dropIndex(FramesocTable.EVENT.toString(), "ts_index");
+	}
+	
+	/**
+	 * Drop the index on the event id column of EVENT_PARAM table.
+	 * 
+	 * @throws SoCTraceException
+	 */
+	public void dropEventParamIndex() throws SoCTraceException {
+		dbManager.dropIndex(FramesocTable.EVENT_PARAM.toString(), "ep_index");
 	}
 
 	private long getValue(String operation, String column, FramesocTable table) throws SoCTraceException {
