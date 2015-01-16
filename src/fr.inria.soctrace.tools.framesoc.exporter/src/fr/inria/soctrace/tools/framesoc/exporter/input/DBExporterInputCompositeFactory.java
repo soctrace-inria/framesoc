@@ -6,9 +6,9 @@ import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputComposite;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputCompositeFactory;
 
 /**
- * TODO 
- * @author generoso
- *
+ * Factory for DB exporter input composite.
+ * 
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class DBExporterInputCompositeFactory extends AbstractToolInputCompositeFactory {
 
