@@ -36,7 +36,7 @@ import fr.inria.soctrace.framesoc.core.tools.model.IFramesocTool.ParameterCheckS
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputComposite;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputCompositeFactory;
-import fr.inria.soctrace.framesoc.ui.input.DefaultImporterInputComposite;
+import fr.inria.soctrace.framesoc.ui.input.CopyOfDefaultImporterInputComposite;
 import fr.inria.soctrace.framesoc.ui.input.FramesocToolInputContributionManager;
 import fr.inria.soctrace.framesoc.ui.listeners.ComboListener;
 import fr.inria.soctrace.lib.model.Tool;
@@ -48,7 +48,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class AbstractLaunchToolDialog extends Dialog implements IArgumentDialog {
-	
+
 	// tool name -> tool object
 	private Map<String, Tool> toolMap;
 	// tool name -> framesoc tool TODO use extension id
@@ -56,8 +56,6 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 													// plugin tools
 	// ext id -> composite factory
 	private Map<String, AbstractToolInputCompositeFactory> factoryMap;
-	// ext id -> composite
-	private Map<String, AbstractToolInputComposite> compositeCache;
 
 	// Importer
 	private ComboListener toolNameListener;
@@ -73,7 +71,6 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 
 	public AbstractLaunchToolDialog(Shell parentShell, List<Tool> tools) throws SoCTraceException {
 		super(parentShell);
-		compositeCache = new HashMap<>();
 		toolMap = new HashMap<String, Tool>();
 		fsToolMap = new HashMap<String, IFramesocTool>();
 		for (Tool t : tools) {
@@ -91,31 +88,34 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 	/**
 	 * Get the default input composite when there is no extension point for a tool.
 	 * 
-	 * @param parent composite parent
-	 * @param style style
+	 * @param parent
+	 *            composite parent
+	 * @param style
+	 *            style
 	 * @return the default composite
 	 */
-	protected abstract AbstractToolInputComposite getDefaultToolInputComposite(Composite parent, int style);
-	
+	protected abstract AbstractToolInputComposite getDefaultToolInputComposite(Composite parent,
+			int style);
+
 	/**
 	 * @return the dialog title
 	 */
 	protected abstract String getDialogTitle();
-	
+
 	/**
 	 * @return the dialog text
 	 */
 	protected abstract String getDialogText();
-	
+
 	@Override
 	protected Control createDialogArea(final Composite parent) {
-
+		
 		this.getShell().setText(getDialogTitle());
 		Composite composite = (Composite) super.createDialogArea(parent);
-
+		
 		// Tool group
 
-		final Group toolGroup = new Group(composite, SWT.NONE);
+		Group toolGroup = new Group(composite, SWT.NONE);
 		toolGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		toolGroup.setText(getDialogText());
 		toolGroup.setLayout(new GridLayout(1, true));
@@ -124,6 +124,10 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		Composite importerComposite = new Composite(toolGroup, SWT.NONE);
 		importerComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		importerComposite.setLayout(new GridLayout(2, false));
+
+		final Composite inputComposite = new Composite(toolGroup, SWT.NONE);
+		inputComposite.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 1, 1));
+		inputComposite.setLayout(new GridLayout(1, false));
 
 		importerNameLabel = new Label(importerComposite, SWT.NONE);
 		importerNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -138,14 +142,13 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		importerNameCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				updateComposite(inputComposite);
 				updateOk();
-				updateComposite(toolGroup);
-				parent.layout(true); // if changing form XXX
 			}
 		});
 
 		// Tool input
-		updateComposite(toolGroup);
+		updateComposite(inputComposite);
 
 		// Message group
 
@@ -155,29 +158,43 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		groupMessage.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		message = new Label(groupMessage, SWT.WRAP);
 		message.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
+		
+		//layoutAndPack();
+		
 		return composite;
 	}
 
 	private void updateComposite(Composite parent) {
-		Tool t = getTool();
 
-		// look in the cache first
-		if (compositeCache.containsKey(t.getExtensionId())) {
-			toolInputComposite = compositeCache.get(t.getExtensionId());
-			return;
+		// clean all the composites in the input parent
+		Control[] controls = parent.getChildren();
+		for (Control c : controls) {
+			// c.setVisible(false);
+			c.dispose();
 		}
 
-		// create it if not found
+		Tool t = getTool();
 		if (factoryMap.containsKey(t.getExtensionId())) {
 			toolInputComposite = factoryMap.get(t.getExtensionId()).getComposite(parent, SWT.NONE);
 		} else {
-			toolInputComposite = new DefaultImporterInputComposite(parent, SWT.NONE);
+			toolInputComposite = new CopyOfDefaultImporterInputComposite(parent, SWT.NONE);// getDefaultToolInputComposite(parent,
+																							// SWT.NONE);
 		}
-		toolInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		toolInputComposite.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 1, 1));
 		toolInputComposite.setArgumentDialog(this);
-		compositeCache.put(t.getExtensionId(), toolInputComposite);
+		toolInputComposite.layout(true);
+		
+		// XXX Idea for the possible solution:
+		// - compute the minimum size and set it as data in the parent composite
+		// - pack the dialog true parent: parent.getParent().getParent().getParent().getParent().pack(); (store it at initialization)
+		// - note: don't do this the first time... so dont do this here :)
+		GridData data = (GridData)parent.getLayoutData();
+		data.minimumWidth = 1000;
+		data.minimumHeight = 500;
+		parent.layout(true);
+		parent.getParent().getParent().getParent().getParent().pack();
 
+		// TODO find solution to set the correct size
 	}
 	
 	@Override
