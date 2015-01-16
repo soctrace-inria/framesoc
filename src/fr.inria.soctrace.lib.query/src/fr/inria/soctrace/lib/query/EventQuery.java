@@ -368,12 +368,15 @@ public class EventQuery extends SelfDefiningElementQuery {
 				return list;
 
 			if (loadParameters) {
+				DeltaManager dm = new DeltaManager();
+				dm.start();
 				Statement stm = dbObj.getConnection().createStatement();
 				ResultSet prs = stm.executeQuery("SELECT * FROM " + FramesocTable.EVENT_PARAM + 
 						" WHERE EVENT_ID IN " + vls.getValueString());
 				while (prs.next()) {
 					rebuildEventParam(prs, tmp);
 				}
+				logger.debug(dm.endMessage("Rebuild parameters and link to events"));
 			}
 			return list;
 		} catch (SQLException e) {
