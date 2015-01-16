@@ -150,8 +150,11 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			logger.debug("current shown: {}", currentShownTrace.getAlias());
 			Trace selected = ((Trace) FramesocBus.getInstance().getVariable(
 					FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE));
-			if (selected != null && !selected.equals(currentShownTrace)) {
-				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE,
+			// If selected is null or it is different than the current trace
+			// then change the selected trace
+			if (selected == null || !selected.equals(currentShownTrace)) {
+				FramesocBus.getInstance().send(
+						FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE,
 						currentShownTrace);
 			}
 		}

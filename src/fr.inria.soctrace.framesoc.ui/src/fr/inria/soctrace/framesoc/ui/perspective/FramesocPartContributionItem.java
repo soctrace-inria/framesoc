@@ -38,6 +38,8 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartContributionManager
  * Position and priority corresponds to the fields of the Framesoc part
  * extension point.
  * 
+ * Note: For a given position, a priority must be unique.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class FramesocPartContributionItem extends CompoundContributionItem {
