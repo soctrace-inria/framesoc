@@ -65,8 +65,8 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 
 	// Importer
 	private ComboListener toolNameListener;
-	private Label importerNameLabel;
-	private Combo importerNameCombo;
+	private Label toolNameLabel;
+	private Combo toolNameCombo;
 
 	// Message
 	private Group groupMessage;
@@ -152,17 +152,17 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		inputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 		inputComposite.setLayout(new GridLayout(1, false));
 
-		importerNameLabel = new Label(importerComposite, SWT.NONE);
-		importerNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		importerNameLabel.setText("Importer");
-		importerNameCombo = new Combo(importerComposite, SWT.BORDER | SWT.READ_ONLY);
-		importerNameCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		toolNameLabel = new Label(importerComposite, SWT.NONE);
+		toolNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		toolNameLabel.setText("Tool");
+		toolNameCombo = new Combo(importerComposite, SWT.BORDER | SWT.READ_ONLY);
+		toolNameCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		for (String s : toolMap.keySet()) {
-			importerNameCombo.add(s);
+			toolNameCombo.add(s);
 		}
-		importerNameCombo.select(0);
-		importerNameCombo.addSelectionListener(toolNameListener);
-		importerNameCombo.addSelectionListener(new SelectionAdapter() {
+		toolNameCombo.select(0);
+		toolNameCombo.addSelectionListener(toolNameListener);
+		toolNameCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				updateInputComposite();
@@ -270,7 +270,7 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 	}
 
 	private IFramesocTool getToolLauncher() {
-		return fsToolMap.get(importerNameCombo.getText());
+		return fsToolMap.get(toolNameCombo.getText());
 	}
 
 }

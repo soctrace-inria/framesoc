@@ -32,6 +32,7 @@ public class DefaultImporterInputComposite extends AbstractToolInputComposite {
 
 	@Override
 	public void setArgumentDialog(IArgumentDialog dialog) {
+		super.setArgumentDialog(dialog);
 		traceFileListener = new LaunchTextListener("", dialog);
 		traceFiles.addModifyListener(traceFileListener);
 	}

@@ -17,5 +17,10 @@ public abstract class AbstractToolInputComposite extends Composite implements IF
 	public AbstractToolInputComposite(Composite parent, int style) {
 		super(parent, style);
 	}
+	
+	@Override
+	public void setArgumentDialog(IArgumentDialog dialog) {
+		this.dialog = dialog;
+	}
 
 }

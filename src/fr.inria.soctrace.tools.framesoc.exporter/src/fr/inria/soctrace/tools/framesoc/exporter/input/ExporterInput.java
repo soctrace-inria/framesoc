@@ -11,16 +11,17 @@
 /**
  * 
  */
-package fr.inria.soctrace.tools.framesoc.exporter.dbexporter;
+package fr.inria.soctrace.tools.framesoc.exporter.input;
 
 import java.io.File;
 
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public class ExporterInput {
+public class ExporterInput implements IFramesocToolInput {
 	
 	/**
 	 * The trace we want to export
@@ -53,6 +54,11 @@ public class ExporterInput {
 		trace.print();
 		System.out.println("Directory");
 		System.out.println(directory);
+	}
+
+	@Override
+	public String getCommand() {
+		return "";
 	}
 	
 }

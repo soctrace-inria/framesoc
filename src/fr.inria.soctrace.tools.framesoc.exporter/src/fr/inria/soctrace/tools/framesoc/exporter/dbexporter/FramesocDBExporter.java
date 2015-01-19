@@ -10,13 +10,14 @@
  ******************************************************************************/
 package fr.inria.soctrace.tools.framesoc.exporter.dbexporter;
 
+import java.io.File;
+
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.window.Window;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import fr.inria.soctrace.framesoc.core.tools.model.FramesocTool;
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
+import fr.inria.soctrace.tools.framesoc.exporter.input.ExporterInput;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -25,28 +26,40 @@ public class FramesocDBExporter extends FramesocTool {
 
 	@Override
 	public void launch(IFramesocToolInput input) {
-
-		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		ExportDBDialog dlg = new ExportDBDialog(window.getShell());
-		if (dlg.open() != Window.OK)
-			return;
-
-		// TODO use new mechanism
-		ExporterInput exporterInput = dlg.getExporterInput();
-		if (exporterInput!=null) {
+		ExporterInput exporterInput = (ExporterInput) input;
+		if (exporterInput != null) {
 			ExporterJob ejob = new ExporterJob("Exporter", exporterInput);
 			ejob.setUser(true);
-			ejob.schedule(); 
+			ejob.schedule();
 		} else {
 			// enable button
-			MessageDialog.openError(window.getShell(), "Error", 
+			MessageDialog.openError(
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Error",
 					"Error while getting the exporter parameters!");
 		}
 	}
-	
-	@Override 
+
+	@Override
 	public ParameterCheckStatus canLaunch(IFramesocToolInput input) {
-		return new ParameterCheckStatus(true, "");
+		ExporterInput exporterInput = (ExporterInput) input;
+		ParameterCheckStatus status = new ParameterCheckStatus(true, "");
+		if (exporterInput.directory == null) {
+			status.valid = false;
+			status.message = "Specify a directory";
+		} else if (exporterInput.trace == null) {
+			status.valid = false;
+			status.message = "Select a trace";
+		} else {
+			File dir = new File(exporterInput.directory);
+			if (!dir.exists()) {
+				status.valid = false;
+				status.message = "Directory " + exporterInput.directory + " does not exist";
+			} else if (!dir.isDirectory()) {
+				status.valid = false;
+				status.message = exporterInput.directory + " is not a directory";
+			}
+		}
+		return status;
 	}
 
 }

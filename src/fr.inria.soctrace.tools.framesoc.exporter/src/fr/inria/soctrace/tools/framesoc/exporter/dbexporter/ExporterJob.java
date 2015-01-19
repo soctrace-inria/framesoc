@@ -33,6 +33,7 @@ import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
 import fr.inria.soctrace.lib.utils.Portability;
+import fr.inria.soctrace.tools.framesoc.exporter.input.ExporterInput;
 import fr.inria.soctrace.tools.framesoc.exporter.utils.ExportMetadata;
 import fr.inria.soctrace.tools.framesoc.exporter.utils.Serializer;
 
@@ -72,6 +73,7 @@ public class ExporterJob extends Job {
 					try {
 						export();
 						logger.debug("export done");
+						feedback(true, "");
 					} catch (Exception e) {
 						logger.debug("cleaning");
 						delete(getDumpPath() + ".db");
