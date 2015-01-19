@@ -88,6 +88,10 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 			}
 		});
 		btnBrowse.setText("Browse");
+		
+		input.trace = traceComboManager.getSelectedTrace();
+		input.directory = "";
+
 	}
 
 	@Override
