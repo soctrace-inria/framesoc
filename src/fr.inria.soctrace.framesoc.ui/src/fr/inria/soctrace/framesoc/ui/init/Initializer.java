@@ -155,7 +155,7 @@ public enum Initializer {
 					// register
 					logger.debug("Register tool " + t.getName());
 					FramesocManager.getInstance().registerTool(t.getName(), t.getCommand(),
-							t.getType(), t.isPlugin(), t.getDoc());
+							t.getType(), t.isPlugin(), t.getDoc(), t.getExtensionId());
 				}
 			}
 

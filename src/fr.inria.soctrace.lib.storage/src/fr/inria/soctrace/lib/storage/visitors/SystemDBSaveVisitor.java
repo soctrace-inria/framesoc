@@ -28,7 +28,7 @@ import fr.inria.soctrace.lib.utils.SoctraceUtils;
  * Visitor able to save the entities of the system DB.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class SystemDBSaveVisitor extends ModelVisitor {
 
@@ -36,36 +36,43 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 	 * DB object related to this visitor
 	 */
 	private SystemDBObject sysDB;
-	
+
 	/**
 	 * The Constructor
-	 * @param sysDB system DB object
-	 * @throws SoCTraceException 
+	 * 
+	 * @param sysDB
+	 *            system DB object
+	 * @throws SoCTraceException
 	 */
 	public SystemDBSaveVisitor(SystemDBObject sysDB) throws SoCTraceException {
 		super();
 		this.sysDB = sysDB;
-		
+
 		try {
 			Connection conn = sysDB.getConnection();
 			PreparedStatementDescriptor psd = null;
 			// Trace
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_INSERT));
-			addDescriptor(FramesocTable.TRACE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_INSERT));
-			addDescriptor(FramesocTable.TRACE_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_INSERT));
-			addDescriptor(FramesocTable.TRACE_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_INSERT));
-			addDescriptor(FramesocTable.TRACE_PARAM_TYPE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_INSERT),
+					FramesocTable.TRACE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_INSERT),
+					FramesocTable.TRACE_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_INSERT),
+					FramesocTable.TRACE_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_INSERT),
+					FramesocTable.TRACE_PARAM_TYPE);
+			addDescriptor(psd);
 			// Tool
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TOOL_INSERT));
-			addDescriptor(FramesocTable.TOOL, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TOOL_INSERT),
+					FramesocTable.TOOL);
+			addDescriptor(psd);
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -88,7 +95,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 			psd.statement.setString(9, trace.getOutputDevice());
 			psd.statement.setString(10, trace.getDescription());
 			psd.statement.setBoolean(11, trace.isProcessed());
-			psd.statement.setString(12, trace.getDbName());				
+			psd.statement.setString(12, trace.getDbName());
 			psd.statement.setString(13, trace.getAlias());
 			psd.statement.setLong(14, trace.getMinTimestamp());
 			psd.statement.setLong(15, trace.getMaxTimestamp());
@@ -155,10 +162,11 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 			psd.statement.setString(4, tool.getCommand());
 			psd.statement.setBoolean(5, tool.isPlugin());
 			psd.statement.setString(6, tool.getDoc());
+			psd.statement.setString(7, tool.getExtensionId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
-	}	
+	}
 
 }

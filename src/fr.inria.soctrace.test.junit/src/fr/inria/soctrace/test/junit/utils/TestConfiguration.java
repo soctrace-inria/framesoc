@@ -19,8 +19,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Portability;
 
+
+/**
+ * TODO fix this: use a fake configuration
+ * 
+ * class TestConfiguration extends Configuration...
+ * 
+ * which provides test values
+ */
 
 /**
  * Utility to ensure the use of a well know configuration file during tests.

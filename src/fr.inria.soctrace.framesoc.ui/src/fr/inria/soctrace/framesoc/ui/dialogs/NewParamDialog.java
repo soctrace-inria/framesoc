@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import fr.inria.soctrace.framesoc.ui.listeners.TextListener;
+
 /**
  * Dialog for adding a new parameter.
  * 

@@ -8,7 +8,7 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.dialogs;
+package fr.inria.soctrace.framesoc.ui.listeners;
 
 /**
  * Base class for listeners managing a string.

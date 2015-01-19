@@ -28,6 +28,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.tools.management.ExternalImporterExecutionManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ExternalToolExecutionManager;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
+import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.AnalysisResult;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
@@ -118,10 +119,12 @@ public final class FramesocManager {
 	 *            boolean stating whether the tool is a plugin or not
 	 * @param doc
 	 *            documentation text to be presented to the user
+	 * @param extensionId
+	 *            tool extension id
 	 * @throws SoCTraceException
 	 */
 	public void registerTool(String toolName, String toolCommand, String toolType,
-			boolean isPlugin, String doc) throws SoCTraceException {
+			boolean isPlugin, String doc, String extensionId) throws SoCTraceException {
 
 		if (toolName.equals("") || toolCommand.equals(""))
 			throw new SoCTraceException("Wrong parameters: ( '" + toolName + "', '" + toolCommand
@@ -135,6 +138,7 @@ public final class FramesocManager {
 		tool.setType(toolType);
 		tool.setPlugin(isPlugin);
 		tool.setDoc(doc);
+		tool.setExtensionId(extensionId);
 
 		db.save(tool);
 		db.commit();
@@ -195,31 +199,20 @@ public final class FramesocManager {
 	 *            arguments
 	 * @throws SoCTraceException
 	 */
-	public void launchTool(Tool tool, String[] args) throws SoCTraceException {
+	public void launchTool(Tool tool, IFramesocToolInput input) throws SoCTraceException {
 
 		// plugin tools
 		if (tool.isPlugin()) {
 			logger.debug("Launcing plugin " + tool.getName());
-			ToolContributionManager.executePluginTool(tool, args);
+			ToolContributionManager.executePluginTool(tool, input);
 			return;
 		}
 
-		// prepare command
-		StringBuilder launchCommand = new StringBuilder(tool.getCommand());
-		for (String arg : args) {
-			launchCommand.append(" " + arg);
-		}
-
-		// launch command
-		String command = launchCommand.toString();
-
-		logger.debug("Launcing tool " + tool.getName());
-		logger.debug("Command " + command);
-
+		// external tools
 		if (tool.getType().equals(FramesocToolType.IMPORT.toString()))
-			new ExternalImporterExecutionManager(tool.getName(), command).execute();
+			new ExternalImporterExecutionManager(tool.getName(), input.getCommand()).execute();
 		else
-			new ExternalToolExecutionManager(tool.getName(), command).execute();
+			new ExternalToolExecutionManager(tool.getName(), input.getCommand()).execute();
 	}
 
 	/**

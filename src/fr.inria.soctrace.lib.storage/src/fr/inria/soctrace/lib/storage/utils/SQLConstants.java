@@ -76,7 +76,7 @@ public abstract class SQLConstants {
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_TYPE_INSERT = "INSERT INTO " +FramesocTable.TRACE_PARAM_TYPE + " VALUES (?, ?, ?, ?);";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_INSERT = 	"INSERT INTO " + FramesocTable.TRACE_PARAM + " VALUES (?, ?, ?, ?);";
 	
-	public final static String PREPARED_STATEMENT_TOOL_INSERT = "INSERT INTO " + FramesocTable.TOOL + " VALUES (?, ?, ?, ?, ?, ?);";
+	public final static String PREPARED_STATEMENT_TOOL_INSERT = "INSERT INTO " + FramesocTable.TOOL + " VALUES (?, ?, ?, ?, ?, ?, ?);";
 		
 	public final static String PREPARED_STATEMENT_EVENT_INSERT = "INSERT INTO " + FramesocTable.EVENT + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
 	public final static String PREPARED_STATEMENT_EVENT_TYPE_INSERT = "INSERT INTO " + FramesocTable.EVENT_TYPE + " VALUES (?, ?, ?);";
@@ -111,7 +111,7 @@ public abstract class SQLConstants {
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_TYPE_UPDATE = "UPDATE " + FramesocTable.TRACE_PARAM_TYPE + " SET TRACE_TYPE_ID=?, NAME=?, TYPE=? WHERE ID=?;";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_UPDATE = 	"UPDATE " + FramesocTable.TRACE_PARAM + " SET TRACE_ID=?, TRACE_PARAM_TYPE_ID=?, VALUE=? WHERE ID=?;";
 	
-	public final static String PREPARED_STATEMENT_TOOL_UPDATE = "UPDATE " + FramesocTable.TOOL + " SET NAME=?, TYPE=?, COMMAND=?, IS_PLUGIN=?, DOC=? WHERE ID=?;";
+	public final static String PREPARED_STATEMENT_TOOL_UPDATE = "UPDATE " + FramesocTable.TOOL + " SET NAME=?, TYPE=?, COMMAND=?, IS_PLUGIN=?, DOC=?, EXTENSION_ID=? WHERE ID=?;";
 
 	public final static String PREPARED_STATEMENT_EVENT_UPDATE = "UPDATE " + FramesocTable.EVENT + " SET EVENT_TYPE_ID=?, EVENT_PRODUCER_ID=?, TIMESTAMP=?, CPU=?, PAGE=?, CATEGORY=?, LPAR=?, DPAR=? WHERE ID=?;";
 	public final static String PREPARED_STATEMENT_EVENT_TYPE_UPDATE = "UPDATE " + FramesocTable.EVENT_TYPE + " SET CATEGORY=?, NAME=? WHERE ID=?;";

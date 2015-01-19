@@ -362,7 +362,7 @@ public abstract class DBManager {
 		try {
 			tableStatement.execute(SQLConstants.CREATE_TABLE_IF_NOT_EXISTS + FramesocTable.TOOL
 					+ "(ID INTEGER PRIMARY KEY, " + "NAME VARCHAR(128) UNIQUE, " + "TYPE TEXT, "
-					+ "COMMAND TEXT, " + "IS_PLUGIN BOOLEAN, " + "DOC TEXT)");
+					+ "COMMAND TEXT, " + "IS_PLUGIN BOOLEAN, " + "DOC TEXT, " + "EXTENSION_ID TEXT)");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}

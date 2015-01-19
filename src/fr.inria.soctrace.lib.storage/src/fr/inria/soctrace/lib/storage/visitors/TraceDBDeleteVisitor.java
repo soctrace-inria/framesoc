@@ -30,7 +30,7 @@ import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
  * Visitor able to delete the entities of the trace DB.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class TraceDBDeleteVisitor extends ModelVisitor {
 
@@ -38,90 +38,107 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 	 * DB object related to this visitor
 	 */
 	private TraceDBObject traceDB;
-	
+
 	/**
 	 * The constructor.
-	 * @param traceDB trace database object
+	 * 
+	 * @param traceDB
+	 *            trace database object
 	 * @throws SoCTraceException
 	 */
-	public TraceDBDeleteVisitor(TraceDBObject traceDB) throws SoCTraceException { 
+	public TraceDBDeleteVisitor(TraceDBObject traceDB) throws SoCTraceException {
 		super();
 		this.traceDB = traceDB;
 		try {
 			Connection conn = traceDB.getConnection();
 			PreparedStatementDescriptor psd = null;
-			
+
 			// Raw trace
-			
+
 			// Events
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_DELETE));
-			addDescriptor(FramesocTable.EVENT, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_TYPE_DELETE));
-			addDescriptor(FramesocTable.EVENT_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_DELETE));
-			addDescriptor(FramesocTable.EVENT_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_TYPE_DELETE));
-			addDescriptor(FramesocTable.EVENT_PARAM_TYPE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_DELETE),
+					FramesocTable.EVENT);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_TYPE_DELETE),
+					FramesocTable.EVENT_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_DELETE),
+					FramesocTable.EVENT_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_TYPE_DELETE),
+					FramesocTable.EVENT_PARAM_TYPE);
+			addDescriptor(psd);
 			// Event Producers
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PRODUCER_DELETE));
-			addDescriptor(FramesocTable.EVENT_PRODUCER, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PRODUCER_DELETE),
+					FramesocTable.EVENT_PRODUCER);
+			addDescriptor(psd);
 			// File
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_FILE_DELETE));
-			addDescriptor(FramesocTable.FILE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_FILE_DELETE),
+					FramesocTable.FILE);
+			addDescriptor(psd);
 
 			// Analysis results
-			
-			// Analysis Result
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANALYSIS_RESULT_DELETE));
-			addDescriptor(FramesocTable.ANALYSIS_RESULT, psd);
-			// Search
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_SEARCH_DELETE));
-			addDescriptor(FramesocTable.SEARCH, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_SEARCH_MAPPING_DELETE));
-			addDescriptor(FramesocTable.SEARCH_MAPPING, psd);
-			// Annotation
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_DELETE));
-			addDescriptor(FramesocTable.ANNOTATION, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_TYPE_DELETE));
-			addDescriptor(FramesocTable.ANNOTATION_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_DELETE));
-			addDescriptor(FramesocTable.ANNOTATION_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_TYPE_DELETE));
-			addDescriptor(FramesocTable.ANNOTATION_PARAM_TYPE, psd);				
-			// Group
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_GROUP_DELETE));
-			addDescriptor(FramesocTable.ENTITY_GROUP, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_GROUP_MAPPING_DELETE));
-			addDescriptor(FramesocTable.GROUP_MAPPING, psd);
-			// Processed Trace
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_PROCESSED_TRACE_DELETE));
-			addDescriptor(FramesocTable.PROCESSED_TRACE, psd);
 
-			
+			// Analysis Result
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANALYSIS_RESULT_DELETE),
+					FramesocTable.ANALYSIS_RESULT);
+			addDescriptor(psd);
+			// Search
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_SEARCH_DELETE),
+					FramesocTable.SEARCH);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_SEARCH_MAPPING_DELETE),
+					FramesocTable.SEARCH_MAPPING);
+			addDescriptor(psd);
+			// Annotation
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_DELETE),
+					FramesocTable.ANNOTATION);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_TYPE_DELETE),
+					FramesocTable.ANNOTATION_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_DELETE),
+					FramesocTable.ANNOTATION_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_TYPE_DELETE),
+					FramesocTable.ANNOTATION_PARAM_TYPE);
+			addDescriptor(psd);
+			// Group
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_GROUP_DELETE),
+					FramesocTable.ENTITY_GROUP);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_GROUP_MAPPING_DELETE),
+					FramesocTable.GROUP_MAPPING);
+			addDescriptor(psd);
+			// Processed Trace
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_PROCESSED_TRACE_DELETE),
+					FramesocTable.PROCESSED_TRACE);
+			addDescriptor(psd);
+
 			// TODO: no need to use the whole key: analysis result id is enough
 			// because we delete results with AR granularity
-			
+
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
 	}
-	
+
 	@Override
 	public void visit(Event event) throws SoCTraceException {
 		try {
@@ -176,7 +193,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 	/*
 	 * Event Producers
 	 */
-	
+
 	@Override
 	public void visit(EventProducer eventProducer) throws SoCTraceException {
 		try {
@@ -188,11 +205,11 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 			throw new SoCTraceException(e);
 		}
 	}
-	
+
 	/*
 	 * File
 	 */
-	
+
 	@Override
 	public void visit(File file) throws SoCTraceException {
 		try {
@@ -204,20 +221,20 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 			throw new SoCTraceException(e);
 		}
 	}
-	
+
 	/*
 	 * Results
 	 */
-	
+
 	@Override
 	public void visit(AnalysisResult analysisResult) throws SoCTraceException {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.ANALYSIS_RESULT);
-			psd.visited = true;			
+			psd.visited = true;
 			psd.statement.setInt(1, analysisResult.getId());
 			psd.statement.addBatch();
-			
-			String type = analysisResult.getType(); 
+
+			String type = analysisResult.getType();
 			if (type.equals(AnalysisResultType.TYPE_SEARCH.toString())) {
 				deleteSearchResult(analysisResult);
 			} else if (type.equals(AnalysisResultType.TYPE_GROUP.toString())) {
@@ -227,34 +244,35 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 			} else if (type.equals(AnalysisResultType.TYPE_PROCESSED_TRACE.toString())) {
 				deleteProcessedTraceResult(analysisResult);
 			}
-			
+
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
 	}
 
 	/*
-	 *     U t i l i t i e s 
+	 * U t i l i t i e s
 	 */
-	
+
 	private void deleteSearchResult(AnalysisResult analysisResult) throws SQLException {
 		PreparedStatementDescriptor psdSearch = getDescriptor(FramesocTable.SEARCH);
 		PreparedStatementDescriptor psdMapping = getDescriptor(FramesocTable.SEARCH_MAPPING);
-		
+
 		psdSearch.statement.setInt(1, analysisResult.getId());
 		psdMapping.statement.setInt(1, analysisResult.getId());
-		
+
 		psdSearch.statement.addBatch();
 		psdMapping.statement.addBatch();
-		
-		psdSearch.visited = true;	
+
+		psdSearch.visited = true;
 		psdMapping.visited = true;
 	}
 
-	private void deleteGroupResult(AnalysisResult analysisResult) throws SQLException, SoCTraceException {
+	private void deleteGroupResult(AnalysisResult analysisResult) throws SQLException,
+			SoCTraceException {
 		PreparedStatementDescriptor psdGroup = getDescriptor(FramesocTable.ENTITY_GROUP);
 		PreparedStatementDescriptor psdMapping = getDescriptor(FramesocTable.GROUP_MAPPING);
-		
+
 		psdGroup.statement.setInt(1, analysisResult.getId());
 		psdMapping.statement.setInt(1, analysisResult.getId());
 
@@ -284,9 +302,9 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		psdAnnotation.visited = true;
 		psdAnnotationType.visited = true;
 		psdAnnotationParam.visited = true;
-		psdAnnotationParamType.visited = true;		
+		psdAnnotationParamType.visited = true;
 	}
-	
+
 	private void deleteProcessedTraceResult(AnalysisResult analysisResult) throws SQLException {
 		PreparedStatementDescriptor psd = getDescriptor(FramesocTable.PROCESSED_TRACE);
 		psd.statement.setInt(1, analysisResult.getId());

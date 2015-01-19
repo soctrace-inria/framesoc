@@ -46,60 +46,58 @@ import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.IdManager;
 import fr.inria.soctrace.test.junit.utils.importer.VirtualImporter;
 
-
 /**
  * Prepare the resources to run the tests with SQLite.
  * 
- * If a System DB is already present in ./resources
- * nothing is done.
- * More details in the README.
+ * If a System DB is already present in ./resources nothing is done. More details in the README.
  * 
  * The class depends only on TestConstants.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class PrepareTestResources {
-	
+
 	/**
 	 * @param args
-	 * @throws SoCTraceException 
+	 * @throws SoCTraceException
 	 */
 	public static void main(String[] args) throws SoCTraceException {
-		
+
 		TestConfiguration.initTest();
-		
+
 		if (FramesocManager.getInstance().isSystemDBExisting()) {
 			System.out.println("* System DB already existing. Exit.");
 		} else {
-			prepareTestResources();			
+			prepareTestResources();
 		}
-		
+
 		TestConfiguration.deinitTest();
 	}
-	
+
 	public static void prepareTestResources() throws SoCTraceException {
-		
+
 		if (FramesocManager.getInstance().isSystemDBExisting())
 			return;
-		
+
 		Assert.isTrue(VirtualImporter.TOTAL_NUMBER_OF_EVENTS >= 1);
-		
+
 		// create system DB
 		System.out.println("* Creating SystemDB...");
 		FramesocManager.getInstance().createSystemDB();
-		
-		// register virtual importer	
+
+		// register virtual importer
 		System.out.println("* Registering Virtual Importer...");
 		FramesocManager.getInstance().registerTool(TestConstants.VIRTUAL_IMPORTER_TOOL_NAME,
 				TestConstants.VIRTUAL_IMPORTER_TOOL_COMMAND, FramesocToolType.IMPORT.toString(),
-				false, TestConstants.VIRTUAL_IMPORTER_TOOL_DOC);
-		
+				false, TestConstants.VIRTUAL_IMPORTER_TOOL_DOC,
+				TestConstants.VIRTUAL_IMPORTER_TOOL_EXT_ID);
+
 		// register junit dummy tool
 		System.out.println("* Registering JUnit dummy tool...");
-		FramesocManager.getInstance().registerTool(TestConstants.JUNIT_TEST_TOOL_NAME, 
-				TestConstants.JUNIT_TEST_TOOL_COMMAND, FramesocToolType.ANALYSIS.toString(), 
-				false, TestConstants.JUNIT_TEST_TOOL_DOC);
-		
+		FramesocManager.getInstance().registerTool(TestConstants.JUNIT_TEST_TOOL_NAME,
+				TestConstants.JUNIT_TEST_TOOL_COMMAND, FramesocToolType.ANALYSIS.toString(), false,
+				TestConstants.JUNIT_TEST_TOOL_DOC, TestConstants.JUNIT_TEST_TOOL_EXT_ID);
+
 		// import virtual trace
 		System.out.println("* Importing virtual test trace...");
 		virtualImport();
@@ -107,9 +105,9 @@ public class PrepareTestResources {
 		// change the page on the last event
 		System.out.println("* Changing page on last event...");
 		modifyLast();
-		
+
 		// add analysis results
-		
+
 		IdManager arId = new IdManager();
 		ITraceSearch search = new TraceSearch().initialize();
 		Tool tool = search.getToolByName(TestConstants.JUNIT_TEST_TOOL_NAME);
@@ -119,7 +117,7 @@ public class PrepareTestResources {
 		System.out.println("* Registering dummy search result...");
 		saveEventSearchResult(arId, tool);
 		saveEventProucerSearchResult(arId, tool);
-		
+
 		// group
 		System.out.println("* Registering dummy group result...");
 		saveGroupResult(arId, tool);
@@ -127,17 +125,18 @@ public class PrepareTestResources {
 		// annotation
 		System.out.println("* Registering dummy annotation result...");
 		saveAnnotationResult(arId, tool);
-		
+
 		// processed trace and related result
 		System.out.println("* Registering dummy processed trace...");
 		saveProcessedTrace();
 		saveProcessedTraceResult(arId, tool);
-		
+
 		System.out.println("* Test resources created. Exit.");
 
 	}
 
-	private static void saveEventProucerSearchResult(IdManager arId, Tool tool) throws SoCTraceException {
+	private static void saveEventProucerSearchResult(IdManager arId, Tool tool)
+			throws SoCTraceException {
 		ITraceSearch search = new TraceSearch().initialize();
 		Trace trace = search.getTraceByDBName(VirtualImporter.DB_NAME);
 		List<EventProducer> producers = search.getEventProducers(trace);
@@ -145,16 +144,16 @@ public class PrepareTestResources {
 		AnalysisResultSearchData searchData = new AnalysisResultSearchData(EventProducer.class);
 		searchData.setSearchCommand("search result event producers");
 		searchData.setElements(producers);
-		saveAnalysisResult(arId, tool, searchData);		
+		saveAnalysisResult(arId, tool, searchData);
 	}
 
 	private static void saveAnnotationResult(IdManager arId, Tool tool) throws SoCTraceException {
-		
+
 		// ANNOTATION TYPE
 		IdManager typeIdManager = new IdManager();
 		AnnotationType annotationType = new AnnotationType(typeIdManager.getNextId());
 		annotationType.setName("DECODING_MEMORY_USAGE");
-		
+
 		// ANNOTATION PARAM TYPE
 		IdManager paramTypeIdManager = new IdManager();
 		AnnotationParamType fx = new AnnotationParamType(paramTypeIdManager.getNextId());
@@ -165,7 +164,7 @@ public class PrepareTestResources {
 		fy.setName("FUNCTION_Y_MB");
 		fx.setType("INTEGER");
 		fy.setType("INTEGER");
-		
+
 		// ANNOTATION
 		IdManager annotationIdManager = new IdManager();
 		Annotation firstCpuAnnotation = new Annotation(annotationIdManager.getNextId());
@@ -193,34 +192,28 @@ public class PrepareTestResources {
 		secondFy.setAnnotation(secondCpuAnnotation);
 		secondFy.setAnnotationParamType(fy);
 		secondFy.setValue("15");
-	
+
 		// RESULT DATA
 		AnalysisResultAnnotationData annotationData = new AnalysisResultAnnotationData();
 		annotationData.addAnnotation(firstCpuAnnotation);
 		annotationData.addAnnotation(secondCpuAnnotation);
 
-		saveAnalysisResult(arId, tool, annotationData);		
+		saveAnalysisResult(arId, tool, annotationData);
 	}
 
 	/**
-	 * ROOT
-	 * - TYPES
-	 *   1. type1
-	 *   2. type2
-	 *   3. EMPTY
-	 * - EVENTS
-	 *   1. event1
-	 *   2. event2
-	 *   3. EMPTY
+	 * ROOT - TYPES 1. type1 2. type2 3. EMPTY - EVENTS 1. event1 2. event2 3. EMPTY
 	 */
 	private static void saveGroupResult(IdManager arId, Tool tool) throws SoCTraceException {
-		
+
 		ITraceSearch search = new TraceSearch().initialize();
 		Trace trace = search.getTraceByDBName(VirtualImporter.DB_NAME);
-		List<Event> elist1 = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX+"0");
-		List<Event> elist2 = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX+"1");
+		List<Event> elist1 = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX
+				+ "0");
+		List<Event> elist2 = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX
+				+ "1");
 		search.uninitialize();
-		
+
 		Event e1 = elist1.iterator().next();
 		Event e2 = elist2.iterator().next();
 
@@ -229,7 +222,7 @@ public class PrepareTestResources {
 		root.setName("ROOT");
 
 		OrderedGroup pattern = new OrderedGroup(idManager.getNextId(), EventType.class);
-		pattern.setName("TYPES");	
+		pattern.setName("TYPES");
 		pattern.addSon(e1.getType(), 0);
 		pattern.addSon(e2.getType(), 1);
 		UnorderedGroup empty = new UnorderedGroup(idManager.getNextId(), null);
@@ -237,39 +230,41 @@ public class PrepareTestResources {
 		pattern.addSon(empty, 2);
 
 		OrderedGroup example = new OrderedGroup(idManager.getNextId(), Event.class);
-		example.setName("EVENTS");	
+		example.setName("EVENTS");
 		example.addSon(e1, 0);
 		example.addSon(e2, 1);
 		empty = new UnorderedGroup(idManager.getNextId(), null);
 		empty.setName("EMPTY");
-		example.addSon(empty , 2);
-		
+		example.addSon(empty, 2);
+
 		root.addSon(pattern);
 		root.addSon(example);
 
 		AnalysisResultGroupData groupData = new AnalysisResultGroupData(root);
-		
-		saveAnalysisResult(arId, tool, groupData);		
+
+		saveAnalysisResult(arId, tool, groupData);
 	}
 
 	private static void saveEventSearchResult(IdManager arId, Tool tool) throws SoCTraceException {
 		ITraceSearch search = new TraceSearch().initialize();
 		Trace trace = search.getTraceByDBName(VirtualImporter.DB_NAME);
-		List<Event> events = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX+"0");
+		List<Event> events = search.getEventsByTypeName(trace, VirtualImporter.TYPE_NAME_PREFIX
+				+ "0");
 		search.uninitialize();
 		AnalysisResultSearchData searchData = new AnalysisResultSearchData(Event.class);
 		searchData.setSearchCommand("search result events");
 		searchData.setElements(events);
-	
-		saveAnalysisResult(arId, tool, searchData);		
+
+		saveAnalysisResult(arId, tool, searchData);
 	}
 
-	private static void saveProcessedTraceResult(IdManager arId, Tool tool) throws SoCTraceException {
+	private static void saveProcessedTraceResult(IdManager arId, Tool tool)
+			throws SoCTraceException {
 		ITraceSearch search = new TraceSearch().initialize();
 		Trace source = search.getTraceByDBName(VirtualImporter.DB_NAME);
 		Trace dest = search.getTraceByDBName(TestConstants.PROCESSED_TRACE_DB_NAME);
 		search.uninitialize();
-		
+
 		AnalysisResultProcessedTraceData processedTraceData = new AnalysisResultProcessedTraceData();
 		processedTraceData.setSourceTrace(source);
 		processedTraceData.setProcessedTrace(dest);
@@ -279,7 +274,7 @@ public class PrepareTestResources {
 
 	private static void saveProcessedTrace() throws SoCTraceException {
 		SystemDBObject sysDB = SystemDBObject.openNewIstance();
-		
+
 		Trace dest = new Trace(TestConstants.PROCESSED_TRACE_ID);
 		dest.setProcessed(true);
 		dest.setAlias(TestConstants.PROCESSED_TRACE_METADATA);
@@ -288,7 +283,7 @@ public class PrepareTestResources {
 		TraceType tt = new TraceType(TestConstants.PROCESSED_TRACE_TYPE_ID);
 		tt.setName(TestConstants.PROCESSED_TRACE_TYPE_NAME);
 		dest.setType(tt);
-		
+
 		sysDB.save(dest);
 		sysDB.save(tt);
 		sysDB.close();
@@ -304,12 +299,13 @@ public class PrepareTestResources {
 		traceDB.close();
 	}
 
-	private static void virtualImport() throws SoCTraceException {		
+	private static void virtualImport() throws SoCTraceException {
 		VirtualImporter importer = new VirtualImporter();
 		importer.virtualImport();
 	}
 
-	private static void saveAnalysisResult(IdManager aid, Tool tool, AnalysisResultData data) throws SoCTraceException {
+	private static void saveAnalysisResult(IdManager aid, Tool tool, AnalysisResultData data)
+			throws SoCTraceException {
 		AnalysisResult ar = new AnalysisResult(aid.getNextId());
 		ar.setTool(tool);
 		ar.setDescription("dummy result " + data.getType());

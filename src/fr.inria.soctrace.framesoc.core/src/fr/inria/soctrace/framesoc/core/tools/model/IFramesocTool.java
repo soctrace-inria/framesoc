@@ -48,6 +48,7 @@ public interface IFramesocTool {
 	public class ParameterCheckStatus {
 		public boolean valid = true;
 		public String message = "";
+
 		public ParameterCheckStatus(boolean valid, String message) {
 			this.valid = valid;
 			this.message = message;
@@ -57,19 +58,19 @@ public interface IFramesocTool {
 	/**
 	 * Launch method for Framesoc tools.
 	 * 
-	 * @param args
-	 *            launching arguments
+	 * @param input
+	 *            tool input
 	 */
-	void launch(String args[]);
+	void launch(IFramesocToolInput input);
 
 	/**
 	 * Framesoc is allowed to launch this tool only if the method returns true. Used to allow tools
 	 * to validate user input in Framesoc launch tool dialogs.
 	 * 
-	 * @param args
-	 *            launching arguments that would be used
+	 * @param input
+	 *            tool input
 	 * @return a parameter check status
 	 */
-	ParameterCheckStatus canLaunch(String[] args);
+	ParameterCheckStatus canLaunch(IFramesocToolInput input);
 
 }

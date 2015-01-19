@@ -33,15 +33,15 @@ import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
 import fr.inria.soctrace.lib.utils.Portability;
+import fr.inria.soctrace.tools.framesoc.exporter.input.ExporterInput;
 import fr.inria.soctrace.tools.framesoc.exporter.utils.ExportMetadata;
 import fr.inria.soctrace.tools.framesoc.exporter.utils.Serializer;
 
 /**
- * The exporter generates the following output:
- * - <DBNAME>.meta file, containing a serialized ExportMetadata object.
- * - <DBNAME>.db file, containing the dump of the DB. The format of
- *   this file differs according to the DBMS.
- *  
+ * The exporter generates the following output: - <DBNAME>.meta file, containing a serialized
+ * ExportMetadata object. - <DBNAME>.db file, containing the dump of the DB. The format of this file
+ * differs according to the DBMS.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class ExporterJob extends Job {
@@ -65,29 +65,29 @@ public class ExporterJob extends Job {
 		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
 
 		try {
-			
+
 			Thread th = new Thread() {
 				@Override
-				public void run(){
-					logger.debug("thread body");		
+				public void run() {
+					logger.debug("thread body");
 					try {
 						export();
-						feedback(true, "");
 						logger.debug("export done");
+						feedback(true, "");
 					} catch (Exception e) {
 						logger.debug("cleaning");
-						delete(getDumpPath()+".db");
-						delete(getDumpPath()+".meta");
+						delete(getDumpPath() + ".db");
+						delete(getDumpPath() + ".meta");
 					}
 				}
 			};
 
 			th.start();
 
-			while(th.isAlive()) {
+			while (th.isAlive()) {
 				try {
 					Thread.sleep(1000);
-				} catch(InterruptedException ie) {
+				} catch (InterruptedException ie) {
 					logger.debug("interrupted exception in main thread");
 					th.interrupt();
 					throw new SoCTraceException(ie);
@@ -108,14 +108,14 @@ public class ExporterJob extends Job {
 		return Status.OK_STATUS;
 	}
 
-
 	private void export() throws SoCTraceException {
 		// export metadata
 		Serializer serializer = new Serializer();
 		ExportMetadata metadata = new ExportMetadata();
-		metadata.dbms = DBMS.toDbms(Configuration.getInstance().get(SoCTraceProperty.soctrace_dbms.toString()));
+		metadata.dbms = DBMS.toDbms(Configuration.getInstance().get(
+				SoCTraceProperty.soctrace_dbms.toString()));
 		metadata.trace = input.trace;
-		
+
 		SystemDBObject sysDB = null;
 		try {
 			sysDB = SystemDBObject.openNewIstance();
@@ -125,10 +125,10 @@ public class ExporterJob extends Job {
 			DBObject.finalClose(sysDB);
 		}
 		serializer.serialize(metadata, getDumpPath() + ".meta");
-		
+
 		// export db
 		DBManager dbm = DBManager.getDBManager(input.trace.getDbName());
-		dbm.exportDB(getDumpPath() + ".db");			
+		dbm.exportDB(getDumpPath() + ".db");
 
 	}
 
@@ -136,12 +136,13 @@ public class ExporterJob extends Job {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				if (ok)
-					MessageDialog.openInformation(Display.getCurrent().getActiveShell(), 
+				if (ok) {
+					MessageDialog.openInformation(Display.getCurrent().getActiveShell(),
 							"Exporter", "Database correctly exported.\n" + s);
-				else
-					MessageDialog.openError(Display.getCurrent().getActiveShell(), 
-							"Exporter", "Error while exporting.\n" + s);
+				} else {
+					MessageDialog.openError(Display.getCurrent().getActiveShell(), "Exporter",
+							"Error while exporting.\n" + s);
+				}
 			}
 		});
 	}
@@ -151,14 +152,14 @@ public class ExporterJob extends Job {
 	}
 
 	private void delete(String file) {
-		try{
+		try {
 			File f = new File(file);
-			if(f.delete()){
+			if (f.delete()) {
 				logger.debug("File " + f.getName() + " deleted");
-			}else{
+			} else {
 				logger.debug("Error deleting " + f.getName());
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

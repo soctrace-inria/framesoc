@@ -10,6 +10,8 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.toolbar;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -53,6 +55,12 @@ public abstract class AbstractMenuContribution extends ExtensionContributionFact
 	@SuppressWarnings("unchecked")
 	protected void createToolsItems(IServiceLocator serviceLocator, IContributionRoot additions, FramesocToolType type) {
 		List<Tool> tools = getTools(type);		
+		Collections.sort(tools, new Comparator<Tool>() {
+			@Override
+			public int compare(Tool o1, Tool o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		});
 		for (Tool tool: tools) {
 			CommandContributionItemParameter p = new CommandContributionItemParameter(
 					serviceLocator, "", "fr.inria.soctrace.framesoc.ui.commands.dropdown", SWT.PUSH);

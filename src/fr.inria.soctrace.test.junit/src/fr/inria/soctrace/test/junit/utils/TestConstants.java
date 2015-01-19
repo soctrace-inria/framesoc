@@ -44,11 +44,15 @@ public class TestConstants {
 	
 	public static final String JUNIT_TEST_TOOL_DOC = "junit doc";
 	
+	public static final String JUNIT_TEST_TOOL_EXT_ID = "test.junit.tool";
+	
 	public static final String VIRTUAL_IMPORTER_TOOL_NAME = "virtual importer";
 
 	public static final String VIRTUAL_IMPORTER_TOOL_COMMAND = "virtual command";
 
 	public static final String VIRTUAL_IMPORTER_TOOL_DOC = "virtual doc";
+	
+	public static final String VIRTUAL_IMPORTER_TOOL_EXT_ID = "test.importer.virtual";
 	
 	public static final int NUMBER_OF_RESULTS = 5;
 
