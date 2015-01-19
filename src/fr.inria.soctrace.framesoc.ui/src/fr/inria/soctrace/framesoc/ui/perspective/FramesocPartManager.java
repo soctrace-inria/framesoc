@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionListener;
@@ -317,8 +318,11 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	private void displayFramesocView(String viewId, Object data) {
 		TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
 		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace());
-		if (status.part == null)
+		if (status.part == null) {
+			MessageDialog.openError(Display.getDefault().getActiveShell(),
+					"Error", status.message);
 			return;
+		}
 		status.part.showTrace(des.getTrace(), des);
 		updateTitlesHighlight((Trace) des.getTrace());
 	}
