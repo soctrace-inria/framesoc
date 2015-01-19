@@ -28,7 +28,7 @@ import fr.inria.soctrace.lib.utils.SoctraceUtils;
  * Visitor able to update the entities of the system DB.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class SystemDBUpdateVisitor extends ModelVisitor {
 
@@ -39,8 +39,10 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 
 	/**
 	 * The Constructor
-	 * @param sysDB system DB object
-	 * @throws SoCTraceException 
+	 * 
+	 * @param sysDB
+	 *            system DB object
+	 * @throws SoCTraceException
 	 */
 	public SystemDBUpdateVisitor(SystemDBObject sysDB) throws SoCTraceException {
 		super();
@@ -49,22 +51,27 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 			Connection conn = sysDB.getConnection();
 			PreparedStatementDescriptor psd = null;
 			// Trace
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_UPDATE));
-			addDescriptor(FramesocTable.TRACE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_UPDATE));
-			addDescriptor(FramesocTable.TRACE_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_UPDATE));
-			addDescriptor(FramesocTable.TRACE_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_UPDATE));
-			addDescriptor(FramesocTable.TRACE_PARAM_TYPE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_UPDATE),
+					FramesocTable.TRACE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_UPDATE),
+					FramesocTable.TRACE_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_UPDATE),
+					FramesocTable.TRACE_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_UPDATE),
+					FramesocTable.TRACE_PARAM_TYPE);
+			addDescriptor(psd);
 			// Tool
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TOOL_UPDATE));
-			addDescriptor(FramesocTable.TOOL, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TOOL_UPDATE),
+					FramesocTable.TOOL);
+			addDescriptor(psd);
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -159,6 +166,6 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
-	}	
+	}
 
 }

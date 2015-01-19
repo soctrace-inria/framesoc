@@ -13,7 +13,6 @@ package fr.inria.soctrace.lib.storage.visitors;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.TraceParam;
@@ -28,7 +27,7 @@ import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
  * Visitor able to delete the entities of the system DB.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class SystemDBDeleteVisitor extends ModelVisitor {
 
@@ -36,11 +35,13 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 	 * DB object related to this visitor
 	 */
 	private SystemDBObject sysDB;
-	
+
 	/**
 	 * The Constructor
-	 * @param sysDB system DB object
-	 * @throws SoCTraceException 
+	 * 
+	 * @param sysDB
+	 *            system DB object
+	 * @throws SoCTraceException
 	 */
 	public SystemDBDeleteVisitor(SystemDBObject sysDB) throws SoCTraceException {
 		super();
@@ -49,22 +50,27 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 			Connection conn = sysDB.getConnection();
 			PreparedStatementDescriptor psd = null;
 			// Trace
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_DELETE));
-			addDescriptor(FramesocTable.TRACE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_DELETE));
-			addDescriptor(FramesocTable.TRACE_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_DELETE));
-			addDescriptor(FramesocTable.TRACE_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_DELETE));
-			addDescriptor(FramesocTable.TRACE_PARAM_TYPE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_DELETE),
+					FramesocTable.TRACE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_TYPE_DELETE),
+					FramesocTable.TRACE_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_DELETE),
+					FramesocTable.TRACE_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TRACE_PARAM_TYPE_DELETE),
+					FramesocTable.TRACE_PARAM_TYPE);
+			addDescriptor(psd);
 			// Tool
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_TOOL_DELETE));
-			addDescriptor(FramesocTable.TOOL, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_TOOL_DELETE),
+					FramesocTable.TOOL);
+			addDescriptor(psd);
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -130,6 +136,6 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
-	}	
+	}
 
 }

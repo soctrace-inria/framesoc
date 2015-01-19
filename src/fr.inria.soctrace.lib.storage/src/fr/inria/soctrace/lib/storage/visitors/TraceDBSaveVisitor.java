@@ -52,7 +52,7 @@ import fr.inria.soctrace.lib.utils.SoctraceUtils;
  * Visitor able to save the entities of the Trace DB
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class TraceDBSaveVisitor extends ModelVisitor {
 
@@ -60,96 +60,113 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	 * DB object related to this visitor
 	 */
 	private TraceDBObject traceDB;
-	
+
 	/**
-	 * This variable is used to automatically assign ID to analysis results
-	 * without replicating it (e.g. if 2 analysis result are saved without flushing 
-	 * the visitor batches). 
-	 * - At visitor initialization the variable gets the MAX ID in ANALYSIS_RESULT table.
-	 * - At each visit(AnalysisResult) it gets incremented.
-	 * - At each postClearBatches it gets the (updated) MAX ID again.
+	 * This variable is used to automatically assign ID to analysis results without replicating it
+	 * (e.g. if 2 analysis result are saved without flushing the visitor batches). - At visitor
+	 * initialization the variable gets the MAX ID in ANALYSIS_RESULT table. - At each
+	 * visit(AnalysisResult) it gets incremented. - At each postClearBatches it gets the (updated)
+	 * MAX ID again.
 	 */
 	private int analysisResultLastId;
 
 	/**
 	 * The constructor.
-	 * @param traceDB trace DB object
+	 * 
+	 * @param traceDB
+	 *            trace DB object
 	 * @throws SoCTraceException
 	 */
 	public TraceDBSaveVisitor(TraceDBObject traceDB) throws SoCTraceException {
 		super();
-		this.traceDB = traceDB;	 
+		this.traceDB = traceDB;
 		try {
 			Connection conn = traceDB.getConnection();
 			PreparedStatementDescriptor psd = null;
-			
+
 			// Raw trace
-			
+
 			// Events
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_INSERT));
-			addDescriptor(FramesocTable.EVENT, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_TYPE_INSERT));
-			addDescriptor(FramesocTable.EVENT_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_INSERT));
-			addDescriptor(FramesocTable.EVENT_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_TYPE_INSERT));
-			addDescriptor(FramesocTable.EVENT_PARAM_TYPE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_INSERT),
+					FramesocTable.EVENT);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_TYPE_INSERT),
+					FramesocTable.EVENT_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_INSERT),
+					FramesocTable.EVENT_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PARAM_TYPE_INSERT),
+					FramesocTable.EVENT_PARAM_TYPE);
+			addDescriptor(psd);
 			// Event Producers
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_EVENT_PRODUCER_INSERT));
-			addDescriptor(FramesocTable.EVENT_PRODUCER, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_EVENT_PRODUCER_INSERT),
+					FramesocTable.EVENT_PRODUCER);
+			addDescriptor(psd);
 			// File
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_FILE_INSERT));
-			addDescriptor(FramesocTable.FILE, psd);
-			
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_FILE_INSERT),
+					FramesocTable.FILE);
+			addDescriptor(psd);
+
 			// Analysis results
-			
+
 			// Analysis Result
 			postClearBatches();
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANALYSIS_RESULT_INSERT));
-			addDescriptor(FramesocTable.ANALYSIS_RESULT, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANALYSIS_RESULT_INSERT),
+					FramesocTable.ANALYSIS_RESULT);
+			addDescriptor(psd);
 			// Search
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_SEARCH_INSERT));
-			addDescriptor(FramesocTable.SEARCH, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_SEARCH_MAPPING_INSERT));
-			addDescriptor(FramesocTable.SEARCH_MAPPING, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_SEARCH_INSERT),
+					FramesocTable.SEARCH);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_SEARCH_MAPPING_INSERT),
+					FramesocTable.SEARCH_MAPPING);
+			addDescriptor(psd);
 			// Annotation
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_INSERT));
-			addDescriptor(FramesocTable.ANNOTATION, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_TYPE_INSERT));
-			addDescriptor(FramesocTable.ANNOTATION_TYPE, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_INSERT));
-			addDescriptor(FramesocTable.ANNOTATION_PARAM, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_TYPE_INSERT));
-			addDescriptor(FramesocTable.ANNOTATION_PARAM_TYPE, psd);				
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_INSERT),
+					FramesocTable.ANNOTATION);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_TYPE_INSERT),
+					FramesocTable.ANNOTATION_TYPE);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_INSERT),
+					FramesocTable.ANNOTATION_PARAM);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_ANNOTATION_PARAM_TYPE_INSERT),
+					FramesocTable.ANNOTATION_PARAM_TYPE);
+			addDescriptor(psd);
 			// Group
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_GROUP_INSERT));
-			addDescriptor(FramesocTable.ENTITY_GROUP, psd);
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_GROUP_MAPPING_INSERT));
-			addDescriptor(FramesocTable.GROUP_MAPPING, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_GROUP_INSERT),
+					FramesocTable.ENTITY_GROUP);
+			addDescriptor(psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_GROUP_MAPPING_INSERT),
+					FramesocTable.GROUP_MAPPING);
+			addDescriptor(psd);
 			// Processed Trace
-			psd = new PreparedStatementDescriptor(conn.prepareStatement(
-					SQLConstants.PREPARED_STATEMENT_PROCESSED_TRACE_INSERT));
-			addDescriptor(FramesocTable.PROCESSED_TRACE, psd);
+			psd = new PreparedStatementDescriptor(
+					conn.prepareStatement(SQLConstants.PREPARED_STATEMENT_PROCESSED_TRACE_INSERT),
+					FramesocTable.PROCESSED_TRACE);
+			addDescriptor(psd);
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
 	}
-	
+
 	@Override
 	protected void postClearBatches() throws SoCTraceException {
 		// reset analysis result last id to the max in the DB
@@ -159,7 +176,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	/*
 	 * Events
 	 */
-	
+
 	@Override
 	public void visit(Event event) throws SoCTraceException {
 		try {
@@ -227,7 +244,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	/*
 	 * Event Producers
 	 */
-	
+
 	@Override
 	public void visit(EventProducer eventProducer) throws SoCTraceException {
 		try {
@@ -238,7 +255,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 			psd.statement.setString(3, eventProducer.getLocalId());
 			psd.statement.setString(4, eventProducer.getName());
 			psd.statement.setInt(5, eventProducer.getParentId());
-			psd.statement.addBatch();	
+			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -247,7 +264,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	/*
 	 * File
 	 */
-	
+
 	@Override
 	public void visit(File file) throws SoCTraceException {
 		try {
@@ -265,15 +282,15 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	/*
 	 * Results
 	 */
-	
+
 	@Override
 	public void visit(AnalysisResult analysisResult) throws SoCTraceException {
-		try {		
+		try {
 			analysisResult.setId(++analysisResultLastId);
 			analysisResult.setDate(new Timestamp(new Date().getTime()));
 
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.ANALYSIS_RESULT);
-			psd.visited = true;			
+			psd.visited = true;
 			psd.statement.setInt(1, analysisResult.getId());
 			psd.statement.setInt(2, analysisResult.getTool().getId());
 			psd.statement.setString(3, analysisResult.getType());
@@ -285,7 +302,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 			if (analysisResult.getData() == null)
 				throw new SoCTraceException("Trying to save an analysis result with no data");
 
-			String type = analysisResult.getType(); 
+			String type = analysisResult.getType();
 			if (type.equals(AnalysisResultType.TYPE_SEARCH.toString())) {
 				saveSearchResult(analysisResult);
 			} else if (type.equals(AnalysisResultType.TYPE_GROUP.toString())) {
@@ -295,43 +312,45 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 			} else if (type.equals(AnalysisResultType.TYPE_PROCESSED_TRACE.toString())) {
 				saveProcessedTraceResult(analysisResult);
 			}
-						
+
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
 	}
 
 	/*
-	 *     U t i l i t i e s
+	 * U t i l i t i e s
 	 */
-	
-	private void saveSearchResult(AnalysisResult analysisResult) throws SQLException, SoCTraceException {
-		AnalysisResultSearchData data = (AnalysisResultSearchData)analysisResult.getData();
+
+	private void saveSearchResult(AnalysisResult analysisResult) throws SQLException,
+			SoCTraceException {
+		AnalysisResultSearchData data = (AnalysisResultSearchData) analysisResult.getData();
 		// search
 		PreparedStatementDescriptor psd = getDescriptor(FramesocTable.SEARCH);
-		psd.visited = true;			
+		psd.visited = true;
 		psd.statement.setInt(1, analysisResult.getId());
 		psd.statement.setString(2, data.getSearchCommand());
 		psd.statement.setString(3, data.getTargetEntity());
 		psd.statement.addBatch();
 		// mapping
 		psd = getDescriptor(FramesocTable.SEARCH_MAPPING);
-		psd.visited = true;			
-		for (ISearchable e: data.getElements()) {
-			psd.statement.setInt(1, analysisResult.getId());	
+		psd.visited = true;
+		for (ISearchable e : data.getElements()) {
+			psd.statement.setInt(1, analysisResult.getId());
 			psd.statement.setInt(2, e.getId());
 			psd.statement.addBatch();
-		}				
+		}
 	}
 
-	private void saveGroupResult(AnalysisResult analysisResult) throws SQLException, SoCTraceException {
-		AnalysisResultGroupData data = (AnalysisResultGroupData)analysisResult.getData();
+	private void saveGroupResult(AnalysisResult analysisResult) throws SQLException,
+			SoCTraceException {
+		AnalysisResultGroupData data = (AnalysisResultGroupData) analysisResult.getData();
 		PreparedStatementDescriptor psdGroup = getDescriptor(FramesocTable.ENTITY_GROUP);
 		PreparedStatementDescriptor psdMapping = getDescriptor(FramesocTable.GROUP_MAPPING);
-		
+
 		psdGroup.visited = true;
 		psdMapping.visited = true;
-		
+
 		DepthFirstIterator treeIt = data.getDepthFirstIterator();
 		IdManager mappingIdManager = new IdManager();
 		while (treeIt.hasNext()) {
@@ -346,12 +365,12 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 			psdGroup.statement.setInt(8, g.getSequenceNumber());
 			psdGroup.statement.addBatch();
 			if (g instanceof OrderedGroup) {
-				Map<Integer, LeafMapping> sons = ((OrderedGroup)g).getSonLeaves();
-			    Iterator<Entry<Integer, LeafMapping>> it = 
-			    		(Iterator<Entry<Integer, LeafMapping>>) sons.entrySet().iterator();
-			    while (it.hasNext()) {
-					Entry<Integer, LeafMapping> pairs = (Entry<Integer, LeafMapping>)it.next();
-					LeafMapping mapping = pairs.getValue();		
+				Map<Integer, LeafMapping> sons = ((OrderedGroup) g).getSonLeaves();
+				Iterator<Entry<Integer, LeafMapping>> it = (Iterator<Entry<Integer, LeafMapping>>) sons
+						.entrySet().iterator();
+				while (it.hasNext()) {
+					Entry<Integer, LeafMapping> pairs = (Entry<Integer, LeafMapping>) it.next();
+					LeafMapping mapping = pairs.getValue();
 					mapping.setMappingId(mappingIdManager.getNextId());
 					psdMapping.statement.setInt(1, analysisResult.getId());
 					psdMapping.statement.setInt(2, mapping.getMappingId());
@@ -359,40 +378,42 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 					psdMapping.statement.setInt(4, mapping.getSon().getId());
 					psdMapping.statement.setInt(5, pairs.getKey());
 					psdMapping.statement.addBatch();
-			    }
+				}
 			} else {
-				List<LeafMapping> leaves = ((UnorderedGroup)g).getSonLeaves();
-				for (LeafMapping mapping: leaves) {
+				List<LeafMapping> leaves = ((UnorderedGroup) g).getSonLeaves();
+				for (LeafMapping mapping : leaves) {
 					mapping.setMappingId(mappingIdManager.getNextId());
 					psdMapping.statement.setInt(1, analysisResult.getId());
 					psdMapping.statement.setInt(2, mapping.getMappingId());
 					psdMapping.statement.setInt(3, g.getId());
 					psdMapping.statement.setInt(4, mapping.getSon().getId());
-					psdMapping.statement.setInt(5, -1);	
+					psdMapping.statement.setInt(5, -1);
 					psdMapping.statement.addBatch();
 				}
-			}							
+			}
 		}
 	}
 
-	private void saveAnnotationResult(AnalysisResult analysisResult) throws SQLException, SoCTraceException {
-		AnalysisResultAnnotationData annotationData = (AnalysisResultAnnotationData)analysisResult.getData();
+	private void saveAnnotationResult(AnalysisResult analysisResult) throws SQLException,
+			SoCTraceException {
+		AnalysisResultAnnotationData annotationData = (AnalysisResultAnnotationData) analysisResult
+				.getData();
 		PreparedStatementDescriptor psdAnnotation = getDescriptor(FramesocTable.ANNOTATION);
 		PreparedStatementDescriptor psdAnnotationType = getDescriptor(FramesocTable.ANNOTATION_TYPE);
 		PreparedStatementDescriptor psdAnnotationParam = getDescriptor(FramesocTable.ANNOTATION_PARAM);
 		PreparedStatementDescriptor psdAnnotationParamType = getDescriptor(FramesocTable.ANNOTATION_PARAM_TYPE);
-		
+
 		psdAnnotation.visited = true;
 		psdAnnotationType.visited = true;
 		psdAnnotationParam.visited = true;
 		psdAnnotationParamType.visited = true;
-		
-		for (AnnotationType at: annotationData.getAnnotationTypes()) {
+
+		for (AnnotationType at : annotationData.getAnnotationTypes()) {
 			psdAnnotationType.statement.setInt(1, analysisResult.getId());
 			psdAnnotationType.statement.setInt(2, at.getId());
 			psdAnnotationType.statement.setString(3, at.getName());
 			psdAnnotationType.statement.addBatch();
-			for (AnnotationParamType pt: at.getParamTypes()) {
+			for (AnnotationParamType pt : at.getParamTypes()) {
 				psdAnnotationParamType.statement.setInt(1, analysisResult.getId());
 				psdAnnotationParamType.statement.setInt(2, pt.getId());
 				psdAnnotationParamType.statement.setInt(3, pt.getAnnotationType().getId());
@@ -401,14 +422,14 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 				psdAnnotationParamType.statement.addBatch();
 			}
 		}
-		
-		for (Annotation a: annotationData.getAnnotations()) {
+
+		for (Annotation a : annotationData.getAnnotations()) {
 			psdAnnotation.statement.setInt(1, analysisResult.getId());
 			psdAnnotation.statement.setInt(2, a.getId());
 			psdAnnotation.statement.setInt(3, a.getAnnotationType().getId());
 			psdAnnotation.statement.setString(4, a.getName());
 			psdAnnotation.statement.addBatch();
-			for (AnnotationParam p: a.getParams()) {
+			for (AnnotationParam p : a.getParams()) {
 				psdAnnotationParam.statement.setInt(1, analysisResult.getId());
 				psdAnnotationParam.statement.setInt(2, p.getId());
 				psdAnnotationParam.statement.setInt(3, a.getId());
@@ -417,11 +438,13 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 				psdAnnotationParam.statement.addBatch();
 			}
 		}
-		
+
 	}
 
-	private void saveProcessedTraceResult(AnalysisResult analysisResult) throws SQLException, SoCTraceException {
-		AnalysisResultProcessedTraceData data = (AnalysisResultProcessedTraceData)analysisResult.getData();
+	private void saveProcessedTraceResult(AnalysisResult analysisResult) throws SQLException,
+			SoCTraceException {
+		AnalysisResultProcessedTraceData data = (AnalysisResultProcessedTraceData) analysisResult
+				.getData();
 		PreparedStatementDescriptor psd = getDescriptor(FramesocTable.PROCESSED_TRACE);
 		psd.visited = true;
 		psd.statement.setInt(1, analysisResult.getId());
