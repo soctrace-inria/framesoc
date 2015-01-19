@@ -169,7 +169,7 @@ public class FramesocDBImporter extends FramesocTool {
 				idManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE.toString(), "ID") + 1);
 
 				// For each DB file
-				List<String> dbFiles = input.getTraceFiles();
+				List<String> dbFiles = input.getFiles();
 				monitor.beginTask("Importing Framesoc databases", dbFiles.size());
 				for (String dbFile : dbFiles) {
 
@@ -408,7 +408,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 		ParameterCheckStatus status = new ParameterCheckStatus(true, "");
 
-		List<String> files = ((FileInput) input).getTraceFiles();
+		List<String> files = ((FileInput) input).getFiles();
 
 		if (files.size() < 1) {
 			status.message = "Specify one or more database file.";

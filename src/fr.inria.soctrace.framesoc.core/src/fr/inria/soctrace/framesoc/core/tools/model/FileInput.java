@@ -14,12 +14,12 @@ public class FileInput implements IFramesocToolInput {
 
 	private List<String> files;
 
-	public List<String> getTraceFiles() {
+	public List<String> getFiles() {
 		return files;
 	}
 
-	public void setTraceFiles(List<String> traceFiles) {
-		this.files = traceFiles;
+	public void setFiles(List<String> files) {
+		this.files = files;
 	}
 
 	@Override

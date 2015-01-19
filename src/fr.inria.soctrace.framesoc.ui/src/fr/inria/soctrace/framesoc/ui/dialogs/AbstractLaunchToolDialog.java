@@ -217,7 +217,9 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		Assert.isNotNull(inputComposite);
 		GridData data = (GridData) inputComposite.getLayoutData();
 		data.minimumWidth = MIN_TOOL_INPUT_COMPOSITE_WIDTH;
-		dialogParentComposite.pack();
+		dialogParentComposite.pack(); // TODO fixme
+		dialogParentComposite.redraw();
+		dialogParentComposite.update();
 	}
 
 	@Override

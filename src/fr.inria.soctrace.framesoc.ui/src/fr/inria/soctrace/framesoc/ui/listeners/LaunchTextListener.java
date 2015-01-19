@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Text;
 import fr.inria.soctrace.framesoc.ui.dialogs.IArgumentDialog;
 
 /**
- * Text field listener.
+ * Text field listener to be used in argument dialogs.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */

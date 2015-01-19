@@ -40,7 +40,7 @@ public class DefaultImporterInputComposite extends AbstractToolInputComposite {
 	@Override
 	public IFramesocToolInput getToolInput() {
 		FileInput input = new FileInput();
-		input.setTraceFiles(Arrays.asList(LaunchTextListener.getTokens(traceFileListener.getText())));
+		input.setFiles(Arrays.asList(LaunchTextListener.getTokens(traceFileListener.getText())));
 		return input;
 	}
 
