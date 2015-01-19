@@ -103,7 +103,7 @@ public abstract class ModelVisitor implements IModelVisitor {
 			postExecuteBatches();
 		} catch (SQLException e) {
 			if (p != null) {
-				System.err.println("Exception while visiting " + p.toString());
+				System.err.println("Exception while visiting table " + p.table.toString());
 			}
 			throw new SoCTraceException(e);
 		}
@@ -123,7 +123,7 @@ public abstract class ModelVisitor implements IModelVisitor {
 			postClearBatches();
 		} catch (SQLException e) {
 			if (p != null) {
-				System.err.println("Exception while visiting " + p.toString());
+				System.err.println("Exception while visiting table " + p.table.toString());
 			}
 			throw new SoCTraceException(e);
 		}
@@ -143,7 +143,7 @@ public abstract class ModelVisitor implements IModelVisitor {
 			postClose();
 		} catch (SQLException e) {
 			if (p != null) {
-				System.err.println("Exception while visiting " + p.toString());
+				System.err.println("Exception while visiting table " + p.table.toString());
 			}
 			throw new SoCTraceException(e);
 		}
