@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.dialogs;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +158,9 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		toolNameLabel.setText("Tool");
 		toolNameCombo = new Combo(importerComposite, SWT.BORDER | SWT.READ_ONLY);
 		toolNameCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		for (String s : toolMap.keySet()) {
+		String[] tools = toolMap.keySet().toArray(new String[toolMap.size()]);
+		Arrays.sort(tools);
+		for (String s : tools) {
 			toolNameCombo.add(s);
 		}
 		toolNameCombo.select(0);
@@ -216,10 +219,18 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 	private void layoutDialog() {
 		Assert.isNotNull(inputComposite);
 		GridData data = (GridData) inputComposite.getLayoutData();
+		/*
+		 * We set the min width to 0, we pack, then we set the correct min width and we pack again,
+		 * to force a redraw of the whole dialog even if nothing has changed.
+		 * 
+		 * This fixes the following bug: if we change the tool, but the input composite used is an
+		 * instance of the same class as the previous, the new composite is not painted, since the
+		 * dialog thinks it is the same as before.
+		 */
+		data.minimumWidth = 0;
+		dialogParentComposite.pack();
 		data.minimumWidth = MIN_TOOL_INPUT_COMPOSITE_WIDTH;
-		dialogParentComposite.pack(); // TODO fixme
-		dialogParentComposite.redraw();
-		dialogParentComposite.update();
+		dialogParentComposite.pack();
 	}
 
 	@Override
