@@ -6,6 +6,8 @@ package fr.inria.soctrace.framesoc.core.tools.model;
 import java.util.List;
 
 /**
+ * Default input for importers not extending the extension point for the tool input.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class FileInput implements IFramesocToolInput {
@@ -24,20 +26,5 @@ public class FileInput implements IFramesocToolInput {
 	public String getCommand() {
 		return "";
 	}
-	
-	/**
-	 * TODO REMOVE THIS AND USE THE NEW MECHANISM EVERYWHERE
-	 * 
-	 * Temporary method to be use during the transition to the
-	 * new API.
-	 * 
-	 * @param input IFramesocInput of type TraceFileInput
-	 * @return the array of trace names
-	 */
-	@Deprecated
-	public static String[] toArray(IFramesocToolInput input){
-		List<String> files= ((FileInput) input).getTraceFiles();
-		return files.toArray(new String[files.size()]);
-	}
-	
+
 }

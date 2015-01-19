@@ -21,7 +21,6 @@
    <extension
          point="fr.inria.soctrace.framesoc.ui.input.toolInput">
       <toolInput
-            composite="fr.inria.soctrace.tools.framesoc.exporter.input.DBExporterInputComposite"
             compositeFactory="fr.inria.soctrace.tools.framesoc.exporter.input.DBExporterInputCompositeFactory"
             toolId="fr.inria.soctrace.tools.framesoc.exporter.dbexporter">
       </toolInput>
