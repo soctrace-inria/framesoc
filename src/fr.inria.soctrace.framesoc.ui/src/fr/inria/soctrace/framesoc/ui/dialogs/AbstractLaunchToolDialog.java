@@ -151,7 +151,9 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 
 		inputComposite = new Composite(toolGroup, SWT.NONE);
 		inputComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
-		inputComposite.setLayout(new GridLayout(1, false));
+		GridLayout gl_inputComposite = new GridLayout(1, false);
+		gl_inputComposite.marginWidth = 0;
+		inputComposite.setLayout(gl_inputComposite);
 
 		toolNameLabel = new Label(importerComposite, SWT.NONE);
 		toolNameLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
