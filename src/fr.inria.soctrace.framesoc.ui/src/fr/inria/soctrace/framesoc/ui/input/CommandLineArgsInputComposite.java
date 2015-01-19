@@ -13,6 +13,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 /**
+ * Simple composite for reading command line arguments.
+ * 
+ * It provides a text field for putting the arguments and an optional read only text field, used to
+ * show the documentation to the user.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class CommandLineArgsInputComposite extends Composite {

@@ -16,6 +16,10 @@ import fr.inria.soctrace.framesoc.ui.dialogs.IArgumentDialog;
 import fr.inria.soctrace.framesoc.ui.listeners.LaunchTextListener;
 
 /**
+ * Default tool input composite for importers.
+ * 
+ * It provides a text field for trace files, with a browse button beside.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class DefaultImporterInputComposite extends AbstractToolInputComposite {

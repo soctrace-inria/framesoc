@@ -10,7 +10,7 @@ import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.ui.dialogs.IArgumentDialog;
 
 /**
- * Empty tool input coposite
+ * Empty tool input composite.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */

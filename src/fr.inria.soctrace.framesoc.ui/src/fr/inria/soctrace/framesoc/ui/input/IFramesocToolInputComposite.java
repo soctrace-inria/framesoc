@@ -25,6 +25,8 @@ public interface IFramesocToolInputComposite {
 	 * call the {@link IArgumentDialog#updateOk()} method when a parameter is changed in the
 	 * composite UI.
 	 * 
+	 * When overriding this method, the base class implementation must be called at the beginning.
+	 * 
 	 * @param dialog
 	 *            dialog using this composite
 	 */
