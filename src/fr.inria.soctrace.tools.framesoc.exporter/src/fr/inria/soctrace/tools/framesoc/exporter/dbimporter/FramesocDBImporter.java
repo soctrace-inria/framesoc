@@ -166,7 +166,7 @@ public class FramesocDBImporter extends FramesocTool {
 				// Open the System DB
 				sysDB = SystemDBObject.openNewIstance();
 				IdManager idManager = new IdManager();
-				//idManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE.toString(), "ID") + 1);
+				idManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE.toString(), "ID") + 1);
 
 				// For each DB file
 				List<String> dbFiles = input.getTraceFiles();
@@ -205,8 +205,6 @@ public class FramesocDBImporter extends FramesocTool {
 
 					monitor.worked(1);
 				}
-
-				feedback(true, "");
 
 			} catch (SoCTraceException e) {
 				feedback(false, e.toString());
