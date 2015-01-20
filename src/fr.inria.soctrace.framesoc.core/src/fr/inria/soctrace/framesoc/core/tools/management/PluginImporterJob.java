@@ -108,7 +108,7 @@ public class PluginImporterJob extends PluginToolJob {
 		sb.append("\n");
 		sb.append("System DB rollback " + ((sysDbRollback) ? "done." : "not done."));
 		sb.append("\n");
-		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not") + " deleted.");
+		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not ") + "deleted.");
 		return sb.toString();
 	}
 
@@ -144,7 +144,8 @@ public class PluginImporterJob extends PluginToolJob {
 				sysDB.rollback();
 				rollback = true;
 			} catch (SoCTraceException ex) {
-				ex.printStackTrace();
+				System.err.println("Exception trying to rollback System DB.");
+				System.err.println(ex.getMessage());
 			}
 		}
 
@@ -154,11 +155,12 @@ public class PluginImporterJob extends PluginToolJob {
 				traceDB.dropDatabase();
 				drop = true;
 			} catch (SoCTraceException ex) {
-				ex.printStackTrace();
+				System.err.println("Exception trying to drop Trace DB.");
+				System.err.println(ex.getMessage());
 			}
 		}
 
-		// relaunch the exception to the user
+		// re-launch the exception to the user
 		throw new SoCTraceException(getExceptionMessage(e, rollback, drop));
 	}
 
