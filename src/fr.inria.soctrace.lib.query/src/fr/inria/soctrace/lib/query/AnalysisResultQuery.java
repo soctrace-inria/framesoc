@@ -201,6 +201,7 @@ public class AnalysisResultQuery extends ElementQuery {
 					t.setCommand(rs.getString(4));
 					t.setPlugin(rs.getBoolean(5));
 					t.setDoc(rs.getString(6));
+					t.setExtensionId(rs.getString(7));
 					toolCache.put(t.getId(), t);
 				}
 				stm.close();

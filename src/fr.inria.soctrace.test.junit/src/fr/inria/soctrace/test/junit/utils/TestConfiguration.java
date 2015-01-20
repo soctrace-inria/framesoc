@@ -13,116 +13,61 @@
  */
 package fr.inria.soctrace.test.junit.utils;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.Properties;
 
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.Configuration;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
+import fr.inria.soctrace.lib.utils.DBMS;
 import fr.inria.soctrace.lib.utils.Portability;
 
-
 /**
- * TODO fix this: use a fake configuration
- * 
- * class TestConfiguration extends Configuration...
- * 
- * which provides test values
- */
-
-/**
- * Utility to ensure the use of a well know configuration file during tests.
- * Usage:
+ * Utility to ensure the use of a well know configuration file during tests. Usage:
  * 
  * TestConfiguration.initTest()
- * 
- * .. all tests ..
- * 
- * TestConfiguration.deinitTest()
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class TestConfiguration {
-	
-	private static final String dbms = "sqlite";
-	
-	private static final String defaultDbs = "./resources/dbs";
-	
-	private static final String confFilePath = getConfFilePath();
-	
-	private static String trailer = ".bkp";
-	
-	private static boolean alreadyInitialized = false;
-	
+
+	private static Properties config;
+	private static boolean initialized = false;
+
+	static {
+		config = new Properties();
+
+		// General
+		config.setProperty(SoCTraceProperty.soctrace_dbms.toString(), DBMS.SQLITE.toString());
+		config.setProperty(SoCTraceProperty.soctrace_db_name.toString(), "SOCTRACE_SYSTEM_DB_TEST");
+		config.setProperty(SoCTraceProperty.max_view_instances.toString(), "5");
+		config.setProperty(SoCTraceProperty.trace_db_indexing.toString(), "true");
+		config.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(), "false");
+
+		// MySQL
+		config.setProperty(SoCTraceProperty.mysql_base_db_jdbc_url.toString(),
+				"jdbc:mysql://localhost");
+		config.setProperty(SoCTraceProperty.mysql_db_user.toString(), "root");
+		config.setProperty(SoCTraceProperty.mysql_db_password.toString(), "pass");
+
+		// SQLite
+		File dbs = new File("./resources/dbs");
+		String defaultSQLiteDir = Portability.normalize(dbs.getAbsolutePath());
+		config.setProperty(SoCTraceProperty.sqlite_db_directory.toString(), defaultSQLiteDir);
+	}
+
 	public static void initTest() {
-		if (alreadyInitialized) 
+		if (initialized)
 			return;
-		
-		// compute trailer
-		trailer = TestUtils.getRandomDBName();
-		
-		// save bkp if any
-		File oldFile = new File(confFilePath);
-		if (oldFile.exists()) {
-			oldFile.renameTo(new File(confFilePath+trailer));
+
+		for (SoCTraceProperty p : SoCTraceProperty.values()) {
+			Configuration.getInstance().set(p, config.getProperty(p.toString()));
 		}
 		
-		// create the new test configuration file
-		generateTestConfigurationFile();
+		initialized = true;
 		
-		alreadyInitialized = true;
-	}
-	
-	public static void deinitTest() {
-		if (!alreadyInitialized)
-			return;
-		
-		// remove default
-		File oldFileDefault = new File(confFilePath);
-		oldFileDefault.delete();
-		
-		// restore old if any
-		File realOldFile = new File(confFilePath+trailer);
-		if (realOldFile.exists()) {
-			realOldFile.renameTo(new File(confFilePath));
+		for (SoCTraceProperty p : SoCTraceProperty.values()) {
+			System.out.println(Configuration.getInstance().get(p));
 		}		
-		alreadyInitialized = false;
-	}
-	
-	private static String getConfFilePath() {
-		return Portability.normalize(Portability.getUserHome() + "/.soctrace.conf");
-	}
-	
-	private static void generateTestConfigurationFile() {
-		try {
-			File dbs = new File(defaultDbs);
-			File file = new File(confFilePath);
-			FileWriter fw;	
-			fw = new FileWriter(file.getAbsoluteFile());
-			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write("## TEST CONF FILE ##\n");
-			bw.write("mysql_db_user=root\n");
-			bw.write("sqlite_db_directory="+dbs.getAbsolutePath()+"\n");
-			bw.write("max_view_instances=5\n");
-			bw.write("mysql_db_password=pass\n");
-			bw.write("soctrace_dbms="+dbms+"\n");
-			bw.write("mysql_base_db_jdbc_url=jdbc\\:mysql\\://localhost\n");
-			bw.write("soctrace_db_name=SOCTRACE_SYSTEM_DB_TEST\n");
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Test main
-	 */
-	public static void main(String[] args) throws SoCTraceException {
-			
-		TestConfiguration.initTest();
-		
-		TestConfiguration.deinitTest();
 	}
 
 }

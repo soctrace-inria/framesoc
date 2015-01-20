@@ -3,8 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Junit
 Bundle-SymbolicName: fr.inria.soctrace.test.junit
 Bundle-Version: 1.0.1.qualifier
-Export-Package: fr.inria.soctrace.test.junit.lib,
- fr.inria.soctrace.test.junit.lib.query,
+Export-Package: fr.inria.soctrace.test.junit.lib.query,
  fr.inria.soctrace.test.junit.lib.search,
  fr.inria.soctrace.test.junit.lib.storage,
  fr.inria.soctrace.test.junit.lib.utils,

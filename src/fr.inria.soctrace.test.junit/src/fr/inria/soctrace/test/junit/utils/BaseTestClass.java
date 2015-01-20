@@ -18,10 +18,9 @@ import org.junit.BeforeClass;
 import fr.inria.soctrace.test.junit.utils.importer.VirtualImporter;
 
 public abstract class BaseTestClass {
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		TestConfiguration.initTest();
 		PrepareTestResources.prepareTestResources();
 		// at least 1 event in test traces
 		assertTrue(VirtualImporter.TOTAL_NUMBER_OF_EVENTS >= 1);
@@ -29,7 +28,7 @@ public abstract class BaseTestClass {
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
-		TestConfiguration.deinitTest();
+		// NOP
 	}
 
 }

@@ -51,31 +51,16 @@ import fr.inria.soctrace.test.junit.utils.importer.VirtualImporter;
  * 
  * If a System DB is already present in ./resources nothing is done. More details in the README.
  * 
- * The class depends only on TestConstants.
+ * The class depends on TestConstants and TestConfiguration.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class PrepareTestResources {
 
-	/**
-	 * @param args
-	 * @throws SoCTraceException
-	 */
-	public static void main(String[] args) throws SoCTraceException {
-
-		TestConfiguration.initTest();
-
-		if (FramesocManager.getInstance().isSystemDBExisting()) {
-			System.out.println("* System DB already existing. Exit.");
-		} else {
-			prepareTestResources();
-		}
-
-		TestConfiguration.deinitTest();
-	}
-
 	public static void prepareTestResources() throws SoCTraceException {
 
+		TestConfiguration.initTest();
+		
 		if (FramesocManager.getInstance().isSystemDBExisting())
 			return;
 
