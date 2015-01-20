@@ -12,22 +12,28 @@ package fr.inria.soctrace.framesoc.core.tools.model;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import fr.inria.soctrace.framesoc.core.tools.management.PluginImporterJob;
 import fr.inria.soctrace.framesoc.core.tools.management.PluginToolJob;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
- * Interface to be implemented by classes that need to be executed inside
- * a {@link PluginToolJob} (or one of its derived classes).
+ * Interface to be implemented by classes that need to be executed inside a {@link PluginToolJob}
+ * (or one of its derived classes).
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public interface IPluginToolJobBody {
-	
+
 	/**
-	 * The body of the Job
-	 * @param monitor progress monitor to intercept user actions (i.e., cancel)
+	 * The body of the Job.
+	 * 
+	 * @param monitor
+	 *            progress monitor to intercept user actions (i.e., cancel)
 	 * @throws SoCTraceException
+	 *             If import fails this exception is thrown. In this case the exception message is
+	 *             displayed to the user. This message should be generated using the
+	 *             {@link PluginImporterJob#getExceptionMessage(String, boolean, boolean)} method.
 	 */
 	void run(IProgressMonitor monitor) throws SoCTraceException;
-	
+
 }

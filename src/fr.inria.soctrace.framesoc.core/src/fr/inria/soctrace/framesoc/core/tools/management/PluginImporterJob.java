@@ -19,15 +19,17 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.tools.importers.TraceChecker;
 import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.TraceDBObject;
 
 /**
  * Subclass of {@link PluginToolJob} for Plugin Importer Tools.
  * 
  * <p>
- * In the {@link PluginToolJob#postExecute(IStatus)} method implementation, a
- * message is sent on the {@link FramesocBus} for the topic
- * {@link FramesocBusTopic#TOPIC_UI_SYNCH_TRACES_NEEDED}. The associated data is
- * true or false, depending on whether the Job returned status is
+ * In the {@link PluginToolJob#postExecute(IStatus)} method implementation, a message is sent on the
+ * {@link FramesocBus} for the topic {@link FramesocBusTopic#TOPIC_UI_SYNCH_TRACES_NEEDED}. The
+ * associated data is true or false, depending on whether the Job returned status is
  * {@link Status#OK_STATUS} or {@link Status#CANCEL_STATUS} respectively.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -44,7 +46,7 @@ public class PluginImporterJob extends PluginToolJob {
 	public void preExecute(IProgressMonitor monitor) {
 		checker = new TraceChecker();
 	}
-	
+
 	@Override
 	public void postExecute(IProgressMonitor monitor, IStatus status) {
 
@@ -72,6 +74,83 @@ public class PluginImporterJob extends PluginToolJob {
 		} finally {
 			monitor.done();
 		}
+	}
+
+	/**
+	 * Static utility methods to print user message if import fails.
+	 * 
+	 * It should be used to generate the exception message for exceptions launched in
+	 * {@link IPluginToolJobBody#run(IProgressMonitor)}. The alternative is to call
+	 * {@link #catchImporterException(Exception, SystemDBObject, TraceDBObject)}, which manages the
+	 * exception and calls this method internally.
+	 * 
+	 * @param base
+	 *            Base message
+	 * @param sysDbRollback
+	 *            true if the System DB modifications have been rollbacked, false otherwise
+	 * @param traceDbDrop
+	 *            true if the Trace DB has been deleted, false otherwise
+	 * @return the complete user message
+	 */
+	public static String getExceptionMessage(String base, boolean sysDbRollback, boolean traceDbDrop) {
+		StringBuilder sb = new StringBuilder(base);
+		sb.append("\n");
+		sb.append("System DB rollback " + ((sysDbRollback) ? "done" : "not done"));
+		sb.append("\n");
+		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not") + " deleted");
+		return sb.toString();
+	}
+
+	/**
+	 * Method to manage an exception that occurs in importers.
+	 * 
+	 * The method should be called in the catch clause of the
+	 * {@link IPluginToolJobBody#run(IProgressMonitor)}. The method tries to rollback the
+	 * modifications on the System DB and to drop the Trace DB. At the end an exception is thrown to
+	 * the user code.
+	 * 
+	 * @param e
+	 *            exception thrown in the importer
+	 * @param sysDB
+	 *            system DB
+	 * @param traceDB
+	 *            trace DB
+	 * @throws SoCTraceException
+	 *             Exception always thrown to the user. The message is generated with
+	 *             {@link #getExceptionMessage(String, boolean, boolean)}
+	 */
+	public static void catchImporterException(Exception e, SystemDBObject sysDB,
+			TraceDBObject traceDB) throws SoCTraceException {
+
+		System.err.println("Import failure. Trying to rollback modifications in DB.");
+		System.err.println(e.getMessage());
+		e.printStackTrace();
+
+		boolean rollback = false;
+		boolean drop = false;
+
+		// try to rollback modification on system DB
+		if (sysDB != null) {
+			try {
+				sysDB.rollback();
+				rollback = true;
+			} catch (SoCTraceException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		// try to drop trace DB
+		if (traceDB != null) {
+			try {
+				traceDB.dropDatabase();
+				drop = true;
+			} catch (SoCTraceException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		// relaunch the exception to the user
+		throw new SoCTraceException(getExceptionMessage(e.getMessage(), rollback, drop));
 	}
 
 }
