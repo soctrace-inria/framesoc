@@ -178,8 +178,6 @@ public final class EventTableView extends FramesocPart {
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
-		setContentDescription("Trace: <no trace displayed>");
-
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
 		gl_parent.verticalSpacing = 2;
@@ -674,7 +672,6 @@ public final class EventTableView extends FramesocPart {
 	private void startDrawerThread(final TimeInterval requestedInterval, final Trace trace,
 			final LoaderQueue<Event> queue) {
 		currentShownTrace = trace;
-		setContentDescription("Trace: " + currentShownTrace.getAlias());
 		timeBar.setMinTimestamp(currentShownTrace.getMinTimestamp());
 		timeBar.setMaxTimestamp(currentShownTrace.getMaxTimestamp());
 		table.clearAll();

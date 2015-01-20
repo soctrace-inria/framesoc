@@ -255,9 +255,6 @@ public class HistogramView extends FramesocPart {
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
-		// Empty view at the beginning
-		setContentDescription("Trace: <no trace displayed>");
-
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
 		gl_parent.verticalSpacing = 2;
@@ -854,8 +851,6 @@ public class HistogramView extends FramesocPart {
 				for (Control c : compositeChart.getChildren()) {
 					c.dispose();
 				}
-				// trace name
-				setContentDescription("Trace: " + currentShownTrace.getAlias());
 				// histogram chart
 				chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER) {
 					@Override

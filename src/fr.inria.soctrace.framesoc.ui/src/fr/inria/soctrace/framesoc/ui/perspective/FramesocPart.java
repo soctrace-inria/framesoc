@@ -79,12 +79,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	/**
 	 * Highlight start constant
 	 */
-	private final static String HIGHLIGHT_START = "<";
-
-	/**
-	 * Highlight end constant
-	 */
-	private final static String HIGHLIGHT_END = ">";
+	private final static String HIGHLIGHT_START = "> ";
 
 	/**
 	 * Followed topics
@@ -153,8 +148,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			// If selected is null or it is different than the current trace
 			// then change the selected trace
 			if (selected == null || !selected.equals(currentShownTrace)) {
-				FramesocBus.getInstance().send(
-						FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE,
+				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_FOCUSED_TRACE,
 						currentShownTrace);
 			}
 		}
@@ -220,19 +214,16 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	public void higlightTitle(boolean highlight) {
-		String name = this.getPartName();
-		logger.trace("Name before: '" + name + "'");
-		if (highlight) {
-			if (!isHighlighted(name)) {
-				this.setPartName(HIGHLIGHT_START + name + HIGHLIGHT_END);
+		if (currentShownTrace != null) {
+			String name = currentShownTrace.getAlias();
+			logger.trace("Name before: '" + name + "'");
+			if (highlight) {
+				this.setPartName(HIGHLIGHT_START + name);
+			} else {
+				this.setPartName(name);
 			}
-		} else {
-			if (isHighlighted(name)) {
-				this.setPartName(name.substring(HIGHLIGHT_START.length(), name.length()
-						- HIGHLIGHT_END.length()));
-			}
+			logger.trace("Name after: '" + name + "'");
 		}
-		logger.trace("Name after: '" + name + "'");
 	}
 
 	@Override
@@ -261,14 +252,14 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			return;
 		Trace t = currentShownTrace;
 		if (topic.equals(FramesocBusTopic.TOPIC_UI_REFRESH_TRACES_NEEDED)) {
-			setContentDescription("Trace: " + t.getAlias());
+			this.setPartName(t.getAlias());
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_TRACES_SYNCHRONIZED)) {
 			@SuppressWarnings("unchecked")
 			Map<TraceChange, List<Trace>> traceChangeMap = ((Map<TraceChange, List<Trace>>) data);
 			if (traceChangeMap.get(TraceChange.REMOVE).contains(t)) {
 				hideView();
 			} else if (traceChangeMap.get(TraceChange.UPDATE).contains(t)) {
-				setContentDescription("Trace: " + t.getAlias());
+				this.setPartName(t.getAlias());
 			}
 		} else if (topic.equals(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED)) {
 			// check if the trace still exists
@@ -388,17 +379,6 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	 *            bus event data
 	 */
 	public void partHandle(FramesocBusTopic topic, Object data) {
-	}
-
-	/**
-	 * Check if a title is highlighted
-	 * 
-	 * @param name
-	 *            title
-	 * @return true if highlighted, false otherwise
-	 */
-	private boolean isHighlighted(String name) {
-		return (name.startsWith(HIGHLIGHT_START) && name.endsWith(HIGHLIGHT_END));
 	}
 
 	/*

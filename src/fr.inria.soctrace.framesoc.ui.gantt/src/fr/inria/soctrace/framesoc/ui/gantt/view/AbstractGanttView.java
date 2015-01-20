@@ -707,9 +707,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	@Override
 	public void createFramesocPartControl(Composite parent) {
 
-		// content description
-		setContentDescription("Trace: <no trace displayed>");
-
 		GridLayout layout = new GridLayout(1, false);
 		parent.setLayout(layout);
 		layout.horizontalSpacing = 0;
@@ -970,6 +967,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	@Override
 	public void setFocus() {
+		super.setFocus();
 		fTimeGraphWrapper.setFocus();
 	}
 
@@ -1106,7 +1104,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 				fTimeGraphWrapper.redraw();
 				fTimeGraphWrapper.update();
-				setContentDescription("Trace: " + currentShownTrace.getAlias());
 				synchronized (fSyncObj) {
 					if (fRedrawState == State.PENDING) {
 						fRedrawState = State.IDLE;

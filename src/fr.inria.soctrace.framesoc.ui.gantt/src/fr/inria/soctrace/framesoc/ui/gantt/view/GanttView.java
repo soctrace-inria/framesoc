@@ -344,7 +344,6 @@ public class GanttView extends AbstractGanttView {
 			final TimeInterval requestedInterval, final Trace trace,
 			final LoaderQueue<ReducedEvent> queue) {
 
-		setContentDescription("Trace: " + trace.getAlias());
 		enableActions(true);
 
 		drawerThread = new Thread() {

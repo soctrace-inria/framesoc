@@ -246,7 +246,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
-		setContentDescription("Trace: <no trace displayed>");
 
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
@@ -720,7 +719,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 				// create new chart
 				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dirty);
-				setContentDescription("Trace: " + currentShownTrace.getAlias());
 				compositePie.setText(title);
 				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
 						USE_BUFFER);
@@ -889,7 +887,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
-		setContentDescription("Trace: " + trace.getAlias());
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
