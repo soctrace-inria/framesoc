@@ -276,16 +276,12 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 			status.message = "Importer not existing";
 			return status;
 		}
-		IFramesocTool tool = getToolLauncher();
+		IFramesocTool tool = fsToolMap.get(t.getName());
 		if (tool == null) {
 			status.message = "Importer not existing";
 			return status;
 		}
 		return tool.canLaunch(getInput());
-	}
-
-	private IFramesocTool getToolLauncher() {
-		return fsToolMap.get(toolNameCombo.getText());
 	}
 
 }
