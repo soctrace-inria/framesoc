@@ -84,20 +84,31 @@ public class PluginImporterJob extends PluginToolJob {
 	 * {@link #catchImporterException(Exception, SystemDBObject, TraceDBObject)}, which manages the
 	 * exception and calls this method internally.
 	 * 
-	 * @param base
-	 *            Base message
+	 * @param e
+	 *            Exception
 	 * @param sysDbRollback
 	 *            true if the System DB modifications have been rollbacked, false otherwise
 	 * @param traceDbDrop
 	 *            true if the Trace DB has been deleted, false otherwise
 	 * @return the complete user message
 	 */
-	public static String getExceptionMessage(String base, boolean sysDbRollback, boolean traceDbDrop) {
-		StringBuilder sb = new StringBuilder(base);
+	public static String getExceptionMessage(Exception e, boolean sysDbRollback, boolean traceDbDrop) {
+		String base = "";
+		if (e != null) {
+			if (e.getMessage() != null) {
+				base = e.getMessage();
+				int i = base.indexOf(":");
+				if (i != -1) {
+					base = base.substring(base.indexOf(":") + 2);
+				}
+			}
+		}
+		StringBuilder sb = new StringBuilder("Import failed.\n");
+		sb.append(base);
 		sb.append("\n");
-		sb.append("System DB rollback " + ((sysDbRollback) ? "done" : "not done"));
+		sb.append("System DB rollback " + ((sysDbRollback) ? "done." : "not done."));
 		sb.append("\n");
-		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not") + " deleted");
+		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not") + " deleted.");
 		return sb.toString();
 	}
 
@@ -123,8 +134,6 @@ public class PluginImporterJob extends PluginToolJob {
 			TraceDBObject traceDB) throws SoCTraceException {
 
 		System.err.println("Import failure. Trying to rollback modifications in DB.");
-		System.err.println(e.getMessage());
-		e.printStackTrace();
 
 		boolean rollback = false;
 		boolean drop = false;
@@ -150,7 +159,7 @@ public class PluginImporterJob extends PluginToolJob {
 		}
 
 		// relaunch the exception to the user
-		throw new SoCTraceException(getExceptionMessage(e.getMessage(), rollback, drop));
+		throw new SoCTraceException(getExceptionMessage(e, rollback, drop));
 	}
 
 }

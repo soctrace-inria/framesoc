@@ -79,9 +79,14 @@ public class PluginToolJob extends Job {
 			// post execution
 			postExecute(monitor, Status.OK_STATUS);
 
-		} catch (Exception e) {
-			MessageDialog.openError(Display.getDefault().getActiveShell(), "Error", e.getMessage());
+		} catch (final Exception e) {
 			e.printStackTrace();
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					MessageDialog.openError(Display.getDefault().getActiveShell(), "Error", e.getMessage());
+				}
+			});
 			return Status.CANCEL_STATUS;
 		}
 
