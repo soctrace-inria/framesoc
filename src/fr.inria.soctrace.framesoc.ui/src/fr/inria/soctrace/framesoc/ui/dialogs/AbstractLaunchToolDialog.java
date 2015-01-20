@@ -60,41 +60,44 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 	private Map<String, Tool> toolMap;
 	// tool name -> framesoc tool
 	private Map<String, IFramesocTool> fsToolMap; // the tool is null for non plugin tools
-
-	// ext id -> composite factory
+	// tool extension id -> composite factory
 	private Map<String, AbstractToolInputCompositeFactory> factoryMap;
+	// sorted tools
+	private String[] sortedToolNames;
 
-	// Importer
+	// Tool Selection
 	private ComboListener toolNameListener;
 	private Label toolNameLabel;
 	private Combo toolNameCombo;
 
-	// Message
+	// Tool Message
 	private Group groupMessage;
 	private Text message;
 
+	// Tool input composite. It must have a Grid Layout and Grid Data.
+	private Composite inputComposite;
 	// Custom tool input
 	private AbstractToolInputComposite toolInputComposite;
+	// Current selected tool, whose input composite is already displayed
+	private Tool currentTool = null;
 
 	// Dialog parent composite
 	private Composite dialogParentComposite;
-
-	// Current selected tool
-	private Tool currentTool = null;
-
-	// Tool input composite. It must have a Grid Layout and Grid Data.
-	private Composite inputComposite;
 
 	public AbstractLaunchToolDialog(Shell parentShell, List<Tool> tools) throws SoCTraceException {
 		super(parentShell);
 		toolMap = new HashMap<String, Tool>();
 		fsToolMap = new HashMap<String, IFramesocTool>();
+		sortedToolNames = new String[tools.size()];
+		int i = 0;
 		for (Tool t : tools) {
+			sortedToolNames[i++] = t.getName();
 			toolMap.put(t.getName(), t);
 			fsToolMap.put(t.getName(), ToolContributionManager.getToolLauncher(t));
 		}
+		Arrays.sort(sortedToolNames);
 		if (tools.size() > 0) {
-			toolNameListener = new ComboListener(toolMap.keySet().iterator().next());
+			toolNameListener = new ComboListener(sortedToolNames[0]);
 		} else {
 			toolNameListener = new ComboListener("");
 		}
@@ -160,9 +163,7 @@ public abstract class AbstractLaunchToolDialog extends Dialog implements IArgume
 		toolNameLabel.setText("Tool");
 		toolNameCombo = new Combo(importerComposite, SWT.BORDER | SWT.READ_ONLY);
 		toolNameCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		String[] tools = toolMap.keySet().toArray(new String[toolMap.size()]);
-		Arrays.sort(tools);
-		for (String s : tools) {
+		for (String s : sortedToolNames) {
 			toolNameCombo.add(s);
 		}
 		toolNameCombo.select(0);
