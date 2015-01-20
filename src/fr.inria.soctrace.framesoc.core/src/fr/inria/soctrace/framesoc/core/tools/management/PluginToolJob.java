@@ -23,13 +23,12 @@ import fr.inria.soctrace.framesoc.core.tools.model.IPluginToolJobBody;
  * Eclipse Job for a generic Plugin Tool.
  * 
  * <p>
- * If the {@link IPluginToolJobBody#run(IProgressMonitor)} method of the tool
- * launches an exception the Job returns Status.CANCEL_STATUS.
+ * If the {@link IPluginToolJobBody#run(IProgressMonitor)} method of the tool launches an exception
+ * the Job returns Status.CANCEL_STATUS.
  * 
  * <p>
- * It launches the {@link IPluginToolJobBody#run(IProgressMonitor)} method then
- * executes a {@link #postExecute(IStatus)}. The base class, provides an empty
- * {@link #postExecute(IStatus)}.
+ * It launches the {@link IPluginToolJobBody#run(IProgressMonitor)} method then executes a
+ * {@link #postExecute(IStatus)}. The base class, provides an empty {@link #postExecute(IStatus)}.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -46,8 +45,8 @@ public class PluginToolJob extends Job {
 	 * Method executed in the job body, before the run body.
 	 * 
 	 * @param monitor
-	 *            The progress monitor. When overriding this method, it is up to
-	 *            the implementation to call beginTask() and done().
+	 *            The progress monitor. When overriding this method, it is up to the implementation
+	 *            to call beginTask() and done().
 	 */
 	public void preExecute(IProgressMonitor monitor) {
 		// do nothing
@@ -57,8 +56,8 @@ public class PluginToolJob extends Job {
 	 * Method executed in the job body, after the run body.
 	 * 
 	 * @param monitor
-	 *            The progress monitor. When overriding this method, it is up to
-	 *            the implementation to call beginTask() and done().
+	 *            The progress monitor. When overriding this method, it is up to the implementation
+	 *            to call beginTask() and done().
 	 * @param status
 	 *            The final execution status of the IPluginToolJobBody
 	 */
@@ -84,7 +83,8 @@ public class PluginToolJob extends Job {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
-					MessageDialog.openError(Display.getDefault().getActiveShell(), "Error", e.getMessage());
+					MessageDialog.openError(Display.getDefault().getActiveShell(), "Error",
+							e.getMessage());
 				}
 			});
 			return Status.CANCEL_STATUS;
