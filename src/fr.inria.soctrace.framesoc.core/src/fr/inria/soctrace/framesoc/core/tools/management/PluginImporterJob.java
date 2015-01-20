@@ -10,6 +10,8 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.core.tools.management;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -132,13 +134,43 @@ public class PluginImporterJob extends PluginToolJob {
 	 */
 	public static void catchImporterException(Exception e, SystemDBObject sysDB,
 			TraceDBObject traceDB) throws SoCTraceException {
+		System.err.println("Import failure. Trying to rollback modifications in DB.");		
+		boolean rollback = rollbackSystemDB(sysDB);
+		boolean drop = dropTraceDB(traceDB);
+		throw new SoCTraceException(getExceptionMessage(e, rollback, drop));
+	}
 
+	/**
+	 * Method to manage an exception that occurs in importers.
+	 * 
+	 * The method should be called in the catch clause of the
+	 * {@link IPluginToolJobBody#run(IProgressMonitor)}. The method tries to rollback the
+	 * modifications on the System DB and to drop the Trace DB. At the end an exception is thrown to
+	 * the user code.
+	 * 
+	 * @param e
+	 *            exception thrown in the importer
+	 * @param sysDB
+	 *            system DB
+	 * @param tdbs
+	 *            list of trace DBs
+	 * @throws SoCTraceException
+	 *             Exception always thrown to the user. The message is generated with
+	 *             {@link #getExceptionMessage(String, boolean, boolean)}
+	 */
+	public static void catchImporterException(Exception e, SystemDBObject sysDB,
+			List<TraceDBObject> tdbs) throws SoCTraceException {
 		System.err.println("Import failure. Trying to rollback modifications in DB.");
-
+		boolean rollback = rollbackSystemDB(sysDB);
+		boolean drop = true;
+		for (TraceDBObject traceDB : tdbs) {
+			drop = drop && dropTraceDB(traceDB);
+		}
+		throw new SoCTraceException(getExceptionMessage(e, rollback, drop));		
+	}
+	
+	private static boolean rollbackSystemDB(SystemDBObject sysDB) {
 		boolean rollback = false;
-		boolean drop = false;
-
-		// try to rollback modification on system DB
 		if (sysDB != null) {
 			try {
 				sysDB.rollback();
@@ -148,8 +180,11 @@ public class PluginImporterJob extends PluginToolJob {
 				System.err.println(ex.getMessage());
 			}
 		}
-
-		// try to drop trace DB
+		return rollback;
+	}
+	
+	private static boolean dropTraceDB(TraceDBObject traceDB) {
+		boolean drop = false;
 		if (traceDB != null) {
 			try {
 				traceDB.dropDatabase();
@@ -158,10 +193,8 @@ public class PluginImporterJob extends PluginToolJob {
 				System.err.println("Exception trying to drop Trace DB.");
 				System.err.println(ex.getMessage());
 			}
-		}
-
-		// re-launch the exception to the user
-		throw new SoCTraceException(getExceptionMessage(e, rollback, drop));
+		}		
+		return drop;
 	}
 
 }
