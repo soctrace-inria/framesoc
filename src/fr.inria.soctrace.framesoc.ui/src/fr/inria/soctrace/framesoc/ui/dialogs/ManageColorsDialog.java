@@ -103,19 +103,19 @@ public class ManageColorsDialog extends Dialog {
 	/**
 	 * Color images
 	 */
-	private Map<String, Image> images;
+	protected Map<String, Image> images;
 	
-	private class Entity  {
+	protected class Entity  {
 		String name;
 		ModelEntity entity;
-		Entity(String name, ModelEntity entity) {
+		public Entity(String name, ModelEntity entity) {
 			this.name = name;
 			this.entity = entity;
 		}
 	}
 	
-	private Map<Integer, Entity> entities;
-	private final static String ET_NAME="Event Types";
+	protected Map<Integer, Entity> entities;
+	protected final static String ET_NAME="Event Types";
 	private final static String EP_NAME="Event Producers";
 			
 	/**
@@ -216,7 +216,7 @@ public class ManageColorsDialog extends Dialog {
         
         btnEdit = new Button(compositeButtons, SWT.NONE);
         btnEdit.setEnabled(false);
-        btnEdit.setToolTipText("Edit color");
+        btnEdit.setToolTipText("Edit Color");
         btnEdit.setImage(ResourceManager.getPluginImage("fr.inria.soctrace.framesoc.ui", "icons/edit2.png"));
         btnEdit.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -241,7 +241,7 @@ public class ManageColorsDialog extends Dialog {
         
         btnReset = new Button(compositeButtons, SWT.NONE);
         btnReset.setEnabled(false);
-        btnReset.setToolTipText("Reload from configuration file");
+        btnReset.setToolTipText("Reload from Configuration File");
         btnReset.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
         btnReset.addSelectionListener(new SelectionAdapter() {
         	@Override
