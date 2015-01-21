@@ -65,9 +65,12 @@ public class TestConfiguration {
 		
 		initialized = true;
 		
+		System.out.println("------------------");
+		System.out.println("Test Configuration");
 		for (SoCTraceProperty p : SoCTraceProperty.values()) {
-			System.out.println(Configuration.getInstance().get(p));
+			System.out.println(p +"="+Configuration.getInstance().get(p));
 		}		
+		System.out.println("------------------");
 	}
 
 }
