@@ -279,10 +279,10 @@ public class HistogramView extends FramesocPart {
 		gl_compositeConf.verticalSpacing = 0;
 		gl_compositeConf.marginWidth = 0;
 		compositeConf.setLayout(gl_compositeConf);
+		compositeConf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		// Tab folder
 		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
-		tabFolder.setLayout(new GridLayout(1, false));
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		PatternFilter filter = new TreePatternFilter();
@@ -296,43 +296,28 @@ public class HistogramView extends FramesocPart {
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
 		tbtmEventTypes.setText(ConfigurationDimension.TYPE.getName());
 		filter.setIncludeLeadingWildcard(true);
-		Composite typeComp = new Composite(tabFolder, SWT.NONE);
-		GridLayout gl_typeComposite = new GridLayout(1, false);
-		gl_typeComposite.marginBottom = 2;
-		gl_typeComposite.marginHeight = 0;
-		gl_typeComposite.marginWidth = 0;
-		gl_typeComposite.verticalSpacing = 0;
-		typeComp.setLayout(gl_typeComposite);
-		typeComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tbtmEventTypes.setControl(typeComp);
-		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(typeComp, SWT.BORDER, filter, true);
+		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(new EventTypeTreeLabelProvider());
 		typeTree.getViewer().setComparator(treeComparator);
 		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
-
+		tbtmEventTypes.setControl(typeTree);
+		
 		// Tab item producers
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setData(ConfigurationDimension.PRODUCERS);
 		tbtmEventProducers.setText(ConfigurationDimension.PRODUCERS.getName());
-		Composite prodComp = new Composite(tabFolder, SWT.NONE);
-		GridLayout gl_producersComposite = new GridLayout(1, false);
-		gl_producersComposite.marginHeight = 0;
-		gl_producersComposite.marginWidth = 0;
-		gl_producersComposite.verticalSpacing = 0;
-		prodComp.setLayout(gl_producersComposite);
-		prodComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tbtmEventProducers.setControl(prodComp);
-		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(prodComp, SWT.BORDER, filter, true);
+		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
 		prodTree.getViewer().setContentProvider(contentProvider);
 		prodTree.getViewer().setLabelProvider(new EventProducerTreeLabelProvider());
 		prodTree.getViewer().setComparator(treeComparator);
 		prodTree.addCheckStateListener(checkStateListener);
 		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
-
+		tbtmEventProducers.setControl(prodTree);
+		
 		// sash weights
 		sashForm.setWeights(new int[] { 80, 20 });
 		// tab switch
