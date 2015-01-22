@@ -16,7 +16,7 @@
   </build>
   <packaging>eclipse-plugin</packaging>
   <parent>
-  	<version>1.0.1-SNAPSHOT</version>
+  	<version>1.0.2-SNAPSHOT</version>
   	<groupId>fr.inria.soctrace.maven</groupId>
   	<artifactId>fr.inria.soctrace.maven.master</artifactId>
   	<relativePath>../fr.inria.soctrace.maven.master</relativePath>
