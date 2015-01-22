@@ -105,9 +105,9 @@ public class PluginImporterJob extends PluginToolJob {
 				}
 			}
 		}
-		StringBuilder sb = new StringBuilder("Import failed.\n");
+		StringBuilder sb = new StringBuilder("Import failed.\n\n");
 		sb.append(base);
-		sb.append("\n");
+		sb.append("\n\n");
 		sb.append("System DB rollback " + ((sysDbRollback) ? "done." : "not done."));
 		sb.append("\n");
 		sb.append("Trace DB " + ((traceDbDrop) ? "" : "not ") + "deleted.");
