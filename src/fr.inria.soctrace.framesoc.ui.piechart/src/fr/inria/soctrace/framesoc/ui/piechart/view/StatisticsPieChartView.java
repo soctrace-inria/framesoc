@@ -28,6 +28,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -38,6 +39,8 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -49,6 +52,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
@@ -360,6 +365,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		table.setHeaderVisible(true);
 		createColumns();
 
+		createContextMenu();
+
 		// status bar
 		Composite statusBar = new Composite(compositeTable, SWT.BORDER);
 		GridLayout statusBarLayout = new GridLayout();
@@ -448,6 +455,32 @@ public class StatisticsPieChartView extends FramesocPart {
 		// create SWT resources
 		createResources();
 
+	}
+
+	private void createContextMenu() {
+		// Event Producer Context Menu
+		final Tree tree = tableTreeViewer.getTree();
+		final Menu menu = new Menu(tree);
+		tree.setMenu(menu);
+		menu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+				// hide
+				MenuItem hide = new MenuItem(menu, SWT.NONE);
+				hide.setText("Hide");
+				hide.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						IStructuredSelection sel = (IStructuredSelection)tableTreeViewer.getSelection();
+						System.out.println("sel " + sel);
+					}
+				});
+			}
+		});
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
