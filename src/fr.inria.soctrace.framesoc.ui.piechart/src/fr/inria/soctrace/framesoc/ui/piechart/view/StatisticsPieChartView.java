@@ -15,6 +15,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +83,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.piechart.PieContributionManager;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
+import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
@@ -142,12 +144,16 @@ public class StatisticsPieChartView extends FramesocPart {
 		public IPieChartLoader loader;
 		public PieChartLoaderMap map;
 		public TimeInterval interval;
+		public List<String> hidden;
+		public List<MergedItem> merged;
 		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
 			this.interval = new TimeInterval(0, 0);
 			this.map = new PieChartLoaderMap();
+			this.hidden = new ArrayList<>();
+			this.merged = new ArrayList<>();
 		}
 
 		public boolean dataReady() {
@@ -457,32 +463,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	}
 
-	private void createContextMenu() {
-		// Event Producer Context Menu
-		final Tree tree = tableTreeViewer.getTree();
-		final Menu menu = new Menu(tree);
-		tree.setMenu(menu);
-		menu.addMenuListener(new MenuAdapter() {
-			@Override
-			public void menuShown(MenuEvent e) {
-				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
-				// hide
-				MenuItem hide = new MenuItem(menu, SWT.NONE);
-				hide.setText("Hide");
-				hide.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						IStructuredSelection sel = (IStructuredSelection)tableTreeViewer.getSelection();
-						System.out.println("sel " + sel);
-					}
-				});
-			}
-		});
-	}
-
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dirty)
 			return null;
@@ -504,6 +484,110 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	// GUI creation
+
+	private void createContextMenu() {
+		final Tree tree = tableTreeViewer.getTree();
+		final Menu menu = new Menu(tree);
+		tree.setMenu(menu);
+		menu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent e) {
+
+				final List<String> rows = new ArrayList<>();
+				boolean allLeaves = getSelectedRows(rows);
+				if (rows.isEmpty()) {
+					return;
+				}
+
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+
+				// hide
+				if (allLeaves) {
+					MenuItem hide = new MenuItem(menu, SWT.NONE);
+					hide.setText("Hide " + ((rows.size() > 1) ? "Items" : "Item"));
+					hide.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							currentDescriptor.hidden.addAll(rows);
+							refresh();
+						}
+					});
+				}
+
+				// merge
+				if (allLeaves && rows.size() > 1) {
+					MenuItem merge = new MenuItem(menu, SWT.NONE);
+					merge.setText("Merge Items");
+					merge.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							MergeItemsDialog dlg = new MergeItemsDialog(getSite().getShell());
+							if (dlg.open() == Dialog.OK) {
+								MergedItem mergedItem = new MergedItem();
+								mergedItem.setAggregatedItems(rows);
+								mergedItem.setColor(dlg.getColor());
+								mergedItem.setLabel(dlg.getLabel());
+								currentDescriptor.merged.add(mergedItem);
+								refresh();								
+							}
+						}
+					});
+				}
+
+				if (!currentDescriptor.hidden.isEmpty() || !currentDescriptor.merged.isEmpty()) {
+					new MenuItem(menu, SWT.SEPARATOR);
+				}
+
+				// restore hiddem
+				if (!currentDescriptor.hidden.isEmpty()) {
+					MenuItem restore = new MenuItem(menu, SWT.NONE);
+					restore.setText("Restore Hidden Items");
+					restore.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							currentDescriptor.hidden = new ArrayList<>();
+							refresh();
+						}
+					});
+				}
+
+				// restore merged
+				if (!currentDescriptor.merged.isEmpty()) {
+					MenuItem restore = new MenuItem(menu, SWT.NONE);
+					restore.setText("Unmerge Merged Items");
+					restore.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							currentDescriptor.merged = new ArrayList<>();
+							refresh();
+						}
+					});
+				}
+
+			}
+
+			private boolean getSelectedRows(List<String> rows) {
+				final IStructuredSelection sel = (IStructuredSelection) tableTreeViewer
+						.getSelection();
+				if (sel.isEmpty()) {
+					return true;
+				}
+				boolean allLeaves = true;
+				@SuppressWarnings("unchecked")
+				Iterator<StatisticsTableRow> it = (Iterator<StatisticsTableRow>) sel.iterator();
+				while (it.hasNext()) {
+					StatisticsTableRow r = it.next();
+					allLeaves = allLeaves && !r.hasChildren();
+					rows.add(r.getName());
+				}
+				return allLeaves;
+			}
+
+		});
+	}
 
 	private void createResources() {
 		grayColor = resourceManager.createColor(ColorUtil.blend(tableTreeViewer.getTree()
@@ -729,8 +813,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
-		final PieDataset dataset = loader.getPieDataset(values);
-		final StatisticsTableRow[] roots = loader.getTableDataset(values);
+		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.hidden,
+				currentDescriptor.merged);
+		final StatisticsTableRow[] roots = loader.getTableDataset(values, currentDescriptor.hidden,
+				currentDescriptor.merged);
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 

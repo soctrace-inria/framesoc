@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.piechart.model;
 
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,6 +23,8 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 /**
  * Interface for pie chart statistics loaders.
+ * 
+ * The data loaded are conceptually a list of (name, value) pairs. Names are required to be unique.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -39,11 +42,11 @@ public interface IPieChartLoader {
 	 * 
 	 * @return true if aggregation is performed, false otherwise
 	 */
-	boolean doAggregation();
+	boolean isAggregationSupported();
 
 	/**
 	 * Get the aggregation threshold percentage (i.e., 0.1 is 10%). It is considered only if
-	 * {@link #doAggregation()} returns true.
+	 * {@link #isAggregationSupported()} returns true.
 	 * 
 	 * @return the aggregation threshold percentages
 	 */
@@ -85,19 +88,27 @@ public interface IPieChartLoader {
 	 * 
 	 * @param map
 	 *            loaded map
+	 * @param hidden
+	 *            list of hidden items
+	 * @param merged
+	 *            of merged items
 	 * @return the pie dataset
-	 * @throws SoCTraceException
 	 */
-	PieDataset getPieDataset(Map<String, Double> values);
+	PieDataset getPieDataset(Map<String, Double> values, List<String> hidden,
+			List<MergedItem> merged);
 
 	/**
 	 * Get the statistics table rows corresponding to the loaded values
 	 * 
 	 * @param map
 	 *            loaded map
+	 * @param hidden
+	 *            list of hidden items
+	 * @param merged
+	 *            list of merged items
 	 * @return the roots row
-	 * @throws SoCTraceException
 	 */
-	StatisticsTableRow[] getTableDataset(Map<String, Double> values);
+	StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> hidden,
+			List<MergedItem> merged);
 
 }

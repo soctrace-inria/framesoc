@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.core.util.Pair;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
+import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
@@ -38,7 +39,8 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	private final static Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
 
 	@Override
-	public PieDataset getPieDataset(Map<String, Double> values) {
+	public PieDataset getPieDataset(Map<String, Double> values, List<String> hidden,
+			List<MergedItem> aggregated) {
 
 		Assert.isTrue(values != null, "Null map passed");
 
@@ -53,7 +55,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		}
 		Collections.sort(sortedValues, new ValueComparator());
 		Double threshold = tot * getAggregationThreshold();
-		boolean aggregate = doAggregation();
+		boolean aggregate = isAggregationSupported();
 
 		// create dataset
 		DefaultPieDataset dataset = new DefaultPieDataset();
@@ -74,7 +76,8 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	}
 
 	@Override
-	public StatisticsTableRow[] getTableDataset(Map<String, Double> values) {
+	public StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> hidden,
+			List<MergedItem> aggregated) {
 
 		Assert.isTrue(values != null, "Null map passed");
 
@@ -89,7 +92,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		List<StatisticsTableRow> roots = new ArrayList<>();
 		List<StatisticsTableRow> aggregatedRows = new ArrayList<>();
 
-		boolean aggregate = doAggregation();
+		boolean aggregate = isAggregationSupported();
 
 		Double aggregatedValue = 0.0;
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();

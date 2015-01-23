@@ -29,7 +29,7 @@ public abstract class AggregatedPieChartLoader extends PieChartLoader {
 	protected static final FramesocColor AGGREGATED_COLOR = FramesocColor.BLACK;
 
 	@Override
-	public boolean doAggregation() {
+	public boolean isAggregationSupported() {
 		return true;
 	}
 
