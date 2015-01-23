@@ -28,15 +28,20 @@ import fr.inria.soctrace.lib.utils.IdManager;
  * Abstract class to manage Trace metadata.
  * 
  * <p>
- * Normally subclasses have simply to override the methods 
- * {@link TraceMetadataManager#setTraceFields(Trace)}
- * and {@link TraceMetadataManager#getTraceTypeName()} 
- * of {@link TraceMetadataManager} interface.
+ * Normally subclasses have simply to override the methods
+ * {@link TraceMetadataManager#setTraceFields(Trace)} and
+ * {@link TraceMetadataManager#getTraceTypeName()} of {@link TraceMetadataManager} interface.
+ * 
+ * <p>
+ * Note that this class internally uses System DB methods to get unique IDs. It is the user's
+ * responsibility to ensure that, when {@link #createMetadata()} is called, the System DB contains
+ * updated (committed) information about any other trace, trace type, trace parameter or trace
+ * parameter type.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class AbstractTraceMetadataManager implements TraceMetadataManager {
-	
+
 	private SystemDBObject sysDB;
 	private TraceType traceType;
 	private Trace trace;
@@ -45,7 +50,8 @@ public abstract class AbstractTraceMetadataManager implements TraceMetadataManag
 	/**
 	 * Constructor.
 	 * 
-	 * @param sysDB System DB object
+	 * @param sysDB
+	 *            System DB object
 	 * @throws SoCTraceException
 	 */
 	public AbstractTraceMetadataManager(SystemDBObject sysDB) throws SoCTraceException {
@@ -57,89 +63,92 @@ public abstract class AbstractTraceMetadataManager implements TraceMetadataManag
 	public List<ParameterDescriptor> getParameterDescriptors() {
 		return new LinkedList<>();
 	}
-	
+
 	@Override
 	public void createMetadata() throws SoCTraceException {
-		
+
 		// Trace Type
 		buildTraceType();
-		
-		// Trace		
+
+		// Trace
 		buildTrace();
-		
+
 	}
-	
+
 	@Override
 	public void saveMetadata() throws SoCTraceException {
-		
+
 		if (!isTraceTypeExisting()) {
 			sysDB.save(traceType);
-			for (TraceParamType tpt: traceType.getTraceParamTypes()) {
+			for (TraceParamType tpt : traceType.getTraceParamTypes()) {
 				sysDB.save(tpt);
 			}
 		}
-					
+
 		sysDB.save(trace);
-		for (TraceParam tp: trace.getParams()) {
+		for (TraceParam tp : trace.getParams()) {
 			sysDB.save(tp);
-		}		
+		}
 	}
-	
+
 	private void buildTraceType() throws SoCTraceException {
-		
+
 		if (isTraceTypeExisting()) {
 			traceType = sysDB.getTraceType(getTraceTypeName());
-			for (TraceParamType tpt: traceType.getTraceParamTypes()) {
+			for (TraceParamType tpt : traceType.getTraceParamTypes()) {
 				tptMap.put(tpt.getName(), tpt);
 			}
 		} else {
 			traceType = new TraceType(sysDB.getNewId(FramesocTable.TRACE_TYPE.toString(), "ID"));
 			traceType.setName(getTraceTypeName());
-			
+
 			List<ParameterDescriptor> descriptors = getParameterDescriptors();
 			if (descriptors.isEmpty())
 				return;
 
 			IdManager tptIdManager = new IdManager();
-			tptIdManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE_PARAM_TYPE.toString(), "ID") + 1);
+			tptIdManager
+					.setNextId(sysDB.getMaxId(FramesocTable.TRACE_PARAM_TYPE.toString(), "ID") + 1);
 			TraceParamType tpt;
-			for (ParameterDescriptor p: descriptors) {
+			for (ParameterDescriptor p : descriptors) {
 				tpt = new TraceParamType(tptIdManager.getNextId());
 				tpt.setTraceType(traceType);
 				tpt.setName(p.getName());
 				tpt.setType(p.getType());
 				tptMap.put(p.toString(), tpt);
 			}
-		}		
+		}
 	}
 
 	/**
 	 * Builds the Trace object
+	 * 
 	 * @throws SoCTraceException
 	 */
 	private void buildTrace() throws SoCTraceException {
-				
+
 		trace = new Trace(sysDB.getNewId(FramesocTable.TRACE.toString(), "ID"));
-		trace.setType(traceType);		
+		trace.setType(traceType);
 		setTraceFields(trace);
-		
+
 		List<ParameterDescriptor> descriptors = getParameterDescriptors();
 		if (descriptors.isEmpty())
 			return;
-		
+
 		IdManager tpIdManager = new IdManager();
 		tpIdManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE_PARAM.toString(), "ID") + 1);
-		TraceParam tp;	
-		for (ParameterDescriptor des: descriptors) {
+		TraceParam tp;
+		for (ParameterDescriptor des : descriptors) {
 			tp = new TraceParam(tpIdManager.getNextId());
 			tp.setTrace(trace);
 			tp.setTraceParamType(tptMap.get(des.getName()));
-			tp.setValue(des.getValue());			
+			tp.setValue(des.getValue());
 		}
 	}
 
 	/**
 	 * Check if the trace type is already in the DB
+	 * 
 	 * @return true, if the trace type is already in the DB, false otherwise.
 	 * @throws SoCTraceException
 	 */
