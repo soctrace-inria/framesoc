@@ -551,6 +551,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
+							refreshFilter();
 						}
 					});
 				}
