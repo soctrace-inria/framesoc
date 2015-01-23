@@ -88,13 +88,13 @@ public interface IPieChartLoader {
 	 * 
 	 * @param map
 	 *            loaded map
-	 * @param hidden
-	 *            list of hidden items
+	 * @param excluded
+	 *            list of excluded items
 	 * @param merged
 	 *            of merged items
 	 * @return the pie dataset
 	 */
-	PieDataset getPieDataset(Map<String, Double> values, List<String> hidden,
+	PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged);
 
 	/**
@@ -102,13 +102,13 @@ public interface IPieChartLoader {
 	 * 
 	 * @param map
 	 *            loaded map
-	 * @param hidden
-	 *            list of hidden items
+	 * @param excluded
+	 *            list of excluded items
 	 * @param merged
 	 *            list of merged items
 	 * @return the roots row
 	 */
-	StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> hidden,
+	StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged);
 
 }

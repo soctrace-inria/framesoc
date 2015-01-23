@@ -8,10 +8,12 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
 import org.jfree.data.general.DefaultPieDataset;
@@ -39,10 +41,15 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	private final static Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
 
 	@Override
-	public PieDataset getPieDataset(Map<String, Double> values, List<String> hidden,
+	public PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> aggregated) {
 
 		Assert.isTrue(values != null, "Null map passed");
+
+		Set<String> excludedSet = new HashSet<>();
+		for (String h : excluded) {
+			excludedSet.add(h);
+		}
 
 		// compute actual threshold and create a sorted list
 		Double tot = 0.0;
@@ -50,8 +57,10 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<String, Double> entry = it.next();
-			tot += entry.getValue();
-			sortedValues.add(new Pair<>(entry.getKey(), entry.getValue()));
+			if (!excludedSet.contains(entry.getKey())) {
+				tot += entry.getValue();
+				sortedValues.add(new Pair<>(entry.getKey(), entry.getValue()));
+			}
 		}
 		Collections.sort(sortedValues, new ValueComparator());
 		Double threshold = tot * getAggregationThreshold();
@@ -61,11 +70,13 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		DefaultPieDataset dataset = new DefaultPieDataset();
 		Double aggregatedValue = 0.0;
 		for (Pair<String, Double> pair : sortedValues) {
-			logger.debug(pair.toString());
-			if (aggregate && pair.getSecond() < threshold) {
-				aggregatedValue += pair.getSecond();
-			} else {
-				dataset.setValue(pair.getFirst(), pair.getSecond());
+			if (!excludedSet.contains(pair.getFirst())) {
+				logger.debug(pair.toString());
+				if (aggregate && pair.getSecond() < threshold) {
+					aggregatedValue += pair.getSecond();
+				} else {
+					dataset.setValue(pair.getFirst(), pair.getSecond());
+				}
 			}
 		}
 		if (aggregate && aggregatedValue != 0) {
@@ -76,16 +87,18 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	}
 
 	@Override
-	public StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> hidden,
+	public StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> aggregated) {
+
+		Set<String> excludedSet = new HashSet<>();
+		for (String h : excluded) {
+			excludedSet.add(h);
+		}
 
 		Assert.isTrue(values != null, "Null map passed");
 
-		// compute actual threshold
-		Double tot = 0.0;
-		for (Double value : values.values()) {
-			tot += value;
-		}
+		// compute total and actual threshold
+		Double tot = getTotal(excludedSet, values);
 		Double threshold = tot * getAggregationThreshold();
 
 		// create dataset
@@ -98,8 +111,11 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<String, Double> entry = it.next();
+			if (excludedSet.contains(entry.getKey())) {
+				continue;
+			}
+			
 			logger.debug(entry.toString());
-
 			StatisticsTableRow row = new StatisticsTableRow(entry.getKey(), String.valueOf(entry
 					.getValue()), getPercentLine(entry.getValue(), tot), getColor(entry.getKey())
 					.getSwtColor());
@@ -122,6 +138,18 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		}
 
 		return roots.toArray(new StatisticsTableRow[roots.size()]);
+	}
+
+	private Double getTotal(Set<String> hiddenSet, Map<String, Double> values) {
+		Double tot = 0.0;
+		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry<String, Double> entry = it.next();
+			if (!hiddenSet.contains(entry.getKey())) {
+				tot += entry.getValue();
+			}
+		}
+		return tot;
 	}
 
 	private String getPercentLine(double val, double tot) {

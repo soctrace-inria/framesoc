@@ -144,7 +144,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		public IPieChartLoader loader;
 		public PieChartLoaderMap map;
 		public TimeInterval interval;
-		public List<String> hidden;
+		public List<String> excluded;
 		public List<MergedItem> merged;
 		public boolean dirty = false;
 
@@ -152,7 +152,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			this.loader = loader;
 			this.interval = new TimeInterval(0, 0);
 			this.map = new PieChartLoaderMap();
-			this.hidden = new ArrayList<>();
+			this.excluded = new ArrayList<>();
 			this.merged = new ArrayList<>();
 		}
 
@@ -370,7 +370,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		table.setLinesVisible(true);
 		table.setHeaderVisible(true);
 		createColumns();
-
 		createContextMenu();
 
 		// status bar
@@ -507,12 +506,14 @@ public class StatisticsPieChartView extends FramesocPart {
 				// hide
 				if (allLeaves) {
 					MenuItem hide = new MenuItem(menu, SWT.NONE);
-					hide.setText("Hide " + ((rows.size() > 1) ? "Items" : "Item"));
+					hide.setText("Exclude " + ((rows.size() > 1) ? "Items" : "Item")
+							+ " from Statistics");
 					hide.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							currentDescriptor.hidden.addAll(rows);
+							currentDescriptor.excluded.addAll(rows);
 							refresh();
+							refreshFilter();
 						}
 					});
 				}
@@ -531,24 +532,24 @@ public class StatisticsPieChartView extends FramesocPart {
 								mergedItem.setColor(dlg.getColor());
 								mergedItem.setLabel(dlg.getLabel());
 								currentDescriptor.merged.add(mergedItem);
-								refresh();								
+								refresh();
 							}
 						}
 					});
 				}
 
-				if (!currentDescriptor.hidden.isEmpty() || !currentDescriptor.merged.isEmpty()) {
+				if (!currentDescriptor.excluded.isEmpty() || !currentDescriptor.merged.isEmpty()) {
 					new MenuItem(menu, SWT.SEPARATOR);
 				}
 
 				// restore hiddem
-				if (!currentDescriptor.hidden.isEmpty()) {
+				if (!currentDescriptor.excluded.isEmpty()) {
 					MenuItem restore = new MenuItem(menu, SWT.NONE);
-					restore.setText("Restore Hidden Items");
+					restore.setText("Restore Excluded Items");
 					restore.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							currentDescriptor.hidden = new ArrayList<>();
+							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
 						}
 					});
@@ -580,8 +581,12 @@ public class StatisticsPieChartView extends FramesocPart {
 				Iterator<StatisticsTableRow> it = (Iterator<StatisticsTableRow>) sel.iterator();
 				while (it.hasNext()) {
 					StatisticsTableRow r = it.next();
-					allLeaves = allLeaves && !r.hasChildren();
-					rows.add(r.getName());
+					try {
+						rows.add(r.get(StatisticsTableColumn.NAME));
+						allLeaves = allLeaves && !r.hasChildren();
+					} catch (SoCTraceException e) {
+						e.printStackTrace();
+					}
 				}
 				return allLeaves;
 			}
@@ -601,7 +606,14 @@ public class StatisticsPieChartView extends FramesocPart {
 		sb.append(matched);
 		sb.append(" of ");
 		sb.append(events);
-		sb.append(" items");
+		sb.append(" items.");
+		if (!currentDescriptor.excluded.isEmpty()) {
+			int s = currentDescriptor.excluded.size();
+			sb.append("There " + ((s > 1) ? "are " : "is "));
+			sb.append(s);
+			sb.append(" item" + ((s > 1) ? "s " : " "));
+			sb.append("excluded from statistics computation.");
+		}
 		return sb.toString();
 	}
 
@@ -797,7 +809,8 @@ public class StatisticsPieChartView extends FramesocPart {
 			tableTreeViewer.refresh();
 			tableTreeViewer.expandAll();
 			logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
-			statusText.setText(getStatus(currentDescriptor.map.size(),
+			statusText.setText(getStatus(
+					currentDescriptor.map.size() - currentDescriptor.excluded.size(),
 					getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
 		}
 	}
@@ -813,10 +826,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
-		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.hidden,
+		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
 				currentDescriptor.merged);
-		final StatisticsTableRow[] roots = loader.getTableDataset(values, currentDescriptor.hidden,
-				currentDescriptor.merged);
+		final StatisticsTableRow[] roots = loader.getTableDataset(values,
+				currentDescriptor.excluded, currentDescriptor.merged);
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 
