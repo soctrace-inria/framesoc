@@ -8,6 +8,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,13 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 /**
  * Base abstract class for Pie Chart loaders.
  * 
+ * <pre>
+ * It provides the following functionalities:
+ * - aggregating items whose percentage is lower than a threshold
+ * - merging items in a merged item
+ * - excluding items from statistics
+ * </pre>
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public abstract class PieChartLoader implements IPieChartLoader {
@@ -38,48 +46,108 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	/**
 	 * Logger
 	 */
-	private final static Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
+	private static final Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
+	
+	/**
+	 * Threshold for aggregating percentage values (between 0 and 1).
+	 */
+	protected static final Double AGGREGATION_THRESHOLD = 0.01;
+
+	/**
+	 * Label for aggregated slices.
+	 */
+	protected static final String AGGREGATED_LABEL = "Aggregated slices";
+
+	/**
+	 * Color for aggregated slices.
+	 */
+	protected static final FramesocColor AGGREGATED_COLOR = FramesocColor.BLACK;
+
+	/**
+	 * Merged label colors
+	 */
+	protected Map<String, FramesocColor> mergedLabels = new HashMap<>();
+
+	/**
+	 * Get the color for a real entity whose name is passed.
+	 * 
+	 * By real entity we mean something that is not an aggregate, 
+	 * but a leaf entity.
+	 * 
+	 * @param name entity name
+	 * @return the corresponding color
+	 */
+	protected abstract FramesocColor getBaseColor(String name);
 
 	@Override
+	public FramesocColor getColor(String name) {
+		if (name.equals(AGGREGATED_LABEL)) {
+			return AGGREGATED_COLOR;
+		} else if (mergedLabels.containsKey(name)) {
+			return mergedLabels.get(name);
+		}
+		return getBaseColor(name);
+	}
+	
+	@Override
 	public PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
-			List<MergedItem> aggregated) {
+			List<MergedItem> merged) {
 
 		Assert.isTrue(values != null, "Null map passed");
 
+		// refresh merged label colors
+		loadMergedLabels(merged);
+
+		// set of excluded rows
 		Set<String> excludedSet = new HashSet<>();
 		for (String h : excluded) {
 			excludedSet.add(h);
 		}
 
-		// compute actual threshold and create a sorted list
-		Double tot = 0.0;
-		List<Pair<String, Double>> sortedValues = new ArrayList<>();
+		// compute total and actual threshold
+		Double tot = getTotal(excludedSet, values);
+		Double threshold = tot * getAggregationThreshold();
+
+		// create a list of merged slices
+		Set<String> mergedSet = new HashSet<>();
+		List<Pair<String, Double>> slices = new ArrayList<>();
+		for (MergedItem i : merged) {
+			Double val = 0.0;
+			for (String s : i.getMergedItems()) {
+				// add the label to the merged set, in order to skip the slice after
+				mergedSet.add(s);
+				val += values.get(s);
+			}
+			slices.add(new Pair<>(i.getLabel(), val));
+		}
+
+		// add the other slices to the list and sort it
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<String, Double> entry = it.next();
-			if (!excludedSet.contains(entry.getKey())) {
-				tot += entry.getValue();
-				sortedValues.add(new Pair<>(entry.getKey(), entry.getValue()));
+			if (excludedSet.contains(entry.getKey()) || mergedSet.contains(entry.getKey())) {
+				// skip excluded and merged rows
+				continue;
 			}
+			slices.add(new Pair<>(entry.getKey(), entry.getValue()));
 		}
-		Collections.sort(sortedValues, new ValueComparator());
-		Double threshold = tot * getAggregationThreshold();
-		boolean aggregate = isAggregationSupported();
+		Collections.sort(slices, new ValueComparator());
 
 		// create dataset
+		boolean aggregate = isAggregationSupported();
+		boolean isThereAnyAggregate = false;
 		DefaultPieDataset dataset = new DefaultPieDataset();
 		Double aggregatedValue = 0.0;
-		for (Pair<String, Double> pair : sortedValues) {
-			if (!excludedSet.contains(pair.getFirst())) {
-				logger.debug(pair.toString());
-				if (aggregate && pair.getSecond() < threshold) {
-					aggregatedValue += pair.getSecond();
-				} else {
-					dataset.setValue(pair.getFirst(), pair.getSecond());
-				}
+		for (Pair<String, Double> pair : slices) {
+			logger.debug(pair.toString());
+			if (aggregate && pair.getSecond() < threshold) {
+				aggregatedValue += pair.getSecond();
+				isThereAnyAggregate = true;
+			} else {
+				dataset.setValue(pair.getFirst(), pair.getSecond());
 			}
 		}
-		if (aggregate && aggregatedValue != 0) {
+		if (isThereAnyAggregate) {
 			dataset.setValue(getAggregatedLabel(), aggregatedValue);
 		}
 
@@ -92,6 +160,9 @@ public abstract class PieChartLoader implements IPieChartLoader {
 
 		Assert.isTrue(values != null, "Null map passed");
 
+		// refresh merged label colors
+		loadMergedLabels(merged);
+		
 		// set of excluded rows
 		Set<String> excludedSet = new HashSet<>();
 		for (String h : excluded) {
@@ -140,7 +211,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		while (it.hasNext()) {
 			Entry<String, Double> entry = it.next();
 			if (excludedSet.contains(entry.getKey()) || mergedSet.contains(entry.getKey())) {
-				// skip hidden and merged rows
+				// skip excluded and merged rows
 				continue;
 			}
 			logger.debug(entry.toString());
@@ -168,6 +239,13 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		return roots.toArray(new StatisticsTableRow[roots.size()]);
 	}
 
+	private void loadMergedLabels(List<MergedItem> merged) {
+		mergedLabels = new HashMap<>();
+		for (MergedItem i : merged) {
+			mergedLabels.put(i.getLabel(), i.getColor());
+		}
+	}
+	
 	private Double getTotal(Set<String> hiddenSet, Map<String, Double> values) {
 		Double tot = 0.0;
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
@@ -192,6 +270,21 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			// descending order
 			return -1 * Double.compare(p1.getSecond(), p2.getSecond());
 		}
+	}
+
+	@Override
+	public boolean isAggregationSupported() {
+		return true;
+	}
+
+	@Override
+	public double getAggregationThreshold() {
+		return AGGREGATION_THRESHOLD;
+	}
+
+	@Override
+	public String getAggregatedLabel() {
+		return AGGREGATED_LABEL;
 	}
 
 	@Override

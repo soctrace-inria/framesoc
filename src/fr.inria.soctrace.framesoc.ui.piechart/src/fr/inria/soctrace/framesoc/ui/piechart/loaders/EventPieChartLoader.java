@@ -31,7 +31,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
-public abstract class EventPieChartLoader extends AggregatedPieChartLoader {
+public abstract class EventPieChartLoader extends PieChartLoader {
 
 	/**
 	 * Logger

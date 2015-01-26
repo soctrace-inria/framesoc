@@ -94,9 +94,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	protected abstract int getDurationCategory();
 
 	@Override
-	public FramesocColor getColor(String name) {
-		if (name.equals(AGGREGATED_LABEL))
-			return AGGREGATED_COLOR;
+	protected FramesocColor getBaseColor(String name) {
 		FramesocColor color = FramesocColorManager.getInstance().getEventTypeColor(name);
 		FramesocColorManager.getInstance().saveEventTypeColors();
 		return color;
