@@ -47,7 +47,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	 * Logger
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(PieChartLoader.class);
-	
+
 	/**
 	 * Threshold for aggregating percentage values (between 0 and 1).
 	 */
@@ -66,37 +66,49 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	/**
 	 * Merged label colors
 	 */
-	protected Map<String, FramesocColor> mergedLabels = new HashMap<>();
+	protected Map<String, FramesocColor> mergedItemColors = new HashMap<>();
+
+	/**
+	 * Set of used labels
+	 */
+	protected Set<String> usedLabels = new HashSet<>();
 
 	/**
 	 * Get the color for a real entity whose name is passed.
 	 * 
-	 * By real entity we mean something that is not an aggregate, 
-	 * but a leaf entity.
+	 * By real entity we mean something that is not an aggregate, but a leaf entity.
 	 * 
-	 * @param name entity name
+	 * @param name
+	 *            entity name
 	 * @return the corresponding color
 	 */
 	protected abstract FramesocColor getBaseColor(String name);
 
 	@Override
-	public FramesocColor getColor(String name) {
-		if (name.equals(AGGREGATED_LABEL)) {
-			return AGGREGATED_COLOR;
-		} else if (mergedLabels.containsKey(name)) {
-			return mergedLabels.get(name);
-		}
-		return getBaseColor(name);
+	public boolean isAggregationSupported() {
+		return true;
 	}
-	
+
+	@Override
+	public double getAggregationThreshold() {
+		return AGGREGATION_THRESHOLD;
+	}
+
+	@Override
+	public String getAggregatedLabel() {
+		return AGGREGATED_LABEL;
+	}
+
+	@Override
+	public String toString() {
+		return "PieChartLoader [" + getStatName() + "]";
+	}
+
 	@Override
 	public PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged) {
 
 		Assert.isTrue(values != null, "Null map passed");
-
-		// refresh merged label colors
-		loadMergedLabels(merged);
 
 		// set of excluded rows
 		Set<String> excludedSet = new HashSet<>();
@@ -160,9 +172,6 @@ public abstract class PieChartLoader implements IPieChartLoader {
 
 		Assert.isTrue(values != null, "Null map passed");
 
-		// refresh merged label colors
-		loadMergedLabels(merged);
-		
 		// set of excluded rows
 		Set<String> excludedSet = new HashSet<>();
 		for (String h : excluded) {
@@ -239,13 +248,41 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		return roots.toArray(new StatisticsTableRow[roots.size()]);
 	}
 
-	private void loadMergedLabels(List<MergedItem> merged) {
-		mergedLabels = new HashMap<>();
+	@Override
+	public void updateLabels(Map<String, Double> values, List<MergedItem> merged) {
+		// update used labels and merged item colors
+		usedLabels = new HashSet<>();
+		for (String s : values.keySet()) {
+			usedLabels.add(s);
+		}
+		mergedItemColors = new HashMap<>();
 		for (MergedItem i : merged) {
-			mergedLabels.put(i.getLabel(), i.getColor());
+			usedLabels.add(i.getLabel());
+			mergedItemColors.put(i.getLabel(), i.getColor());
 		}
 	}
-	
+
+	@Override
+	public FramesocColor getColor(String name) {
+		if (name.equals(AGGREGATED_LABEL)) {
+			return AGGREGATED_COLOR;
+		} else if (mergedItemColors.containsKey(name)) {
+			return mergedItemColors.get(name);
+		}
+		return getBaseColor(name);
+	}
+
+	@Override
+	public boolean checkLabel(String label) {
+		if (label.equals(getAggregatedLabel())) {
+			return false;
+		}
+		if (usedLabels.contains(label)) {
+			return false;
+		}
+		return true;
+	}
+
 	private Double getTotal(Set<String> hiddenSet, Map<String, Double> values) {
 		Double tot = 0.0;
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
@@ -271,25 +308,4 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			return -1 * Double.compare(p1.getSecond(), p2.getSecond());
 		}
 	}
-
-	@Override
-	public boolean isAggregationSupported() {
-		return true;
-	}
-
-	@Override
-	public double getAggregationThreshold() {
-		return AGGREGATION_THRESHOLD;
-	}
-
-	@Override
-	public String getAggregatedLabel() {
-		return AGGREGATED_LABEL;
-	}
-
-	@Override
-	public String toString() {
-		return "PieChartLoader [" + getStatName() + "]";
-	}
-
 }

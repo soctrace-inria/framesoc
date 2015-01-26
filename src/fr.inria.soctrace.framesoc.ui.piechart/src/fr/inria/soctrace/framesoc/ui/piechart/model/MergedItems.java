@@ -73,4 +73,5 @@ public class MergedItems {
 	public boolean isMergedItem(String label) {
 		return mergedItems.containsKey(label);
 	}
+
 }

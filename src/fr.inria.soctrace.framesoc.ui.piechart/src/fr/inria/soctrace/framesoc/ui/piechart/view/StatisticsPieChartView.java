@@ -29,6 +29,7 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -73,8 +74,6 @@ import org.jfree.experimental.chart.swt.ChartComposite;
 import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -467,7 +466,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	private void createActions() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
-		
+
 		// Framesoc Actions
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
@@ -475,7 +474,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// Separator before other actions
 		manager.add(new Separator());
-		
+
 		// Expand all action
 		Action expandAction = new Action() {
 			public void run() {
@@ -487,7 +486,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		expandAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, "icons/expandall.gif"));
 		manager.add(expandAction);
-		
+
 		// Create the collapse all action
 		Action collapseAction = new Action() {
 			public void run() {
@@ -499,10 +498,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		collapseAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, "icons/collapseall.gif"));
 		manager.add(collapseAction);
-		
+
 		enableActions(false);
 	}
-	
+
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dirty)
 			return null;
@@ -574,6 +573,12 @@ public class StatisticsPieChartView extends FramesocPart {
 							if (dlg.open() == Dialog.OK) {
 								MergedItem mergedItem = new MergedItem();
 								mergedItem.setBaseItems(rows);
+								if (!currentDescriptor.loader.checkLabel(dlg.getLabel())) {
+									MessageDialog.openError(getSite().getShell(), "Error",
+											"Illegal label: '" + dlg.getLabel()
+													+ "'. Labels must be unique.");
+									return;
+								}
 								mergedItem.setColor(dlg.getColor());
 								mergedItem.setLabel(dlg.getLabel());
 								currentDescriptor.merged.addMergedItem(mergedItem);
@@ -901,6 +906,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
+		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
 		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
 				currentDescriptor.merged.getMergedItems());
 		final StatisticsTableRow[] roots = loader.getTableDataset(values,

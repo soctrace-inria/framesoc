@@ -59,6 +59,10 @@ public interface IPieChartLoader {
 	 */
 	String getAggregatedLabel();
 
+	/*
+	 * Loading data
+	 */
+
 	/**
 	 * Load the statistics for the given trace and time interval into the passed map.
 	 * 
@@ -74,14 +78,9 @@ public interface IPieChartLoader {
 	 */
 	void load(Trace trace, TimeInterval interval, PieChartLoaderMap map, IProgressMonitor monitor);
 
-	/**
-	 * Get the color corresponding to the given item.
-	 * 
-	 * @param name
-	 *            item name
-	 * @return the corresponding color
+	/*
+	 * Getting data-sets
 	 */
-	FramesocColor getColor(String name);
 
 	/**
 	 * Get the pie dataset, performing aggregation if necessary.
@@ -91,7 +90,7 @@ public interface IPieChartLoader {
 	 * @param excluded
 	 *            list of excluded items
 	 * @param merged
-	 *            of merged items
+	 *            list of merged items
 	 * @return the pie dataset
 	 */
 	PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
@@ -110,5 +109,45 @@ public interface IPieChartLoader {
 	 */
 	StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged);
+
+	/*
+	 * Getting GUI information
+	 */
+
+	/**
+	 * Update the information about used labels.
+	 * 
+	 * @param values
+	 *            loaded map
+	 * @param merged
+	 *            list of merged items
+	 */
+	void updateLabels(Map<String, Double> values, List<MergedItem> merged);
+
+	/**
+	 * Get the color corresponding to the given item.
+	 * 
+	 * Before calling this method, be sure to call {@link #updateLabels(Map, List)}.
+	 * 
+	 * @param name
+	 *            item name
+	 * @return the corresponding color
+	 */
+	FramesocColor getColor(String name);
+
+	/**
+	 * Check whether the passed label can be used.
+	 * 
+	 * Labels must be unique, so a label can be used if: (1) there is no other aggregate with this
+	 * label, (2) there is no base item with this label, (3) it is not equal to the aggregated
+	 * label.
+	 * 
+	 * Before calling this method, be sure to call {@link #updateLabels(Map, List)}.
+	 * 
+	 * @param label
+	 *            label to check
+	 * @return true if the label can be used
+	 */
+	public boolean checkLabel(String label);
 
 }
