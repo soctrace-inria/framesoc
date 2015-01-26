@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.core.util.Pair;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
-import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
+import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 
@@ -88,33 +88,61 @@ public abstract class PieChartLoader implements IPieChartLoader {
 
 	@Override
 	public StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
-			List<MergedItem> aggregated) {
+			List<MergedItem> merged) {
 
+		Assert.isTrue(values != null, "Null map passed");
+
+		// set of excluded rows
 		Set<String> excludedSet = new HashSet<>();
 		for (String h : excluded) {
 			excludedSet.add(h);
 		}
 
-		Assert.isTrue(values != null, "Null map passed");
-
 		// compute total and actual threshold
 		Double tot = getTotal(excludedSet, values);
 		Double threshold = tot * getAggregationThreshold();
 
-		// create dataset
+		// create dataset for merged rows
 		List<StatisticsTableRow> roots = new ArrayList<>();
-		List<StatisticsTableRow> aggregatedRows = new ArrayList<>();
+		Set<String> mergedSet = new HashSet<>();
+		for (MergedItem m : merged) {
+			// create merged rows
+			List<StatisticsTableRow> rows = new ArrayList<>();
+			Double mTot = 0.0;
+			for (String a : m.getMergedItems()) {
+				if (excluded.contains(a)) {
+					continue;
+				}
+				// add the label to the merged set, in order to skip the row after
+				mergedSet.add(a);
+				Double val = values.get(a);
+				mTot += val;
+				StatisticsTableRow ar = new StatisticsTableRow(a, val.toString(), getPercentLine(
+						val, tot), getColor(a).getSwtColor());
+				rows.add(ar);
+			}
+			// create folder row
+			if (!rows.isEmpty()) {
+				StatisticsTableFolderRow folderRow = new StatisticsTableFolderRow(m.getLabel(),
+						mTot.toString(), getPercentLine(mTot, tot), m.getColor().getSwtColor());
+				for (StatisticsTableRow ar : rows) {
+					folderRow.addChild(ar);
+				}
+				roots.add(folderRow);
+			}
+		}
 
+		// create dataset for all the other rows
 		boolean aggregate = isAggregationSupported();
-
+		List<StatisticsTableRow> aggregatedRows = new ArrayList<>();
 		Double aggregatedValue = 0.0;
 		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<String, Double> entry = it.next();
-			if (excludedSet.contains(entry.getKey())) {
+			if (excludedSet.contains(entry.getKey()) || mergedSet.contains(entry.getKey())) {
+				// skip hidden and merged rows
 				continue;
 			}
-			
 			logger.debug(entry.toString());
 			StatisticsTableRow row = new StatisticsTableRow(entry.getKey(), String.valueOf(entry
 					.getValue()), getPercentLine(entry.getValue(), tot), getColor(entry.getKey())
@@ -127,7 +155,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 				roots.add(row);
 			}
 		}
-		if (aggregate && !aggregatedRows.isEmpty()) {
+		if (!aggregatedRows.isEmpty()) {
 			StatisticsTableFolderRow agg = new StatisticsTableFolderRow(getAggregatedLabel(),
 					String.valueOf(aggregatedValue), getPercentLine(aggregatedValue, tot),
 					FramesocColor.BLACK.getSwtColor());

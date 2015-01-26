@@ -30,7 +30,7 @@ import fr.inria.soctrace.framesoc.ui.listeners.TextListener;
 public class MergeItemsDialog extends Dialog {
 
 	private TextListener label = new TextListener("");
-	private FramesocColor color = null;
+	private FramesocColor color = FramesocColor.BLACK;
 	private Text labelText;
 
 	protected MergeItemsDialog(Shell parentShell) {
@@ -71,7 +71,7 @@ public class MergeItemsDialog extends Dialog {
 		gd_colorComposite.heightHint = 27;
 		gd_colorComposite.widthHint = 40;
 		colorComposite.setLayoutData(gd_colorComposite);
-		colorComposite.setBackground(FramesocColor.BLACK.getSwtColor());
+		colorComposite.setBackground(color.getSwtColor());
 		colorComposite.addListener(SWT.MouseUp, new Listener() {
 			@Override
 			public void handleEvent(Event event) {

@@ -565,6 +565,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.merged = new ArrayList<>();
 							refresh();
+							refreshFilter();
 						}
 					});
 				}

@@ -32,7 +32,7 @@ public class MergedItem {
 		this.color = color;
 	}
 	
-	public List<String> getAggregatedItems() {
+	public List<String> getMergedItems() {
 		return aggregatedItems;
 	}
 	
