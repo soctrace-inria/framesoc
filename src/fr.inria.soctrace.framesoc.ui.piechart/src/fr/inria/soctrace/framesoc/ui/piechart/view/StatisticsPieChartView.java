@@ -536,19 +536,18 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void menuShown(MenuEvent e) {
 
-				final List<String> rows = new ArrayList<>();
-				getSelectedRows(rows);
-				if (rows.isEmpty()) {
-					return;
-				}
-
+				// clean menu
 				MenuItem[] items = menu.getItems();
 				for (int i = 0; i < items.length; i++) {
 					items[i].dispose();
 				}
 
+				// get current selection
+				final List<String> rows = new ArrayList<>();
+				getSelectedRows(rows);
+				
 				// exclude
-				if (allLeaves) {
+				if (allLeaves && rows.size() > 0) {
 					MenuItem hide = new MenuItem(menu, SWT.NONE);
 					hide.setText("Exclude " + ((rows.size() > 1) ? "Items" : "Item")
 							+ " from Statistics");
