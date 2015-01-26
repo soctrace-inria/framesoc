@@ -14,7 +14,7 @@ public class MergedItem {
 	
 	private String label;
 	private FramesocColor color;
-	private List<String> aggregatedItems;
+	private List<String> baseItems;
 	
 	public String getLabel() {
 		return label;
@@ -32,11 +32,20 @@ public class MergedItem {
 		this.color = color;
 	}
 	
-	public List<String> getMergedItems() {
-		return aggregatedItems;
+	public List<String> getBaseItems() {
+		return baseItems;
 	}
 	
-	public void setAggregatedItems(List<String> aggregatedItems) {
-		this.aggregatedItems = aggregatedItems;
+	public void setBaseItems(List<String> baseItems) {
+		this.baseItems = baseItems;
 	}
+	
+	public void removeBaseItem(String baseItem) {
+		this.baseItems.remove(baseItem);
+	}
+	
+	public void addBaseItem(String baseItem) {
+		this.baseItems.add(baseItem);
+	}
+	
 }

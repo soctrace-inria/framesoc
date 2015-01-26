@@ -24,8 +24,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -61,6 +63,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.themes.ColorUtil;
+import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
@@ -71,8 +74,11 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
+import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
@@ -84,6 +90,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.piechart.PieContributionManager;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
+import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItems;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
@@ -145,7 +152,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		public PieChartLoaderMap map;
 		public TimeInterval interval;
 		public List<String> excluded;
-		public List<MergedItem> merged;
+		public MergedItems merged;
 		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
@@ -153,7 +160,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			this.interval = new TimeInterval(0, 0);
 			this.map = new PieChartLoaderMap();
 			this.excluded = new ArrayList<>();
-			this.merged = new ArrayList<>();
+			this.merged = new MergedItems();
 		}
 
 		public boolean dataReady() {
@@ -451,17 +458,51 @@ public class StatisticsPieChartView extends FramesocPart {
 		// TOOL BAR
 		// ----------
 
-		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
-		TableTraceIntervalAction.add(manager, createTableAction());
-		GanttTraceIntervalAction.add(manager, createGanttAction());
-		HistogramTraceIntervalAction.add(manager, createHistogramAction());
-		enableActions(false);
+		createActions();
 
 		// create SWT resources
 		createResources();
 
 	}
 
+	private void createActions() {
+		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		
+		// Framesoc Actions
+		TableTraceIntervalAction.add(manager, createTableAction());
+		GanttTraceIntervalAction.add(manager, createGanttAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+
+		// Separator before other actions
+		manager.add(new Separator());
+		
+		// Expand all action
+		Action expandAction = new Action() {
+			public void run() {
+				tableTreeViewer.expandAll();
+			}
+		};
+		expandAction.setText("Expand all");
+		expandAction.setToolTipText("Expand all");
+		expandAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/expandall.gif"));
+		manager.add(expandAction);
+		
+		// Create the collapse all action
+		Action collapseAction = new Action() {
+			public void run() {
+				tableTreeViewer.collapseAll();
+			}
+		};
+		collapseAction.setText("Collapse all");
+		collapseAction.setToolTipText("Collapse all");
+		collapseAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/collapseall.gif"));
+		manager.add(collapseAction);
+		
+		enableActions(false);
+	}
+	
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dirty)
 			return null;
@@ -489,11 +530,15 @@ public class StatisticsPieChartView extends FramesocPart {
 		final Menu menu = new Menu(tree);
 		tree.setMenu(menu);
 		menu.addMenuListener(new MenuAdapter() {
+
+			private boolean allLeaves = false;
+			private boolean allMerged = false;
+
 			@Override
 			public void menuShown(MenuEvent e) {
 
 				final List<String> rows = new ArrayList<>();
-				boolean allLeaves = getSelectedRows(rows);
+				getSelectedRows(rows);
 				if (rows.isEmpty()) {
 					return;
 				}
@@ -503,7 +548,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					items[i].dispose();
 				}
 
-				// hide
+				// exclude
 				if (allLeaves) {
 					MenuItem hide = new MenuItem(menu, SWT.NONE);
 					hide.setText("Exclude " + ((rows.size() > 1) ? "Items" : "Item")
@@ -528,11 +573,12 @@ public class StatisticsPieChartView extends FramesocPart {
 							MergeItemsDialog dlg = new MergeItemsDialog(getSite().getShell());
 							if (dlg.open() == Dialog.OK) {
 								MergedItem mergedItem = new MergedItem();
-								mergedItem.setAggregatedItems(rows);
+								mergedItem.setBaseItems(rows);
 								mergedItem.setColor(dlg.getColor());
 								mergedItem.setLabel(dlg.getLabel());
-								currentDescriptor.merged.add(mergedItem);
+								currentDescriptor.merged.addMergedItem(mergedItem);
 								refresh();
+								tableTreeViewer.collapseAll();
 							}
 						}
 					});
@@ -542,7 +588,21 @@ public class StatisticsPieChartView extends FramesocPart {
 					new MenuItem(menu, SWT.SEPARATOR);
 				}
 
-				// restore hiddem
+				// restore merged
+				if (!currentDescriptor.merged.isEmpty() && allMerged) {
+					MenuItem restore = new MenuItem(menu, SWT.NONE);
+					restore.setText("Unmerge Items");
+					restore.addSelectionListener(new SelectionAdapter() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							currentDescriptor.merged.removeMergedItems(rows);
+							refresh();
+							refreshFilter();
+						}
+					});
+				}
+
+				// restore excluded
 				if (!currentDescriptor.excluded.isEmpty()) {
 					MenuItem restore = new MenuItem(menu, SWT.NONE);
 					restore.setText("Restore Excluded Items");
@@ -556,14 +616,14 @@ public class StatisticsPieChartView extends FramesocPart {
 					});
 				}
 
-				// restore merged
+				// restore all merged
 				if (!currentDescriptor.merged.isEmpty()) {
 					MenuItem restore = new MenuItem(menu, SWT.NONE);
-					restore.setText("Unmerge Merged Items");
+					restore.setText("Unmerge All Merged Items");
 					restore.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							currentDescriptor.merged = new ArrayList<>();
+							currentDescriptor.merged.removeAllMergedItems();
 							refresh();
 							refreshFilter();
 						}
@@ -572,25 +632,38 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			}
 
-			private boolean getSelectedRows(List<String> rows) {
+			private void getSelectedRows(List<String> rows) {
 				final IStructuredSelection sel = (IStructuredSelection) tableTreeViewer
 						.getSelection();
 				if (sel.isEmpty()) {
-					return true;
+					allLeaves = false;
+					allMerged = false;
+					return;
 				}
-				boolean allLeaves = true;
 				@SuppressWarnings("unchecked")
 				Iterator<StatisticsTableRow> it = (Iterator<StatisticsTableRow>) sel.iterator();
+				allLeaves = true;
+				allMerged = true;
 				while (it.hasNext()) {
 					StatisticsTableRow r = it.next();
 					try {
 						rows.add(r.get(StatisticsTableColumn.NAME));
 						allLeaves = allLeaves && !r.hasChildren();
+						if (currentDescriptor.loader.isAggregationSupported()) {
+							if (r.get(StatisticsTableColumn.NAME).equals(
+									currentDescriptor.loader.getAggregatedLabel())) {
+								allMerged = false;
+							} else {
+								allMerged = allMerged && r.hasChildren();
+							}
+						} else {
+							allMerged = allMerged && r.hasChildren();
+						}
 					} catch (SoCTraceException e) {
 						e.printStackTrace();
 					}
 				}
-				return allLeaves;
+				return;
 			}
 
 		});
@@ -829,9 +902,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
-				currentDescriptor.merged);
+				currentDescriptor.merged.getMergedItems());
 		final StatisticsTableRow[] roots = loader.getTableDataset(values,
-				currentDescriptor.excluded, currentDescriptor.merged);
+				currentDescriptor.excluded, currentDescriptor.merged.getMergedItems());
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 
