@@ -6,6 +6,7 @@ import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 import fr.inria.soctrace.framesoc.ui.piechart.model.IPieChartLoader;
 import fr.inria.soctrace.framesoc.ui.piechart.view.StatisticsPieChartView;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 public class ValueLabelProvider extends TableRowLabelProvider {
@@ -24,14 +25,18 @@ public class ValueLabelProvider extends TableRowLabelProvider {
 			return super.getText(element);
 		} else {
 			Double val = Double.valueOf(super.getText(element));
-			NumberFormat format = loader.getFormat();
-			if (format instanceof TimestampFormat) {
-				TimestampFormat tf = (TimestampFormat) format;
-				tf.setTimeUnit(view.getTimeUnit());
-				return tf.format(val);
-			} else {
-				return format.format(val);
-			}
+			NumberFormat format = getActualFormat(loader.getFormat(), view.getTimeUnit());
+			return format.format(val);
+		}
+	}
+	
+	public static NumberFormat getActualFormat(NumberFormat format, TimeUnit unit) {
+		if (format instanceof TimestampFormat) {
+			TimestampFormat tf = (TimestampFormat) format;
+			tf.setTimeUnit(unit);
+			return tf;
+		} else {
+			return format;
 		}
 	}
 

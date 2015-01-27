@@ -12,6 +12,7 @@ package fr.inria.soctrace.framesoc.ui.piechart.view;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -67,6 +68,8 @@ import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.PieToolTipGenerator;
+import org.jfree.chart.labels.StandardPieToolTipGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.general.PieDataset;
@@ -74,8 +77,6 @@ import org.jfree.experimental.chart.swt.ChartComposite;
 import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -105,6 +106,7 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -265,12 +267,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @return the current loader, or null if not set
 	 */
 	public IPieChartLoader getCurrentLoader() {
-		if (currentDescriptor!=null) {
-			return currentDescriptor.loader;	
+		if (currentDescriptor != null) {
+			return currentDescriptor.loader;
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @return the current shown trace time unit
@@ -278,10 +280,10 @@ public class StatisticsPieChartView extends FramesocPart {
 	public TimeUnit getTimeUnit() {
 		if (currentShownTrace != null) {
 			return TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit());
-		} 
+		}
 		return TimeUnit.UNKNOWN;
 	}
-	
+
 	// Uncomment this to use the window builder
 	// public void createPartControl(Composite parent) {
 	// createFramesocPartControl(parent);
@@ -571,7 +573,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				// get current selection
 				final List<String> rows = new ArrayList<>();
 				getSelectedRows(rows);
-				
+
 				// exclude
 				if (allLeaves && rows.size() > 0) {
 					MenuItem hide = new MenuItem(menu, SWT.NONE);
@@ -732,7 +734,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				tableTreeViewer.addFilter(nameFilter);
 				// the label provider puts also the image
 				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col));
-			} else if (col.equals(StatisticsTableColumn.VALUE)){
+			} else if (col.equals(StatisticsTableColumn.VALUE)) {
 				elemsViewerCol.setLabelProvider(new ValueLabelProvider(col, this));
 			} else {
 				elemsViewerCol.setLabelProvider(new TableRowLabelProvider(col));
@@ -1009,7 +1011,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	 *            current interval
 	 * @return the pie chart
 	 */
-	private static JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader,
+	private JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader,
 			boolean dataRequested) {
 
 		JFreeChart chart = ChartFactory.createPieChart(title, dataset, HAS_LEGEND, HAS_TOOLTIPS,
@@ -1033,6 +1035,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		plot.setOutlineVisible(false);
 		plot.setShadowPaint(Color.WHITE);
 		plot.setBaseSectionPaint(Color.WHITE);
+		StandardPieToolTipGenerator g = (StandardPieToolTipGenerator) plot.getToolTipGenerator();
+		NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
+		StandardPieToolTipGenerator sg = new StandardPieToolTipGenerator(g.getLabelFormat(),
+				format, g.getPercentFormat());
+		plot.setToolTipGenerator(sg);
 
 		for (Object o : dataset.getKeys()) {
 			String key = (String) o;
