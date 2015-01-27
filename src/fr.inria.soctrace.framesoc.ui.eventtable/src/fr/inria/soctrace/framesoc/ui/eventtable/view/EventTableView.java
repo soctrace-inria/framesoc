@@ -80,6 +80,7 @@ import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -796,6 +797,7 @@ public final class EventTableView extends FramesocPart {
 					int events = cache.getIndexedRowCount();
 					table.setItemCount(events + 1); // +1 for header row
 					table.refresh();
+					timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 					timeBar.setSelection(startTimestamp, endTimestamp);
 					statusText.setText(getStatus(events, events));
 					synchronized (syncObj) {

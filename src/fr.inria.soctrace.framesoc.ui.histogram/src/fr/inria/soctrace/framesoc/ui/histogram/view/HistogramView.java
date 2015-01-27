@@ -95,10 +95,11 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
-import fr.inria.soctrace.framesoc.ui.utils.Constants;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -157,10 +158,10 @@ public class HistogramView extends FramesocPart {
 	private final static Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
 	private final static Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
 
-	private final DecimalFormat X_FORMAT = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-	private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
-	private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
-			TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
+	// private final DecimalFormat X_FORMAT = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+	// private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
+	// private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
+	// TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
 
@@ -296,7 +297,8 @@ public class HistogramView extends FramesocPart {
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
 		tbtmEventTypes.setText(ConfigurationDimension.TYPE.getName());
 		filter.setIncludeLeadingWildcard(true);
-		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter, true);
+		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter,
+				true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(new EventTypeTreeLabelProvider());
@@ -304,12 +306,13 @@ public class HistogramView extends FramesocPart {
 		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 		tbtmEventTypes.setControl(typeTree);
-		
+
 		// Tab item producers
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setData(ConfigurationDimension.PRODUCERS);
 		tbtmEventProducers.setText(ConfigurationDimension.PRODUCERS.getName());
-		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter, true);
+		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter,
+				true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
 		prodTree.getViewer().setContentProvider(contentProvider);
 		prodTree.getViewer().setLabelProvider(new EventProducerTreeLabelProvider());
@@ -317,7 +320,7 @@ public class HistogramView extends FramesocPart {
 		prodTree.addCheckStateListener(checkStateListener);
 		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
 		tbtmEventProducers.setControl(prodTree);
-		
+
 		// sash weights
 		sashForm.setWeights(new int[] { 80, 20 });
 		// tab switch
@@ -531,7 +534,7 @@ public class HistogramView extends FramesocPart {
 
 		if (trace == null)
 			return;
-
+		
 		if (data == null) {
 			// called after right click on trace tree menu
 			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMaxTimestamp()));
@@ -597,6 +600,8 @@ public class HistogramView extends FramesocPart {
 	public void loadHistogram(final Trace trace, final TimeInterval interval) {
 
 		currentShownTrace = trace;
+		// set time unit and extrema
+		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
@@ -797,6 +802,13 @@ public class HistogramView extends FramesocPart {
 		plot.setBackgroundPaint(BACKGROUND_PAINT);
 		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
 		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
+
+		TimestampFormat X_FORMAT = new TimestampFormat(TimeUnit.getTimeUnit(currentShownTrace
+				.getTimeUnit()));
+		DecimalFormat Y_FORMAT = new DecimalFormat("0");
+		XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(TOOLTIP_FORMAT,
+				X_FORMAT, Y_FORMAT);
+
 		// tooltip
 		XYItemRenderer renderer = plot.getRenderer();
 		renderer.setBaseToolTipGenerator(TOOLTIP_GENERATOR);

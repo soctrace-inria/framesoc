@@ -77,6 +77,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * An abstract view all time graph views can inherit
@@ -351,7 +352,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * Base class to provide the labels for the tree viewer. Views extending this class typically
 	 * need to override the getColumnText method if they have more than one column to display
 	 */
-	protected static class TimeGraphTreeLabelProvider implements ITableLabelProvider, ILabelProvider {
+	protected static class TimeGraphTreeLabelProvider implements ITableLabelProvider,
+			ILabelProvider {
 
 		@Override
 		public void addListener(ILabelProviderListener listener) {
@@ -1047,6 +1049,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fTimeGraphWrapper.refresh();
 				}
 
+				// set time unit
+				if (currentShownTrace != null) {
+					fTimeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
+				}
 				// set timebar bounds (min, max)
 				fTimeBar.setMaxTimestamp(fMaxTime);
 				fTimeBar.setMinTimestamp(fMinTime);

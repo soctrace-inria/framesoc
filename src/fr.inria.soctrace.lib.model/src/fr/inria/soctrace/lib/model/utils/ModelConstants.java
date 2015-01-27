@@ -75,7 +75,7 @@ public class ModelConstants {
 		NANOSECONDS("ns", -9),
 		PICOSECONDS("ps", -12),
 		FEMTOSECONDS("fs", -15),
-		ATTOCONDS("as", -18),
+		ATTOSECONDS("as", -18),
 		ZEPTOSECONDS("zs", -21),
 		YOCTOSECONDS("ys", -24),
 		
@@ -114,6 +114,13 @@ public class ModelConstants {
 				if (t.getInt()==exp)
 					return t.getLabel();
 			return " x 10^"+String.valueOf(exp)+" s";
+		}
+		
+		public static TimeUnit getTimeUnit(int exp) {
+			for (TimeUnit t: TimeUnit.values())
+				if (t.getInt()==exp)
+					return t;
+			return UNKNOWN;
 		}
 		
 		@Override

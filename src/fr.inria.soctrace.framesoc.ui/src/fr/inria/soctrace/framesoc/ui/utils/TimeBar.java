@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
@@ -119,6 +120,22 @@ public class TimeBar {
 		}
 	}
 
+	/**
+	 * Get the time unit
+	 * @return the time unit
+	 */
+	public TimeUnit getTimeUnit() {
+		return range.getTimeUnit();
+	}
+	
+	/**
+	 * Set the time unit
+	 * @param unit unit to set
+	 */
+	public void setTimeUnit(TimeUnit unit) {
+		range.setTimeUnit(unit);
+	}
+	
 	/**
 	 * Get the load button. It may be null.
 	 * 

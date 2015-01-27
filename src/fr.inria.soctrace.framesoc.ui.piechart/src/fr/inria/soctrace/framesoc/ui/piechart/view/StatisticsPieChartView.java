@@ -75,6 +75,7 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -101,6 +102,7 @@ import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -952,6 +954,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					tableTreeViewer.setInput(roots);
 				}
 				tableTreeViewer.expandAll();
+				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 				timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
 				timeBar.getSynchButton().setEnabled(false);
 				if (currentDescriptor.dirty) {

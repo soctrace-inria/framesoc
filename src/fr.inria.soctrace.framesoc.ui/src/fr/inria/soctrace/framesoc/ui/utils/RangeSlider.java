@@ -10,8 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.utils;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +32,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.mihalis.opal.utils.SWTGraphicUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
  * Instances of this class provide a slider with 2 buttons (min value, max value).
@@ -87,6 +88,7 @@ public class RangeSlider extends Canvas {
 	private long cursorValue;
 	private boolean mayShowTooltip;
 	private IStatusLineManager statusLineManager;
+	private TimeUnit unit;
 
 	/**
 	 * Constructs a new instance of this class given its parent and a style value describing its
@@ -118,6 +120,7 @@ public class RangeSlider extends Canvas {
 	public RangeSlider(final Composite parent, final int style) {
 		super(parent, SWT.DOUBLE_BUFFERED
 				| ((style & SWT.BORDER) == SWT.BORDER ? SWT.BORDER : SWT.NONE));
+		this.unit = TimeUnit.UNKNOWN;
 		this.cursorValue = 0;
 		this.mayShowTooltip = false;
 		this.minimum = this.lowerValue = 0;
@@ -524,7 +527,7 @@ public class RangeSlider extends Canvas {
 		for (int i = 1; i < 10; i++) {
 			final int x = (int) (9 + pixelSize * delta * i);
 			if (showGrads) {
-				NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+				TimestampFormat formatter = new TimestampFormat(unit);
 				String value = formatter.format(delta * i + this.minimum);
 				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
 						SWT.NONE));
@@ -783,6 +786,22 @@ public class RangeSlider extends Canvas {
 		}
 	}
 
+	/**
+	 * Get the time unit
+	 * @return the time unit
+	 */
+	public TimeUnit getTimeUnit() {
+		return unit;
+	}
+	
+	/**
+	 * Set the time unit
+	 * @param unit unit to set
+	 */
+	public void setTimeUnit(TimeUnit unit) {
+		this.unit = unit;
+	}
+	
 	/**
 	 * Adds the listener to the collection of listeners who will be notified when the user changes
 	 * the receiver's value, by sending it one of the messages defined in the
@@ -1321,7 +1340,7 @@ public class RangeSlider extends Canvas {
 			return;
 		}
 
-		NumberFormat formatter = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+		TimestampFormat formatter = new TimestampFormat(unit);
 		StringBuilder message = new StringBuilder();
 		if (!dragInProgress) {
 			final long mouseValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
