@@ -21,15 +21,18 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
 
-import fr.inria.linuxtools.tmf.core.timestamp.TmfTimePreferences;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+
+import fr.inria.linuxtools.tmf.core.timestamp.TmfTimePreferences;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
  * General utilities and definitions used by the time graph widget
@@ -749,4 +752,23 @@ public class Utils {
         int y = (int) (y1 + r * (y2 - y1));
         return Math.sqrt(distance2(px, py, x, y));
     }
+
+    /**
+     * TODO: use this in tooltip handler, after enabling the tool tip handler
+     * to get the time unit.
+     * A solution could be to get the time unit via the presentation provider.
+     * We can set the unit in the presentation provider, since is a member of
+     * the AbstractGanttView.
+     *
+     * @Framesoc
+     * @param time timestamp
+     * @param unit time unit
+     * @return the formatted string
+     */
+    public static String formatTimestamp(long time, TimeUnit unit) {
+        TimestampFormat format = new TimestampFormat();
+        format.setTimeUnit(unit);
+        return format.format(time);
+    }
+
 }

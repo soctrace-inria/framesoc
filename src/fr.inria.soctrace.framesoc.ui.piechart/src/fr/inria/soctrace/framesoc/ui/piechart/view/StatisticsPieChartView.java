@@ -12,7 +12,6 @@ package fr.inria.soctrace.framesoc.ui.piechart.view;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -68,7 +67,6 @@ import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.PieToolTipGenerator;
 import org.jfree.chart.labels.StandardPieToolTipGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.title.LegendTitle;
@@ -104,9 +102,8 @@ import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
-import fr.inria.soctrace.lib.model.utils.TimestampFormat;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
