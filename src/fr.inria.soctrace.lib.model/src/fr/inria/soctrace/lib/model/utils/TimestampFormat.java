@@ -63,7 +63,7 @@ public class TimestampFormat extends NumberFormat {
 				DecimalFormat df = new DecimalFormat("###.#");
 				toAppendTo.append(df.format(tmp));
 			} else {
-				DecimalFormat df = new DecimalFormat("###.E0");
+				DecimalFormat df = new DecimalFormat("###.#E0");
 				df.setMaximumIntegerDigits(3);
 				toAppendTo.append(df.format(tmp));
 			}
@@ -75,7 +75,6 @@ public class TimestampFormat extends NumberFormat {
 			toAppendTo.append(" ");
 			toAppendTo.append(TimeUnit.getLabel(realExp));
 		}
-		System.out.println(toAppendTo.toString());
 		return toAppendTo;
 	}
 
