@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.core.expressions,
  org.eclipse.ui,
  org.eclipse.ui.ide,
  org.eclipse.ui.navigator,
- org.eclipse.ui.navigator.resources
+ org.eclipse.ui.navigator.resources,
+ fr.inria.soctrace.lib.model
 Export-Package: fr.inria.linuxtools.internal.tmf.ui;x-friends:="fr.inria.linuxtools.tmf.ui.tests,fr.inria.linuxtools.tmf.ctf.ui.tests",
  fr.inria.linuxtools.internal.tmf.ui.commands;x-internal:=true,
  fr.inria.linuxtools.internal.tmf.ui.dialogs;x-internal:=true,

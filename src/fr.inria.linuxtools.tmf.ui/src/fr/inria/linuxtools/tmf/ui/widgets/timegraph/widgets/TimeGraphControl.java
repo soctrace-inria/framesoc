@@ -20,8 +20,6 @@
 
 package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -80,6 +78,8 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTreeExpansionEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
  * Time graph control implementation
@@ -2079,11 +2079,33 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
     }
 
+    // @Framesoc
+    private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+
+    /**
+     * @Framesoc
+     * @return the time unit
+     */
+    public TimeUnit getTimeUnit() {
+        return fTimeUnit;
+    }
+
+    /**
+     * @Framesoc
+     * @param timeUnit
+     *            the time unit to set
+     */
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.fTimeUnit = timeUnit;
+        this.fTimeGraphScale.setTimeUnit(timeUnit);
+    }
+
     /*
-     * @Framesoc: Removed TmfNanoTimestamp, using "###.#E0" format instead.
+     * @Framesoc: Removed TmfNanoTimestamp, using TimestampFormat format
+     * instead.
      */
     private void updateStatusLine(int x) {
-        NumberFormat formatter = new DecimalFormat("###.#E0"); //$NON-NLS-1$
+        TimestampFormat formatter = new TimestampFormat(fTimeUnit);
         if (fStatusLineManager == null || null == fTimeProvider ||
                 fTimeProvider.getTime0() == fTimeProvider.getTime1()) {
             return;

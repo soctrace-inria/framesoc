@@ -1051,7 +1051,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 				// set time unit
 				if (currentShownTrace != null) {
-					fTimeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
+					TimeUnit unit = TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit());
+					fTimeGraphWrapper.getTimeGraphViewer().setTimeUnit(unit);
+					fTimeBar.setTimeUnit(unit);
 				}
 				// set timebar bounds (min, max)
 				fTimeBar.setMaxTimestamp(fMaxTime);

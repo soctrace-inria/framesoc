@@ -58,6 +58,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphScale;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphTooltipHandler;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Generic time graph viewer implementation
@@ -125,7 +126,8 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     /**
      * Standard constructor.
      * <p>
-     * The default timegraph content provider accepts an ITimeGraphEntry[] as input element.
+     * The default timegraph content provider accepts an ITimeGraphEntry[] as
+     * input element.
      *
      * @param parent
      *            The parent UI composite object
@@ -143,6 +145,23 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
                 return new ITimeGraphEntry[0];
             }
         };
+    }
+
+    /**
+     * @Framesoc
+     * @return the time unit
+     */
+    public TimeUnit getTimeUnit() {
+        return fTimeGraphCtrl.getTimeUnit();
+    }
+
+    /**
+     * @Framesoc
+     * @param timeUnit
+     *            the time unit to set
+     */
+    public void setTimeUnit(TimeUnit timeUnit) {
+        fTimeGraphCtrl.setTimeUnit(timeUnit);
     }
 
     /**

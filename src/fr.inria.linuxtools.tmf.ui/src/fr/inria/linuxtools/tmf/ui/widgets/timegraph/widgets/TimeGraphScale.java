@@ -37,6 +37,8 @@ import fr.inria.linuxtools.tmf.core.signal.TmfTimestampFormatUpdateSignal;
 import fr.inria.linuxtools.tmf.core.timestamp.TmfTimePreferences;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.Resolution;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Implementation of the scale for the time graph view.
@@ -93,6 +95,38 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
     private long fTime1bak;
     private boolean fIsInUpdate;
     private int fHeight;
+
+    // @Framesoc
+    private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+
+    /**
+     * @Framesoc
+     * @return the time unit
+     */
+    public TimeUnit getTimeUnit() {
+        return fTimeUnit;
+    }
+
+    /**
+     * @Framesoc
+     * @param timeUnit
+     *            the time unit to set
+     */
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.fTimeUnit = timeUnit;
+    }
+
+    /**
+     * @Framesoc
+     * @param gc GC
+     * @param time timestamp
+     * @param rect rectangle
+     */
+    public void drawTimestamp(GC gc, long time, Rectangle rect) {
+        TimestampFormat formatter = new TimestampFormat(fTimeUnit);
+        String stime = formatter.format(time);
+        Utils.drawText(gc, stime, rect, true);
+    }
 
     /**
      * Standard constructor
@@ -354,7 +388,8 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
                 gc.drawLine(x, y, x, y + 4);
                 rect0.x = x;
                 if (x + rect0.width <= rect.x + rect.width) {
-                    timeDraw.draw(gc, time, rect0);
+                    // @Framesoc
+                    drawTimestamp(gc, time, rect0);
                 }
             }
             if (pixelsPerNanoSec == 0 || time > Long.MAX_VALUE - timeDelta || timeDelta == 0) {
@@ -833,3 +868,4 @@ class TimeDrawNumber extends TimeDraw {
         Utils.drawText(gc, stime, rect, true);
     }
 }
+
