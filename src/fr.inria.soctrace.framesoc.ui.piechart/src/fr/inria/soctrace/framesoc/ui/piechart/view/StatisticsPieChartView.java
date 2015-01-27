@@ -76,6 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -97,6 +98,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
+import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
@@ -258,6 +260,28 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 	}
 
+	/**
+	 * 
+	 * @return the current loader, or null if not set
+	 */
+	public IPieChartLoader getCurrentLoader() {
+		if (currentDescriptor!=null) {
+			return currentDescriptor.loader;	
+		}
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @return the current shown trace time unit
+	 */
+	public TimeUnit getTimeUnit() {
+		if (currentShownTrace != null) {
+			return TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit());
+		} 
+		return TimeUnit.UNKNOWN;
+	}
+	
 	// Uncomment this to use the window builder
 	// public void createPartControl(Composite parent) {
 	// createFramesocPartControl(parent);
@@ -706,11 +730,13 @@ public class StatisticsPieChartView extends FramesocPart {
 				// add a filter for this column
 				nameFilter = new StatisticsTableRowFilter(col);
 				tableTreeViewer.addFilter(nameFilter);
-
 				// the label provider puts also the image
 				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col));
-			} else
+			} else if (col.equals(StatisticsTableColumn.VALUE)){
+				elemsViewerCol.setLabelProvider(new ValueLabelProvider(col, this));
+			} else {
 				elemsViewerCol.setLabelProvider(new TableRowLabelProvider(col));
+			}
 
 			final TreeColumn elemsTableCol = elemsViewerCol.getColumn();
 			elemsTableCol.setWidth(col.getWidth());
@@ -1016,7 +1042,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	public class StatisticsColumnComparator extends ViewerComparator {
-		private StatisticsTableColumn col = StatisticsTableColumn.OCCURRENCES;
+		private StatisticsTableColumn col = StatisticsTableColumn.VALUE;
 		private int direction = SWT.DOWN;
 
 		public int getDirection() {
@@ -1048,7 +1074,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			int rc = 0;
 			try {
-				if (this.col.equals(StatisticsTableColumn.OCCURRENCES)) {
+				if (this.col.equals(StatisticsTableColumn.VALUE)) {
 					// number comparison
 					Double v1 = Double.valueOf(r1.get(this.col));
 					Double v2 = Double.valueOf(r2.get(this.col));
@@ -1155,4 +1181,5 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 
 	}
+
 }

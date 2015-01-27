@@ -44,7 +44,7 @@ public class StatisticsTableRow extends TableRow implements ITreeNode {
 	 */
 	public StatisticsTableRow(String name, String occurrences, String percentage, Color color) {
 		this.fields.put(StatisticsTableColumn.NAME, name);
-		this.fields.put(StatisticsTableColumn.OCCURRENCES, occurrences);
+		this.fields.put(StatisticsTableColumn.VALUE, occurrences);
 		this.fields.put(StatisticsTableColumn.PERCENTAGE, percentage);
 		this.color = color;
 	}

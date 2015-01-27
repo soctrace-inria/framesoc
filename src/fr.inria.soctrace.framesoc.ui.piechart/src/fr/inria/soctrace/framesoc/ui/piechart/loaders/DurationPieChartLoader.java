@@ -6,6 +6,7 @@ package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
 import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.query.conditions.SimpleCondition;
@@ -100,6 +102,11 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 		return color;
 	}
 
+	@Override
+	public NumberFormat getFormat() {
+		return new TimestampFormat();
+	}
+	
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
 			IProgressMonitor monitor) {

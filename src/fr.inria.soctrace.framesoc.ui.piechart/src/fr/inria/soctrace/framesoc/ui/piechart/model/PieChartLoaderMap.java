@@ -13,6 +13,8 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 /**
  * Map used by a statistics loader.
  * 
+ * TODO dispose old framesoc colors
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class PieChartLoaderMap {

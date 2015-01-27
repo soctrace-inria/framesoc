@@ -26,10 +26,22 @@ public class TimestampFormat extends NumberFormat {
 
 	private TimeUnit unit;
 
+	public TimestampFormat() {
+		this.unit = TimeUnit.UNKNOWN;
+	}
+	
 	public TimestampFormat(TimeUnit unit) {
 		this.unit = unit;
 	}
 
+	public void setTimeUnit(TimeUnit unit) {
+		this.unit = unit;
+	}
+	
+	public TimeUnit getTimeUnit() {
+		return unit;
+	}
+	
 	/**
 	 * Note: Ignoring parameter pos.
 	 */

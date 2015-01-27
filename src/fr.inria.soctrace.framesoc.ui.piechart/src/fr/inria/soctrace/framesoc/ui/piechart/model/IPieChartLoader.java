@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.piechart.model;
 
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,10 @@ public interface IPieChartLoader {
 	 */
 	String getStatName();
 
+	/*
+	 * Loader properties
+	 */
+	
 	/**
 	 * Return true if aggregation is performed.
 	 * 
@@ -59,6 +64,13 @@ public interface IPieChartLoader {
 	 */
 	String getAggregatedLabel();
 
+	/**
+	 * Get the format to be used for the value.
+	 * 
+	 * @return
+	 */
+	NumberFormat getFormat();
+	
 	/*
 	 * Loading data
 	 */

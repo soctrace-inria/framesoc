@@ -6,6 +6,8 @@ package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +102,11 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 				etMap.put(et.getId(), et.getName());
 			}
 		}
+	}
+
+	@Override
+	public NumberFormat getFormat() {
+		return new DecimalFormat();
 	}
 
 }
