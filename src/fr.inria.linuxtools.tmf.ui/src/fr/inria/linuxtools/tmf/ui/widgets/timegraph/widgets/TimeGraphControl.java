@@ -170,6 +170,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private MouseScrollNotifier fMouseScrollNotifier;
     private final Object fMouseScrollNotifierLock = new Object();
 
+    // @Framesoc
+    private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
         private static final long POLLING_INTERVAL = 10L;
@@ -2078,9 +2081,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
             setCursor(cursor);
         }
     }
-
-    // @Framesoc
-    private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
 
     /**
      * @Framesoc

@@ -100,6 +100,28 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
     private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
 
     /**
+     * Standard constructor
+     *
+     * @param parent
+     *            The parent composite object
+     * @param colors
+     *            The color scheme to use
+     */
+    public TimeGraphScale(Composite parent, TimeGraphColorScheme colors) {
+        super(parent, colors, SWT.NO_BACKGROUND | SWT.NO_FOCUS | SWT.DOUBLE_BUFFERED);
+        TmfSignalManager.register(this);
+        addMouseListener(this);
+        addMouseMoveListener(this);
+        TimeDraw.updateTimeZone();
+    }
+
+    @Override
+    public void dispose() {
+        TmfSignalManager.deregister(this);
+        super.dispose();
+    }
+
+    /**
      * @Framesoc
      * @return the time unit
      */
@@ -126,28 +148,6 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
         TimestampFormat formatter = new TimestampFormat(fTimeUnit);
         String stime = formatter.format(time);
         Utils.drawText(gc, stime, rect, true);
-    }
-
-    /**
-     * Standard constructor
-     *
-     * @param parent
-     *            The parent composite object
-     * @param colors
-     *            The color scheme to use
-     */
-    public TimeGraphScale(Composite parent, TimeGraphColorScheme colors) {
-        super(parent, colors, SWT.NO_BACKGROUND | SWT.NO_FOCUS | SWT.DOUBLE_BUFFERED);
-        TmfSignalManager.register(this);
-        addMouseListener(this);
-        addMouseMoveListener(this);
-        TimeDraw.updateTimeZone();
-    }
-
-    @Override
-    public void dispose() {
-        TmfSignalManager.deregister(this);
-        super.dispose();
     }
 
     /**
