@@ -82,7 +82,7 @@ public class TimestampFormat extends NumberFormat {
 				toAppendTo.append(df.format(tmp));
 			} else {
 				DecimalFormat df = new DecimalFormat("###.#E0");
-				df.setMaximumFractionDigits(3);
+				df.setMaximumFractionDigits(2);
 				df.setMaximumIntegerDigits(3);
 				toAppendTo.append(df.format(tmp));
 			}

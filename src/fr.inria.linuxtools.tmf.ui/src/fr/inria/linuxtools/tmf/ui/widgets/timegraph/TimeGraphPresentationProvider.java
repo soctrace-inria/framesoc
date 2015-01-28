@@ -26,6 +26,7 @@ import fr.inria.linuxtools.internal.tmf.ui.Messages;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.ITmfTimeGraphDrawingHelper;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Provider class for the time graph provider
@@ -38,6 +39,8 @@ public class TimeGraphPresentationProvider implements ITimeGraphPresentationProv
 
     private ITmfTimeGraphDrawingHelper fDrawingHelper;
     private final String fStateTypeName;
+    //@Framesoc
+    private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
 
     // The list of listeners for graph color changes
     private final List<ITimeGraphColorListener> fListeners = new ArrayList<>();
@@ -185,6 +188,17 @@ public class TimeGraphPresentationProvider implements ITimeGraphPresentationProv
         for (ITimeGraphColorListener listener : fListeners) {
             listener.colorSettingsChanged(getStateTable());
         }
+    }
+
+
+    @Override
+    public TimeUnit getTimeUnit() {
+        return fTimeUnit;
+    }
+
+    @Override
+    public void setTimeUnit(TimeUnit unit) {
+        fTimeUnit = unit;
     }
 
 }

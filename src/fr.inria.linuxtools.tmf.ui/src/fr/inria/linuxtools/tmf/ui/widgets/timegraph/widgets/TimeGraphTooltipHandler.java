@@ -17,14 +17,6 @@ package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 import java.util.Iterator;
 import java.util.Map;
 
-import fr.inria.linuxtools.internal.tmf.ui.Messages;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.NullTimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.Resolution;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -39,6 +31,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+
+import fr.inria.linuxtools.internal.tmf.ui.Messages;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.NullTimeEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 
 /**
  * Handler for the tool tips in the generic time graph view.
@@ -75,7 +75,7 @@ public class TimeGraphTooltipHandler {
 
     private void createTooltipShell(Shell parent) {
         final Display display = parent.getDisplay();
-        if (fTipShell != null && ! fTipShell.isDisposed()) {
+        if (fTipShell != null && !fTipShell.isDisposed()) {
             fTipShell.dispose();
         }
         fTipShell = new Shell(parent, SWT.ON_TOP | SWT.TOOL);
@@ -102,7 +102,7 @@ public class TimeGraphTooltipHandler {
         control.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDown(MouseEvent e) {
-                if (fTipShell != null && ! fTipShell.isDisposed()) {
+                if (fTipShell != null && !fTipShell.isDisposed()) {
                     fTipShell.dispose();
                 }
             }
@@ -111,7 +111,7 @@ public class TimeGraphTooltipHandler {
         control.addMouseMoveListener(new MouseMoveListener() {
             @Override
             public void mouseMove(MouseEvent e) {
-                if (fTipShell != null && ! fTipShell.isDisposed()) {
+                if (fTipShell != null && !fTipShell.isDisposed()) {
                     fTipShell.dispose();
                 }
             }
@@ -120,9 +120,9 @@ public class TimeGraphTooltipHandler {
         control.addMouseTrackListener(new MouseTrackAdapter() {
             @Override
             public void mouseExit(MouseEvent e) {
-                if (fTipShell != null && ! fTipShell.isDisposed()) {
+                if (fTipShell != null && !fTipShell.isDisposed()) {
                     Point pt = control.toDisplay(e.x, e.y);
-                    if (! fTipShell.getBounds().contains(pt)) {
+                    if (!fTipShell.getBounds().contains(pt)) {
                         fTipShell.dispose();
                     }
                 }
@@ -142,6 +142,10 @@ public class TimeGraphTooltipHandler {
                 setupControl(valueLabel);
             }
 
+            /*
+             * @Framesoc Using the Utils.formatTimestamp() method instead of the
+             * Utils.formatTime()
+             */
             private void fillValues(Point pt, TimeGraphControl timeGraphControl, ITimeGraphEntry entry) {
                 if (entry == null) {
                     return;
@@ -155,11 +159,14 @@ public class TimeGraphTooltipHandler {
                     ITimeEvent currEvent = Utils.findEvent(entry, currPixelTime, 0);
                     ITimeEvent nextEvent = Utils.findEvent(entry, currPixelTime, 1);
 
-                    // if there is no current event at the start of the current pixel range,
-                    // or if the current event starts before the current pixel range,
-                    // use the next event as long as it starts within the current pixel range
+                    // if there is no current event at the start of the current
+                    // pixel range,
+                    // or if the current event starts before the current pixel
+                    // range,
+                    // use the next event as long as it starts within the
+                    // current pixel range
                     if ((currEvent == null || currEvent.getTime() < currPixelTime) &&
-                        (nextEvent != null && nextEvent.getTime() < nextPixelTime)) {
+                            (nextEvent != null && nextEvent.getTime() < nextPixelTime)) {
                         currEvent = nextEvent;
                         currPixelTime = nextEvent.getTime();
                     }
@@ -185,7 +192,8 @@ public class TimeGraphTooltipHandler {
                         addItem(Messages.TmfTimeTipHandler_TRACE_STATE, state);
                     }
 
-                    // This block receives a list of <String, String> values to be added to the tip table
+                    // This block receives a list of <String, String> values to
+                    // be added to the tip table
                     Map<String, String> eventAddOns = fTimeGraphProvider.getEventHoverToolTipInfo(currEvent, currPixelTime);
                     if (eventAddOns != null) {
                         for (Iterator<String> iter = eventAddOns.keySet().iterator(); iter.hasNext();) {
@@ -207,7 +215,7 @@ public class TimeGraphTooltipHandler {
                             eventEndTime = eventStartTime + eventDuration;
                         }
 
-                        Resolution res = Resolution.NANOSEC;
+                        // Resolution res = Resolution.NANOSEC;
                         TimeFormat tf = fTimeDataProvider.getTimeFormat();
                         if (tf == TimeFormat.CALENDAR) {
                             addItem(Messages.TmfTimeTipHandler_TRACE_DATE, eventStartTime > -1 ?
@@ -216,15 +224,15 @@ public class TimeGraphTooltipHandler {
                         }
                         if (eventDuration > 0) {
                             addItem(Messages.TmfTimeTipHandler_TRACE_START_TIME, eventStartTime > -1 ?
-                                    Utils.formatTime(eventStartTime, tf, res)
+                                    Utils.formatTimestamp(eventStartTime, fTimeGraphProvider.getTimeUnit())
                                     : "?"); //$NON-NLS-1$
 
                             addItem(Messages.TmfTimeTipHandler_TRACE_STOP_TIME, eventEndTime > -1 ?
-                                    Utils.formatTime(eventEndTime, tf, res)
+                                    Utils.formatTimestamp(eventEndTime, fTimeGraphProvider.getTimeUnit())
                                     : "?"); //$NON-NLS-1$
                         } else {
                             addItem(Messages.TmfTimeTipHandler_TRACE_EVENT_TIME, eventStartTime > -1 ?
-                                    Utils.formatTime(eventStartTime, tf, res)
+                                    Utils.formatTimestamp(eventStartTime, fTimeGraphProvider.getTimeUnit())
                                     : "?"); //$NON-NLS-1$
                         }
 
@@ -234,18 +242,23 @@ public class TimeGraphTooltipHandler {
                                 tf = TimeFormat.RELATIVE;
                             }
                             addItem(Messages.TmfTimeTipHandler_DURATION, eventDuration > -1 ?
-                                    Utils.formatTime(eventDuration, tf, res)
+                                    Utils.formatTimestamp(eventDuration, fTimeGraphProvider.getTimeUnit())
                                     : "?"); //$NON-NLS-1$
                         }
                     }
                 }
             }
 
+            /*
+             * @Framesoc Using the Utils.formatTimestamp() method instead of the
+             * Utils.formatTime()
+             */
             private void fillValues(ILinkEvent linkEvent) {
                 addItem(Messages.TmfTimeTipHandler_LINK_SOURCE, linkEvent.getEntry().getName());
                 addItem(Messages.TmfTimeTipHandler_LINK_TARGET, linkEvent.getDestinationEntry().getName());
 
-                // This block receives a list of <String, String> values to be added to the tip table
+                // This block receives a list of <String, String> values to be
+                // added to the tip table
                 Map<String, String> eventAddOns = fTimeGraphProvider.getEventHoverToolTipInfo(linkEvent);
                 if (eventAddOns != null) {
                     for (Iterator<String> iter = eventAddOns.keySet().iterator(); iter.hasNext();) {
@@ -258,21 +271,21 @@ public class TimeGraphTooltipHandler {
                     long duration = linkEvent.getDuration();
                     long targetTime = sourceTime + duration;
 
-                    Resolution res = Resolution.NANOSEC;
+                    // Resolution res = Resolution.NANOSEC;
                     TimeFormat tf = fTimeDataProvider.getTimeFormat();
                     if (tf == TimeFormat.CALENDAR) {
                         addItem(Messages.TmfTimeTipHandler_TRACE_DATE, Utils.formatDate(sourceTime));
                     }
                     if (duration > 0) {
-                        addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, Utils.formatTime(sourceTime, tf, res));
-                        addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, Utils.formatTime(targetTime, tf, res));
+                        addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, Utils.formatTimestamp(sourceTime, fTimeGraphProvider.getTimeUnit()));
+                        addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, Utils.formatTimestamp(targetTime, fTimeGraphProvider.getTimeUnit()));
                         // Duration in relative format in any case
                         if (tf == TimeFormat.CALENDAR) {
                             tf = TimeFormat.RELATIVE;
                         }
-                        addItem(Messages.TmfTimeTipHandler_DURATION, Utils.formatTime(duration, tf, res));
+                        addItem(Messages.TmfTimeTipHandler_DURATION, Utils.formatTimestamp(duration, fTimeGraphProvider.getTimeUnit()));
                     } else {
-                        addItem(Messages.TmfTimeTipHandler_LINK_TIME, Utils.formatTime(sourceTime, tf, res));
+                        addItem(Messages.TmfTimeTipHandler_LINK_TIME, Utils.formatTimestamp(sourceTime, fTimeGraphProvider.getTimeUnit()));
                     }
                 }
             }

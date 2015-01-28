@@ -32,7 +32,6 @@ import fr.inria.linuxtools.tmf.core.timestamp.TmfTimePreferences;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
-import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
  * General utilities and definitions used by the time graph widget
@@ -53,12 +52,14 @@ public class Utils {
 
         /**
          * Absolute timestamp (ie, relative to the Unix epoch)
+         *
          * @since 2.0
          */
         CALENDAR,
 
         /**
          * Timestamp displayed as a simple number
+         *
          * @since 2.0
          */
         NUMBER,
@@ -285,22 +286,27 @@ public class Utils {
     }
 
     /**
-     * Draw text in a rectangle, trimming the text to prevent exceeding the specified width.
+     * Draw text in a rectangle, trimming the text to prevent exceeding the
+     * specified width.
      *
      * @param gc
      *            The SWT GC object
      * @param text
      *            The string to be drawn
      * @param x
-     *            The x coordinate of the top left corner of the rectangular area where the text is to be drawn
+     *            The x coordinate of the top left corner of the rectangular
+     *            area where the text is to be drawn
      * @param y
-     *            The y coordinate of the top left corner of the rectangular area where the text is to be drawn
+     *            The y coordinate of the top left corner of the rectangular
+     *            area where the text is to be drawn
      * @param width
      *            The width of the area to be drawn
      * @param isCentered
-     *            If <code>true</code> the text will be centered in the available width if space permits
+     *            If <code>true</code> the text will be centered in the
+     *            available width if space permits
      * @param isTransparent
-     *            If <code>true</code> the background will be transparent, otherwise it will be opaque
+     *            If <code>true</code> the background will be transparent,
+     *            otherwise it will be opaque
      * @return The number of characters written
      *
      * @since 2.0
@@ -331,9 +337,12 @@ public class Utils {
     /**
      * Formats time in format: MM:SS:NNN
      *
-     * @param time time
-     * @param format  0: MMMM:ss:nnnnnnnnn, 1: HH:MM:ss MMM.mmmm.nnn
-     * @param resolution the resolution
+     * @param time
+     *            time
+     * @param format
+     *            0: MMMM:ss:nnnnnnnnn, 1: HH:MM:ss MMM.mmmm.nnn
+     * @param resolution
+     *            the resolution
      * @return the formatted time
      */
     public static String formatTime(long time, TimeFormat format, Resolution resolution) {
@@ -455,7 +464,7 @@ public class Utils {
     }
 
     static ITimeEvent getFirstEvent(ITimeGraphEntry entry) {
-        if (null == entry || ! entry.hasTimeEvents()) {
+        if (null == entry || !entry.hasTimeEvents()) {
             return null;
         }
         Iterator<ITimeEvent> iterator = entry.getTimeEventsIterator();
@@ -482,7 +491,7 @@ public class Utils {
      * @since 3.0
      */
     public static ITimeEvent findEvent(ITimeGraphEntry entry, long time, int n) {
-        if (null == entry || ! entry.hasTimeEvents()) {
+        if (null == entry || !entry.hasTimeEvents()) {
             return null;
         }
         Iterator<ITimeEvent> iterator = entry.getTimeEventsIterator();
@@ -503,8 +512,9 @@ public class Utils {
 
             /**
              * Framesoc can have punctual events inside states or states inside
-             * other states. So the current event is the latest event intersecting
-             * the time.
+             * other states. So the current event is the latest event
+             * intersecting the time.
+             *
              * @Framesoc
              */
             if (nextEvent.getTime() <= time && (nextEvent.getTime() + nextEvent.getDuration()) >= time) {
@@ -513,22 +523,22 @@ public class Utils {
             }
         }
 
-        if (n == -1) { //previous
+        if (n == -1) { // previous
             if (currEvent != null && currEvent.getTime() + currEvent.getDuration() >= time) {
                 return prevEvent;
             }
             return currEvent;
-        } else if (n == 0) { //current
+        } else if (n == 0) { // current
             if (currEvent != null && currEvent.getTime() + currEvent.getDuration() >= time) {
                 return currEvent;
             }
             return null;
-        } else if (n == 1) { //next
+        } else if (n == 1) { // next
             if (nextEvent != null && nextEvent.getTime() > time) {
                 return nextEvent;
             }
             return null;
-        } else if (n == 2) { //current or previous when in empty space
+        } else if (n == 2) { // current or previous when in empty space
             return currEvent;
         }
 
@@ -608,7 +618,7 @@ public class Utils {
         }
         StringBuffer sig = new StringBuffer(""); //$NON-NLS-1$
         for (int j = 0; j < dim; j++)
-         {
+        {
             sig.append("["); //$NON-NLS-1$
         }
         if (type.equals("boolean")) { //$NON-NLS-1$
@@ -644,9 +654,8 @@ public class Utils {
      * @param d2
      *            Second double
      * @return 1 if they are different, and 0 if they are *exactly* the same.
-     *         Because of the way doubles are stored, it's possible for the
-     *         same number obtained in two different ways to actually look
-     *         different.
+     *         Because of the way doubles are stored, it's possible for the same
+     *         number obtained in two different ways to actually look different.
      */
     public static int compare(double d1, double d2) {
         if (d1 > d2) {
@@ -754,21 +763,19 @@ public class Utils {
     }
 
     /**
-     * TODO: use this in tooltip handler, after enabling the tool tip handler
-     * to get the time unit.
-     * A solution could be to get the time unit via the presentation provider.
-     * We can set the unit in the presentation provider, since is a member of
-     * the AbstractGanttView.
-     *
      * @Framesoc
-     * @param time timestamp
-     * @param unit time unit
+     * @param time
+     *            timestamp
+     * @param unit
+     *            time unit
      * @return the formatted string
      */
     public static String formatTimestamp(long time, TimeUnit unit) {
-        TimestampFormat format = new TimestampFormat();
-        format.setTimeUnit(unit);
-        return format.format(time);
+        StringBuilder sb = new StringBuilder();
+        sb.append(time);
+        sb.append(" "); //$NON-NLS-1$
+        sb.append(unit.getLabel());
+        return sb.toString();
     }
 
 }

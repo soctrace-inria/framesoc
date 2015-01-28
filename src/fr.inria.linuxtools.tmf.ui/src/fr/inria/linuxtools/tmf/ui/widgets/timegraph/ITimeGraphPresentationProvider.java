@@ -20,6 +20,7 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 
 /**
  * Interface for the time graph widget provider
@@ -174,5 +175,18 @@ public interface ITimeGraphPresentationProvider {
      */
     public boolean displayTimesInTooltip();
 
+
+    /**
+     * @Framesoc
+     * Set the time unit
+     * @param unit the time unit to set
+     */
+    public void setTimeUnit(TimeUnit unit);
+
+    /**
+     * @Framesoc
+     * @return the time unit
+     */
+    public TimeUnit getTimeUnit();
 
 }
