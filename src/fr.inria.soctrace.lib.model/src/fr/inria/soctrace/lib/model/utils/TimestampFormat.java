@@ -67,15 +67,18 @@ public class TimestampFormat extends NumberFormat {
 			tmp /= 1000.0;
 			eng++;
 		}
+		// compute the real exponent, when expressing the number in seconds
 		int realExp = eng * 3 + unit.getInt();
 		if (realExp > 0) {
 			// number is more than seconds
 			tmp *= Math.pow(10, realExp);
 			if (realExp < 3) {
 				DecimalFormat df = new DecimalFormat("###.#");
+				df.setMaximumFractionDigits(3);
 				toAppendTo.append(df.format(tmp));
 			} else {
 				DecimalFormat df = new DecimalFormat("###.#E0");
+				df.setMaximumFractionDigits(3);
 				df.setMaximumIntegerDigits(3);
 				toAppendTo.append(df.format(tmp));
 			}
@@ -83,6 +86,7 @@ public class TimestampFormat extends NumberFormat {
 		} else {
 			// number is seconds or less
 			DecimalFormat df = new DecimalFormat("###.#");
+			df.setMaximumFractionDigits(3);
 			toAppendTo.append(df.format(tmp));
 			toAppendTo.append(" ");
 			toAppendTo.append(TimeUnit.getLabel(realExp));
