@@ -58,6 +58,8 @@ public class MergedItems {
 		for (String baseItem : baseItems) {
 			label2item.remove(baseItem);
 		}
+		// dispose the color
+		mergedItems.get(item).getColor().dispose();
 		mergedItems.remove(item);
 	}
 

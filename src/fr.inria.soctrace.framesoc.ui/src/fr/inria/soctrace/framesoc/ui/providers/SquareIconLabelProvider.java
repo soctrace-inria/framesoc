@@ -50,7 +50,6 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 			return ((TreeItem) event.item).getBounds(event.index);
 		}
 		if (event.item instanceof TableItem) {
-			// TODO test for tables
 			return ((TableItem) event.item).getBounds(event.index);
 		}
 		return null;
