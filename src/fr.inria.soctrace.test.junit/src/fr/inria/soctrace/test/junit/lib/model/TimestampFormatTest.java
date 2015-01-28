@@ -27,7 +27,7 @@ public class TimestampFormatTest {
 		}
 	}
 	
-	@Test
+	@Test 
 	public void testFormatLongNs() {
 		TimeUnit ns = TimeUnit.NANOSECONDS;
 		List<FormattedNumber<Long>> list = new ArrayList<>();
@@ -50,7 +50,7 @@ public class TimestampFormatTest {
 		}
 	}
 	
-	@Test
+	@Test 
 	public void testFormatLongUs() {
 		TimeUnit us = TimeUnit.MICROSECONDS;
 		List<FormattedNumber<Long>> list = new ArrayList<>();
