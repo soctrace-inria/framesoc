@@ -312,7 +312,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 	 * @return a EventProducer 
 	 * @throws SoCTraceException
 	 */
-	protected EventProducer getEventProducer(int id) throws SoCTraceException {
+	protected EventProducer getEventProducer(long id) throws SoCTraceException {
 		if (eventProducerCache==null) {
 			eventProducerCache = new ModelElementCache();
 			eventProducerCache.addElementMap(EventProducer.class);
@@ -395,10 +395,10 @@ public class EventQuery extends SelfDefiningElementQuery {
 	 */
 	private Event rebuildEvent(ResultSet rs) throws SQLException, SoCTraceException {
 		int category = rs.getInt(7);
-		Event e = Event.createCategorizedEvent(category, rs.getInt(1));
+		Event e = Event.createCategorizedEvent(category, rs.getLong(1));
 		TraceDBObject traceDB = (TraceDBObject)dbObj;
-		EventType et = traceDB.getEventTypeCache().get(EventType.class, rs.getInt(2));
-		EventProducer s = getEventProducer(rs.getInt(3));
+		EventType et = traceDB.getEventTypeCache().get(EventType.class, rs.getLong(2));
+		EventProducer s = getEventProducer(rs.getLong(3));
 		e.setEventProducer(s); 
 		e.setCategory(rs.getInt(7));
 		e.setType(et);
@@ -423,10 +423,10 @@ public class EventQuery extends SelfDefiningElementQuery {
 	 */
 	private EventParam rebuildEventParam(ResultSet prs, Map<Long, Event> tmp) 
 			throws SQLException, SoCTraceException {
-		EventParam ep = new EventParam(prs.getInt(1));
-		ep.setEvent(tmp.get(prs.getInt(2)));
+		EventParam ep = new EventParam(prs.getLong(1));
+		ep.setEvent(tmp.get(prs.getLong(2)));
 		TraceDBObject traceDB = (TraceDBObject)dbObj;
-		ep.setEventParamType(traceDB.getEventTypeCache().get(EventParamType.class, prs.getInt(3)));
+		ep.setEventParamType(traceDB.getEventTypeCache().get(EventParamType.class, prs.getLong(3)));
 		ep.setValue(prs.getString(4));
 		return ep;
 	}

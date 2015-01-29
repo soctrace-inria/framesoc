@@ -69,11 +69,11 @@ public class EventProducerQuery extends ElementQuery {
 			
 			List<EventProducer> eventProducers = new LinkedList<EventProducer>();
 			while (rs.next()) {
-				EventProducer s = new EventProducer(rs.getInt(1));
+				EventProducer s = new EventProducer(rs.getLong(1));
 				s.setType(rs.getString(2));
 				s.setLocalId(rs.getString(3));
 				s.setName(rs.getString(4));
-				s.setParentId(rs.getInt(5));
+				s.setParentId(rs.getLong(5));
 				eventProducers.add(s);
 			}
 			stm.close();

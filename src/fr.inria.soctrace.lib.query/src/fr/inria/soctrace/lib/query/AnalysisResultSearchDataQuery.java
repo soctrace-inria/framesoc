@@ -67,7 +67,7 @@ public class AnalysisResultSearchDataQuery extends AnalysisResultDataQuery {
 			ValueListString vls = new ValueListString();
 			while (rs.next()) {
 				// add target entity ID to vls
-				vls.addValue(String.valueOf(rs.getInt(2)));
+				vls.addValue(String.valueOf(rs.getLong(2)));
 			}
 			stm.close();
 		

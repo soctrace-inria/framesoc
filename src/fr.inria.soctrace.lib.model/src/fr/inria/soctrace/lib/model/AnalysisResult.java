@@ -71,7 +71,7 @@ public class AnalysisResult implements IModelElement {
 	/**
 	 * @param id the id to set
 	 */
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	

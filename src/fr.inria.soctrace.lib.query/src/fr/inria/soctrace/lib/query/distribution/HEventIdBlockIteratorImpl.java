@@ -52,7 +52,7 @@ class HEventIdBlockIteratorImpl implements HEventIterator {
 	private long startTimestamp = Long.MIN_VALUE;
 	private long endTimestamp = Long.MIN_VALUE;
 	private boolean hasNext = true;
-	private int nextId = Integer.MIN_VALUE;
+	private long nextId = Integer.MIN_VALUE;
 	
 	private final static int MAXSIZE = 1000000;
 	
@@ -110,7 +110,7 @@ class HEventIdBlockIteratorImpl implements HEventIterator {
 			int count = 0;
 			while (rs.next()) {
 				HEvent he = new HEvent();
-				nextId = rs.getInt(1);
+				nextId = rs.getLong(1);
 				he.timestamp = rs.getLong(2); 
 				list.add(he);
 				count++;

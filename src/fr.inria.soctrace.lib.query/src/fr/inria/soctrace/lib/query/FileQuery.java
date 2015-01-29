@@ -69,7 +69,7 @@ public class FileQuery extends ElementQuery {
 			
 			List<File> files = new LinkedList<File>();
 			while (rs.next()) {
-				File f = new File(rs.getInt(1));
+				File f = new File(rs.getLong(1));
 				f.setPath(rs.getString(2));
 				f.setDescription(rs.getString(3));
 				files.add(f);

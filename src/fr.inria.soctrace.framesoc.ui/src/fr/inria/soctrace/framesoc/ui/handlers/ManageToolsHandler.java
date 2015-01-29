@@ -76,7 +76,7 @@ public class ManageToolsHandler extends AbstractHandler {
 			sysDB.commit(); 
 			
 			// in newTools there are only added tools
-			int baseNewId = sysDB.getMaxId(FramesocTable.TOOL.toString(), "ID");
+			long baseNewId = sysDB.getMaxId(FramesocTable.TOOL.toString(), "ID");
 			Iterator<Entry<Long, Tool>> iterator = newTools.entrySet().iterator();
 			while (iterator.hasNext()) {
 				Tool tmp = iterator.next().getValue();

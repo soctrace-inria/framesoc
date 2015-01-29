@@ -78,7 +78,7 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	/**
 	 * Map: GID - List of Entity son id with sequence number
 	 */
-	Map<Integer, List<Entity>> gidEntityListMap = new HashMap<Integer, List<Entity>>();
+	Map<Long, List<Entity>> gidEntityListMap = new HashMap<>();
 
 	/**
 	 * Map: Entity Class - Entity ID - Entity object
@@ -164,9 +164,9 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		ResultSet rs = stm.executeQuery(query);
 
 		while (rs.next()) {
-			int mid = rs.getInt(2); // mapping id
-			int gid = rs.getInt(3);
-			int eid = rs.getInt(4);
+			long mid = rs.getLong(2); // mapping id
+			long gid = rs.getLong(3);
+			long eid = rs.getLong(4);
 			int seq = rs.getInt(5);
 			if (!gidEntityListMap.containsKey(gid))
 				gidEntityListMap.put(gid, new LinkedList<Entity>());
@@ -252,8 +252,8 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	 */
 	private void buildMapping() throws SoCTraceException {
 
-		Set<Integer> gidSet = gidEntityListMap.keySet();
-		for (Integer gid : gidSet) {
+		Set<Long> gidSet = gidEntityListMap.keySet();
+		for (Long gid : gidSet) {
 			Group g = gidGroupMap.get(gid);
 			boolean ordered = g.isOrdered();
 			Map<Long, IGroupable> tmp = eidEntityMap.get(g.getTargetClass());
@@ -278,7 +278,7 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	 */
 	private Group buildGroup(ResultSet rs) throws SQLException, SoCTraceException {
 		Group group = null;
-		int id = rs.getInt(2);
+		long id = rs.getLong(2);
 		String targetEntity = rs.getString(5);
 		boolean ordered = rs.getBoolean(7);
 
@@ -287,7 +287,7 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		else
 			group = new UnorderedGroup(id, getTargetClass(targetEntity));
 
-		group.setParentId(rs.getInt(3));
+		group.setParentId(rs.getLong(3));
 		group.setName(rs.getString(4));
 		group.setGroupingOperator(rs.getString(6));
 		group.setSequenceNumber(rs.getInt(8));

@@ -75,7 +75,7 @@ public class EventTypePieChartLoader extends EventPieChartLoader {
 			while (rs.next()) {
 				if (monitor.isCanceled())
 					return results;
-				int id = rs.getInt(1);
+				long id = rs.getLong(1);
 				double count = rs.getInt(2);
 				String etName = etMap.get(id);
 				if (!values.containsKey(etName))

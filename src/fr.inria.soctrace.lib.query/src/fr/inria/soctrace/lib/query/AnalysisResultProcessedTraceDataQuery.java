@@ -63,10 +63,10 @@ public class AnalysisResultProcessedTraceDataQuery extends AnalysisResultDataQue
 			Statement stm = traceDB.getConnection().createStatement();
 			ResultSet rs = stm.executeQuery(query);
 			
-			int processedId;
+			long processedId;
 			
 			if (rs.next()) {
-				processedId = rs.getInt(2);
+				processedId = rs.getLong(2);
 			} else {
 				return null;
 			}

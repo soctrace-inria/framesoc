@@ -69,7 +69,7 @@ public class ToolQuery extends ElementQuery {
 			
 			List<Tool> tools = new LinkedList<Tool>();
 			while (rs.next()) {
-				Tool t = new Tool(rs.getInt(1));
+				Tool t = new Tool(rs.getLong(1));
 				t.setName(rs.getString(2));
 				t.setType(rs.getString(3));
 				t.setCommand(rs.getString(4));

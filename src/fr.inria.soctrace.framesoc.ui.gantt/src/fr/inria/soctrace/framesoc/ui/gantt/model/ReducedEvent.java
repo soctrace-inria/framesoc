@@ -36,9 +36,9 @@ public class ReducedEvent {
 	public int category;
 	public long timestamp;
 	public long endTimestamp;
-	public int typeId;
-	public int producerId;
-	public int endProducerId;
+	public long typeId;
+	public long producerId;
+	public long endProducerId;
 	
 	/**
 	 * Builds a reduced event from the result set element obtained from a 
@@ -52,9 +52,9 @@ public class ReducedEvent {
 		category = res.getInt(ReducedEvent.CATEGORY);
 		timestamp = res.getLong(ReducedEvent.TIMESTAMP);
 		endTimestamp =res.getLong(ReducedEvent.END_TIMESTAMP);
-		typeId =res.getInt(ReducedEvent.TYPE_ID);
-		producerId = res.getInt(ReducedEvent.PRODUCER_ID);
-		endProducerId = res.getInt(ReducedEvent.END_PRODUCER_ID); 
+		typeId =res.getLong(ReducedEvent.TYPE_ID);
+		producerId = res.getLong(ReducedEvent.PRODUCER_ID);
+		endProducerId = res.getLong(ReducedEvent.END_PRODUCER_ID); 
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class EventTypeQuery extends ElementQuery {
 			List<EventType> elist = new LinkedList<EventType>();
 			ModelElementCache cache = ((TraceDBObject)dbObj).getEventTypeCache();
 			while (rs.next()) {
-				elist.add(cache.get(EventType.class, rs.getInt(1)));
+				elist.add(cache.get(EventType.class, rs.getLong(1)));
 			}
 			stm.close();
 			return elist;		

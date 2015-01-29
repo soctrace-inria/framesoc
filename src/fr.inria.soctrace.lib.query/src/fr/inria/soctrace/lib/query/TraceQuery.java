@@ -273,9 +273,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	 * @throws SoCTraceException
 	 */
 	private Trace rebuildTrace(ResultSet rs) throws SQLException, SoCTraceException {
-		Trace t = new Trace(rs.getInt(1));
+		Trace t = new Trace(rs.getLong(1));
 		SystemDBObject sysDB = (SystemDBObject)dbObj;
-		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getInt(2));
+		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getLong(2));
 		t.setType(tt);
 		// XXX see note at the bottom of ModelVisitor.java
 		t.setTracingDate(SoctraceUtils.stringToTimestamp(rs.getString(3)));
@@ -283,7 +283,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 		t.setBoard(rs.getString(5));
 		t.setOperatingSystem(rs.getString(6));
 		t.setNumberOfCpus(rs.getInt(7));
-		t.setNumberOfEvents(rs.getInt(8));
+		t.setNumberOfEvents(rs.getLong(8));
 		t.setOutputDevice(rs.getString(9));
 		t.setDescription(rs.getString(10));
 		t.setProcessed(rs.getBoolean(11));
@@ -306,10 +306,10 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	 */
 	private TraceParam rebuildTraceParam(ResultSet prs, Map<Long, Trace> tmp) 
 			throws SQLException, SoCTraceException {
-		TraceParam tp = new TraceParam(prs.getInt(1));
-		tp.setTrace(tmp.get(prs.getInt(2)));
+		TraceParam tp = new TraceParam(prs.getLong(1));
+		tp.setTrace(tmp.get(prs.getLong(2)));
 		SystemDBObject sysDB = (SystemDBObject)dbObj;
-		tp.setTraceParamType(sysDB.getTraceTypeCache().get(TraceParamType.class, prs.getInt(3)));
+		tp.setTraceParamType(sysDB.getTraceTypeCache().get(TraceParamType.class, prs.getLong(3)));
 		tp.setValue(prs.getString(4));
 		return tp;
 	}

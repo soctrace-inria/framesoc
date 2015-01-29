@@ -89,7 +89,7 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 			psd.statement.setString(4, trace.getBoard());
 			psd.statement.setString(5, trace.getOperatingSystem());
 			psd.statement.setInt(6, trace.getNumberOfCpus());
-			psd.statement.setInt(7, trace.getNumberOfEvents());
+			psd.statement.setLong(7, trace.getNumberOfEvents());
 			psd.statement.setString(8, trace.getOutputDevice());
 			psd.statement.setString(9, trace.getDescription());
 			psd.statement.setBoolean(10, trace.isProcessed());

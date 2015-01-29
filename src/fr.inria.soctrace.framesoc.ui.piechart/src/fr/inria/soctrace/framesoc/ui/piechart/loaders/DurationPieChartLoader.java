@@ -65,11 +65,11 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	 */
 	private static class PendingDuration {
 
-		public int typeId;
+		public long typeId;
 		public long start;
 		public long end;
 
-		public PendingDuration(int type) {
+		public PendingDuration(long type) {
 			typeId = type;
 		}
 
@@ -230,7 +230,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 			while (rs.next()) {
 				if (monitor.isCanceled())
 					return results;
-				PendingDuration d = new PendingDuration(rs.getInt(1));
+				PendingDuration d = new PendingDuration(rs.getLong(1));
 				d.start = rs.getLong(2);
 				d.end = rs.getLong(3);
 				managePendingDuration(d, t0, t1, values, pending);

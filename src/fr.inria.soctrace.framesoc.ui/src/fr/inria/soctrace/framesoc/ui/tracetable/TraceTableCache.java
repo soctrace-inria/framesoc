@@ -127,7 +127,7 @@ public class TraceTableCache {
 					return Integer.compare(o1.getTrace().getNumberOfCpus(), o2.getTrace()
 							.getNumberOfCpus());
 				case NUMBER_OF_EVENTS:
-					return Integer.compare(o1.getTrace().getNumberOfEvents(), o2.getTrace()
+					return Long.compare(o1.getTrace().getNumberOfEvents(), o2.getTrace()
 							.getNumberOfEvents());
 				case TRACING_DATE:
 					return o1.getTrace().getTracingDate().compareTo(o2.getTrace().getTracingDate());

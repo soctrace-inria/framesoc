@@ -20,8 +20,8 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeEvent;
  */
 public class GanttEvent extends TimeEvent {
 
-	public GanttEvent(ITimeGraphEntry entry, long time, long duration, int value) {
-		super(entry, time, duration, value);
+	public GanttEvent(ITimeGraphEntry entry, long time, long duration, long value) {
+		super(entry, time, duration, ((Long)value).intValue());
 	}
 
 	public GanttEvent(ITimeGraphEntry entry, long time, long duration) {

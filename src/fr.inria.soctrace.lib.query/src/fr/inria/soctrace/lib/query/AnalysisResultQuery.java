@@ -116,10 +116,10 @@ public class AnalysisResultQuery extends ElementQuery {
 			ResultSet rs = stm.executeQuery(query);
 
 			List<AnalysisResult> analysisResults = new LinkedList<AnalysisResult>();
-			Map<Integer, Integer> arIdToolId = new HashMap<Integer, Integer>(); 
+			Map<Long, Long> arIdToolId = new HashMap<>(); 
 			while (rs.next()) {
-				Integer arId = rs.getInt(1);
-				Integer toolId = rs.getInt(2);
+				Long arId = rs.getLong(1);
+				Long toolId = rs.getLong(2);
 				AnalysisResult ar = new AnalysisResult(arId);
 				ar.setType(rs.getString(3));
 				// XXX see note at the bottom of ModelVisitor.java
@@ -174,11 +174,11 @@ public class AnalysisResultQuery extends ElementQuery {
 	 * @throws SoCTraceException 
 	 */
 	private void loadToolsIntoAnalysisResult(List<AnalysisResult> analysisResults,
-			Map<Integer, Integer> arIdToolId) throws SoCTraceException {
+			Map<Long, Long> arIdToolId) throws SoCTraceException {
 
 		// prepare tool id list: only tools not present
 		ValueListString vls = new ValueListString();
-		for(Integer toolId: arIdToolId.values()) {
+		for(Long toolId: arIdToolId.values()) {
 			if (toolCache.containsKey(toolId))
 				continue;
 			vls.addValue(String.valueOf(toolId));
@@ -195,7 +195,7 @@ public class AnalysisResultQuery extends ElementQuery {
 				ResultSet rs = stm.executeQuery("SELECT * FROM " + FramesocTable.TOOL+ 
 						" WHERE ID IN " + vls.getValueString());
 				while (rs.next()) {
-					Tool t = new Tool(rs.getInt(1));
+					Tool t = new Tool(rs.getLong(1));
 					t.setName(rs.getString(2));
 					t.setType(rs.getString(3));
 					t.setCommand(rs.getString(4));

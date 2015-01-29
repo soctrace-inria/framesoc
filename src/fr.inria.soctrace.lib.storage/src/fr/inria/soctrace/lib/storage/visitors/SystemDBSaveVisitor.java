@@ -91,7 +91,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 			psd.statement.setString(5, trace.getBoard());
 			psd.statement.setString(6, trace.getOperatingSystem());
 			psd.statement.setInt(7, trace.getNumberOfCpus());
-			psd.statement.setInt(8, trace.getNumberOfEvents());
+			psd.statement.setLong(8, trace.getNumberOfEvents());
 			psd.statement.setString(9, trace.getOutputDevice());
 			psd.statement.setString(10, trace.getDescription());
 			psd.statement.setBoolean(11, trace.isProcessed());

@@ -70,7 +70,7 @@ public class EventParamTypeQuery extends ElementQuery {
 			List<EventParamType> elist = new LinkedList<EventParamType>();
 			ModelElementCache cache = ((TraceDBObject)dbObj).getEventTypeCache();
 			while (rs.next()) {
-				elist.add(cache.get(EventParamType.class, rs.getInt(1)));
+				elist.add(cache.get(EventParamType.class, rs.getLong(1)));
 			}
 			stm.close();
 			return elist;		

@@ -55,8 +55,8 @@ public class TimeLinkEvent extends TimeEvent implements ILinkEvent {
      *            The status assigned to the event
      */
     public TimeLinkEvent(ITimeGraphEntry src, ITimeGraphEntry dst, long time, long duration,
-            int value) {
-        super(src, time, duration, value);
+            long value) {
+        super(src, time, duration, ((Long)value).intValue());
         fDestEntry = dst;
     }
 

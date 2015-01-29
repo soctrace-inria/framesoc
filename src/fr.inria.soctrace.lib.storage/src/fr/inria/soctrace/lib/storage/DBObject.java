@@ -251,13 +251,13 @@ public abstract class DBObject {
 	 * @return the max id
 	 * @throws SoCTraceException
 	 */
-	public synchronized int getMaxId(String tableName, String idColumnName) throws SoCTraceException {
+	public synchronized long getMaxId(String tableName, String idColumnName) throws SoCTraceException {
 		try {
 			Statement stm = dbManager.getConnection().createStatement();
 			ResultSet rs = stm.executeQuery("SELECT MAX("+ idColumnName +") FROM " + tableName);
-			int max = 0;
+			long max = 0;
 			if (rs.next()) {
-				max = rs.getInt(1);
+				max = rs.getLong(1);
 			}
 			stm.close();
 			return max;

@@ -44,7 +44,7 @@ public class Trace implements IModelElement, Serializable {
 	private String board;
 	private String operatingSystem;
 	private int numberOfCpus;
-	private int numberOfEvents;
+	private long numberOfEvents;
 	private String outputDevice;
 	private String description;
 	private boolean processed;
@@ -262,14 +262,14 @@ public class Trace implements IModelElement, Serializable {
 	/**
 	 * @return the number of events
 	 */
-	public int getNumberOfEvents() {
+	public long getNumberOfEvents() {
 		return numberOfEvents;
 	}
 
 	/**
 	 * @param numberOfEvents The number of events to set
 	 */
-	public void setNumberOfEvents(int numberOfEvents) {
+	public void setNumberOfEvents(long numberOfEvents) {
 		this.numberOfEvents = numberOfEvents;
 	}
 
@@ -395,7 +395,7 @@ public class Trace implements IModelElement, Serializable {
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + numberOfCpus;
-		result = prime * result + numberOfEvents;
+		result = prime * result + (int) (numberOfEvents ^ (numberOfEvents >>> 32));;
 		result = prime * result + ((operatingSystem == null) ? 0 : operatingSystem.hashCode());
 		result = prime * result + ((outputDevice == null) ? 0 : outputDevice.hashCode());
 		result = prime * result + ((params == null) ? 0 : params.hashCode());

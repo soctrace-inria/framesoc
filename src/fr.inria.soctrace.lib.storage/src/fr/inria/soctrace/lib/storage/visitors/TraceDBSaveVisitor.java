@@ -68,7 +68,7 @@ public class TraceDBSaveVisitor extends ModelVisitor {
 	 * visit(AnalysisResult) it gets incremented. - At each postClearBatches it gets the (updated)
 	 * MAX ID again.
 	 */
-	private int analysisResultLastId;
+	private long analysisResultLastId;
 
 	/**
 	 * The constructor.

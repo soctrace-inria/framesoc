@@ -80,8 +80,8 @@ public class TimeSliceEntityLoader {
 
 			long min = traceDB.getMinTimestamp();
 			long max = traceDB.getMaxTimestamp();
-			int eNum = trace.getNumberOfEvents();
-			int slices = Math.max(eNum/30, 1) + 1; // 30 has been taken from Benhur's thesis
+			long eNum = trace.getNumberOfEvents();
+			long slices = Math.max(eNum/30, 1) + 1; // 30 has been taken from Benhur's thesis
 			long sliceSize = Math.max((max-min)/slices, 1);
 
 			logger.debug("Min timestamp {}", min);

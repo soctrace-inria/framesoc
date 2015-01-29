@@ -70,7 +70,7 @@ public class TraceTypeQuery extends ElementQuery {
 			List<TraceType> elist = new LinkedList<TraceType>();
 			ModelElementCache cache = ((SystemDBObject)dbObj).getTraceTypeCache();
 			while (rs.next()) {
-				elist.add(cache.get(TraceType.class, rs.getInt(1)));
+				elist.add(cache.get(TraceType.class, rs.getLong(1)));
 			}
 			stm.close();
 			return elist;		

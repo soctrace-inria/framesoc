@@ -94,7 +94,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 		debug(query);
 		ResultSet rs = stm.executeQuery(query);
 		while (rs.next()) {
-			AnnotationType type = new AnnotationType(rs.getInt(2));
+			AnnotationType type = new AnnotationType(rs.getLong(2));
 			type.setName(rs.getString(3));
 			typeMap.put(type.getId(), type);
 		}		
@@ -115,8 +115,8 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 		debug(query);
 		ResultSet rs = stm.executeQuery(query);
 		while (rs.next()) {
-			AnnotationParamType paramType = new AnnotationParamType(rs.getInt(2));
-			AnnotationType type = typeMap.get(rs.getInt(3));
+			AnnotationParamType paramType = new AnnotationParamType(rs.getLong(2));
+			AnnotationType type = typeMap.get(rs.getLong(3));
 			paramType.setAnnotationType(type);
 			paramType.setName(rs.getString(4));
 			paramType.setType(rs.getString(5));
@@ -139,8 +139,8 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 		debug(query);
 		ResultSet rs = stm.executeQuery(query);
 		while (rs.next()) {
-			Annotation annotation = new Annotation(rs.getInt(2));
-			AnnotationType type = typeMap.get(rs.getInt(3));
+			Annotation annotation = new Annotation(rs.getLong(2));
+			AnnotationType type = typeMap.get(rs.getLong(3));
 			annotation.setAnnotationType(type);
 			annotation.setName(rs.getString(4));
 			annotationMap.put(annotation.getId(), annotation);
@@ -161,9 +161,9 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 		debug(query);
 		ResultSet rs = stm.executeQuery(query);
 		while (rs.next()) {
-			AnnotationParam param = new AnnotationParam(rs.getInt(2));
-			Annotation annotation = annotationMap.get(rs.getInt(3));
-			AnnotationParamType paramType = paramTypeMap.get(rs.getInt(4));
+			AnnotationParam param = new AnnotationParam(rs.getLong(2));
+			Annotation annotation = annotationMap.get(rs.getLong(3));
+			AnnotationParamType paramType = paramTypeMap.get(rs.getLong(4));
 			param.setAnnotation(annotation);
 			param.setAnnotationParamType(paramType);
 			param.setValue(rs.getString(5));

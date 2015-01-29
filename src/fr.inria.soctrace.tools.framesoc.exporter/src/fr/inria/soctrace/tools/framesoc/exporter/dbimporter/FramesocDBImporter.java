@@ -276,15 +276,15 @@ public class FramesocDBImporter extends FramesocTool {
 			});
 		}
 
-		private Map<Integer, Integer> getOldToolIdMapping(TraceDBObject traceDB)
+		private Map<Long, Long> getOldToolIdMapping(TraceDBObject traceDB)
 				throws SoCTraceException {
-			Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+			Map<Long, Long> map = new HashMap<>();
 			try {
 				Statement stm = traceDB.getConnection().createStatement();
 				ResultSet rs = stm.executeQuery("SELECT ID, TOOL_ID FROM "
 						+ FramesocTable.ANALYSIS_RESULT);
 				while (rs.next()) {
-					map.put(rs.getInt(1), rs.getInt(2));
+					map.put(rs.getLong(1), rs.getLong(2));
 				}
 				stm.close();
 			} catch (SQLException e) {
@@ -330,9 +330,9 @@ public class FramesocDBImporter extends FramesocTool {
 						}
 						// analysis result with matching tool
 						final List<AnalysisResult> arToShow = new LinkedList<AnalysisResult>();
-						Map<Integer, Integer> map = getOldToolIdMapping(traceDB);
+						Map<Long, Long> map = getOldToolIdMapping(traceDB);
 						for (AnalysisResult ar : arl) {
-							int oldToolId = map.get(ar.getId());
+							long oldToolId = map.get(ar.getId());
 							if (oldId2newId.containsKey(oldToolId)) {
 								// update the tool to match the new system one
 								ar.setTool(id2tool.get(oldId2newId.get(oldToolId)));
