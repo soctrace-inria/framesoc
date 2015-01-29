@@ -33,13 +33,13 @@ public class ModelElementCache {
 	/**
 	 * Map of element maps.
 	 */
-	private final HashMap<Class<? extends IModelElement>, Map<Integer, IModelElement>> map;
+	private final HashMap<Class<? extends IModelElement>, Map<Long, IModelElement>> map;
 	
 	/**
 	 * The constructor
 	 */
 	public ModelElementCache() {
-		map = new HashMap<Class<? extends IModelElement>, Map<Integer, IModelElement>>();
+		map = new HashMap<>();
 	}
 	
 	/**
@@ -49,7 +49,7 @@ public class ModelElementCache {
 	public void addElementMap(Class<? extends IModelElement> elementClass) {
 		if ( map.containsKey(elementClass) )
 			return;
-		map.put(elementClass, new HashMap<Integer, IModelElement>());
+		map.put(elementClass, new HashMap<Long, IModelElement>());
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class ModelElementCache {
 	 * @param elementClass the element class.
 	 * @return the map or null is not present
 	 */
-	public Map<Integer, IModelElement> getElementMap(Class<? extends IModelElement> elementClass) {
+	public Map<Long, IModelElement> getElementMap(Class<? extends IModelElement> elementClass) {
 		if ( map.containsKey(elementClass) )
 			return map.get(elementClass);
 		return null;
@@ -69,7 +69,7 @@ public class ModelElementCache {
 	 */
 	public <T extends IModelElement> void put(T obj) {
 		Class<? extends IModelElement> elementClass = obj.getClass();
-		Map<Integer, IModelElement> objMap = map.get(elementClass);
+		Map<Long, IModelElement> objMap = map.get(elementClass);
 		if(objMap != null){
 			objMap.put(obj.getId(), obj);
 		}
@@ -82,8 +82,8 @@ public class ModelElementCache {
 	 * @return the object of the given class having the given id
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends IModelElement> T get(Class<T> elementClass, int id){
-		Map<Integer, IModelElement> objMap = map.get(elementClass);
+	public <T extends IModelElement> T get(Class<T> elementClass, long id){
+		Map<Long, IModelElement> objMap = map.get(elementClass);
 		if (objMap != null) {
 			IModelElement ref = objMap.get(id);
 			return (T) ref;
@@ -97,7 +97,7 @@ public class ModelElementCache {
 	 */
 	public <T extends IModelElement> void remove(T obj) {
 		Class<? extends IModelElement> elementClass = obj.getClass();
-		Map<Integer, IModelElement> objMap = map.get(elementClass);
+		Map<Long, IModelElement> objMap = map.get(elementClass);
 		if (objMap != null) {
 			objMap.remove(obj.getId());
 		}
@@ -116,7 +116,7 @@ public class ModelElementCache {
 	public void print() {
 	    for (Class<? extends IModelElement> c : map.keySet()) {
 	        System.out.println("Class: " + c);
-	    	Map<Integer, IModelElement> objMap = map.get(c);
+	    	Map<Long, IModelElement> objMap = map.get(c);
 	        Iterator<?> it = objMap.entrySet().iterator();
 	        while (it.hasNext()) {
 	            @SuppressWarnings("rawtypes")

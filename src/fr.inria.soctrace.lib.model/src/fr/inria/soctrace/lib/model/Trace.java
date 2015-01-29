@@ -37,7 +37,7 @@ public class Trace implements IModelElement, Serializable {
 	public static final String UNKNOWN_STRING = "UNKNOWN";
 	public static final int UNKNOWN_INT = -1;
 	
-	private final int id;
+	private final long id;
 	private TraceType type;
 	private Timestamp tracingDate;
 	private String tracedApplication;
@@ -61,7 +61,7 @@ public class Trace implements IModelElement, Serializable {
 	 * 
 	 * @param id the trace unique id
 	 */
-	public Trace(int id) {
+	public Trace(long id) {
 		this.id = id;
 		this.params = new ArrayList<TraceParam>();
 		// default values
@@ -294,7 +294,7 @@ public class Trace implements IModelElement, Serializable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 			
@@ -393,7 +393,7 @@ public class Trace implements IModelElement, Serializable {
 		result = prime * result + ((board == null) ? 0 : board.hashCode());
 		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + numberOfCpus;
 		result = prime * result + numberOfEvents;
 		result = prime * result + ((operatingSystem == null) ? 0 : operatingSystem.hashCode());

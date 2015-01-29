@@ -34,7 +34,7 @@ public class EPHierarchyDescMap {
 	/**
 	 * Map of descriptors, accessible by EP id.
 	 */
-	private Map<Integer, EPHierarchyDesc> descriptors = null;
+	private Map<Long, EPHierarchyDesc> descriptors = null;
 	
 	/**
 	 * Tree virtual root, to navigate the hierarchy as a tree.
@@ -56,7 +56,7 @@ public class EPHierarchyDescMap {
 	 * @return the descriptor map
 	 * @throws SoCTraceException 
 	 */
-	public Map<Integer, EPHierarchyDesc> getHierarchyDescMap() throws SoCTraceException {
+	public Map<Long, EPHierarchyDesc> getHierarchyDescMap() throws SoCTraceException {
 		if (descriptors == null)
 			throw new SoCTraceException("Map not loaded!");
 		return descriptors;
@@ -95,7 +95,7 @@ public class EPHierarchyDescMap {
 	 * @param eps producers
 	 */
 	private void load(List<EventProducer> eps) {
-		descriptors = new HashMap<Integer, EPHierarchyDesc>();
+		descriptors = new HashMap<>();
 		
 		// first put in the map, filling only the parent
 		for (EventProducer ep: eps) {

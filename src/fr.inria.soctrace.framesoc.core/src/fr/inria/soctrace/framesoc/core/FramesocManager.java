@@ -403,7 +403,7 @@ public final class FramesocManager {
 			sysDB = getSystemDB();
 
 			// trace type id -> (trace param type name -> trace param type)
-			Map<Integer, Map<String, TraceParamType>> typeMap = new HashMap<>();
+			Map<Long, Map<String, TraceParamType>> typeMap = new HashMap<>();
 
 			// init all trace types
 			TraceTypeQuery ttQuery = new TraceTypeQuery(sysDB);

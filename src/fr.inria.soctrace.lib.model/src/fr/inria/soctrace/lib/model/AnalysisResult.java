@@ -24,7 +24,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class AnalysisResult implements IModelElement {
 
-	private int id;
+	private long id;
 	private Tool tool;
 	private String type;
 	private Timestamp date;
@@ -52,7 +52,7 @@ public class AnalysisResult implements IModelElement {
 	 * 
 	 * @param id the result unique id
 	 */
-	public AnalysisResult(int id) {
+	public AnalysisResult(long id) {
 		super();
 		this.id = id;
 		this.tool = null;
@@ -64,7 +64,7 @@ public class AnalysisResult implements IModelElement {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
@@ -179,7 +179,7 @@ public class AnalysisResult implements IModelElement {
 		result = prime * result + ((data == null) ? 0 : data.hashCode());
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((tool == null) ? 0 : tool.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
@@ -194,7 +194,7 @@ public class AnalysisResult implements IModelElement {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof AnalysisResult))
+		if (getClass() != obj.getClass())
 			return false;
 		AnalysisResult other = (AnalysisResult) obj;
 		if (data == null) {
@@ -226,5 +226,5 @@ public class AnalysisResult implements IModelElement {
 			return false;
 		return true;
 	}
-	
+
 }

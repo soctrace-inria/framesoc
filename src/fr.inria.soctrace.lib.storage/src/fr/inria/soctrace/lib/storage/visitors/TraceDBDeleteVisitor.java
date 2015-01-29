@@ -144,7 +144,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT);
 			psd.visited = true;
-			psd.statement.setInt(1, event.getId());
+			psd.statement.setLong(1, event.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -156,7 +156,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_PARAM);
 			psd.visited = true;
-			psd.statement.setInt(1, eventParam.getId());
+			psd.statement.setLong(1, eventParam.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -168,7 +168,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, eventType.getId());
+			psd.statement.setLong(1, eventType.getId());
 			psd.statement.addBatch();
 			traceDB.getEventTypeCache().remove(eventType);
 		} catch (SQLException e) {
@@ -182,7 +182,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, eventParamType.getId());
+			psd.statement.setLong(1, eventParamType.getId());
 			psd.statement.addBatch();
 			traceDB.getEventTypeCache().remove(eventParamType);
 		} catch (SQLException e) {
@@ -199,7 +199,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_PRODUCER);
 			psd.visited = true;
-			psd.statement.setInt(1, eventProducer.getId());
+			psd.statement.setLong(1, eventProducer.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -215,7 +215,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.FILE);
 			psd.visited = true;
-			psd.statement.setInt(1, file.getId());
+			psd.statement.setLong(1, file.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -231,7 +231,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.ANALYSIS_RESULT);
 			psd.visited = true;
-			psd.statement.setInt(1, analysisResult.getId());
+			psd.statement.setLong(1, analysisResult.getId());
 			psd.statement.addBatch();
 
 			String type = analysisResult.getType();
@@ -258,8 +258,8 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		PreparedStatementDescriptor psdSearch = getDescriptor(FramesocTable.SEARCH);
 		PreparedStatementDescriptor psdMapping = getDescriptor(FramesocTable.SEARCH_MAPPING);
 
-		psdSearch.statement.setInt(1, analysisResult.getId());
-		psdMapping.statement.setInt(1, analysisResult.getId());
+		psdSearch.statement.setLong(1, analysisResult.getId());
+		psdMapping.statement.setLong(1, analysisResult.getId());
 
 		psdSearch.statement.addBatch();
 		psdMapping.statement.addBatch();
@@ -273,8 +273,8 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		PreparedStatementDescriptor psdGroup = getDescriptor(FramesocTable.ENTITY_GROUP);
 		PreparedStatementDescriptor psdMapping = getDescriptor(FramesocTable.GROUP_MAPPING);
 
-		psdGroup.statement.setInt(1, analysisResult.getId());
-		psdMapping.statement.setInt(1, analysisResult.getId());
+		psdGroup.statement.setLong(1, analysisResult.getId());
+		psdMapping.statement.setLong(1, analysisResult.getId());
 
 		psdGroup.statement.addBatch();
 		psdMapping.statement.addBatch();
@@ -289,10 +289,10 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 		PreparedStatementDescriptor psdAnnotationParam = getDescriptor(FramesocTable.ANNOTATION_PARAM);
 		PreparedStatementDescriptor psdAnnotationParamType = getDescriptor(FramesocTable.ANNOTATION_PARAM_TYPE);
 
-		psdAnnotation.statement.setInt(1, analysisResult.getId());
-		psdAnnotationType.statement.setInt(1, analysisResult.getId());
-		psdAnnotationParam.statement.setInt(1, analysisResult.getId());
-		psdAnnotationParamType.statement.setInt(1, analysisResult.getId());
+		psdAnnotation.statement.setLong(1, analysisResult.getId());
+		psdAnnotationType.statement.setLong(1, analysisResult.getId());
+		psdAnnotationParam.statement.setLong(1, analysisResult.getId());
+		psdAnnotationParamType.statement.setLong(1, analysisResult.getId());
 
 		psdAnnotation.statement.addBatch();
 		psdAnnotationType.statement.addBatch();
@@ -307,7 +307,7 @@ public class TraceDBDeleteVisitor extends ModelVisitor {
 
 	private void deleteProcessedTraceResult(AnalysisResult analysisResult) throws SQLException {
 		PreparedStatementDescriptor psd = getDescriptor(FramesocTable.PROCESSED_TRACE);
-		psd.statement.setInt(1, analysisResult.getId());
+		psd.statement.setLong(1, analysisResult.getId());
 		psd.statement.addBatch();
 		psd.visited = true;
 	}

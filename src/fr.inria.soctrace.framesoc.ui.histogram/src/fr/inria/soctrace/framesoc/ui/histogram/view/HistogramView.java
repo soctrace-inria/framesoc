@@ -612,7 +612,7 @@ public class HistogramView extends FramesocPart {
 			public void run() {
 				try {
 					// prepare the configuration for the loader
-					Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
+					Map<ConfigurationDimension, List<Long>> confMap = new HashMap<>();
 					for (ConfigurationData confData : configurationMap.values()) {
 						if (confData.roots == null) {
 							// first time, tree information not loaded yet
@@ -622,7 +622,7 @@ public class HistogramView extends FramesocPart {
 						// a snapshot of checked elements at load time
 						Object[] currentChecked = confData.tree.getCheckedElements();
 						confData.checked = new ITreeNode[currentChecked.length];
-						List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
+						List<Long> toLoad = new ArrayList<>(currentChecked.length);
 						confMap.put(confData.dimension, toLoad);
 						for (int i = 0; i < currentChecked.length; i++) {
 							confData.checked[i] = (ITreeNode) currentChecked[i];
@@ -670,11 +670,11 @@ public class HistogramView extends FramesocPart {
 		private final TimeInterval interval;
 		private final DensityHistogramLoader loader;
 		private final IProgressMonitor monitor;
-		private List<Integer> types;
-		private List<Integer> producer;
+		private List<Long> types;
+		private List<Long> producer;
 
 		public LoaderThread(TimeInterval interval, DensityHistogramLoader loader,
-				List<Integer> types, List<Integer> producers) {
+				List<Long> types, List<Long> producers) {
 			this.interval = interval;
 			this.loader = loader;
 			this.types = types;

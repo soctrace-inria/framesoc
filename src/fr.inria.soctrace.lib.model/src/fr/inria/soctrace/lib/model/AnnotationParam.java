@@ -18,7 +18,7 @@ package fr.inria.soctrace.lib.model;
  */
 public class AnnotationParam {
 
-	private final int id;
+	private final long id;
 	private Annotation annotation;
 	private AnnotationParamType annotationParamType;
 	private String value;
@@ -27,7 +27,7 @@ public class AnnotationParam {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public AnnotationParam(int id) {
+	public AnnotationParam(long id) {
 		super();
 		this.id = id;
 	}
@@ -35,7 +35,7 @@ public class AnnotationParam {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
@@ -102,7 +102,7 @@ public class AnnotationParam {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
@@ -116,7 +116,7 @@ public class AnnotationParam {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof AnnotationParam))
+		if (getClass() != obj.getClass())
 			return false;
 		AnnotationParam other = (AnnotationParam) obj;
 		if (id != other.id)

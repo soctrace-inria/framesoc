@@ -21,7 +21,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class PunctualEvent extends Event {
 
-	public PunctualEvent(int id) {
+	public PunctualEvent(long id) {
 		super(id);
 		try {
 			setCategory(EventCategory.PUNCTUAL_EVENT);

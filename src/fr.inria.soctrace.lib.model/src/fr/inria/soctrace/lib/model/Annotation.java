@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class Annotation {
 	
-	private final int id;
+	private final long id;
 	private AnnotationType annotationType;
 	private String name;
 	private List<AnnotationParam> params;
@@ -32,7 +32,7 @@ public class Annotation {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public Annotation(int id) {
+	public Annotation(long id) {
 		this.id = id;
 		params = new ArrayList<AnnotationParam>();
 	}
@@ -40,7 +40,7 @@ public class Annotation {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -124,7 +124,7 @@ public class Annotation {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((annotationType == null) ? 0 : annotationType.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((params == null) ? 0 : params.hashCode());
 		return result;
@@ -139,7 +139,7 @@ public class Annotation {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Annotation))
+		if (getClass() != obj.getClass())
 			return false;
 		Annotation other = (Annotation) obj;
 		if (annotationType == null) {

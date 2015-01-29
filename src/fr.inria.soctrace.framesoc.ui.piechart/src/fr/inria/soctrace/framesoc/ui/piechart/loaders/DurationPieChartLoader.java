@@ -51,7 +51,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	/**
 	 * Event type map for the duration category managed: id -> name
 	 */
-	private Map<Integer, String> etMap;
+	private Map<Long, String> etMap;
 
 	/**
 	 * Utility class for a pending duration.

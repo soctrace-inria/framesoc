@@ -178,7 +178,7 @@ public class EventQueryTest extends BaseTraceDBTest {
 	public final void testSetLoadParameters() throws SoCTraceException {
 		List<Event> elist = query.getList();
 		int params = 0;
-		Map<Integer, Event> emap = new HashMap<Integer, Event>();
+		Map<Long, Event> emap = new HashMap<>();
 		for (Event e : elist) {
 			params += e.getEventParams().size();
 			emap.put(e.getId(), e);

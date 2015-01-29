@@ -123,7 +123,7 @@ class HEventPageIteratorImpl implements HEventIterator {
 	@Override
 	public void setTypes(List<EventType> types) throws SoCTraceException {
 		ValueListString vls = new ValueListString();
-		Set<Integer> tset = new HashSet<Integer>();
+		Set<Long> tset = new HashSet<>();
 		numOfTypes = 0;
 		for (EventType et: types) {
 			if (tset.contains(et.getId()))

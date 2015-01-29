@@ -26,7 +26,7 @@ public class TraceParamType implements IModelElement, Serializable {
 	 */
 	private static final long serialVersionUID = -2352376564185018059L;
 	
-	private final int id;
+	private final long id;
 	private TraceType traceType;
 	private String name;
 	private String type;
@@ -35,7 +35,7 @@ public class TraceParamType implements IModelElement, Serializable {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public TraceParamType(int id) {
+	public TraceParamType(long id) {
 		this.id = id;
 	}
 	
@@ -86,7 +86,7 @@ public class TraceParamType implements IModelElement, Serializable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -114,7 +114,7 @@ public class TraceParamType implements IModelElement, Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;

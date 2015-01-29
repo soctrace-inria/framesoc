@@ -27,7 +27,7 @@ public interface IModelElement {
 	 * 
 	 * @return the element ID.
 	 */
-	public int getId();
+	public long getId();
 	
 	/**
 	 * Visitor accept method.

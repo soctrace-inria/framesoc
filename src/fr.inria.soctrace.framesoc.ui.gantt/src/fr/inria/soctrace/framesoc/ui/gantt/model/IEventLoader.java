@@ -49,14 +49,14 @@ public interface IEventLoader {
 	 * 
 	 * @return a map between event producer id and event producers
 	 */
-	Map<Integer, EventProducer> getProducers();
+	Map<Long, EventProducer> getProducers();
 
 	/**
 	 * Get the trace event types
 	 * 
 	 * @return a map between event type id and event types
 	 */
-	Map<Integer, EventType> getTypes();
+	Map<Long, EventType> getTypes();
 
 	/**
 	 * Load a time window for the trace set using {@link #setTrace}, filling the queue set using

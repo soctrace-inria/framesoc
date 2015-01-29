@@ -23,7 +23,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class EventType implements IModelElement, IGroupable {
 
-	private final int id;
+	private final long id;
 	private final int category;
 	private String name;
 	private List<EventParamType> paramTypes;
@@ -34,7 +34,7 @@ public class EventType implements IModelElement, IGroupable {
 	 * @param id the entity unique id
 	 * @param category the category
 	 */
-	public EventType(int id, int category) {
+	public EventType(long id, int category) {
 		this.id = id;
 		this.category = category;
 		paramTypes = new ArrayList<EventParamType>();
@@ -57,7 +57,7 @@ public class EventType implements IModelElement, IGroupable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
@@ -104,8 +104,8 @@ public class EventType implements IModelElement, IGroupable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
 		result = prime * result + category;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((paramTypes == null) ? 0 : paramTypes.hashCode());
 		return result;
@@ -120,12 +120,12 @@ public class EventType implements IModelElement, IGroupable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof EventType))
+		if (getClass() != obj.getClass())
 			return false;
 		EventType other = (EventType) obj;
-		if (id != other.id)
-			return false;
 		if (category != other.category)
+			return false;
+		if (id != other.id)
 			return false;
 		if (name == null) {
 			if (other.name != null)

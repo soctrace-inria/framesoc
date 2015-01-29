@@ -52,15 +52,15 @@ public class ManageToolsHandler extends AbstractHandler {
 		SystemDBObject sysDB = null;
 		try {			
 			
-			Map<Integer, Tool> oldTools = loadTools(window);
+			Map<Long, Tool> oldTools = loadTools(window);
 			ManageToolsDialog dialog = new ManageToolsDialog(window.getShell(), oldTools);
 			if (dialog.open() != Window.OK)
 				return null;
 			
 			// update TOOL table
 			sysDB = SystemDBObject.openNewIstance();
-			Map<Integer, Tool> newTools = dialog.getNewTools();
-			for (Integer id: oldTools.keySet()) {
+			Map<Long, Tool> newTools = dialog.getNewTools();
+			for (Long id: oldTools.keySet()) {
 				if (newTools.containsKey(id)) {
 					// updated
 					sysDB.update(newTools.get(id));
@@ -77,7 +77,7 @@ public class ManageToolsHandler extends AbstractHandler {
 			
 			// in newTools there are only added tools
 			int baseNewId = sysDB.getMaxId(FramesocTable.TOOL.toString(), "ID");
-			Iterator<Entry<Integer, Tool>> iterator = newTools.entrySet().iterator();
+			Iterator<Entry<Long, Tool>> iterator = newTools.entrySet().iterator();
 			while (iterator.hasNext()) {
 				Tool tmp = iterator.next().getValue();
 				Tool newTool = new Tool(++baseNewId);
@@ -96,8 +96,8 @@ public class ManageToolsHandler extends AbstractHandler {
 		return null;
 	}
 	
-    private Map<Integer, Tool> loadTools(IWorkbenchWindow window) {
-		Map<Integer, Tool> toolsMap = new HashMap<Integer, Tool>();
+    private Map<Long, Tool> loadTools(IWorkbenchWindow window) {
+		Map<Long, Tool> toolsMap = new HashMap<>();
 		ITraceSearch searchInterface = null;
     	try {
 			searchInterface = new TraceSearch().initialize();

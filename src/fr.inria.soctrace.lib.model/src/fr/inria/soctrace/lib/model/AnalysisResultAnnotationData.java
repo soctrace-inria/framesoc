@@ -24,7 +24,7 @@ import java.util.Map;
 public class AnalysisResultAnnotationData extends AnalysisResultData {
 
 	private List<Annotation> annotations;
-	private Map<Integer, AnnotationType> annotationTypes;
+	private Map<Long, AnnotationType> annotationTypes;
 	
 	/**
 	 * The constructor. Set the correct type.
@@ -33,7 +33,7 @@ public class AnalysisResultAnnotationData extends AnalysisResultData {
 		super();
 		this.type = AnalysisResultType.TYPE_ANNOTATION;
 		this.annotations = new LinkedList<Annotation>();
-		this.annotationTypes = new HashMap<Integer, AnnotationType>();
+		this.annotationTypes = new HashMap<>();
 	}
 
 	@Override
@@ -60,9 +60,9 @@ public class AnalysisResultAnnotationData extends AnalysisResultData {
 	 */
 	public void addAnnotation(Annotation annotation) {
 		annotations.add(annotation);
-		int typeId = annotation.getAnnotationType().getId();
+		long typeId = annotation.getAnnotationType().getId();
 		if ( ! annotationTypes.containsKey(typeId) ) {
-			annotationTypes.put(Integer.valueOf(typeId), annotation.getAnnotationType());
+			annotationTypes.put(Long.valueOf(typeId), annotation.getAnnotationType());
 		}
 	}
 	
@@ -87,9 +87,9 @@ public class AnalysisResultAnnotationData extends AnalysisResultData {
 		this.annotations = annotations;
 		this.annotationTypes.clear();
 		for (Annotation a: annotations) {
-			int typeId = a.getAnnotationType().getId();
+			long typeId = a.getAnnotationType().getId();
 			if ( ! annotationTypes.containsKey(typeId) ) {
-				annotationTypes.put(Integer.valueOf(typeId), a.getAnnotationType());
+				annotationTypes.put(Long.valueOf(typeId), a.getAnnotationType());
 			}
 		}
 	}

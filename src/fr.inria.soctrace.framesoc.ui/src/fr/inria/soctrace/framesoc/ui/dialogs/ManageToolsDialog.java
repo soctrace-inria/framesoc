@@ -55,7 +55,7 @@ public class ManageToolsDialog extends Dialog {
 	/**
 	 * Tools map, always synchronized with the viewer.
 	 */
-	private Map<Integer, Tool> toolsMap;
+	private Map<Long, Tool> toolsMap;
 	
 	/**
 	 * Installed tool names. Names are unique for tools.
@@ -86,13 +86,13 @@ public class ManageToolsDialog extends Dialog {
 	 * @param parentShell shell
 	 * @param tools tools map: it will be copied
 	 */
-	public ManageToolsDialog(Shell parentShell, Map<Integer, Tool> tools) {
+	public ManageToolsDialog(Shell parentShell, Map<Long, Tool> tools) {
 		super(parentShell);
 		oldToolNames = new HashSet<String>();
-		toolsMap = new HashMap<Integer, Tool>();
-		Iterator<Entry<Integer, Tool>> iterator = tools.entrySet().iterator();
+		toolsMap = new HashMap<>();
+		Iterator<Entry<Long, Tool>> iterator = tools.entrySet().iterator();
 		while (iterator.hasNext()) {
-			Entry<Integer, Tool> pair = iterator.next();
+			Entry<Long, Tool> pair = iterator.next();
 			toolsMap.put(pair.getKey(), pair.getValue());
 			oldToolNames.add(pair.getValue().getName());
 		}
@@ -217,7 +217,7 @@ public class ManageToolsDialog extends Dialog {
      * Get the updated list of tools.
      * @return the updated list of tools
      */
-    public Map<Integer, Tool> getNewTools() {
+    public Map<Long, Tool> getNewTools() {
     	return toolsMap;
     }
    

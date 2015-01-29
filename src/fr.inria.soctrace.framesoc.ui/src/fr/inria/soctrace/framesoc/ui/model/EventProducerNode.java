@@ -136,7 +136,7 @@ public class EventProducerNode implements ITreeNode, IModelElementNode {
 	}
 
 	@Override
-	public int getId() {
+	public long getId() {
 		return producer.getId();
 	}
 

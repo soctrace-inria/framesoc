@@ -112,7 +112,7 @@ public class AnalysisResultQueryTest extends BaseTraceDBTest {
 	public final void testSetOrderBy() throws SoCTraceException {
 		query.setOrderBy("ID", OrderBy.DESC);
 		List<AnalysisResult> alist = query.getList();
-		int last = Integer.MAX_VALUE;
+		long last = Integer.MAX_VALUE;
 		for (AnalysisResult ar: alist) {
 			assertTrue(ar.getId()<=last);
 			last = ar.getId();

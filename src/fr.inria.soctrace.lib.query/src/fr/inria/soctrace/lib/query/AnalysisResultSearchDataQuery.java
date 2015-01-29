@@ -43,7 +43,7 @@ public class AnalysisResultSearchDataQuery extends AnalysisResultDataQuery {
 	}
 
 	@Override
-	public AnalysisResultData getAnalysisResultData(int analysisResultId) throws SoCTraceException {
+	public AnalysisResultData getAnalysisResultData(long analysisResultId) throws SoCTraceException {
 		AnalysisResultSearchData searchData = null;
 		String searchCommand = "";
 		String targetEntity = "";

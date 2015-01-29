@@ -41,16 +41,16 @@ public class GanttContributionManager {
 	private static final String EVENT_LOADER = "eventLoader"; //$NON-NLS-1$
 	private static final String EVENT_DRAWER = "eventDrawer"; //$NON-NLS-1$
 
-	private static Map<Integer, IConfigurationElement> extensions = new HashMap<Integer, IConfigurationElement>();
+	private static Map<Long, IConfigurationElement> extensions = new HashMap<>();
 
 	static {
 		SystemDBObject sysDB = null;
 		try {
 			// get trace types
 			sysDB = SystemDBObject.openNewIstance();
-			Map<Integer, IModelElement> types = sysDB.getTraceTypeCache().getElementMap(
+			Map<Long, IModelElement> types = sysDB.getTraceTypeCache().getElementMap(
 					TraceType.class);
-			Map<String, Integer> name2id = new HashMap<String, Integer>();
+			Map<String, Long> name2id = new HashMap<>();
 			for (IModelElement element : types.values()) {
 				TraceType type = (TraceType) element;
 				name2id.put(type.getName(), type.getId());
@@ -71,7 +71,7 @@ public class GanttContributionManager {
 		}
 	}
 
-	public static IEventLoader getEventLoader(int typeId) {
+	public static IEventLoader getEventLoader(long typeId) {
 		if (extensions.containsKey(typeId)) {
 			final Object o = getObject(typeId, EVENT_LOADER);
 			if (o instanceof IEventLoader) {
@@ -81,7 +81,7 @@ public class GanttContributionManager {
 		return new EventLoader();
 	}
 
-	public static IEventDrawer getEventDrawer(int typeId) {
+	public static IEventDrawer getEventDrawer(long typeId) {
 		if (extensions.containsKey(typeId)) {
 			final Object o = getObject(typeId, EVENT_DRAWER);
 			if (o instanceof IEventDrawer) {
@@ -91,7 +91,7 @@ public class GanttContributionManager {
 		return new NoCpuEventDrawer();
 	}
 
-	private static Object getObject(int typeId, String field) {
+	private static Object getObject(long typeId, String field) {
 		try {
 			if (extensions.get(typeId).getAttribute(field) != null)
 				return extensions.get(typeId).createExecutableExtension(field);

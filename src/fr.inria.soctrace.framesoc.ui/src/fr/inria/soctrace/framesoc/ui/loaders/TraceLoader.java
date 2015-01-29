@@ -151,7 +151,7 @@ public class TraceLoader {
 			traceSearch.uninitialize();
 
 			// new trace map
-			Map<Integer, Trace> newTraces = new HashMap<>();
+			Map<Long, Trace> newTraces = new HashMap<>();
 			for (Trace t : traces) {
 				newTraces.put(t.getId(), t);
 			}
@@ -271,38 +271,38 @@ public class TraceLoader {
 	 *            list of traces
 	 * @return the trace map
 	 */
-	private Map<TraceCategory, Map<String, Map<Integer, Trace>>> buildTraceMap(List<Trace> traces) {
-		Map<TraceCategory, Map<String, Map<Integer, Trace>>> traceMap = new HashMap<TraceCategory, Map<String, Map<Integer, Trace>>>();
-		traceMap.put(TraceCategory.RAW_TRACE, new HashMap<String, Map<Integer, Trace>>());
-		traceMap.put(TraceCategory.PROCESSED_TRACE, new HashMap<String, Map<Integer, Trace>>());
-		Map<String, Map<Integer, Trace>> currentMap;
+	private Map<TraceCategory, Map<String, Map<Long, Trace>>> buildTraceMap(List<Trace> traces) {
+		Map<TraceCategory, Map<String, Map<Long, Trace>>> traceMap = new HashMap<>();
+		traceMap.put(TraceCategory.RAW_TRACE, new HashMap<String, Map<Long, Trace>>());
+		traceMap.put(TraceCategory.PROCESSED_TRACE, new HashMap<String, Map<Long, Trace>>());
+		Map<String, Map<Long, Trace>> currentMap;
 		for (Trace trace : traces) {
 			if (trace.isProcessed())
 				currentMap = traceMap.get(TraceCategory.PROCESSED_TRACE);
 			else
 				currentMap = traceMap.get(TraceCategory.RAW_TRACE);
 			if (!currentMap.containsKey(trace.getType().getName())) {
-				currentMap.put(trace.getType().getName(), new HashMap<Integer, Trace>());
+				currentMap.put(trace.getType().getName(), new HashMap<Long, Trace>());
 			}
 			currentMap.get(trace.getType().getName()).put(trace.getId(), trace);
 		}
 		return traceMap;
 	}
 
-	private void buildTree(Map<TraceCategory, Map<String, Map<Integer, Trace>>> map) {
+	private void buildTree(Map<TraceCategory, Map<String, Map<Long, Trace>>> map) {
 		// clean the tree
 		removeAll();
 
 		// category
-		Iterator<Entry<TraceCategory, Map<String, Map<Integer, Trace>>>> iterator = map.entrySet()
+		Iterator<Entry<TraceCategory, Map<String, Map<Long, Trace>>>> iterator = map.entrySet()
 				.iterator();
 		while (iterator.hasNext()) {
-			Entry<TraceCategory, Map<String, Map<Integer, Trace>>> pair = iterator.next();
+			Entry<TraceCategory, Map<String, Map<Long, Trace>>> pair = iterator.next();
 			FolderNode currentCategory = roots.get(pair.getKey());
 			// trace type
-			Iterator<Entry<String, Map<Integer, Trace>>> it = pair.getValue().entrySet().iterator();
+			Iterator<Entry<String, Map<Long, Trace>>> it = pair.getValue().entrySet().iterator();
 			while (it.hasNext()) {
-				Entry<String, Map<Integer, Trace>> typePair = it.next();
+				Entry<String, Map<Long, Trace>> typePair = it.next();
 				FolderNode typeNode = new FolderNode(typePair.getKey());
 				// traces
 				for (Trace trace : typePair.getValue().values()) {
@@ -313,18 +313,18 @@ public class TraceLoader {
 		}
 	}
 
-	private void updateTree(Map<TraceCategory, Map<String, Map<Integer, Trace>>> map) {
+	private void updateTree(Map<TraceCategory, Map<String, Map<Long, Trace>>> map) {
 		for (TraceCategory cat : TraceCategory.values()) {
 			updateCategory(roots.get(cat), map.get(cat));
 		}
 	}
 
-	private void updateCategory(FolderNode categoryNode, Map<String, Map<Integer, Trace>> map) {
+	private void updateCategory(FolderNode categoryNode, Map<String, Map<Long, Trace>> map) {
 		// empty category
 		if (!categoryNode.hasChildren()) {
-			Iterator<Entry<String, Map<Integer, Trace>>> it = map.entrySet().iterator();
+			Iterator<Entry<String, Map<Long, Trace>>> it = map.entrySet().iterator();
 			while (it.hasNext()) {
-				Entry<String, Map<Integer, Trace>> typePair = it.next();
+				Entry<String, Map<Long, Trace>> typePair = it.next();
 				FolderNode typeNode = new FolderNode(typePair.getKey());
 				for (Trace trace : typePair.getValue().values()) {
 					typeNode.addChild(new TraceNode(trace.getAlias(), trace));
@@ -346,9 +346,9 @@ public class TraceLoader {
 			}
 		}
 		// new types for this category
-		Iterator<Entry<String, Map<Integer, Trace>>> newTypeIterator = map.entrySet().iterator();
+		Iterator<Entry<String, Map<Long, Trace>>> newTypeIterator = map.entrySet().iterator();
 		while (newTypeIterator.hasNext()) {
-			Entry<String, Map<Integer, Trace>> typePair = newTypeIterator.next();
+			Entry<String, Map<Long, Trace>> typePair = newTypeIterator.next();
 			FolderNode typeNode = new FolderNode(typePair.getKey());
 			for (Trace trace : typePair.getValue().values()) {
 				typeNode.addChild(new TraceNode(trace.getAlias(), trace));
@@ -357,7 +357,7 @@ public class TraceLoader {
 		}
 	}
 
-	private void updateType(FolderNode typeNode, Map<Integer, Trace> map) {
+	private void updateType(FolderNode typeNode, Map<Long, Trace> map) {
 		// empty type is not possible, so manage non empty case
 		Iterator<ITreeNode> traceIterator = typeNode.getChildren().iterator();
 		while (traceIterator.hasNext()) {

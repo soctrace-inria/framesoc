@@ -48,7 +48,7 @@ public class UnorderedGroup extends Group {
 	 * @param targetClass leaves class
 	 * @throws SoCTraceException 
 	 */
-	public UnorderedGroup(int id, Class<? extends IGroupable> targetClass)
+	public UnorderedGroup(long id, Class<? extends IGroupable> targetClass)
 			throws SoCTraceException {
 		super(id, targetClass);
 		this.ordered = false;
@@ -89,7 +89,7 @@ public class UnorderedGroup extends Group {
 	 * @param son groupable son to add
 	 * @throws SoCTraceException 
 	 */
-	public void addSon(IGroupable son, int mappingId) throws SoCTraceException {
+	public void addSon(IGroupable son, long mappingId) throws SoCTraceException {
 		
 		if (son instanceof Group) {
 			// set parent id and add to sub groups
@@ -125,7 +125,7 @@ public class UnorderedGroup extends Group {
 	}	
 		
 	@Override
-	protected void checkNode(Map<Integer, Boolean> visited) throws SoCTraceException {
+	protected void checkNode(Map<Long, Boolean> visited) throws SoCTraceException {
 
 		if ( visited.get(this.getId()) != null ) {
 			throw new SoCTraceException(structureErrorMessage());

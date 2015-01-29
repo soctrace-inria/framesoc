@@ -27,7 +27,7 @@ public class Tool implements IModelElement, Serializable {
 	 */
 	private static final long serialVersionUID = 2230347002444798252L;
 	
-	private final int id;
+	private final long id;
 	private String name;
 	private String type;
 	private String command;
@@ -39,7 +39,7 @@ public class Tool implements IModelElement, Serializable {
 	 * Constructor 
 	 * @param id the tool unique id
 	 */
-	public Tool(int id) {
+	public Tool(long id) {
 		this.id = id;
 		this.name = "";
 		this.type = "";
@@ -94,7 +94,7 @@ public class Tool implements IModelElement, Serializable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -160,7 +160,7 @@ public class Tool implements IModelElement, Serializable {
 		result = prime * result + ((command == null) ? 0 : command.hashCode());
 		result = prime * result + ((doc == null) ? 0 : doc.hashCode());
 		result = prime * result + ((extensionId == null) ? 0 : extensionId.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + (plugin ? 1231 : 1237);
 		result = prime * result + ((type == null) ? 0 : type.hashCode());

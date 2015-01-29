@@ -50,7 +50,7 @@ public abstract class AnalysisResultDataQuery {
 	 * @return the result data object (concrete class instance)
 	 * @throws SoCTraceException 
 	 */
-	public abstract AnalysisResultData getAnalysisResultData(int analysisResultId) throws SoCTraceException;
+	public abstract AnalysisResultData getAnalysisResultData(long analysisResultId) throws SoCTraceException;
 	
 	/**
 	 * Print a debug message if the debug flag is activated.

@@ -38,10 +38,9 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	 * Utility maps to rebuild all the annotations of a given analysis
 	 */
 	
-	private Map<Integer, AnnotationType> typeMap = new HashMap<Integer, AnnotationType>();
-	private Map<Integer, AnnotationParamType> paramTypeMap = new HashMap<Integer, AnnotationParamType>();
-	private Map<Integer, Annotation> annotationMap = new HashMap<Integer, Annotation>();
-
+	private Map<Long, AnnotationType> typeMap = new HashMap<>();
+	private Map<Long, AnnotationParamType> paramTypeMap = new HashMap<>();
+	private Map<Long, Annotation> annotationMap = new HashMap<>();
 	/**
 	 * The constructor.
 	 * 
@@ -52,7 +51,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	}
 
 	@Override
-	public AnalysisResultData getAnalysisResultData(int analysisResultId)
+	public AnalysisResultData getAnalysisResultData(long analysisResultId)
 			throws SoCTraceException {
 		
 		
@@ -89,7 +88,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	 * @param stm SQL statement
 	 * @throws SQLException
 	 */
-	private void buildTypes(int analysisResultId, Statement stm) throws SQLException {
+	private void buildTypes(long analysisResultId, Statement stm) throws SQLException {
 		String query = "SELECT * FROM " + FramesocTable.ANNOTATION_TYPE + 
 				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
 		debug(query);
@@ -110,7 +109,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	 * @param stm SQL statement
 	 * @throws SQLException
 	 */
-	private void buildParamTypes(int analysisResultId, Statement stm) throws SQLException {
+	private void buildParamTypes(long analysisResultId, Statement stm) throws SQLException {
 		String query = "SELECT * FROM " + FramesocTable.ANNOTATION_PARAM_TYPE + 
 				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
 		debug(query);
@@ -134,7 +133,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	 * @param stm SQL statement
 	 * @throws SQLException
 	 */
-	private void buildAnnotations(int analysisResultId, Statement stm) throws SQLException {
+	private void buildAnnotations(long analysisResultId, Statement stm) throws SQLException {
 		String query = "SELECT * FROM " + FramesocTable.ANNOTATION + 
 				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
 		debug(query);
@@ -156,7 +155,7 @@ public class AnalysisResultAnnotationDataQuery extends AnalysisResultDataQuery {
 	 * @param stm SQL statement
 	 * @throws SQLException
 	 */
-	private void buildParams(int analysisResultId, Statement stm) throws SQLException {
+	private void buildParams(long analysisResultId, Statement stm) throws SQLException {
 		String query = "SELECT * FROM " + FramesocTable.ANNOTATION_PARAM + 
 				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
 		debug(query);

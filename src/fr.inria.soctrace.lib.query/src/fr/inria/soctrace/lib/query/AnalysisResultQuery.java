@@ -41,7 +41,7 @@ import fr.inria.soctrace.lib.utils.SoctraceUtils;
 public class AnalysisResultQuery extends ElementQuery {
 
 	private ICondition toolWhere;
-	private Map<Integer, Tool> toolCache;
+	private Map<Long, Tool> toolCache;
 
 	/**
 	 * The constructor.
@@ -50,7 +50,7 @@ public class AnalysisResultQuery extends ElementQuery {
 	public AnalysisResultQuery(TraceDBObject traceDB) {
 		super(traceDB);
 		clear();
-		toolCache = new HashMap<Integer, Tool>();
+		toolCache = new HashMap<>();
 	}
 
 	/**

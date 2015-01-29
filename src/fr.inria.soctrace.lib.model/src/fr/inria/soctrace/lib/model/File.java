@@ -20,7 +20,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class File implements IModelElement {
 
-	private final int id;
+	private final long id;
 	private String path;
 	private String description;
 	
@@ -28,7 +28,7 @@ public class File implements IModelElement {
 	 * Constructor.
 	 * @param id the file unique id
 	 */
-	public File(int id) {
+	public File(long id) {
 		this.id = id;
 	}
 	
@@ -63,7 +63,7 @@ public class File implements IModelElement {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -85,7 +85,7 @@ public class File implements IModelElement {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		return result;
 	}

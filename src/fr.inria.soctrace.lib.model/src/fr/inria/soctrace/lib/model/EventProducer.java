@@ -22,17 +22,17 @@ public class EventProducer implements IModelElement, ISearchable {
 	
 	public static final int NO_PARENT_ID = -1;
 	
-	private final int id;
+	private final long id;
 	private String type;
 	private String localId;
 	private String name;
-	private int parentId;
+	private long parentId;
 	
 	/**
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public EventProducer(int id) {
+	public EventProducer(long id) {
 		this.id = id;
 		this.type = "";
 		this.localId = "";
@@ -85,21 +85,21 @@ public class EventProducer implements IModelElement, ISearchable {
 	/**
 	 * @return the parentId
 	 */
-	public int getParentId() {
+	public long getParentId() {
 		return parentId;
 	}
 
 	/**
 	 * @param parentId the parentId to set
 	 */
-	public void setParentId(int parentId) {
+	public void setParentId(long parentId) {
 		this.parentId = parentId;
 	}
 
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
@@ -132,10 +132,10 @@ public class EventProducer implements IModelElement, ISearchable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((localId == null) ? 0 : localId.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + parentId;
+		result = prime * result + (int) (parentId ^ (parentId >>> 32));
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -149,7 +149,7 @@ public class EventProducer implements IModelElement, ISearchable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof EventProducer))
+		if (getClass() != obj.getClass())
 			return false;
 		EventProducer other = (EventProducer) obj;
 		if (id != other.id)

@@ -50,7 +50,7 @@ public class AnalysisResultProcessedTraceDataQuery extends AnalysisResultDataQue
 	}
 
 	@Override
-	public AnalysisResultData getAnalysisResultData(int analysisResultId) 
+	public AnalysisResultData getAnalysisResultData(long analysisResultId) 
 			throws SoCTraceException {
 
 		AnalysisResultProcessedTraceData processedTraceData = new AnalysisResultProcessedTraceData();

@@ -34,15 +34,15 @@ public class IdManager {
 	/**
 	 * Reserved id values ( < 0)
 	 */
-	public final static int RESERVED_NO_ID = Integer.MIN_VALUE;
+	public final static long RESERVED_NO_ID = Integer.MIN_VALUE;
 	
 	/**
 	 * Next id to be used
 	 */
-	private int nextId = 0;
+	private long nextId = 0;
 	
-	public synchronized int getNextId() {
-		int id = nextId;
+	public synchronized long getNextId() {
+		long id = nextId;
 		if (dir.equals(Direction.ASCENDING))
 			nextId++;
 		else 
@@ -54,7 +54,7 @@ public class IdManager {
 		nextId = 0;
 	}
 	
-	public synchronized void setNextId(int nextId) {
+	public synchronized void setNextId(long nextId) {
 		this.nextId = nextId;
 	}
 

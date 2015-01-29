@@ -84,7 +84,7 @@ public class EventProducerQueryTest extends BaseTraceDBTest {
 	public final void testSetOrderBy() throws SoCTraceException {
 		query.setOrderBy("ID", OrderBy.DESC);
 		List<EventProducer> elist = query.getList();
-		int last = Integer.MAX_VALUE;
+		long last = Integer.MAX_VALUE;
 		for (EventProducer e : elist) {
 			assertTrue(e.getId() <= last);
 			last = e.getId();

@@ -30,8 +30,8 @@ public abstract class Group implements IGroupable {
 	 */
 	public class LeafMapping {
 		private IGroupable son;
-		private int mappingId;
-		public LeafMapping(IGroupable son, int mappingId) {
+		private long mappingId;
+		public LeafMapping(IGroupable son, long mappingId) {
 			this.son = son;
 			this.mappingId = mappingId;
 		}
@@ -50,13 +50,13 @@ public abstract class Group implements IGroupable {
 		/**
 		 * @return the mappingId
 		 */
-		public int getMappingId() {
+		public long getMappingId() {
 			return mappingId;
 		}
 		/**
 		 * @param mappingId the mappingId to set
 		 */
-		public void setMappingId(int mappingId) {
+		public void setMappingId(long mappingId) {
 			this.mappingId = mappingId;
 		}
 		
@@ -101,12 +101,12 @@ public abstract class Group implements IGroupable {
 	/**
 	 * Group ID: it is unique within an AnalysisResultGroupData
 	 */
-	protected final int id;
+	protected final long id;
 	
 	/**
 	 * ID of the parent of this group (in a hierarchy).
 	 */
-	protected int parentId;
+	protected long parentId;
 	
 	/**
 	 * Group name
@@ -156,7 +156,7 @@ public abstract class Group implements IGroupable {
 	 * @param targetClass leaves class (if null, the group can only have other groups as sons)
 	 * @throws SoCTraceException 
 	 */
-	public Group(int id, Class<? extends IGroupable> targetClass) throws SoCTraceException {
+	public Group(long id, Class<? extends IGroupable> targetClass) throws SoCTraceException {
 		super();
 		this.id = id;
 		this.targetClass = targetClass;
@@ -172,21 +172,21 @@ public abstract class Group implements IGroupable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
 	/**
 	 * @return the parentId
 	 */
-	public int getParentId() {
+	public long getParentId() {
 		return parentId;
 	}
 	
 	/**
 	 * @param parentId the parentId to set
 	 */
-	public void setParentId(int parentId) {
+	public void setParentId(long parentId) {
 		this.parentId = parentId;
 	}
 	
@@ -263,7 +263,7 @@ public abstract class Group implements IGroupable {
 	 * @throws SoCTraceException
 	 */
 	public void checkTree() throws SoCTraceException {
-		Map<Integer, Boolean> visited = new HashMap<Integer, Boolean>();
+		Map<Long, Boolean> visited = new HashMap<Long, Boolean>();
 		checkNode(visited);
 	}
 	
@@ -274,7 +274,7 @@ public abstract class Group implements IGroupable {
 	 * @param visited Map of visited nodes.
 	 * @throws SoCTraceException
 	 */
-	protected abstract void checkNode(Map<Integer, Boolean> visited) throws SoCTraceException;
+	protected abstract void checkNode(Map<Long, Boolean> visited) throws SoCTraceException;
 	
 	/**
 	 * Structure error message function.
@@ -390,10 +390,10 @@ public abstract class Group implements IGroupable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((groupingOperator == null) ? 0 : groupingOperator.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + (ordered ? 1231 : 1237);
-		result = prime * result + parentId;
+		result = prime * result + (int) (parentId ^ (parentId >>> 32));
 		result = prime * result + sequenceNumber;
 		result = prime * result + ((targetEntity == null) ? 0 : targetEntity.hashCode());
 		return result;

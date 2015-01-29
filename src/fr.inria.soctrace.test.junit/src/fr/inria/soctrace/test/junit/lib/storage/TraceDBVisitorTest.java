@@ -117,7 +117,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 
 		// 1. save and check
 		saveEvents(events);
-		Map<Integer, Event> eventMap = new HashMap<Integer, Event>();
+		Map<Long, Event> eventMap = new HashMap<>();
 		for (Event e: events) {
 			eventMap.put(e.getId(), e);
 		}
@@ -241,8 +241,8 @@ public class TraceDBVisitorTest extends BaseTestClass {
 		AnalysisResult ar = IModelFactory.INSTANCE.createGroupResult(new IdManager(), "description");
 		AnalysisResultGroupData data = (AnalysisResultGroupData)ar.getData();
 		UnorderedGroup root = (UnorderedGroup)data.getRoot();
-		Set<Integer> eventId = new HashSet<Integer>();
-		Set<Integer> typeId = new HashSet<Integer>();
+		Set<Long> eventId = new HashSet<>();
+		Set<Long> typeId = new HashSet<>();
 		boolean producerSaved = false;
 		List<Group> sons = root.getSonGroups();
 		for (Group son: sons) {
@@ -479,7 +479,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 	 * @throws SoCTraceException 
 	 */
 	private void saveEvents(List<Event> events) throws SoCTraceException {
-		Set<Integer> types = new HashSet<Integer>();
+		Set<Long> types = new HashSet<>();
 		Event first = events.iterator().next();
 		EventProducer prod = first.getEventProducer();
 		traceDB.save(prod);
@@ -508,7 +508,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 
 		// 1. save and check
 		saveEvents(events);
-		Map<Integer, Event> eventMap = new HashMap<Integer, Event>();
+		Map<Long, Event> eventMap = new HashMap<>();
 		for (Event e: events) {
 			eventMap.put(e.getId(), e);
 		}
@@ -577,7 +577,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 		traceDB.delete(newEp);
 		first = events.iterator().next();
 		traceDB.delete(first.getEventProducer());
-		Set<Integer> deletedTypes = new HashSet<Integer>();
+		Set<Long> deletedTypes = new HashSet<>();
 		for (Event e: events) {
 			traceDB.delete(e);
 			for (EventParam ep: e.getEventParams()) {

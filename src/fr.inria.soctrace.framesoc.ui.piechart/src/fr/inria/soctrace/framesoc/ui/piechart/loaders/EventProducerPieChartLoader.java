@@ -40,7 +40,7 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 	/**
 	 * Event producer map
 	 */
-	private Map<Integer, String> epMap;
+	private Map<Long, String> epMap;
 
 	@Override
 	public String getStatName() {

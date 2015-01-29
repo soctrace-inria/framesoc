@@ -59,8 +59,8 @@ public class CpuEventDrawer implements IEventDrawer {
 	private Map<Integer, IReducedEventDrawer> drawers = new HashMap<Integer, IReducedEventDrawer>();
 
 	// current visualized trace data
-	private Map<Integer, EventProducer> producers; // epid, ep
-	private Map<Integer, Map<Integer, GanttEntry>> rows; // cpu, (epid, row)
+	private Map<Long, EventProducer> producers; // epid, ep
+	private Map<Integer, Map<Long, GanttEntry>> rows; // cpu, (epid, row)
 	private Map<Integer, GanttEntry> main; // cpu, row
 	private ArrayList<TimeGraphEntry> mainItems;
 	private ArrayList<ILinkEvent> linkList;
@@ -93,7 +93,7 @@ public class CpuEventDrawer implements IEventDrawer {
 	}
 
 	@Override
-	public void setProducers(Map<Integer, EventProducer> producers) {
+	public void setProducers(Map<Long, EventProducer> producers) {
 		this.producers = producers;
 	}
 
@@ -171,13 +171,13 @@ public class CpuEventDrawer implements IEventDrawer {
 	private GanttEntry getProducerRow(int cpu, EventProducer ep) {
 		// get the map containing all the rows for this CPU
 		if (!rows.containsKey(cpu)) {
-			rows.put(cpu, new HashMap<Integer, GanttEntry>());
+			rows.put(cpu, new HashMap<Long, GanttEntry>());
 			main.put(cpu, new GanttEntry("CPU " + cpu));
 			mainItems.add(main.get(cpu));
 			newRoots.add(main.get(cpu));
 			needRefresh = true;
 		}
-		Map<Integer, GanttEntry> cpuMap = rows.get(cpu);
+		Map<Long, GanttEntry> cpuMap = rows.get(cpu);
 
 		// get the row for the given producer
 		if (!cpuMap.containsKey(ep.getId()))
@@ -186,8 +186,8 @@ public class CpuEventDrawer implements IEventDrawer {
 		return cpuMap.get(ep.getId());
 	}
 
-	private GanttEntry getNewEventProducerRow(EventProducer ep, Map<Integer, EventProducer> eps,
-			Map<Integer, GanttEntry> cpuRows, GanttEntry cpuRow) {
+	private GanttEntry getNewEventProducerRow(EventProducer ep, Map<Long, EventProducer> eps,
+			Map<Long, GanttEntry> cpuRows, GanttEntry cpuRow) {
 
 		logger.trace("Creating event producer row " + ep.getId() + ", parent " + ep.getParentId());
 

@@ -109,7 +109,7 @@ public class EventTypeNode implements ITreeNode, IModelElementNode {
 	}
 
 	@Override
-	public int getId() {
+	public long getId() {
 		return type.getId();
 	}
 	

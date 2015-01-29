@@ -39,21 +39,20 @@ import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
  * Query class for Group analysis results.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
-	
+
 	/**
-	 * Utility class to store Target Entity ID 
-	 * and Sequence number.
+	 * Utility class to store Target Entity ID and Sequence number.
 	 */
 	private class Entity {
-		
-		public int mapping; // leaf mapping id
-		public int id; // entity id
+
+		public long mapping; // leaf mapping id
+		public long id; // entity id
 		public int seq; // sequence number
-		
-		public Entity(int mapping, int id, int seq) {
+
+		public Entity(long mapping, long id, int seq) {
 			this.mapping = mapping;
 			this.id = id;
 			this.seq = seq;
@@ -61,75 +60,76 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	}
 
 	/* --------------------------- */
-	
+
 	/* Three hierarchy management */
-	
+
 	/**
 	 * Map: GID - Group
 	 */
-	Map<Integer, Group> gidGroupMap = new HashMap<Integer, Group>();
-	
+	Map<Long, Group> gidGroupMap = new HashMap<>();
+
 	/**
 	 * Map: Parent GID - List of son GID
 	 */
-	Map<Integer, List<Integer>> pidGidMap = new HashMap<Integer, List<Integer>>();
-	
+	Map<Long, List<Long>> pidGidMap = new HashMap<>();
+
 	/* Leaf entity management */
-	
+
 	/**
 	 * Map: GID - List of Entity son id with sequence number
 	 */
 	Map<Integer, List<Entity>> gidEntityListMap = new HashMap<Integer, List<Entity>>();
 
 	/**
-	 * Map: Entity Class - Entity ID - Entity object 
+	 * Map: Entity Class - Entity ID - Entity object
 	 */
-	Map<Class<? extends IGroupable>, Map<Integer, IGroupable>> eidEntityMap = 
-			new HashMap<Class<? extends IGroupable>, Map<Integer, IGroupable>>();
-	
+	Map<Class<? extends IGroupable>, Map<Long, IGroupable>> eidEntityMap = new HashMap<>();
+
 	/* --------------------------- */
 
 	/**
 	 * The constructor.
 	 * 
-	 * @param traceDB trace DB containing the result
+	 * @param traceDB
+	 *            trace DB containing the result
 	 */
 	public AnalysisResultGroupDataQuery(TraceDBObject traceDB) {
 		super(traceDB);
 	}
 
 	@Override
-	public AnalysisResultData getAnalysisResultData(int analysisResultId) throws SoCTraceException {
-				
+	public AnalysisResultData getAnalysisResultData(long analysisResultId) throws SoCTraceException {
+
 		try {
-			
+
 			loadGroupMaps(analysisResultId);
 			loadEntityMaps(analysisResultId);
-			
-			Integer rootId = pidGidMap.get(-1).iterator().next();
+
+			Long rootId = pidGidMap.get(-1).iterator().next();
 			Group root = gidGroupMap.get(rootId);
 			getSons(root);
 			buildMapping();
 			clear();
-			
+
 			return new AnalysisResultGroupData(root);
-			
+
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
-		}		
+		}
 	}
-	
+
 	/**
 	 * Load maps used to rebuild the tree structure.
 	 * 
-	 * @param analysisResultId analysis result ID
+	 * @param analysisResultId
+	 *            analysis result ID
 	 * @throws SQLException
 	 * @throws SoCTraceException
 	 */
-	private void loadGroupMaps(int analysisResultId) throws SQLException, SoCTraceException {
+	private void loadGroupMaps(long analysisResultId) throws SQLException, SoCTraceException {
 
-		String query = "SELECT * FROM " + FramesocTable.ENTITY_GROUP + 
-				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
+		String query = "SELECT * FROM " + FramesocTable.ENTITY_GROUP
+				+ " WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
 		debug(query);
 		Statement stm = traceDB.getConnection().createStatement();
 		ResultSet rs = stm.executeQuery(query);
@@ -137,32 +137,32 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 			Group g = buildGroup(rs);
 			gidGroupMap.put(g.getId(), g);
 			if (!pidGidMap.containsKey(g.getParentId()))
-				pidGidMap.put(g.getParentId(), new LinkedList<Integer>());
+				pidGidMap.put(g.getParentId(), new LinkedList<Long>());
 			pidGidMap.get(g.getParentId()).add(g.getId());
 		}
-		stm.close();		
+		stm.close();
 	}
 
 	/**
 	 * Load all the maps used for Entity management.
 	 * 
-	 * @param analysisResultId analysis result ID
+	 * @param analysisResultId
+	 *            analysis result ID
 	 * @throws SQLException
 	 * @throws SoCTraceException
 	 */
-	private void loadEntityMaps(int analysisResultId) throws SQLException, SoCTraceException {
+	private void loadEntityMaps(long analysisResultId) throws SQLException, SoCTraceException {
 
-		// Entity Class - Value List String for Entity IDs 
-		Map<Class<? extends IGroupable>, ValueListString> classVlsMap = 
-				new HashMap<Class<? extends IGroupable>, ValueListString>();
+		// Entity Class - Value List String for Entity IDs
+		Map<Class<? extends IGroupable>, ValueListString> classVlsMap = new HashMap<Class<? extends IGroupable>, ValueListString>();
 
-		String query = "SELECT * FROM " + FramesocTable.GROUP_MAPPING + 
-				" WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
-		
+		String query = "SELECT * FROM " + FramesocTable.GROUP_MAPPING
+				+ " WHERE ANALYSIS_RESULT_ID = " + analysisResultId;
+
 		debug(query);
 		Statement stm = traceDB.getConnection().createStatement();
 		ResultSet rs = stm.executeQuery(query);
-		
+
 		while (rs.next()) {
 			int mid = rs.getInt(2); // mapping id
 			int gid = rs.getInt(3);
@@ -172,8 +172,8 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 				gidEntityListMap.put(gid, new LinkedList<Entity>());
 			gidEntityListMap.get(gid).add(new Entity(mid, eid, seq));
 			Group g = gidGroupMap.get(gid);
-			Class<? extends IGroupable> c = g.getTargetClass(); 
-			if (!classVlsMap.containsKey(c)) 
+			Class<? extends IGroupable> c = g.getTargetClass();
+			if (!classVlsMap.containsKey(c))
 				classVlsMap.put(c, new ValueListString());
 			classVlsMap.get(c).addValue(String.valueOf(eid));
 		}
@@ -181,23 +181,25 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		if (classVlsMap.containsKey(Event.class)) {
 			EventQuery eventQuery = new EventQuery(traceDB);
 			ValueListString vls = classVlsMap.get(Event.class);
-			eventQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN, vls.getValueString()));
+			eventQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN, vls
+					.getValueString()));
 			List<Event> elist = eventQuery.getList();
-			eidEntityMap.put(Event.class, new HashMap<Integer, IGroupable>());
-			Map<Integer, IGroupable> tmp = eidEntityMap.get(Event.class);
-			for (Event e: elist) {
+			eidEntityMap.put(Event.class, new HashMap<Long, IGroupable>());
+			Map<Long, IGroupable> tmp = eidEntityMap.get(Event.class);
+			for (Event e : elist) {
 				tmp.put(e.getId(), e);
 			}
 		}
-		
+
 		if (classVlsMap.containsKey(EventType.class)) {
 			EventTypeQuery eventTypeQuery = new EventTypeQuery(traceDB);
 			ValueListString vls = classVlsMap.get(EventType.class);
-			eventTypeQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN, vls.getValueString()));
+			eventTypeQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN, vls
+					.getValueString()));
 			List<EventType> tlist = eventTypeQuery.getList();
-			eidEntityMap.put(EventType.class, new HashMap<Integer, IGroupable>());
-			Map<Integer, IGroupable> tmp = eidEntityMap.get(EventType.class);
-			for (EventType t: tlist) {
+			eidEntityMap.put(EventType.class, new HashMap<Long, IGroupable>());
+			Map<Long, IGroupable> tmp = eidEntityMap.get(EventType.class);
+			for (EventType t : tlist) {
 				tmp.put(t.getId(), t);
 			}
 		}
@@ -205,22 +207,23 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		if (classVlsMap.containsKey(EventParamType.class)) {
 			EventParamTypeQuery eventParamTypeQuery = new EventParamTypeQuery(traceDB);
 			ValueListString vls = classVlsMap.get(EventParamType.class);
-			eventParamTypeQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN, vls.getValueString()));
+			eventParamTypeQuery.setElementWhere(new SimpleCondition("ID", ComparisonOperation.IN,
+					vls.getValueString()));
 			List<EventParamType> tlist = eventParamTypeQuery.getList();
-			eidEntityMap.put(EventParamType.class, new HashMap<Integer, IGroupable>());
-			Map<Integer, IGroupable> tmp = eidEntityMap.get(EventParamType.class);
-			for (EventParamType t: tlist) {
+			eidEntityMap.put(EventParamType.class, new HashMap<Long, IGroupable>());
+			Map<Long, IGroupable> tmp = eidEntityMap.get(EventParamType.class);
+			for (EventParamType t : tlist) {
 				tmp.put(t.getId(), t);
 			}
-		}		
+		}
 
 	}
-	
+
 	/**
-	 * Build the tree hierarchy that follows a given node. 
-	 * This is a recursive function.
+	 * Build the tree hierarchy that follows a given node. This is a recursive function.
 	 * 
-	 * @param g base of the three 
+	 * @param g
+	 *            base of the three
 	 * @throws SoCTraceException
 	 */
 	private void getSons(Group g) throws SoCTraceException {
@@ -228,15 +231,15 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		// base case: group without son groups
 		if (!pidGidMap.containsKey(g.getId()))
 			return;
-		
+
 		// general case: group with son groups
-		boolean ordered = (g instanceof OrderedGroup); 
-		List<Integer> sons = pidGidMap.get(g.getId());
-		for (Integer sonId: sons) {
+		boolean ordered = (g instanceof OrderedGroup);
+		List<Long> sons = pidGidMap.get(g.getId());
+		for (Long sonId : sons) {
 			Group son = gidGroupMap.get(sonId);
-			if ( ordered )
+			if (ordered)
 				((OrderedGroup) g).addSon(son, son.getSequenceNumber());
-			else 
+			else
 				((UnorderedGroup) g).addSon(son);
 			getSons(son);
 		}
@@ -250,24 +253,25 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	private void buildMapping() throws SoCTraceException {
 
 		Set<Integer> gidSet = gidEntityListMap.keySet();
-		for (Integer gid: gidSet) {
+		for (Integer gid : gidSet) {
 			Group g = gidGroupMap.get(gid);
 			boolean ordered = g.isOrdered();
-			Map<Integer, IGroupable> tmp = eidEntityMap.get(g.getTargetClass());
+			Map<Long, IGroupable> tmp = eidEntityMap.get(g.getTargetClass());
 			List<Entity> elist = gidEntityListMap.get(gid);
-			for (Entity entity: elist) {
-				if ( ordered )
+			for (Entity entity : elist) {
+				if (ordered)
 					((OrderedGroup) g).addSon(tmp.get(entity.id), entity.seq, entity.mapping);
-				else 
+				else
 					((UnorderedGroup) g).addSon(tmp.get(entity.id), entity.mapping);
 			}
 		}
 	}
-	
+
 	/**
 	 * Build a group object, given the ResultSet row.
 	 * 
-	 * @param rs table row
+	 * @param rs
+	 *            table row
 	 * @return the Group object
 	 * @throws SQLException
 	 * @throws SoCTraceException
@@ -275,14 +279,14 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 	private Group buildGroup(ResultSet rs) throws SQLException, SoCTraceException {
 		Group group = null;
 		int id = rs.getInt(2);
-		String targetEntity = rs.getString(5);		
+		String targetEntity = rs.getString(5);
 		boolean ordered = rs.getBoolean(7);
-		
+
 		if (ordered)
 			group = new OrderedGroup(id, getTargetClass(targetEntity));
-		else 
+		else
 			group = new UnorderedGroup(id, getTargetClass(targetEntity));
-		
+
 		group.setParentId(rs.getInt(3));
 		group.setName(rs.getString(4));
 		group.setGroupingOperator(rs.getString(6));
@@ -290,15 +294,16 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 
 		return group;
 	}
-	
+
 	/**
 	 * Get Target Entity class from its string label.
 	 * 
-	 * @param targetEntity string containing the class label
+	 * @param targetEntity
+	 *            string containing the class label
 	 * @return the class object
 	 */
 	private Class<? extends IGroupable> getTargetClass(String targetEntity) {
-		if (targetEntity.equals(ModelEntity.EVENT.name())) 
+		if (targetEntity.equals(ModelEntity.EVENT.name()))
 			return Event.class;
 		else if (targetEntity.equals(ModelEntity.EVENT_TYPE.name()))
 			return EventType.class;
@@ -306,7 +311,7 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 			return EventParamType.class;
 		return null;
 	}
-	
+
 	/**
 	 * Clear maps
 	 */
@@ -314,7 +319,7 @@ public class AnalysisResultGroupDataQuery extends AnalysisResultDataQuery {
 		gidGroupMap.clear();
 		pidGidMap.clear();
 		gidEntityListMap.clear();
-		eidEntityMap.clear();		
+		eidEntityMap.clear();
 	}
 
 }

@@ -686,7 +686,7 @@ public class GanttView extends AbstractGanttView {
 				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
 				ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
 				filteredElements.removeAll(visibleNodes);
-				List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
+				List<Long> filteredTypes = new ArrayList<>(filteredElements.size());
 				for (Object o : filteredElements) {
 					if (o instanceof EventTypeNode) {
 						EventTypeNode type = (EventTypeNode) o;
@@ -695,7 +695,7 @@ public class GanttView extends AbstractGanttView {
 				}
 				fPresentationProvider.setFilteredTypes(filteredTypes);
 			} else {
-				fPresentationProvider.setFilteredTypes(Collections.<Integer> emptyList());
+				fPresentationProvider.setFilteredTypes(Collections.<Long> emptyList());
 			}
 			refresh();
 		}

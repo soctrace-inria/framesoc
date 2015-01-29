@@ -71,7 +71,7 @@ public class ToolQueryTest extends BaseSystemDBTest {
 	public final void testSetOrderBy() throws SoCTraceException {
 		query.setOrderBy("ID", OrderBy.DESC);
 		List<Tool> tlist = query.getList();
-		int last = Integer.MAX_VALUE;
+		long last = Integer.MAX_VALUE;
 		for (Tool t: tlist) {
 			assertTrue(t.getId()<=last);
 			last = t.getId();

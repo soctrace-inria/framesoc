@@ -32,7 +32,7 @@ public interface IEventDrawer {
 	 * @param producers
 	 *            map between event producer id and event producers
 	 */
-	void setProducers(Map<Integer, EventProducer> producers);
+	void setProducers(Map<Long, EventProducer> producers);
 	
 	/**
 	 * Draw a list of <code>ReducedEvent</code>.

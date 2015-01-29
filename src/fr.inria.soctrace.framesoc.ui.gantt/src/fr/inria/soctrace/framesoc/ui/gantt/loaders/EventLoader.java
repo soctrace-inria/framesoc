@@ -60,18 +60,18 @@ public class EventLoader implements IEventLoader {
 
 	// current visualized trace data
 	private TraceDBObject fTraceDB = null;
-	private Map<Integer, EventProducer> fProducers = null;
+	private Map<Long, EventProducer> fProducers = null;
 	private boolean fProducersLoaded = false;
-	private Map<Integer, EventType> fTypes = null;
+	private Map<Long, EventType> fTypes = null;
 	private boolean fTypesLoaded = false;
 	private TimeInterval fTimeInterval;
 	private long fLatestStart;
 
 	@Override
-	public Map<Integer, EventProducer> getProducers() {
+	public Map<Long, EventProducer> getProducers() {
 		if (fProducersLoaded)
 			return fProducers;
-		fProducers = new HashMap<Integer, EventProducer>();
+		fProducers = new HashMap<>();
 		try {
 			EventProducerQuery epq = new EventProducerQuery(getTraceDB());
 			List<EventProducer> epl = epq.getList();
@@ -86,10 +86,10 @@ public class EventLoader implements IEventLoader {
 	}
 
 	@Override
-	public Map<Integer, EventType> getTypes() {
+	public Map<Long, EventType> getTypes() {
 		if (fTypesLoaded)
 			return fTypes;
-		fTypes = new HashMap<Integer, EventType>();
+		fTypes = new HashMap<>();
 		try {
 			EventTypeQuery etq = new EventTypeQuery(getTraceDB());
 			List<EventType> etl = etq.getList();
@@ -292,8 +292,8 @@ public class EventLoader implements IEventLoader {
 	private void clean() {
 		fProducersLoaded = false;
 		fTypesLoaded = false;
-		fProducers = new HashMap<Integer, EventProducer>();
-		fTypes = new HashMap<Integer, EventType>();
+		fProducers = new HashMap<>();
+		fTypes = new HashMap<>();
 		fLatestStart = Long.MIN_VALUE;
 		DBObject.finalClose(fTraceDB);
 	}

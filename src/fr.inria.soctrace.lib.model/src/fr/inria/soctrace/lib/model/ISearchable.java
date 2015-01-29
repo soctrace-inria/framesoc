@@ -24,5 +24,5 @@ public interface ISearchable {
 	 * 
 	 * @return the ID of the searchable object
 	 */
-	int getId();
+	long getId();
 }

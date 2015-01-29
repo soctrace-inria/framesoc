@@ -83,8 +83,8 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE);
 			psd.visited = true;
-			psd.statement.setInt(1, trace.getId());
-			psd.statement.setInt(2, trace.getType().getId());
+			psd.statement.setLong(1, trace.getId());
+			psd.statement.setLong(2, trace.getType().getId());
 			// XXX see note at the bottom of ModelVisitor.java
 			psd.statement.setString(3, SoctraceUtils.timestampToString(trace.getTracingDate()));
 			psd.statement.setString(4, trace.getTracedApplication());
@@ -111,7 +111,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceType.getId());
+			psd.statement.setLong(1, traceType.getId());
 			psd.statement.setString(2, traceType.getName());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().put(traceType);
@@ -125,9 +125,9 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParam.getId());
-			psd.statement.setInt(2, traceParam.getTrace().getId());
-			psd.statement.setInt(3, traceParam.getTraceParamType().getId());
+			psd.statement.setLong(1, traceParam.getId());
+			psd.statement.setLong(2, traceParam.getTrace().getId());
+			psd.statement.setLong(3, traceParam.getTraceParamType().getId());
 			psd.statement.setString(4, traceParam.getValue());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
@@ -140,8 +140,8 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParamType.getId());
-			psd.statement.setInt(2, traceParamType.getTraceType().getId());
+			psd.statement.setLong(1, traceParamType.getId());
+			psd.statement.setLong(2, traceParamType.getTraceType().getId());
 			psd.statement.setString(3, traceParamType.getName());
 			psd.statement.setString(4, traceParamType.getType());
 			psd.statement.addBatch();
@@ -156,7 +156,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TOOL);
 			psd.visited = true;
-			psd.statement.setInt(1, tool.getId());
+			psd.statement.setLong(1, tool.getId());
 			psd.statement.setString(2, tool.getName());
 			psd.statement.setString(3, tool.getType());
 			psd.statement.setString(4, tool.getCommand());

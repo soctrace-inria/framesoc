@@ -20,7 +20,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class EventParamType implements IModelElement, IGroupable {
 
-	private final int id;
+	private final long id;
 	private EventType eventType;
 	private String name;
 	private String type;
@@ -29,7 +29,7 @@ public class EventParamType implements IModelElement, IGroupable {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public EventParamType(int id) {
+	public EventParamType(long id) {
 		this.id = id;
 	}
 
@@ -80,7 +80,7 @@ public class EventParamType implements IModelElement, IGroupable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -95,12 +95,12 @@ public class EventParamType implements IModelElement, IGroupable {
 	public void accept(IModelVisitor visitor) throws SoCTraceException {
 		visitor.visit(this);
 	}
-
+	
 	/* Note to equals and hashCode.
 	 * 
 	 * Compare only ID, NAME, TYPE to avoid recursive check.
 	 */
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -108,7 +108,7 @@ public class EventParamType implements IModelElement, IGroupable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
@@ -123,7 +123,7 @@ public class EventParamType implements IModelElement, IGroupable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof EventParamType))
+		if (getClass() != obj.getClass())
 			return false;
 		EventParamType other = (EventParamType) obj;
 		if (id != other.id)
@@ -139,6 +139,6 @@ public class EventParamType implements IModelElement, IGroupable {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
-	}	
+	}
 	
 }

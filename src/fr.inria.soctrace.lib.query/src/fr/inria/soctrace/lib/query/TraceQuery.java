@@ -191,7 +191,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 		
 		ValueListString vls = new ValueListString();
 		List<Trace> list = new LinkedList<Trace>();
-		Map<Integer, Trace> tmp = new HashMap<Integer, Trace>();
+		Map<Long, Trace> tmp = new HashMap<>();
 		try {
 			while (rs.next()) {
 				Trace t = rebuildTrace(rs);
@@ -304,7 +304,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	 * @throws SQLException
 	 * @throws SoCTraceException 
 	 */
-	private TraceParam rebuildTraceParam(ResultSet prs, Map<Integer, Trace> tmp) 
+	private TraceParam rebuildTraceParam(ResultSet prs, Map<Long, Trace> tmp) 
 			throws SQLException, SoCTraceException {
 		TraceParam tp = new TraceParam(prs.getInt(1));
 		tp.setTrace(tmp.get(prs.getInt(2)));

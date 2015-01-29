@@ -101,8 +101,8 @@ public class DensityHistogramLoader {
 	 *            loader dataset
 	 * @throws SoCTraceException
 	 */
-	public void load(Trace trace, TimeInterval loadInterval, List<Integer> types,
-			List<Integer> producers, HistogramLoaderDataset dataset, IProgressMonitor monitor) {
+	public void load(Trace trace, TimeInterval loadInterval, List<Long> types,
+			List<Long> producers, HistogramLoaderDataset dataset, IProgressMonitor monitor) {
 
 		DeltaManager dm = new DeltaManager();
 		dm.start();
@@ -213,8 +213,8 @@ public class DensityHistogramLoader {
 			traceDB = TraceDBObject.openNewIstance(trace.getDbName());
 			EventProducerQuery epq = new EventProducerQuery(traceDB);
 			List<EventProducer> producers = epq.getList();
-			Map<Integer, EventProducer> prodMap = new HashMap<>();
-			Map<Integer, EventProducerNode> nodeMap = new HashMap<>();
+			Map<Long, EventProducer> prodMap = new HashMap<>();
+			Map<Long, EventProducerNode> nodeMap = new HashMap<>();
 			for (EventProducer ep : producers) {
 				prodMap.put(ep.getId(), ep);
 			}
@@ -259,7 +259,7 @@ public class DensityHistogramLoader {
 	}
 
 	private EventProducerNode getProducerNode(EventProducer ep,
-			Map<Integer, EventProducer> prodMap, Map<Integer, EventProducerNode> nodeMap) {
+			Map<Long, EventProducer> prodMap, Map<Long, EventProducerNode> nodeMap) {
 		if (nodeMap.containsKey(ep.getId()))
 			return nodeMap.get(ep.getId());
 		EventProducerNode current = new EventProducerNode(ep);
@@ -293,8 +293,8 @@ public class DensityHistogramLoader {
 	 *            flag indicating if we are loading the last interval
 	 * @throws SoCTraceException
 	 */
-	private void getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
-			List<Integer> producers, long t0, long t1, boolean last, List<Long> tsl)
+	private void getTimestapsSeries(TraceDBObject traceDB, List<Long> types,
+			List<Long> producers, long t0, long t1, boolean last, List<Long> tsl)
 			throws SoCTraceException {
 		Statement stm;
 		ResultSet rs;
@@ -317,8 +317,8 @@ public class DensityHistogramLoader {
 		}
 	}
 
-	private String prepareQuery(TraceDBObject traceDB, List<Integer> types,
-			List<Integer> producers, long t0, long t1, boolean last) throws SoCTraceException {
+	private String prepareQuery(TraceDBObject traceDB, List<Long> types,
+			List<Long> producers, long t0, long t1, boolean last) throws SoCTraceException {
 
 		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
 
@@ -333,7 +333,7 @@ public class DensityHistogramLoader {
 
 		if (producers != null && getNumberOfProducers(traceDB) != producers.size()) {
 			ValueListString vls = new ValueListString();
-			for (Integer epId : producers) {
+			for (Long epId : producers) {
 				vls.addValue(String.valueOf(epId));
 			}
 			sb.append(" AND EVENT_PRODUCER_ID IN ");
@@ -341,31 +341,31 @@ public class DensityHistogramLoader {
 		}
 
 		if (types != null) {
-			Map<Integer, EventType> typesMap = new HashMap<>();
+			Map<Long, EventType> typesMap = new HashMap<>();
 			Map<Integer, Integer> tpc = getTypesPerCategory(traceDB, typesMap);
-			Map<Integer, List<Integer>> requested = new HashMap<>();
-			for (Integer etId : types) {
+			Map<Integer, List<Long>> requested = new HashMap<>();
+			for (Long etId : types) {
 				int category = typesMap.get(etId).getCategory();
 				if (!requested.containsKey(category)) {
-					requested.put(category, new LinkedList<Integer>());
+					requested.put(category, new LinkedList<Long>());
 				}
 				requested.get(category).add(etId);
 			}
 			ValueListString categories = new ValueListString();
 			ValueListString typeIds = new ValueListString();
-			Iterator<Entry<Integer, List<Integer>>> it = requested.entrySet().iterator();
+			Iterator<Entry<Integer, List<Long>>> it = requested.entrySet().iterator();
 			int totTypes = 0;
 			for (Integer numberPerCategory : tpc.values()) {
 				totTypes += numberPerCategory;
 			}
 			while (it.hasNext()) {
-				Entry<Integer, List<Integer>> e = it.next();
+				Entry<Integer, List<Long>> e = it.next();
 				int category = e.getKey();
-				List<Integer> tl = e.getValue();
+				List<Long> tl = e.getValue();
 				if (tl.size() == tpc.get(category)) {
 					categories.addValue(String.valueOf(category));
 				} else {
-					for (Integer etId : tl) {
+					for (Long etId : tl) {
 						typeIds.addValue(String.valueOf(etId));
 					}
 				}
@@ -400,7 +400,7 @@ public class DensityHistogramLoader {
 	}
 
 	private Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB,
-			Map<Integer, EventType> typesMap) throws SoCTraceException {
+			Map<Long, EventType> typesMap) throws SoCTraceException {
 		Map<Integer, Integer> typesPerCategory = new HashMap<>();
 		EventTypeQuery etq = new EventTypeQuery(traceDB);
 		List<EventType> etl = etq.getList();

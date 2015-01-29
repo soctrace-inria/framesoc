@@ -24,5 +24,5 @@ public interface IGroupable {
 	 * 
 	 * @return the ID of the groupable object
 	 */
-	int getId();
+	long getId();
 }

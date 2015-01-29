@@ -20,7 +20,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class State extends Event {
 
-	public State(int id) {
+	public State(long id) {
 		super(id);
 		try {
 			setCategory(EventCategory.STATE);

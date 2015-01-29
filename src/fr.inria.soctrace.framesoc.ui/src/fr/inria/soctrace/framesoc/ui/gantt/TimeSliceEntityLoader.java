@@ -41,7 +41,7 @@ public class TimeSliceEntityLoader {
 	private static Logger logger = LoggerFactory.getLogger(TimeSliceEntityLoader.class);
 
 	protected Trace trace;		
-	private Map<Integer, EventProducer> eps = new HashMap<Integer, EventProducer>();
+	private Map<Long, EventProducer> eps = new HashMap<>();
 	private PunctualEvents events = new PunctualEvents();
 	private TimeSlices states = new TimeSlices();
 	private TimeSlices links = new TimeSlices();
@@ -142,7 +142,7 @@ public class TimeSliceEntityLoader {
 	}
 
 	// encapsulate in class Producers
-	public Map<Integer, EventProducer> getProducers() {
+	public Map<Long, EventProducer> getProducers() {
 		return eps;
 	}
 

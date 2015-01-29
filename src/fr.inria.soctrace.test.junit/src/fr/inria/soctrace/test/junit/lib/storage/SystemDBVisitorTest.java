@@ -87,7 +87,7 @@ public class SystemDBVisitorTest {
 		for (TraceParamType tpt: tt.getTraceParamTypes()) {
 			sysDB.save(tpt);
 		}
-		Map<Integer, Trace> traceMap = new HashMap<Integer, Trace>();
+		Map<Long, Trace> traceMap = new HashMap<>();
 		for (Trace t: traces) {
 			traceMap.put(t.getId(), t);
 			sysDB.save(t);

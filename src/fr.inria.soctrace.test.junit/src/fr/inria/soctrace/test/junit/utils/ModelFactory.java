@@ -352,7 +352,7 @@ class ModelFactory implements IModelFactory {
 	 * Create a complete event type
 	 * @return
 	 */
-	private EventType createEventType(int id, int category, IdManager eptIdm) {
+	private EventType createEventType(long id, int category, IdManager eptIdm) {
 		EventType et = new EventType(id, category);
 		et.setName("event_type_"+id);
 		final int n = 2;

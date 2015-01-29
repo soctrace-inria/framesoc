@@ -22,7 +22,7 @@ public class Link extends Event {
 
 	private EventProducer endEventProducer = null; 
 	
-	public Link(int id) {
+	public Link(long id) {
 		super(id);
 		try {
 			setCategory(EventCategory.LINK);
@@ -57,7 +57,7 @@ public class Link extends Event {
 	 */
 	public void setEndProducer(EventProducer ep) {
 		this.endEventProducer = ep;
-		setDoublePar(((Integer)ep.getId()).doubleValue());
+		setDoublePar(((Long)ep.getId()).doubleValue());
 	}
 	
 	@Override

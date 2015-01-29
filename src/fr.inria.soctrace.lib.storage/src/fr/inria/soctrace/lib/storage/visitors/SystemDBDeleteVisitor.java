@@ -81,7 +81,7 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE);
 			psd.visited = true;
-			psd.statement.setInt(1, trace.getId());
+			psd.statement.setLong(1, trace.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -93,7 +93,7 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceType.getId());
+			psd.statement.setLong(1, traceType.getId());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().remove(traceType);
 		} catch (SQLException e) {
@@ -106,7 +106,7 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParam.getId());
+			psd.statement.setLong(1, traceParam.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -118,7 +118,7 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParamType.getId());
+			psd.statement.setLong(1, traceParamType.getId());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().remove(traceParamType);
 		} catch (SQLException e) {
@@ -131,7 +131,7 @@ public class SystemDBDeleteVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TOOL);
 			psd.visited = true;
-			psd.statement.setInt(1, tool.getId());
+			psd.statement.setLong(1, tool.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

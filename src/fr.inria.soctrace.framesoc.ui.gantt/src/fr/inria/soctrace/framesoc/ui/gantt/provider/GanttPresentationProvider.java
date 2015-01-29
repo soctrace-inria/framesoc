@@ -37,10 +37,10 @@ import fr.inria.soctrace.lib.model.EventType;
 public class GanttPresentationProvider extends TimeGraphPresentationProvider {
 		
 	/** Map: type id -> index in the state table */
-	private Map<Integer, Integer> typeIndex = new HashMap<>();
+	private Map<Long, Integer> typeIndex = new HashMap<>();
 	private StateItem[] stateTable;
 	/** Set of ID of filtered types */
-	private Set<Integer> filteredTypes = new HashSet<>();
+	private Set<Long> filteredTypes = new HashSet<>();
 	
     /**
      * Default constructor
@@ -51,7 +51,7 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
 
     public void setTypes(Collection<EventType> types) {
     	filteredTypes = new HashSet<>();
-    	typeIndex = new HashMap<Integer, Integer>();
+    	typeIndex = new HashMap<Long, Integer>();
     	stateTable = new StateItem[types.size()];
     	int i=0;
     	for (EventType type: types) {
@@ -63,14 +63,14 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
     	}
     }
     
-    public void setFilteredTypes(Collection<Integer> types) {
+    public void setFilteredTypes(Collection<Long> types) {
     	filteredTypes = new HashSet<>();
     	filteredTypes.addAll(types);
     }
     
-    public List<Integer> getFilteredTypes() {
-    	List<Integer> filtered = new ArrayList<>(filteredTypes.size());
-    	for (Integer t : filteredTypes) {
+    public List<Long> getFilteredTypes() {
+    	List<Long> filtered = new ArrayList<>(filteredTypes.size());
+    	for (Long t : filteredTypes) {
     		filtered.add(t);
     	}
     	return filtered;

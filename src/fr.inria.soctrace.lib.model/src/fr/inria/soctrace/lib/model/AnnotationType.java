@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class AnnotationType {
 
-	private final int id;
+	private final long id;
 	private String name;
 	private List<AnnotationParamType> paramTypes;
 
@@ -29,7 +29,7 @@ public class AnnotationType {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public AnnotationType(int id) {
+	public AnnotationType(long id) {
 		this.id = id;
 		paramTypes = new ArrayList<AnnotationParamType>();
 	}
@@ -37,7 +37,7 @@ public class AnnotationType {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -92,7 +92,7 @@ public class AnnotationType {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((paramTypes == null) ? 0 : paramTypes.hashCode());
 		return result;
@@ -107,7 +107,7 @@ public class AnnotationType {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof AnnotationType))
+		if (getClass() != obj.getClass())
 			return false;
 		AnnotationType other = (AnnotationType) obj;
 		if (id != other.id)

@@ -148,15 +148,15 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT);
 			psd.visited = true;
-			psd.statement.setInt(1, event.getType().getId());
-			psd.statement.setInt(2, event.getEventProducer().getId());
+			psd.statement.setLong(1, event.getType().getId());
+			psd.statement.setLong(2, event.getEventProducer().getId());
 			psd.statement.setLong(3, event.getTimestamp());
 			psd.statement.setInt(4, event.getCpu());
 			psd.statement.setInt(5, event.getPage());
 			psd.statement.setInt(6, event.getCategory());
 			psd.statement.setLong(7, event.getLongPar());
 			psd.statement.setDouble(8, event.getDoublePar());
-			psd.statement.setInt(9, event.getId());
+			psd.statement.setLong(9, event.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -170,7 +170,7 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 			psd.visited = true;
 			psd.statement.setInt(1, eventType.getCategory());
 			psd.statement.setString(2, eventType.getName());
-			psd.statement.setInt(3, eventType.getId());
+			psd.statement.setLong(3, eventType.getId());
 			psd.statement.addBatch();
 			traceDB.getEventTypeCache().put(eventType);
 		} catch (SQLException e) {
@@ -183,10 +183,10 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_PARAM);
 			psd.visited = true;
-			psd.statement.setInt(1, eventParam.getEvent().getId());
-			psd.statement.setInt(2, eventParam.getEventParamType().getId());
+			psd.statement.setLong(1, eventParam.getEvent().getId());
+			psd.statement.setLong(2, eventParam.getEventParamType().getId());
 			psd.statement.setString(3, eventParam.getValue());
-			psd.statement.setInt(4, eventParam.getId());
+			psd.statement.setLong(4, eventParam.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -198,10 +198,10 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.EVENT_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, eventParamType.getEventType().getId());
+			psd.statement.setLong(1, eventParamType.getEventType().getId());
 			psd.statement.setString(2, eventParamType.getName());
 			psd.statement.setString(3, eventParamType.getType());
-			psd.statement.setInt(4, eventParamType.getId());
+			psd.statement.setLong(4, eventParamType.getId());
 			psd.statement.addBatch();
 			traceDB.getEventTypeCache().put(eventParamType);
 		} catch (SQLException e) {
@@ -221,8 +221,8 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 			psd.statement.setString(1, eventProducer.getType());
 			psd.statement.setString(2, eventProducer.getLocalId());
 			psd.statement.setString(3, eventProducer.getName());
-			psd.statement.setInt(4, eventProducer.getParentId());
-			psd.statement.setInt(5, eventProducer.getId());
+			psd.statement.setLong(4, eventProducer.getParentId());
+			psd.statement.setLong(5, eventProducer.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -240,7 +240,7 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 			psd.visited = true;
 			psd.statement.setString(1, file.getPath());
 			psd.statement.setString(2, file.getDescription());
-			psd.statement.setInt(3, file.getId());
+			psd.statement.setLong(3, file.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -267,11 +267,11 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.ANALYSIS_RESULT);
 			psd.visited = true;
-			psd.statement.setInt(1, analysisResult.getTool().getId());
+			psd.statement.setLong(1, analysisResult.getTool().getId());
 			// XXX see note at the bottom of ModelVisitor.java
 			psd.statement.setString(2, SoctraceUtils.timestampToString(analysisResult.getDate()));
 			psd.statement.setString(3, analysisResult.getDescription());
-			psd.statement.setInt(4, analysisResult.getId());
+			psd.statement.setLong(4, analysisResult.getId());
 			psd.statement.addBatch();
 
 			if (analysisResult.getData() == null)
@@ -306,7 +306,7 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		PreparedStatementDescriptor psd = getDescriptor(FramesocTable.SEARCH);
 		psd.visited = true;
 		psd.statement.setString(1, data.getSearchCommand());
-		psd.statement.setInt(2, analysisResult.getId());
+		psd.statement.setLong(2, analysisResult.getId());
 		psd.statement.addBatch();
 	}
 
@@ -322,14 +322,14 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 		DepthFirstIterator treeIt = data.getDepthFirstIterator();
 		while (treeIt.hasNext()) {
 			Group g = treeIt.next();
-			psdGroup.statement.setInt(1, g.getParentId());
+			psdGroup.statement.setLong(1, g.getParentId());
 			psdGroup.statement.setString(2, g.getName());
 			psdGroup.statement.setString(3, g.getTargetEntity());
 			psdGroup.statement.setString(4, g.getGroupingOperator());
 			psdGroup.statement.setBoolean(5, g.isOrdered());
 			psdGroup.statement.setInt(6, g.getSequenceNumber());
-			psdGroup.statement.setInt(7, analysisResult.getId());
-			psdGroup.statement.setInt(8, g.getId());
+			psdGroup.statement.setLong(7, analysisResult.getId());
+			psdGroup.statement.setLong(8, g.getId());
 			psdGroup.statement.addBatch();
 			// For leafs only the position currently updated.
 			// This is meaningful only for ordered groups.
@@ -339,8 +339,8 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 				while (it.hasNext()) {
 					Entry<Integer, LeafMapping> entry = (Entry<Integer, LeafMapping>) it.next();
 					psdMapping.statement.setInt(1, entry.getKey());
-					psdMapping.statement.setInt(2, analysisResult.getId());
-					psdMapping.statement.setInt(3, entry.getValue().getMappingId());
+					psdMapping.statement.setLong(2, analysisResult.getId());
+					psdMapping.statement.setLong(3, entry.getValue().getMappingId());
 					psdMapping.statement.addBatch();
 				}
 			}
@@ -364,31 +364,31 @@ public class TraceDBUpdateVisitor extends ModelVisitor {
 
 		for (AnnotationType at : annotationData.getAnnotationTypes()) {
 			psdAnnotationType.statement.setString(1, at.getName());
-			psdAnnotationType.statement.setInt(2, analysisResult.getId());
-			psdAnnotationType.statement.setInt(3, at.getId());
+			psdAnnotationType.statement.setLong(2, analysisResult.getId());
+			psdAnnotationType.statement.setLong(3, at.getId());
 			psdAnnotationType.statement.addBatch();
 			for (AnnotationParamType pt : at.getParamTypes()) {
-				psdAnnotationParamType.statement.setInt(1, pt.getAnnotationType().getId());
+				psdAnnotationParamType.statement.setLong(1, pt.getAnnotationType().getId());
 				psdAnnotationParamType.statement.setString(2, pt.getName());
 				psdAnnotationParamType.statement.setString(3, pt.getType());
-				psdAnnotationParamType.statement.setInt(4, analysisResult.getId());
-				psdAnnotationParamType.statement.setInt(5, pt.getId());
+				psdAnnotationParamType.statement.setLong(4, analysisResult.getId());
+				psdAnnotationParamType.statement.setLong(5, pt.getId());
 				psdAnnotationParamType.statement.addBatch();
 			}
 		}
 
 		for (Annotation a : annotationData.getAnnotations()) {
-			psdAnnotation.statement.setInt(1, a.getAnnotationType().getId());
+			psdAnnotation.statement.setLong(1, a.getAnnotationType().getId());
 			psdAnnotation.statement.setString(2, a.getName());
-			psdAnnotation.statement.setInt(3, analysisResult.getId());
-			psdAnnotation.statement.setInt(4, a.getId());
+			psdAnnotation.statement.setLong(3, analysisResult.getId());
+			psdAnnotation.statement.setLong(4, a.getId());
 			psdAnnotation.statement.addBatch();
 			for (AnnotationParam p : a.getParams()) {
-				psdAnnotationParam.statement.setInt(1, a.getId());
-				psdAnnotationParam.statement.setInt(2, p.getAnnotationParamType().getId());
+				psdAnnotationParam.statement.setLong(1, a.getId());
+				psdAnnotationParam.statement.setLong(2, p.getAnnotationParamType().getId());
 				psdAnnotationParam.statement.setString(3, p.getValue());
-				psdAnnotationParam.statement.setInt(4, analysisResult.getId());
-				psdAnnotationParam.statement.setInt(5, p.getId());
+				psdAnnotationParam.statement.setLong(4, analysisResult.getId());
+				psdAnnotationParam.statement.setLong(5, p.getId());
 				psdAnnotationParam.statement.addBatch();
 			}
 		}

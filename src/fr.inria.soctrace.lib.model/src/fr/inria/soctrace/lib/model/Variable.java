@@ -20,7 +20,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class Variable extends Event {
 
-	public Variable(int id) {
+	public Variable(long id) {
 		super(id);
 		try {
 			setCategory(EventCategory.VARIABLE);

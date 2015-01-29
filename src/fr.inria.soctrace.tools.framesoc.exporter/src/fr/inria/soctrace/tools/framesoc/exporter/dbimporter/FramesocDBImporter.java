@@ -98,7 +98,7 @@ public class FramesocDBImporter extends FramesocTool {
 			return t;
 		}
 
-		private void saveTrace(SystemDBObject sysDB, ExportMetadata metadata, int traceId)
+		private void saveTrace(SystemDBObject sysDB, ExportMetadata metadata, long traceId)
 				throws SoCTraceException {
 
 			boolean isTypePresent = sysDB.isTraceTypePresent(metadata.trace.getType().getName());
@@ -315,14 +315,14 @@ public class FramesocDBImporter extends FramesocTool {
 						List<Tool> tl = tq.getList();
 						// tool name -> tool
 						Map<String, Tool> name2tool = new HashMap<String, Tool>();
-						Map<Integer, Tool> id2tool = new HashMap<Integer, Tool>();
+						Map<Long, Tool> id2tool = new HashMap<>();
 						for (Tool t : tl) {
 							name2tool.put(t.getName(), t);
 							id2tool.put(t.getId(), t);
 						}
 						// old system tool id -> new system tool id
-						Map<Integer, Integer> oldId2newId = new HashMap<Integer, Integer>();
-						final Set<Integer> arIdsToKeep = new HashSet<Integer>();
+						Map<Long, Long> oldId2newId = new HashMap<>();
+						final Set<Long> arIdsToKeep = new HashSet<>();
 						for (Tool t : metadata.tools) {
 							if (name2tool.containsKey(t.getName())) {
 								oldId2newId.put(t.getId(), name2tool.get(t.getName()).getId());

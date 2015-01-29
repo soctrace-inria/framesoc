@@ -49,7 +49,7 @@ public class OrderedGroup extends Group {
 	 * @param targetClass leaves class
 	 * @throws SoCTraceException 
 	 */
-	public OrderedGroup(int id, Class<? extends IGroupable> targetClass)
+	public OrderedGroup(long id, Class<? extends IGroupable> targetClass)
 			throws SoCTraceException {
 		super(id, targetClass);
 		this.ordered = true;
@@ -93,7 +93,7 @@ public class OrderedGroup extends Group {
 	 * @param mappingId mapping id
 	 * @throws SoCTraceException 
 	 */
-	public void addSon(IGroupable son, Integer position, Integer mappingId) throws SoCTraceException {
+	public void addSon(IGroupable son, Integer position, Long mappingId) throws SoCTraceException {
 		
 		if (son instanceof Group) {
 			Group g = (Group) son;
@@ -138,7 +138,7 @@ public class OrderedGroup extends Group {
 	}
 
 	@Override
-	protected void checkNode(Map<Integer, Boolean> visited) throws SoCTraceException {
+	protected void checkNode(Map<Long, Boolean> visited) throws SoCTraceException {
 		
 		if ( visited.get(this.getId()) != null ) {
 			throw new SoCTraceException(structureErrorMessage());

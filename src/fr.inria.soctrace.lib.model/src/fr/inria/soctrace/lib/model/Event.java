@@ -28,7 +28,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 
 	public static final int UNKNOWN_INT = -1;
 
-	private final int id;
+	private final long id;
 	private EventProducer eventProducer;
 	private EventType eventType;
 	private long timestamp;
@@ -98,7 +98,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 	 * @param id event id
 	 * @return an event of the given category
 	 */
-	public static Event createCategorizedEvent(int category, int id) {
+	public static Event createCategorizedEvent(int category, long id) {
 		switch(category) {
 		case EventCategory.PUNCTUAL_EVENT:
 			return new PunctualEvent(id);
@@ -117,7 +117,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 	 * Constructor 
 	 * @param id the entity unique id
 	 */
-	public Event(int id) {
+	public Event(long id) {
 		this.id = id;
 		params = new ArrayList<EventParam>();
 		timestamp = UNKNOWN_INT;
@@ -206,7 +206,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -268,7 +268,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((eventProducer == null) ? 0 : eventProducer.hashCode());
 		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
-		result = prime * result + id;
+		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + (int) (longPar ^ (longPar >>> 32));
 		result = prime * result + page;
 		result = prime * result + ((params == null) ? 0 : params.hashCode());
@@ -285,7 +285,7 @@ public class Event implements IModelElement, ISearchable, IGroupable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Event))
+		if (getClass() != obj.getClass())
 			return false;
 		Event other = (Event) obj;
 		if (category != other.category)

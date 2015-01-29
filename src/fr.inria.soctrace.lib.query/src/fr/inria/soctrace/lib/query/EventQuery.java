@@ -233,7 +233,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 	public void loadParams(List<Event> elist) throws SoCTraceException {
 		try {
 			ValueListString vls = new ValueListString();
-			Map<Integer, Event> tmp = new HashMap<Integer, Event>();
+			Map<Long, Event> tmp = new HashMap<>();
 
 			for (Event e: elist) {
 				tmp.put(e.getId(), e);
@@ -350,7 +350,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 
 		ValueListString vls = new ValueListString();
 		List<Event> list = new LinkedList<Event>();
-		Map<Integer, Event> tmp = new HashMap<Integer, Event>();
+		Map<Long, Event> tmp = new HashMap<>();
 		try {		
 
 			while (rs.next()) {
@@ -421,7 +421,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 	 * @throws SQLException
 	 * @throws SoCTraceException 
 	 */
-	private EventParam rebuildEventParam(ResultSet prs, Map<Integer, Event> tmp) 
+	private EventParam rebuildEventParam(ResultSet prs, Map<Long, Event> tmp) 
 			throws SQLException, SoCTraceException {
 		EventParam ep = new EventParam(prs.getInt(1));
 		ep.setEvent(tmp.get(prs.getInt(2)));

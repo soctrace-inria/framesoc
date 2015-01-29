@@ -59,8 +59,8 @@ public class NoCpuEventDrawer implements IEventDrawer {
 	private Map<Integer, IReducedEventDrawer> drawers = new HashMap<Integer, IReducedEventDrawer>();
 
 	// current visualized trace data
-	private Map<Integer, EventProducer> producers; // epid, ep
-	private Map<Integer, GanttEntry> rows; // epid, row
+	private Map<Long, EventProducer> producers; // epid, ep
+	private Map<Long, GanttEntry> rows; // epid, row
 	private ArrayList<TimeGraphEntry> mainItems;
 	private ArrayList<ILinkEvent> linkList;
 
@@ -89,7 +89,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 	}
 
 	@Override
-	public void setProducers(Map<Integer, EventProducer> producers) {
+	public void setProducers(Map<Long, EventProducer> producers) {
 		this.producers = producers;
 	}
 	
@@ -171,7 +171,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 		return rows.get(ep.getId());
 	}
 
-	private GanttEntry getNewEventProducerRow(EventProducer ep, Map<Integer, EventProducer> eps) {
+	private GanttEntry getNewEventProducerRow(EventProducer ep, Map<Long, EventProducer> eps) {
 
 		logger.trace("Creating event producer row " + ep.getId() + ", parent " + ep.getParentId());
 

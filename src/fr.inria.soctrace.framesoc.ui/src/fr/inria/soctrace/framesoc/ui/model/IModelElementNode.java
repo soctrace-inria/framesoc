@@ -22,6 +22,6 @@ public interface IModelElementNode {
 	 * 
 	 * @return the id
 	 */
-	int getId();
+	long getId();
 
 }
