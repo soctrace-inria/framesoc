@@ -579,9 +579,10 @@ public class StatisticsPieChartView extends FramesocPart {
 					hide.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							currentDescriptor.excluded.addAll(rows);
+							currentDescriptor.excluded.addAll(rows);					
 							refresh();
 							refreshFilter();
+							tableTreeViewer.collapseAll();					
 						}
 					});
 				}
@@ -627,6 +628,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							currentDescriptor.merged.removeMergedItems(rows);
 							refresh();
 							refreshFilter();
+							tableTreeViewer.collapseAll();
 						}
 					});
 				}
@@ -641,6 +643,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
 							refreshFilter();
+							tableTreeViewer.collapseAll();
 						}
 					});
 				}
@@ -655,6 +658,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							currentDescriptor.merged.removeAllMergedItems();
 							refresh();
 							refreshFilter();
+							tableTreeViewer.collapseAll();
 						}
 					});
 				}

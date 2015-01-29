@@ -565,7 +565,7 @@ public class GanttView extends AbstractGanttView {
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/filter_types.gif"));
-		action.setToolTipText("Show type filter dialog");
+		action.setToolTipText("Show Type Filter Dialog");
 		return action;
 	}
 
@@ -601,7 +601,7 @@ public class GanttView extends AbstractGanttView {
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/cpu_node.png"));
-		action.setToolTipText("Use CPU drawer");
+		action.setToolTipText("Use CPU Drawer");
 		return action;
 	}
 
