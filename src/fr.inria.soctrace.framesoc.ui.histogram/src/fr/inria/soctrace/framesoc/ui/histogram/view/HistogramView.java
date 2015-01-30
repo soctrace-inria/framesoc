@@ -37,6 +37,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
@@ -137,7 +139,8 @@ public class HistogramView extends FramesocPart {
 	/**
 	 * Logger
 	 */
-	public static final Logger logger = LoggerFactory.getLogger(HistogramView.class);
+	public static final Logger logger = LoggerFactory
+			.getLogger(HistogramView.class);
 
 	/**
 	 * UI Constants
@@ -158,9 +161,11 @@ public class HistogramView extends FramesocPart {
 	private final static Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
 	private final static Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
 
-	// private final DecimalFormat X_FORMAT = new DecimalFormat(Constants.TIMESTAMPS_FORMAT);
+	// private final DecimalFormat X_FORMAT = new
+	// DecimalFormat(Constants.TIMESTAMPS_FORMAT);
 	// private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
-	// private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
+	// private final XYToolTipGenerator TOOLTIP_GENERATOR = new
+	// StandardXYToolTipGenerator(
 	// TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
@@ -227,6 +232,11 @@ public class HistogramView extends FramesocPart {
 	private HistogramLoaderDataset dataset;
 
 	/**
+	 * Number of histogram ticks
+	 */
+	private long numberOfTicks = 10;
+
+	/**
 	 * Tree node comparator
 	 */
 	private final static Comparator<ITreeNode> TREE_NODE_COMPARATOR = new Comparator<ITreeNode>() {
@@ -240,7 +250,8 @@ public class HistogramView extends FramesocPart {
 
 	public HistogramView() {
 		super();
-		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); // TODO use it
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); // TODO use
+																	// it
 		topics.registerAll();
 		configurationMap = new HashMap<>();
 		for (ConfigurationDimension dimension : ConfigurationDimension.values()) {
@@ -266,12 +277,27 @@ public class HistogramView extends FramesocPart {
 
 		// Sash
 		SashForm sashForm = new SashForm(parent, SWT.NONE);
-		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1,
+				1));
 
 		// Chart Composite
 		compositeChart = new Composite(sashForm, SWT.BORDER);
 		FillLayout fl_compositeChart = new FillLayout(SWT.HORIZONTAL);
 		compositeChart.setLayout(fl_compositeChart);
+		compositeChart.addControlListener(new ControlListener() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				int width = Math.max(compositeChart.getSize().x - 40, 1);
+				int ticks = width / TimestampFormat.TIMESTAMP_MAX_SIZE;
+				numberOfTicks = Math.max(ticks, 1);
+				refresh(false, false);
+			}
+
+			@Override
+			public void controlMoved(ControlEvent e) {
+				// NOP
+			}
+		});
 
 		// Configuration Composite
 		compositeConf = new Composite(sashForm, SWT.NONE);
@@ -280,11 +306,13 @@ public class HistogramView extends FramesocPart {
 		gl_compositeConf.verticalSpacing = 0;
 		gl_compositeConf.marginWidth = 0;
 		compositeConf.setLayout(gl_compositeConf);
-		compositeConf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		compositeConf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
+				true, 1, 1));
 
 		// Tab folder
 		TabFolder tabFolder = new TabFolder(compositeConf, SWT.NONE);
-		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1,
+				1));
 
 		PatternFilter filter = new TreePatternFilter();
 		TreeContentProvider contentProvider = new TreeContentProvider();
@@ -297,28 +325,31 @@ public class HistogramView extends FramesocPart {
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
 		tbtmEventTypes.setText(ConfigurationDimension.TYPE.getName());
 		filter.setIncludeLeadingWildcard(true);
-		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter,
-				true);
+		FilteredCheckboxTree typeTree = new FilteredCheckboxTree(tabFolder,
+				SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
 		typeTree.getViewer().setLabelProvider(new EventTypeTreeLabelProvider());
 		typeTree.getViewer().setComparator(treeComparator);
 		typeTree.addCheckStateListener(checkStateListener);
-		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
+		typeTree.getViewer().addSelectionChangedListener(
+				selectionChangeListener);
 		tbtmEventTypes.setControl(typeTree);
 
 		// Tab item producers
 		TabItem tbtmEventProducers = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventProducers.setData(ConfigurationDimension.PRODUCERS);
 		tbtmEventProducers.setText(ConfigurationDimension.PRODUCERS.getName());
-		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(tabFolder, SWT.BORDER, filter,
-				true);
+		FilteredCheckboxTree prodTree = new FilteredCheckboxTree(tabFolder,
+				SWT.BORDER, filter, true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
 		prodTree.getViewer().setContentProvider(contentProvider);
-		prodTree.getViewer().setLabelProvider(new EventProducerTreeLabelProvider());
+		prodTree.getViewer().setLabelProvider(
+				new EventProducerTreeLabelProvider());
 		prodTree.getViewer().setComparator(treeComparator);
 		prodTree.addCheckStateListener(checkStateListener);
-		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
+		prodTree.getViewer().addSelectionChangedListener(
+				selectionChangeListener);
 		tbtmEventProducers.setControl(prodTree);
 
 		// sash weights
@@ -326,7 +357,8 @@ public class HistogramView extends FramesocPart {
 		// tab switch
 		tabFolder.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				currentDimension = (ConfigurationDimension) event.item.getData();
+				currentDimension = (ConfigurationDimension) event.item
+						.getData();
 				enableTreeButtons();
 				enableSubTreeButtons();
 			}
@@ -338,22 +370,26 @@ public class HistogramView extends FramesocPart {
 		gl_compositeBtn.marginWidth = 1;
 		gl_compositeBtn.horizontalSpacing = 1;
 		compositeBtn.setLayout(gl_compositeBtn);
-		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+		compositeBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true,
+				false, 1, 1));
 
 		btnCheckall = new Button(compositeBtn, SWT.NONE);
-		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		btnCheckall.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true,
+				false, 1, 1));
 		btnCheckall.setToolTipText("Check all");
-		btnCheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/check_all.png"));
+		btnCheckall.setImage(ResourceManager.getPluginImage(
+				Activator.PLUGIN_ID, "icons/check_all.png"));
 		btnCheckall.setEnabled(false);
 		btnCheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (configurationMap.get(currentDimension).roots != null) {
-					FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
-					TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
-							.getContentProvider();
-					Object[] roots = provider.getElements(tree.getViewer().getInput());
+					FilteredCheckboxTree tree = configurationMap
+							.get(currentDimension).tree;
+					TreeContentProvider provider = (TreeContentProvider) tree
+							.getViewer().getContentProvider();
+					Object[] roots = provider.getElements(tree.getViewer()
+							.getInput());
 					for (Object root : roots) {
 						checkElementAndSubtree(root);
 					}
@@ -363,37 +399,42 @@ public class HistogramView extends FramesocPart {
 		});
 
 		btnUncheckall = new Button(compositeBtn, SWT.NONE);
-		btnUncheckall.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
+		btnUncheckall.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
+				false, 1, 1));
 		btnUncheckall.setToolTipText("Uncheck all");
-		btnUncheckall.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/uncheck_all.png"));
+		btnUncheckall.setImage(ResourceManager.getPluginImage(
+				Activator.PLUGIN_ID, "icons/uncheck_all.png"));
 		btnUncheckall.setEnabled(false);
 		btnUncheckall.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				configurationMap.get(currentDimension).tree.setCheckedElements(EMPTY_ARRAY);
+				configurationMap.get(currentDimension).tree
+						.setCheckedElements(EMPTY_ARRAY);
 				selectionChanged();
 			}
 		});
 
 		Label separator = new Label(compositeBtn, SWT.SEPARATOR | SWT.VERTICAL);
-		GridData gd_separator = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		GridData gd_separator = new GridData(SWT.CENTER, SWT.CENTER, false,
+				false, 1, 1);
 		gd_separator.horizontalIndent = 2;
 		gd_separator.widthHint = 5;
 		gd_separator.heightHint = 20;
 		separator.setLayoutData(gd_separator);
 
 		btnCheckSubtree = new Button(compositeBtn, SWT.NONE);
-		btnCheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
+		btnCheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER,
+				false, false, 1, 1));
 		btnCheckSubtree.setToolTipText("Check subtree");
-		btnCheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/check_subtree.png"));
+		btnCheckSubtree.setImage(ResourceManager.getPluginImage(
+				Activator.PLUGIN_ID, "icons/check_subtree.png"));
 		btnCheckSubtree.setEnabled(false);
 		btnCheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (configurationMap.get(currentDimension).roots != null) {
-					ITreeNode node = getCurrentSelection(configurationMap.get(currentDimension).tree);
+					ITreeNode node = getCurrentSelection(configurationMap
+							.get(currentDimension).tree);
 					if (node == null)
 						return;
 					checkElementAndSubtree(node);
@@ -403,16 +444,18 @@ public class HistogramView extends FramesocPart {
 		});
 
 		btnUncheckSubtree = new Button(compositeBtn, SWT.NONE);
-		btnUncheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
+		btnUncheckSubtree.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER,
+				false, false, 1, 1));
 		btnUncheckSubtree.setToolTipText("Uncheck subtree");
-		btnUncheckSubtree.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
-				"icons/uncheck_subtree.png"));
+		btnUncheckSubtree.setImage(ResourceManager.getPluginImage(
+				Activator.PLUGIN_ID, "icons/uncheck_subtree.png"));
 		btnUncheckSubtree.setEnabled(false);
 		btnUncheckSubtree.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (configurationMap.get(currentDimension).roots != null) {
-					ITreeNode node = getCurrentSelection(configurationMap.get(currentDimension).tree);
+					ITreeNode node = getCurrentSelection(configurationMap
+							.get(currentDimension).tree);
 					if (node == null)
 						return;
 					uncheckElement(node);
@@ -424,14 +467,16 @@ public class HistogramView extends FramesocPart {
 
 		// Time management bar
 		Composite timeComposite = new Composite(parent, SWT.BORDER);
-		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		timeComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
+				false, 1, 1));
 		GridLayout gl_timeComposite = new GridLayout(1, false);
 		gl_timeComposite.horizontalSpacing = 0;
 		timeComposite.setLayout(gl_timeComposite);
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		timeBar.setEnabled(false);
-		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
+		IStatusLineManager statusLineManager = getViewSite().getActionBars()
+				.getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
 		timeBar.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -444,8 +489,10 @@ public class HistogramView extends FramesocPart {
 				}
 			}
 		});
-		// button to synch the timebar, producers and type with the current loaded data
-		timeBar.getSynchButton().setToolTipText("Reset timebar, types and producers");
+		// button to synch the timebar, producers and type with the current
+		// loaded data
+		timeBar.getSynchButton().setToolTipText(
+				"Reset timebar, types and producers");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -479,7 +526,8 @@ public class HistogramView extends FramesocPart {
 	}
 
 	protected ITreeNode getCurrentSelection(FilteredCheckboxTree tree) {
-		IStructuredSelection sel = (IStructuredSelection) tree.getViewer().getSelection();
+		IStructuredSelection sel = (IStructuredSelection) tree.getViewer()
+				.getSelection();
 		if (sel.isEmpty())
 			return null;
 		return (ITreeNode) sel.getFirstElement();
@@ -534,10 +582,11 @@ public class HistogramView extends FramesocPart {
 
 		if (trace == null)
 			return;
-		
+
 		if (data == null) {
 			// called after right click on trace tree menu
-			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMaxTimestamp()));
+			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(),
+					trace.getMaxTimestamp()));
 		} else {
 			// called after double click on trace tree or a Framesoc bus message
 			// coming from a "show in" action
@@ -548,14 +597,16 @@ public class HistogramView extends FramesocPart {
 			TimeInterval desInterval = des.getTimeInterval();
 			if (desInterval.equals(TimeInterval.NOT_SPECIFIED)) {
 				// double click
-				if ((currentShownTrace != null && currentShownTrace.equals(trace))) {
+				if ((currentShownTrace != null && currentShownTrace
+						.equals(trace))) {
 					// same trace: keep interval and configuration
 					return;
 				}
 				if (currentShownTrace == null) {
 					// load the whole trace
 					Trace t = des.getTrace();
-					desInterval = new TimeInterval(t.getMinTimestamp(), t.getMaxTimestamp());
+					desInterval = new TimeInterval(t.getMinTimestamp(),
+							t.getMaxTimestamp());
 				}
 			} else {
 				// message on the bus from "show in" action
@@ -581,7 +632,8 @@ public class HistogramView extends FramesocPart {
 				}
 			}
 
-			if (loadedInterval == null || (!loadedInterval.equals(desInterval) || !sameConf)) {
+			if (loadedInterval == null
+					|| (!loadedInterval.equals(desInterval) || !sameConf)) {
 				loadHistogram(des.getTrace(), desInterval);
 			}
 
@@ -589,8 +641,8 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Load the histogram using the current trace and the information in the type and producer
-	 * trees.
+	 * Load the histogram using the current trace and the information in the
+	 * type and producer trees.
 	 * 
 	 * @param trace
 	 *            trace to load
@@ -603,8 +655,10 @@ public class HistogramView extends FramesocPart {
 		// set time unit and extrema
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		// nothing is loaded so far, so the interval is [start, start] (duration 0)
-		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
+		// nothing is loaded so far, so the interval is [start, start] (duration
+		// 0)
+		loadedInterval = new TimeInterval(interval.startTimestamp,
+				interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
 
 		Thread showThread = new Thread() {
@@ -620,15 +674,18 @@ public class HistogramView extends FramesocPart {
 						}
 						// store in confData.checked a sorted array containing
 						// a snapshot of checked elements at load time
-						Object[] currentChecked = confData.tree.getCheckedElements();
+						Object[] currentChecked = confData.tree
+								.getCheckedElements();
 						confData.checked = new ITreeNode[currentChecked.length];
-						List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
+						List<Integer> toLoad = new ArrayList<Integer>(
+								currentChecked.length);
 						confMap.put(confData.dimension, toLoad);
 						for (int i = 0; i < currentChecked.length; i++) {
 							confData.checked[i] = (ITreeNode) currentChecked[i];
 							if (!(currentChecked[i] instanceof IModelElementNode))
 								continue;
-							toLoad.add(((IModelElementNode) currentChecked[i]).getId());
+							toLoad.add(((IModelElementNode) currentChecked[i])
+									.getId());
 						}
 						Arrays.sort(confData.checked, TREE_NODE_COMPARATOR);
 					}
@@ -639,7 +696,8 @@ public class HistogramView extends FramesocPart {
 					// load producers and types if necessary
 					for (ConfigurationData data : configurationMap.values()) {
 						if (data.roots == null) {
-							data.roots = loader.loadDimension(data.dimension, currentShownTrace);
+							data.roots = loader.loadDimension(data.dimension,
+									currentShownTrace);
 							data.checked = linearizeAndSort(data.roots);
 						}
 					}
@@ -648,10 +706,11 @@ public class HistogramView extends FramesocPart {
 					dataset = new HistogramLoaderDataset();
 
 					// create loader and builder threads
-					LoaderThread loaderThread = new LoaderThread(interval, loader,
-							confMap.get(ConfigurationDimension.TYPE),
+					LoaderThread loaderThread = new LoaderThread(interval,
+							loader, confMap.get(ConfigurationDimension.TYPE),
 							confMap.get(ConfigurationDimension.PRODUCERS));
-					BuilderJob builderJob = new BuilderJob("Event Density Chart Job", loaderThread);
+					BuilderJob builderJob = new BuilderJob(
+							"Event Density Chart Job", loaderThread);
 					loaderThread.start();
 					builderJob.schedule();
 				} catch (SoCTraceException e) {
@@ -673,8 +732,9 @@ public class HistogramView extends FramesocPart {
 		private List<Integer> types;
 		private List<Integer> producer;
 
-		public LoaderThread(TimeInterval interval, DensityHistogramLoader loader,
-				List<Integer> types, List<Integer> producers) {
+		public LoaderThread(TimeInterval interval,
+				DensityHistogramLoader loader, List<Integer> types,
+				List<Integer> producers) {
 			this.interval = interval;
 			this.loader = loader;
 			this.types = types;
@@ -684,7 +744,8 @@ public class HistogramView extends FramesocPart {
 
 		@Override
 		public void run() {
-			loader.load(currentShownTrace, interval, types, producer, dataset, monitor);
+			loader.load(currentShownTrace, interval, types, producer, dataset,
+					monitor);
 		}
 
 		public void cancel() {
@@ -708,7 +769,8 @@ public class HistogramView extends FramesocPart {
 		protected IStatus run(IProgressMonitor monitor) {
 			DeltaManager dm = new DeltaManager();
 			dm.start();
-			monitor.beginTask("Loading trace " + currentShownTrace.getAlias(), TOTAL_WORK);
+			monitor.beginTask("Loading trace " + currentShownTrace.getAlias(),
+					TOTAL_WORK);
 			try {
 				disableButtons();
 				boolean done = false;
@@ -733,7 +795,8 @@ public class HistogramView extends FramesocPart {
 
 					double delta = loadedInterval.endTimestamp - oldLoadedEnd;
 					if (delta > 0) {
-						monitor.worked((int) ((delta / requestedInterval.getDuration()) * TOTAL_WORK));
+						monitor.worked((int) ((delta / requestedInterval
+								.getDuration()) * TOTAL_WORK));
 					}
 				}
 				if (first) {
@@ -783,19 +846,28 @@ public class HistogramView extends FramesocPart {
 	 *            flag indicating if it is the first refresh for a given load
 	 */
 	private void refresh(final boolean first, final boolean cancelled) {
+		
+		if (dataset == null) {
+			return;
+		}
+		
 		// prepare chart
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 		// get the last snapshot
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
-		// if we have not been cancelled, the x range corresponds to the requested interval
-		final TimeInterval histogramInterval = new TimeInterval(requestedInterval);
+		// if we have not been cancelled, the x range corresponds to the
+		// requested interval
+		final TimeInterval histogramInterval = new TimeInterval(
+				requestedInterval);
 		if (cancelled) {
-			// we have been cancelled, the x range corresponds to the actual loaded interval
+			// we have been cancelled, the x range corresponds to the actual
+			// loaded interval
 			histogramInterval.copy(loadedInterval);
 		}
-		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
-				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
+		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE,
+				X_LABEL, Y_LABEL, hdataset, PlotOrientation.VERTICAL,
+				HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
 		// Customization
 		plot = chart.getXYPlot();
 		// background color
@@ -803,11 +875,11 @@ public class HistogramView extends FramesocPart {
 		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
 		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
 
-		TimestampFormat X_FORMAT = new TimestampFormat(TimeUnit.getTimeUnit(currentShownTrace
-				.getTimeUnit()));
+		TimestampFormat X_FORMAT = new TimestampFormat(
+				TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 		DecimalFormat Y_FORMAT = new DecimalFormat("0");
-		XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(TOOLTIP_FORMAT,
-				X_FORMAT, Y_FORMAT);
+		XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
+				TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
 
 		// tooltip
 		XYItemRenderer renderer = plot.getRenderer();
@@ -819,14 +891,19 @@ public class HistogramView extends FramesocPart {
 		// x tick format
 		xaxis.setNumberFormatOverride(X_FORMAT);
 		// x tick units
-		xaxis.setTickUnit(new NumberTickUnit((histogramInterval.getDuration() / 10.0)));
+		xaxis.setTickUnit(new NumberTickUnit(
+				(histogramInterval.getDuration() / numberOfTicks)));
 		xaxis.addChangeListener(new AxisChangeListener() {
 			@Override
 			public void axisChanged(AxisChangeEvent arg) {
-				long max = ((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue();
-				long min = ((Double) plot.getDomainAxis().getRange().getLowerBound()).longValue();
-				NumberTickUnit newUnit = new NumberTickUnit((max - min) / 10.0);
-				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
+				long max = ((Double) plot.getDomainAxis().getRange()
+						.getUpperBound()).longValue();
+				long min = ((Double) plot.getDomainAxis().getRange()
+						.getLowerBound()).longValue();
+				NumberTickUnit newUnit = new NumberTickUnit((max - min)
+						/ numberOfTicks);
+				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis())
+						.getTickUnit();
 				// ensure we don't loop
 				if (!currentUnit.equals(newUnit))
 					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
@@ -849,11 +926,13 @@ public class HistogramView extends FramesocPart {
 					c.dispose();
 				}
 				// histogram chart
-				chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER) {
+				chartFrame = new ChartComposite(compositeChart, SWT.NONE,
+						chart, USE_BUFFER) {
 					@Override
 					public void restoreAutoBounds() {
 						// restore domain axis to trace range when dezooming
-						plot.getDomainAxis().setRange(histogramInterval.startTimestamp,
+						plot.getDomainAxis().setRange(
+								histogramInterval.startTimestamp,
 								histogramInterval.endTimestamp);
 					}
 				};
@@ -864,11 +943,13 @@ public class HistogramView extends FramesocPart {
 				chartFrame.addChartMouseListener(new HistogramMouseListener());
 				// - workaround for last xaxis tick not shown (jfreechart bug)
 				RectangleInsets insets = plot.getInsets();
-				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets
-						.getBottom(), 25));
+				plot.setInsets(new RectangleInsets(insets.getTop(), insets
+						.getLeft(), insets.getBottom(), 25));
 				// - time bounds
-				plot.getDomainAxis().setLowerBound(histogramInterval.startTimestamp);
-				plot.getDomainAxis().setUpperBound(histogramInterval.endTimestamp);
+				plot.getDomainAxis().setLowerBound(
+						histogramInterval.startTimestamp);
+				plot.getDomainAxis().setUpperBound(
+						histogramInterval.endTimestamp);
 				// producers and types
 				if (first) {
 					for (ConfigurationData data : configurationMap.values()) {
@@ -949,7 +1030,8 @@ public class HistogramView extends FramesocPart {
 	 * Enable/disable the reset and load buttons.
 	 * 
 	 * @param enable
-	 *            flag stating if we must enable or not the load and reset buttons
+	 *            flag stating if we must enable or not the load and reset
+	 *            buttons
 	 */
 	private void enableResetLoadButtons(boolean enable) {
 		timeBar.getSynchButton().setEnabled(enable);
@@ -960,19 +1042,23 @@ public class HistogramView extends FramesocPart {
 	 * Enable/disable the checkAll/uncheckAll buttons, according to the context.
 	 */
 	private void enableTreeButtons() {
-		int checked = configurationMap.get(currentDimension).tree.getCheckedElements().length;
+		int checked = configurationMap.get(currentDimension).tree
+				.getCheckedElements().length;
 		int treeItems = getTreeItemCount(configurationMap.get(currentDimension).tree);
 		btnCheckall.setEnabled(checked < treeItems);
 		btnUncheckall.setEnabled(checked != 0);
 	}
 
 	/**
-	 * Enable/disable the checkSubTree/uncheckSubTree buttons, according to the context.
+	 * Enable/disable the checkSubTree/uncheckSubTree buttons, according to the
+	 * context.
 	 */
 	private void enableSubTreeButtons() {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
-		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
-		IStructuredSelection sel = (IStructuredSelection) tree.getViewer().getSelection();
+		TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+				.getContentProvider();
+		IStructuredSelection sel = (IStructuredSelection) tree.getViewer()
+				.getSelection();
 		if (sel.isEmpty()) {
 			btnCheckSubtree.setEnabled(false);
 			btnUncheckSubtree.setEnabled(false);
@@ -982,8 +1068,10 @@ public class HistogramView extends FramesocPart {
 				btnCheckSubtree.setEnabled(false);
 				btnUncheckSubtree.setEnabled(false);
 			} else {
-				btnUncheckSubtree.setEnabled(hasCheckedSon(node, provider, tree));
-				btnCheckSubtree.setEnabled(hasUncheckedSon(node, provider, tree));
+				btnUncheckSubtree
+						.setEnabled(hasCheckedSon(node, provider, tree));
+				btnCheckSubtree
+						.setEnabled(hasUncheckedSon(node, provider, tree));
 			}
 		}
 	}
@@ -1012,7 +1100,8 @@ public class HistogramView extends FramesocPart {
 	 *            tree
 	 * @return if the checked elements have changed
 	 */
-	private boolean selectionChanged(ITreeNode[] checked, FilteredCheckboxTree tree) {
+	private boolean selectionChanged(ITreeNode[] checked,
+			FilteredCheckboxTree tree) {
 		// if checked elements changed, enable buttons, disable them otherwise
 		Object[] objs = tree.getCheckedElements();
 		ITreeNode[] currentChecked = new ITreeNode[objs.length];
@@ -1032,8 +1121,8 @@ public class HistogramView extends FramesocPart {
 	private void checkElement(Object element) {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		tree.setChecked(element, true);
-		Object parent = ((TreeContentProvider) tree.getViewer().getContentProvider())
-				.getParent(element);
+		Object parent = ((TreeContentProvider) tree.getViewer()
+				.getContentProvider()).getParent(element);
 		if (parent != null && !tree.getChecked(parent)) {
 			checkElement(parent);
 		}
@@ -1048,22 +1137,24 @@ public class HistogramView extends FramesocPart {
 	private void uncheckElement(Object element) {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		tree.setChecked(element, false);
-		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
+		TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+				.getContentProvider();
 		for (Object child : provider.getChildren(element)) {
 			uncheckElement(child);
 		}
 	}
 
 	/**
-	 * Uncheck all the ancestors of an element if all the elements siblings are unchecked, in the
-	 * current tree. This is done recursively.
+	 * Uncheck all the ancestors of an element if all the elements siblings are
+	 * unchecked, in the current tree. This is done recursively.
 	 * 
 	 * @param element
 	 *            the element to start with
 	 */
 	private void uncheckAncestors(Object element) {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
-		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
+		TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+				.getContentProvider();
 		Object parent = provider.getParent(element);
 		if (parent == null)
 			return;
@@ -1082,7 +1173,8 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Check an element, all its parents and all its children, in the current tree.
+	 * Check an element, all its parents and all its children, in the current
+	 * tree.
 	 * 
 	 * @param element
 	 *            The element to check.
@@ -1090,7 +1182,8 @@ public class HistogramView extends FramesocPart {
 	private void checkElementAndSubtree(Object element) {
 		FilteredCheckboxTree tree = configurationMap.get(currentDimension).tree;
 		checkElement(element);
-		TreeContentProvider provider = (TreeContentProvider) tree.getViewer().getContentProvider();
+		TreeContentProvider provider = (TreeContentProvider) tree.getViewer()
+				.getContentProvider();
 		for (Object child : provider.getChildren(element)) {
 			checkElementAndSubtree(child);
 		}
@@ -1102,7 +1195,8 @@ public class HistogramView extends FramesocPart {
 	private void checkAll() {
 		for (ConfigurationData data : configurationMap.values()) {
 			TreeViewer treeViewer = data.tree.getViewer();
-			TreeContentProvider provider = (TreeContentProvider) treeViewer.getContentProvider();
+			TreeContentProvider provider = (TreeContentProvider) treeViewer
+					.getContentProvider();
 			Object[] roots = provider.getElements(treeViewer.getInput());
 			for (Object root : roots) {
 				checkElementAndSubtree(root);
