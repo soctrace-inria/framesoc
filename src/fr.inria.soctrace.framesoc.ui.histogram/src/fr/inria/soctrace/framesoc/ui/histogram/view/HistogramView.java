@@ -160,15 +160,13 @@ public class HistogramView extends FramesocPart {
 	private final static Color BACKGROUND_PAINT = new Color(255, 255, 255);
 	private final static Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
 	private final static Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
-
-	// private final DecimalFormat X_FORMAT = new
-	// DecimalFormat(Constants.TIMESTAMPS_FORMAT);
-	// private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
-	// private final XYToolTipGenerator TOOLTIP_GENERATOR = new
-	// StandardXYToolTipGenerator(
-	// TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
+
+	/**
+	 * Size in pixel of the bigger timestamp
+	 */
+	private static final int TIMESTAMP_MAX_SIZE = 130;
 
 	/**
 	 * Build update timeout
@@ -288,8 +286,7 @@ public class HistogramView extends FramesocPart {
 			@Override
 			public void controlResized(ControlEvent e) {
 				int width = Math.max(compositeChart.getSize().x - 40, 1);
-				int ticks = width / TimestampFormat.TIMESTAMP_MAX_SIZE;
-				numberOfTicks = Math.max(ticks, 1);
+				numberOfTicks = Math.max(width / TIMESTAMP_MAX_SIZE, 1);
 				refresh(false, false);
 			}
 
@@ -846,11 +843,11 @@ public class HistogramView extends FramesocPart {
 	 *            flag indicating if it is the first refresh for a given load
 	 */
 	private void refresh(final boolean first, final boolean cancelled) {
-		
+
 		if (dataset == null) {
 			return;
 		}
-		
+
 		// prepare chart
 		DeltaManager dm = new DeltaManager();
 		dm.start();

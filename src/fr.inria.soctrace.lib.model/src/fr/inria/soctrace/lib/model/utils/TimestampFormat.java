@@ -30,11 +30,6 @@ public class TimestampFormat extends NumberFormat {
 	 * Generated serial version ID
 	 */
 	private static final long serialVersionUID = -5615549237196509700L;
-	
-	/**
-	 * Size in pixel of the bigger timestamp
-	 */
-	public static final int TIMESTAMP_MAX_SIZE = 150;
 
 	private TimeUnit unit;
 

@@ -56,7 +56,8 @@ public class TimeBar {
 	private Button load;
 	private RangeSlider range;
 
-	public TimeBar(Composite parent, int style, boolean hasSynch, boolean hasLoad) {
+	public TimeBar(Composite parent, int style, boolean hasSynch,
+			boolean hasLoad) {
 
 		this.parent = parent;
 
@@ -68,23 +69,27 @@ public class TimeBar {
 		gl_sliderBar.verticalSpacing = 0;
 		gl_sliderBar.marginWidth = 0;
 		sliderBar.setLayout(gl_sliderBar);
-		sliderBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		sliderBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
+				1, 1));
 		prev = new Button(sliderBar, SWT.NONE);
-		GridData gd_prev = new GridData(SWT.RIGHT, SWT.BOTTOM, false, false, 1, 1);
+		GridData gd_prev = new GridData(SWT.RIGHT, SWT.BOTTOM, false, false, 1,
+				1);
 		gd_prev.heightHint = 28;
 		prev.setLayoutData(gd_prev);
 		prev.setText("<");
 		prev.setToolTipText("Previous time window");
 		prev.addSelectionListener(new PreviousWindowListener());
 		range = new RangeSlider(sliderBar, SWT.HORIZONTAL);
-		range.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		range.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1,
+				1));
 		range.setMinimum(0);
 		range.setMaximum(1000000);
 		range.setLowerValue(0);
 		range.setUpperValue(0);
 		range.setShowGrads(true);
 		next = new Button(sliderBar, SWT.NONE);
-		GridData gd_next = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		GridData gd_next = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1,
+				1);
 		gd_next.heightHint = 28;
 		next.setLayoutData(gd_next);
 		next.setToolTipText("Next time window");
@@ -99,43 +104,53 @@ public class TimeBar {
 			}
 		});
 		all.setToolTipText("Select whole time interval");
-		all.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/all_timebar.png"));
+		all.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
+				"icons/all_timebar.png"));
 		settings = new Button(sliderBar, SWT.NONE);
-		settings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		settings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false,
+				1, 1));
 		settings.addSelectionListener(new EditListener(parent.getShell()));
 		settings.setToolTipText("Manual editing");
-		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/edit2.png"));
+		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
+				"icons/edit2.png"));
 
 		if (hasSynch) {
 			synch = new Button(sliderBar, SWT.NONE);
-			synch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-			synch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/load.png"));
+			synch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false,
+					false, 1, 1));
+			synch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
+					"icons/load.png"));
 		}
 
 		if (hasLoad) {
 			load = new Button(sliderBar, SWT.NONE);
-			load.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+			load.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false,
+					1, 1));
 			load.setToolTipText("Draw current selection");
-			load.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID, "icons/play.png"));
+			load.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
+					"icons/play.png"));
 		}
 	}
 
 	/**
 	 * Get the time unit
+	 * 
 	 * @return the time unit
 	 */
 	public TimeUnit getTimeUnit() {
 		return range.getTimeUnit();
 	}
-	
+
 	/**
 	 * Set the time unit
-	 * @param unit unit to set
+	 * 
+	 * @param unit
+	 *            unit to set
 	 */
 	public void setTimeUnit(TimeUnit unit) {
 		range.setTimeUnit(unit);
 	}
-	
+
 	/**
 	 * Get the load button. It may be null.
 	 * 
@@ -159,9 +174,12 @@ public class TimeBar {
 		public void widgetSelected(SelectionEvent e) {
 			long actualWindowSize = windowSize;
 			if (!customWindowSize)
-				actualWindowSize = range.getUpperValue() - range.getLowerValue();
-			long newEnd = Math.min(range.getUpperValue() + actualWindowSize, range.getMaximum());
-			long newStart = Math.max(newEnd - actualWindowSize, range.getMinimum());
+				actualWindowSize = range.getUpperValue()
+						- range.getLowerValue();
+			long newEnd = Math.min(range.getUpperValue() + actualWindowSize,
+					range.getMaximum());
+			long newStart = Math.max(newEnd - actualWindowSize,
+					range.getMinimum());
 			range.setSelection(newStart, newEnd, true);
 		}
 	}
@@ -171,9 +189,12 @@ public class TimeBar {
 		public void widgetSelected(SelectionEvent e) {
 			long actualWindowSize = windowSize;
 			if (!customWindowSize)
-				actualWindowSize = range.getUpperValue() - range.getLowerValue();
-			long newStart = Math.max(range.getLowerValue() - actualWindowSize, range.getMinimum());
-			long newEnd = Math.min(newStart + actualWindowSize, range.getMaximum());
+				actualWindowSize = range.getUpperValue()
+						- range.getLowerValue();
+			long newStart = Math.max(range.getLowerValue() - actualWindowSize,
+					range.getMinimum());
+			long newEnd = Math.min(newStart + actualWindowSize,
+					range.getMaximum());
 			range.setSelection(newStart, newEnd, true);
 		}
 	}
@@ -306,8 +327,8 @@ public class TimeBar {
 	}
 
 	/**
-	 * Set the selection copying the time interval start and end timestamps without notifying
-	 * listeners
+	 * Set the selection copying the time interval start and end timestamps
+	 * without notifying listeners
 	 * 
 	 * @param timeInterval
 	 *            the time interval to select
@@ -317,7 +338,8 @@ public class TimeBar {
 	}
 
 	/**
-	 * Explicitly dispose the parent, since this class does not extend composite.
+	 * Explicitly dispose the parent, since this class does not extend
+	 * composite.
 	 */
 	public void dispose() {
 		parent.dispose();
@@ -335,8 +357,9 @@ public class TimeBar {
 
 	@Override
 	public String toString() {
-		return "TimeBar [start=" + range.getLowerValue() + ", end=" + range.getUpperValue() + ", "
-				+ "min=" + range.getMinimum() + ", max=" + range.getMaximum() + "]";
+		return "TimeBar [start=" + range.getLowerValue() + ", end="
+				+ range.getUpperValue() + ", " + "min=" + range.getMinimum()
+				+ ", max=" + range.getMaximum() + "]";
 	}
 
 	public void setStatusLineManager(IStatusLineManager manager) {
