@@ -48,8 +48,8 @@ public class TimestampFormatTest {
 		list.add(new FormattedNumber<Long>(1111111111L, "1.111 s"));
 		list.add(new FormattedNumber<Long>(11111111111L, "11.111 s"));
 		list.add(new FormattedNumber<Long>(111111111111L, "111.111 s"));
-		list.add(new FormattedNumber<Long>(1111111111111L, "1.1111E3 s"));
-		list.add(new FormattedNumber<Long>(Long.MAX_VALUE, "9.2234E9 s"));
+		list.add(new FormattedNumber<Long>(1111111111111L, "1.111E3 s"));
+		list.add(new FormattedNumber<Long>(Long.MAX_VALUE, "9.223E9 s"));
 		
 		TimestampFormat f = new TimestampFormat(ns);
 		for (FormattedNumber<Long> fl : list) {
@@ -68,11 +68,11 @@ public class TimestampFormatTest {
 		list.add(new FormattedNumber<Long>(1111111L, "1.111 s"));
 		list.add(new FormattedNumber<Long>(11111111L, "11.111 s"));
 		list.add(new FormattedNumber<Long>(111111111L, "111.111 s"));
-		list.add(new FormattedNumber<Long>(1111111111L, "1.1111E3 s"));
-		list.add(new FormattedNumber<Long>(11111111111L, "11.111E3 s"));
-		list.add(new FormattedNumber<Long>(111111111111L, "111.11E3 s"));
-		list.add(new FormattedNumber<Long>(1111111111111L, "1.1111E6 s"));
-		list.add(new FormattedNumber<Long>(Long.MAX_VALUE, "9.2234E12 s"));
+		list.add(new FormattedNumber<Long>(1111111111L, "1.111E3 s"));
+		list.add(new FormattedNumber<Long>(11111111111L, "11.11E3 s"));
+		list.add(new FormattedNumber<Long>(111111111111L, "111.1E3 s"));
+		list.add(new FormattedNumber<Long>(1111111111111L, "1.111E6 s"));
+		list.add(new FormattedNumber<Long>(Long.MAX_VALUE, "9.223E12 s"));
 		
 		TimestampFormat f = new TimestampFormat(us);
 		for (FormattedNumber<Long> fl : list) {

@@ -85,19 +85,18 @@ public class TimestampFormat extends NumberFormat {
 			tmp *= Math.pow(10, realExp);
 			if (realExp < 3) {
 				DecimalFormat df = new DecimalFormat("###.#");
-				df.setMaximumFractionDigits(1);
+				df.setMaximumFractionDigits(3);
 				toAppendTo.append(df.format(tmp));
 			} else {
 				DecimalFormat df = new DecimalFormat("###.#E0");
-				df.setMaximumFractionDigits(2);
-				df.setMaximumIntegerDigits(1);
+				df.setMaximumFractionDigits(1);
 				toAppendTo.append(df.format(tmp));
 			}
 			toAppendTo.append(" s");
 		} else {
 			// number is seconds or less
 			DecimalFormat df = new DecimalFormat("###.#");
-			df.setMaximumFractionDigits(1);
+			df.setMaximumFractionDigits(3);
 			toAppendTo.append(df.format(tmp));
 			toAppendTo.append(" ");
 			toAppendTo.append(TimeUnit.getLabel(realExp));
