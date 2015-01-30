@@ -53,15 +53,15 @@ public class TraceChecker {
 	private List<IChecker> checkers;
 
 	/**
-	 * Constructor. Initializes the service, loading the existing trace
-	 * metadata.
+	 * Constructor. Initializes the service, loading the existing trace metadata.
 	 */
 	public TraceChecker() {
 
 		// load checkers
 		checkers = new ArrayList<>();
-		checkers.add(new MinMaxChecker());
 		checkers.add(new IndexChecker());
+		checkers.add(new MinMaxChecker());
+		checkers.add(new EventNumberChecker());
 
 		// load the traces, if a SystemDB exists
 		traces = new HashSet<Trace>();
@@ -87,8 +87,8 @@ public class TraceChecker {
 	 * Applies all the checking to the newly imported traces.
 	 * 
 	 * @param monitor
-	 *            Progress monitor. This method use it *only* to specify sub
-	 *            tasks. If it is null, a NullProgressMonitor is used.
+	 *            Progress monitor. This method use it *only* to specify sub tasks. If it is null, a
+	 *            NullProgressMonitor is used.
 	 */
 	public void checkTraces(IProgressMonitor monitor) {
 
@@ -167,22 +167,53 @@ public class TraceChecker {
 	}
 
 	/**
+	 * Trace checker for min/max trace metadata.
+	 */
+	private class EventNumberChecker implements IChecker {
+
+		@Override
+		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
+
+			monitor.subTask("Number of events check on trace:  " + t.getAlias());
+
+			if (t.getNumberOfEvents() != Trace.UNKNOWN_INT)
+				return;
+
+			if (!isDBExisting(t.getDbName()))
+				return;
+
+			TraceDBObject traceDB = null;
+			try {
+				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				t.setNumberOfEvents(traceDB.getNumberOfEvents());
+				sysDB.update(t);
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(traceDB);
+			}
+		}
+
+	}
+
+	/**
 	 * Trace checker for timestamp index.
 	 */
 	private class IndexChecker implements IChecker {
 
 		private boolean enabled = true;
-		
+
 		public IndexChecker() {
-			enabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_indexing).equals("true");
+			enabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_indexing)
+					.equals("true");
 		}
-		
+
 		@Override
 		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
 
 			if (!enabled)
 				return;
-				
+
 			monitor.subTask("Indexing trace: " + t.getAlias());
 
 			if (!isDBExisting(t.getDbName()))

@@ -162,6 +162,29 @@ public class TraceDBObject extends DBObject {
 		updateVisitor = new TraceDBUpdateVisitor(this);
 	}
 
+	/**
+	 * Get the number of events in the trace.
+	 * 
+	 * @return the number of events in the trace
+	 * @throws SoCTraceException
+	 */
+	public int getNumberOfEvents() throws SoCTraceException {
+		Statement stm;
+		ResultSet rs;
+		int value = 0;
+		try {
+			stm = dbManager.getConnection().createStatement();
+			rs = stm.executeQuery("SELECT COUNT(*) FROM " + FramesocTable.EVENT);
+			while (rs.next()) {
+				value = rs.getInt(1);
+			}
+			stm.close();
+			return value;
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
+
 	public long getMinPage() throws SoCTraceException {
 		return getValue("MIN", "PAGE", FramesocTable.EVENT);
 	}
