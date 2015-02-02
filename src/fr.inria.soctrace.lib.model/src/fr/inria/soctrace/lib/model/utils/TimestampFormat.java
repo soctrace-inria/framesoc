@@ -63,14 +63,13 @@ public class TimestampFormat extends NumberFormat {
 		case UNKNOWN:
 		case CYCLE:
 		case TICK:
-			DecimalFormat df = new DecimalFormat("###.E0");
-			df.setMaximumIntegerDigits(3);
-			toAppendTo.append(df.format(number));
+			expFormat.setMaximumIntegerDigits(3);
+			toAppendTo.append(expFormat.format(number));
 			return toAppendTo;
 		default:
 			break;
 		}
-		// return formatCompact(number, toAppendTo);
+
 		return formatCompact(number, toAppendTo);
 	}
 
