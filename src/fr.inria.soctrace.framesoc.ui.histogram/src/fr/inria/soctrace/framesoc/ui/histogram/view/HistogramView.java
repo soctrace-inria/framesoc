@@ -96,6 +96,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
+import fr.inria.soctrace.framesoc.ui.providers.SquareIconLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Trace;
@@ -237,6 +238,11 @@ public class HistogramView extends FramesocPart {
 	 * Number of histogram ticks
 	 */
 	private long numberOfTicks = 10;
+	
+	/**
+	 * Label providers
+	 */
+	List<SquareIconLabelProvider> labelProviders = new ArrayList<>();
 
 	/**
 	 * Tree node comparator
@@ -252,8 +258,7 @@ public class HistogramView extends FramesocPart {
 
 	public HistogramView() {
 		super();
-		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); // TODO use
-																	// it
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); 
 		topics.registerAll();
 		configurationMap = new HashMap<>();
 		for (ConfigurationDimension dimension : ConfigurationDimension.values()) {
@@ -318,6 +323,8 @@ public class HistogramView extends FramesocPart {
 		SelectionChangedListener selectionChangeListener = new SelectionChangedListener();
 		CheckStateListener checkStateListener = new CheckStateListener();
 
+		SquareIconLabelProvider p = null;
+		
 		// Tab item types
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
@@ -327,7 +334,9 @@ public class HistogramView extends FramesocPart {
 				true);
 		configurationMap.get(ConfigurationDimension.TYPE).tree = typeTree;
 		typeTree.getViewer().setContentProvider(contentProvider);
-		typeTree.getViewer().setLabelProvider(new EventTypeTreeLabelProvider());
+		p = new EventTypeTreeLabelProvider();
+		labelProviders.add(p);
+		typeTree.getViewer().setLabelProvider(p);
 		typeTree.getViewer().setComparator(treeComparator);
 		typeTree.addCheckStateListener(checkStateListener);
 		typeTree.getViewer().addSelectionChangedListener(selectionChangeListener);
@@ -341,7 +350,9 @@ public class HistogramView extends FramesocPart {
 				true);
 		configurationMap.get(ConfigurationDimension.PRODUCERS).tree = prodTree;
 		prodTree.getViewer().setContentProvider(contentProvider);
-		prodTree.getViewer().setLabelProvider(new EventProducerTreeLabelProvider());
+		p = new EventProducerTreeLabelProvider();
+		labelProviders.add(p);
+		prodTree.getViewer().setLabelProvider(p);
 		prodTree.getViewer().setComparator(treeComparator);
 		prodTree.addCheckStateListener(checkStateListener);
 		prodTree.getViewer().addSelectionChangedListener(selectionChangeListener);
@@ -1194,7 +1205,10 @@ public class HistogramView extends FramesocPart {
 				return;
 			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
 			logger.debug("Colors changed: {}", des);
-			// TODO reload trees
+			for (SquareIconLabelProvider p: labelProviders) {
+				p.disposeImages();
+			}
+			refresh(false, false);
 		}
 	}
 

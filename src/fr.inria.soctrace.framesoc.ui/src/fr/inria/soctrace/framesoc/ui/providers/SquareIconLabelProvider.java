@@ -42,7 +42,8 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 	/**
 	 * Get the item bounds.
 	 * 
-	 * @param event paint event
+	 * @param event
+	 *            paint event
 	 * @return the bounds, or null if the item is not a TreeItem or a TableItem
 	 */
 	private Rectangle getBounds(Event event) {
@@ -114,11 +115,19 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 
 	@Override
 	public void dispose() {
+		disposeImages();
+		super.dispose();
+	}
+
+	/**
+	 * Dispose all the images in the cache. Call this method if colors have changed and you want to
+	 * force the loading of new colors.
+	 */
+	public void disposeImages() {
 		for (Image img : images.values()) {
 			img.dispose();
 		}
 		images = new HashMap<>();
-		super.dispose();
 	}
 
 	/**

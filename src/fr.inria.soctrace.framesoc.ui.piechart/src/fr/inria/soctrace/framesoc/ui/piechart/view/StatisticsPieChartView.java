@@ -238,6 +238,11 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Filter for table
 	 */
 	private StatisticsTableRowFilter nameFilter;
+	
+	/**
+	 * Label providers for name column.
+	 */
+	private List<StatisticsTableRowLabelProvider> nameProviders = new ArrayList<>();
 
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
@@ -734,7 +739,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				nameFilter = new StatisticsTableRowFilter(col);
 				tableTreeViewer.addFilter(nameFilter);
 				// the label provider puts also the image
-				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col));
+				StatisticsTableRowLabelProvider p = new StatisticsTableRowLabelProvider(col);
+				nameProviders.add(p);
+				elemsViewerCol.setLabelProvider(p);
 			} else if (col.equals(StatisticsTableColumn.VALUE)) {
 				elemsViewerCol.setLabelProvider(new ValueLabelProvider(col, this));
 			} else {
@@ -1121,6 +1128,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				return;
 			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
 			logger.debug("Colors changed: {}", des);
+			for (StatisticsTableRowLabelProvider p: nameProviders) {
+				p.disposeImages();
+			}
 			loadPieChart();
 		}
 	}
