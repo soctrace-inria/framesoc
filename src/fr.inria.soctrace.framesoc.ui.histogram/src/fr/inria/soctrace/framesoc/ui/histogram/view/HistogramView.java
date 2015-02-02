@@ -39,6 +39,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
@@ -550,6 +553,7 @@ public class HistogramView extends FramesocPart {
 		@Override
 		public void chartMouseMoved(ChartMouseEvent event) {
 			// Do nothing
+			// System.out.println("move > " + event); // TODO
 		}
 
 		@Override
@@ -848,10 +852,9 @@ public class HistogramView extends FramesocPart {
 		plot.setBackgroundPaint(BACKGROUND_PAINT);
 		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
 		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
-		
-		// set timestamp format time unit
-        X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 
+		// set timestamp format time unit
+		X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 		// tooltip
 		XYItemRenderer renderer = plot.getRenderer();
 		renderer.setBaseToolTipGenerator(TOOLTIP_GENERATOR);
@@ -900,10 +903,67 @@ public class HistogramView extends FramesocPart {
 								histogramInterval.endTimestamp);
 					}
 				};
+
+				chartFrame.addMouseWheelListener(new MouseWheelListener() {
+
+					@Override
+					public void mouseScrolled(MouseEvent e) {
+						if ((e.stateMask & SWT.CTRL) == SWT.CTRL) {
+							if (e.count > 0) {
+								// zoom in
+								zoomChartAxis(true, e.x, e.y);
+							} else {
+								// zoom out
+								zoomChartAxis(false, e.x, e.y);
+							}
+						}
+					}
+
+					private void zoomChartAxis(boolean increase, int x, int y) {
+						long min = (long) plot.getDomainAxis().getRange().getLowerBound();
+						long max = (long) plot.getDomainAxis().getRange().getUpperBound();
+						X_FORMAT.setContext(min, max);
+						if (increase) {
+							if (min != max) {
+								chartFrame.zoomInDomain(x, y);
+							}
+						} else {
+							if (min > histogramInterval.startTimestamp
+									&& max < histogramInterval.endTimestamp) {
+								chartFrame.zoomOutDomain(x, y);
+							}
+						}
+					}
+
+				});
+
+				chartFrame.addMouseListener(new MouseListener() {
+
+					@Override
+					public void mouseUp(MouseEvent e) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void mouseDown(MouseEvent e) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void mouseDoubleClick(MouseEvent e) {
+						// TODO Auto-generated method stub
+
+					}
+				});
+
 				// - size
 				chartFrame.setSize(compositeChart.getSize());
 				// - prevent y zooming
 				chartFrame.setRangeZoomable(false);
+				// - prevent x zooming (we do it manually with wheel)
+				chartFrame.setDomainZoomable(false);
 				chartFrame.addChartMouseListener(new HistogramMouseListener());
 				// - workaround for last xaxis tick not shown (jfreechart bug)
 				RectangleInsets insets = plot.getInsets();
