@@ -11,6 +11,7 @@
 package fr.inria.soctrace.test.junit.lib.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +79,17 @@ public class TimestampFormatTest {
 		for (FormattedNumber<Long> fl : list) {
 			assertEquals(fl.str, f.format(fl.num));
 		}
+	}
+
+	@Test 
+	public void testContextFormat() {
+		TimeUnit us = TimeUnit.MICROSECONDS;
+		TimestampFormat f = new TimestampFormat(us);
+		long l1 = 1111112;
+		long l2 = 1111114;
+		assertEquals(f.format(l1), f.format(l2));
+		f.setContext(l1, l2);
+		assertNotEquals(f.format(l1), f.format(l2));
 	}
 
 }

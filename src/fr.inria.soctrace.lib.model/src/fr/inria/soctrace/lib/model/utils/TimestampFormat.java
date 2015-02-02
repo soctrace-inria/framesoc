@@ -31,24 +31,59 @@ public class TimestampFormat extends NumberFormat {
 	 */
 	private static final long serialVersionUID = -5615549237196509700L;
 
+	/**
+	 * Decimal format without exponent part
+	 */
 	private final DecimalFormat noExpFormat = new DecimalFormat("###.#");
 
+	/**
+	 * Decimal format with exponent part
+	 */
 	private final DecimalFormat expFormat = new DecimalFormat("###.#E0");
 
+	/**
+	 * Maximum number of decimal digits
+	 */
+	private static final int MAX_DECIMALS = 9;
+
+	/**
+	 * Number of fraction digits
+	 */
+	private int decimals = 3;
+
+	/**
+	 * Time unit
+	 */
 	private TimeUnit unit;
 
+	/**
+	 * Create a timestamp format with a <code>TimeUnit.UNKNOWN</code> time unit.
+	 */
 	public TimestampFormat() {
 		this.unit = TimeUnit.UNKNOWN;
 	}
 
+	/**
+	 * Create a timestamp format with the passed time unit
+	 * 
+	 * @param unit
+	 *            time unit
+	 */
 	public TimestampFormat(TimeUnit unit) {
 		this.unit = unit;
 	}
 
+	/**
+	 * @param unit
+	 *            the time unit to set
+	 */
 	public void setTimeUnit(TimeUnit unit) {
 		this.unit = unit;
 	}
 
+	/**
+	 * @return the time unit
+	 */
 	public TimeUnit getTimeUnit() {
 		return unit;
 	}
@@ -64,6 +99,7 @@ public class TimestampFormat extends NumberFormat {
 		case CYCLE:
 		case TICK:
 			expFormat.setMaximumIntegerDigits(3);
+			noExpFormat.setMaximumFractionDigits(1);
 			toAppendTo.append(expFormat.format(number));
 			return toAppendTo;
 		default:
@@ -87,16 +123,16 @@ public class TimestampFormat extends NumberFormat {
 			// number is more than seconds
 			tmp *= Math.pow(10, realExp);
 			if (realExp < 3) {
-				noExpFormat.setMaximumFractionDigits(3);
+				noExpFormat.setMaximumFractionDigits(decimals);
 				toAppendTo.append(noExpFormat.format(tmp));
 			} else {
-				expFormat.setMaximumFractionDigits(1);
+				expFormat.setMaximumFractionDigits(Math.max(1, decimals - 2));
 				toAppendTo.append(expFormat.format(tmp));
 			}
 			toAppendTo.append(" s");
 		} else {
 			// number is seconds or less
-			noExpFormat.setMaximumFractionDigits(3);
+			noExpFormat.setMaximumFractionDigits(decimals);
 			toAppendTo.append(noExpFormat.format(tmp));
 			toAppendTo.append(" ");
 			toAppendTo.append(TimeUnit.getLabel(realExp));
@@ -120,59 +156,28 @@ public class TimestampFormat extends NumberFormat {
 		return Double.valueOf(text);
 	}
 
-	/*
-	 * Test code
+	/**
+	 * Computes the good number of decimal digits to see a difference between numbers contained
+	 * between the two numbers passed. This number is limited at {@value #MAX_DECIMALS}.
+	 * 
+	 * @param t1
+	 *            lowest displayed timestamp
+	 * @param t2
+	 *            highest displayed timestamp
 	 */
-
-	// private final static long MS_IN_DAY = 86400000;
-	// private final static long MS_IN_HOUR = 3600000;
-	// private final static long MS_IN_MIN = 60000;
-	// private final static long MS_IN_SEC = 1000;
-	// private static final long NS_IN_SEC = 1000000000;
-	//
-	// private StringBuffer formatAbsolute(double number, StringBuffer toAppendTo) {
-	//
-	// Double msNumber = number * Math.pow(10, unit.getInt() + 3);
-	// Double nsNumber = number * Math.pow(10, unit.getInt() + 9);
-	//
-	// String format = "";
-	// if (msNumber >= MS_IN_DAY) {
-	// long days = msNumber.longValue() / MS_IN_DAY;
-	// toAppendTo.append(days);
-	// toAppendTo.append("d:");
-	// format = "H:m:s";
-	// } else if (msNumber >= MS_IN_HOUR) {
-	// format = "H:m:s";
-	// } else if (msNumber >= MS_IN_MIN) {
-	// format = "m:s";
-	// } else if (msNumber >= MS_IN_SEC) {
-	// format = "s";
-	// }
-	//
-	// SimpleDateFormat timeFormat = new SimpleDateFormat(format);
-	// timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-	// toAppendTo.append(timeFormat.format(new Date(msNumber.longValue())));
-	// toAppendTo.append(".");
-	// toAppendTo.append(formatNs(nsNumber.longValue()));
-	// toAppendTo.append(" s");
-	// return toAppendTo;
-	// }
-	//
-	// private String formatNs(long srcTime) {
-	// StringBuffer str = new StringBuffer();
-	// long ns = Math.abs(srcTime % NS_IN_SEC);
-	// String nanos = Long.toString(ns);
-	//        str.append("000000000".substring(nanos.length())); //$NON-NLS-1$
-	// str.append(nanos);
-	//
-	// if (unit == TimeUnit.MILLISECONDS) {
-	// return str.substring(0, 3);
-	// } else if (unit == TimeUnit.MICROSECONDS) {
-	// return str.substring(0, 6);
-	// } else if (unit == TimeUnit.NANOSECONDS) {
-	// return str.substring(0, 9);
-	// }
-	// return "";
-	// }
+	public void setContext(long t1, long t2) {
+		StringBuffer sb1 = new StringBuffer();
+		StringBuffer sb2 = new StringBuffer();
+		decimals = 1;
+		for (; decimals < MAX_DECIMALS; decimals++) {
+			sb1.setLength(0);
+			sb2.setLength(0);
+			formatCompact(t1, sb1);
+			formatCompact(t2, sb2);
+			if (!sb1.toString().equals(sb2.toString()))
+				break;
+		}
+		decimals = Math.min(decimals + 1, MAX_DECIMALS);
+	}
 
 }

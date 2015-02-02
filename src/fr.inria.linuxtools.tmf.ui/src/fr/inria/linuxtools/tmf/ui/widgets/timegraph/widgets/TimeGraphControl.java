@@ -2107,6 +2107,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * instead.
      */
     private void updateStatusLine(int x) {
+        fFormatter.setContext(fTimeProvider.getTime0(), fTimeProvider.getTime1());
         if (fStatusLineManager == null || null == fTimeProvider ||
                 fTimeProvider.getTime0() == fTimeProvider.getTime1()) {
             return;
