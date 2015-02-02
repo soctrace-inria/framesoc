@@ -31,6 +31,10 @@ public class TimestampFormat extends NumberFormat {
 	 */
 	private static final long serialVersionUID = -5615549237196509700L;
 
+	private final DecimalFormat noExpFormat = new DecimalFormat("###.#");
+
+	private final DecimalFormat expFormat = new DecimalFormat("###.#E0");
+
 	private TimeUnit unit;
 
 	public TimestampFormat() {
@@ -84,20 +88,17 @@ public class TimestampFormat extends NumberFormat {
 			// number is more than seconds
 			tmp *= Math.pow(10, realExp);
 			if (realExp < 3) {
-				DecimalFormat df = new DecimalFormat("###.#");
-				df.setMaximumFractionDigits(3);
-				toAppendTo.append(df.format(tmp));
+				noExpFormat.setMaximumFractionDigits(3);
+				toAppendTo.append(noExpFormat.format(tmp));
 			} else {
-				DecimalFormat df = new DecimalFormat("###.#E0");
-				df.setMaximumFractionDigits(1);
-				toAppendTo.append(df.format(tmp));
+				expFormat.setMaximumFractionDigits(1);
+				toAppendTo.append(expFormat.format(tmp));
 			}
 			toAppendTo.append(" s");
 		} else {
 			// number is seconds or less
-			DecimalFormat df = new DecimalFormat("###.#");
-			df.setMaximumFractionDigits(3);
-			toAppendTo.append(df.format(tmp));
+			noExpFormat.setMaximumFractionDigits(3);
+			toAppendTo.append(noExpFormat.format(tmp));
 			toAppendTo.append(" ");
 			toAppendTo.append(TimeUnit.getLabel(realExp));
 		}

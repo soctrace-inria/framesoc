@@ -98,6 +98,7 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
 
     // @Framesoc
     private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+    private TimestampFormat fFormatter = new TimestampFormat();
 
     /**
      * Standard constructor
@@ -136,17 +137,20 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
      */
     public void setTimeUnit(TimeUnit timeUnit) {
         this.fTimeUnit = timeUnit;
+        this.fFormatter.setTimeUnit(timeUnit);
     }
 
     /**
      * @Framesoc
-     * @param gc GC
-     * @param time timestamp
-     * @param rect rectangle
+     * @param gc
+     *            GC
+     * @param time
+     *            timestamp
+     * @param rect
+     *            rectangle
      */
     public void drawTimestamp(GC gc, long time, Rectangle rect) {
-        TimestampFormat formatter = new TimestampFormat(fTimeUnit);
-        String stime = formatter.format(time);
+        String stime = fFormatter.format(time);
         Utils.drawText(gc, stime, rect, true);
     }
 
@@ -334,7 +338,7 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
 
         int labelWidth = gc.getCharWidth('0') * numDigits;
         double pixelsPerNanoSec = (timeSpace <= RIGHT_MARGIN) ? 0 :
-            (double) (timeSpace - RIGHT_MARGIN) / (time1 - time0);
+                (double) (timeSpace - RIGHT_MARGIN) / (time1 - time0);
         long timeDelta = calcTimeDelta(labelWidth, pixelsPerNanoSec);
 
         TimeDraw timeDraw = getTimeDraw(timeDelta);
@@ -580,10 +584,11 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
         }
     }
 
-        /**
+    /**
      * Update the display to use the updated timestamp format
      *
-     * @param signal the incoming signal
+     * @param signal
+     *            the incoming signal
      * @since 2.1
      */
     @TmfSignalHandler
@@ -600,24 +605,24 @@ abstract class TimeDraw {
     protected static final long MILLISEC_IN_US = 1000;
     protected static final long SEC_IN_NS = 1000000000;
     protected static final long SEC_IN_MS = 1000;
-    private static final String S   = ""  ; //$NON-NLS-1$
-    private static final String S0  = "0" ; //$NON-NLS-1$
+    private static final String S = ""; //$NON-NLS-1$
+    private static final String S0 = "0"; //$NON-NLS-1$
     private static final String S00 = "00"; //$NON-NLS-1$
     protected static final long PAD_1000 = 1000;
     protected static final SimpleDateFormat SEC_FORMAT_HEADER = new SimpleDateFormat("yyyy MMM dd"); //$NON-NLS-1$
-    protected static final SimpleDateFormat SEC_FORMAT = new SimpleDateFormat("HH:mm:ss");           //$NON-NLS-1$
+    protected static final SimpleDateFormat SEC_FORMAT = new SimpleDateFormat("HH:mm:ss"); //$NON-NLS-1$
     protected static final SimpleDateFormat MIN_FORMAT_HEADER = new SimpleDateFormat("yyyy MMM dd"); //$NON-NLS-1$
-    protected static final SimpleDateFormat MIN_FORMAT = new SimpleDateFormat("HH:mm");              //$NON-NLS-1$
-    protected static final SimpleDateFormat HOURS_FORMAT_HEADER = new SimpleDateFormat("yyyy");      //$NON-NLS-1$
-    protected static final SimpleDateFormat HOURS_FORMAT = new SimpleDateFormat("MMM dd HH:mm");     //$NON-NLS-1$
-    protected static final SimpleDateFormat DAY_FORMAT_HEADER = new SimpleDateFormat("yyyy");        //$NON-NLS-1$
-    protected static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("MMM dd");             //$NON-NLS-1$
-    protected static final SimpleDateFormat MONTH_FORMAT = new SimpleDateFormat("yyyy MMM");         //$NON-NLS-1$
-    protected static final SimpleDateFormat YEAR_FORMAT = new SimpleDateFormat("yyyy");              //$NON-NLS-1$
+    protected static final SimpleDateFormat MIN_FORMAT = new SimpleDateFormat("HH:mm"); //$NON-NLS-1$
+    protected static final SimpleDateFormat HOURS_FORMAT_HEADER = new SimpleDateFormat("yyyy"); //$NON-NLS-1$
+    protected static final SimpleDateFormat HOURS_FORMAT = new SimpleDateFormat("MMM dd HH:mm"); //$NON-NLS-1$
+    protected static final SimpleDateFormat DAY_FORMAT_HEADER = new SimpleDateFormat("yyyy"); //$NON-NLS-1$
+    protected static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("MMM dd"); //$NON-NLS-1$
+    protected static final SimpleDateFormat MONTH_FORMAT = new SimpleDateFormat("yyyy MMM"); //$NON-NLS-1$
+    protected static final SimpleDateFormat YEAR_FORMAT = new SimpleDateFormat("yyyy"); //$NON-NLS-1$
 
     protected static final SimpleDateFormat formatArray[] = {
-        SEC_FORMAT, SEC_FORMAT_HEADER, MIN_FORMAT, MIN_FORMAT_HEADER,
-        HOURS_FORMAT, HOURS_FORMAT_HEADER, DAY_FORMAT, DAY_FORMAT_HEADER, MONTH_FORMAT, YEAR_FORMAT
+            SEC_FORMAT, SEC_FORMAT_HEADER, MIN_FORMAT, MIN_FORMAT_HEADER,
+            HOURS_FORMAT, HOURS_FORMAT_HEADER, DAY_FORMAT, DAY_FORMAT_HEADER, MONTH_FORMAT, YEAR_FORMAT
     };
 
     /**
@@ -868,4 +873,3 @@ class TimeDrawNumber extends TimeDraw {
         Utils.drawText(gc, stime, rect, true);
     }
 }
-

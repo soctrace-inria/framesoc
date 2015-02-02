@@ -27,6 +27,7 @@ import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
 import fr.inria.soctrace.lib.query.conditions.ConditionsConstants.ComparisonOperation;
 import fr.inria.soctrace.lib.query.conditions.SimpleCondition;
@@ -36,8 +37,7 @@ import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
- * Base abstract class for Pie Chart loaders dealing with duration (e.g., state
- * duration).
+ * Base abstract class for Pie Chart loaders dealing with duration (e.g., state duration).
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -54,14 +54,18 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	private Map<Integer, String> etMap;
 
 	/**
+	 * Formatter
+	 */
+	private TimestampFormat formatter = new TimestampFormat();
+
+	/**
 	 * Utility class for a pending duration.
 	 * 
-	 * A pending duration is a portion of an entity with a duration (e.g.,
-	 * state) that has been already read from DB, but not completely added yet
-	 * to current statistics. For example consider the following situation: we
-	 * have read a state starting at 0 and ending at 5, but doRequest() has been
-	 * called only for the interval (1,3). This generates two pending durations:
-	 * (0,1) and (3,5).
+	 * A pending duration is a portion of an entity with a duration (e.g., state) that has been
+	 * already read from DB, but not completely added yet to current statistics. For example
+	 * consider the following situation: we have read a state starting at 0 and ending at 5, but
+	 * doRequest() has been called only for the interval (1,3). This generates two pending
+	 * durations: (0,1) and (3,5).
 	 */
 	private static class PendingDuration {
 
@@ -87,9 +91,8 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	/**
 	 * Get the event category to use.
 	 * 
-	 * It must be a category that implies the concept of duration, i.e., states
-	 * or links. The category is returned as one of the integer constant in
-	 * <code>EventCategory</code>.
+	 * It must be a category that implies the concept of duration, i.e., states or links. The
+	 * category is returned as one of the integer constant in <code>EventCategory</code>.
 	 * 
 	 * @return the duration category to use
 	 */
@@ -104,9 +107,10 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 
 	@Override
 	public NumberFormat getFormat() {
-		return new TimestampFormat();
+		formatter.setTimeUnit(TimeUnit.UNKNOWN);
+		return formatter;
 	}
-	
+
 	@Override
 	public void load(Trace trace, TimeInterval requestedInterval, PieChartLoaderMap map,
 			IProgressMonitor monitor) {
@@ -274,10 +278,9 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	/**
 	 * Process a pending duration in a given time interval.
 	 * 
-	 * This means that the part of the passed pending duration intersecting the
-	 * interval will be added to the pie chart values, while the remaining parts
-	 * of the passed pending duration (if any) will be added to the list of new
-	 * pending durations.
+	 * This means that the part of the passed pending duration intersecting the interval will be
+	 * added to the pie chart values, while the remaining parts of the passed pending duration (if
+	 * any) will be added to the list of new pending durations.
 	 * 
 	 * @param d
 	 *            pending duration to process
@@ -289,9 +292,8 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 	 *            pie chart values
 	 * @param newPending
 	 *            list containing the new pending durations
-	 * @return <true> if the passed pending duration intersects the passed
-	 *         interval and one or two new pending durations have been added to
-	 *         the list of new pending durations
+	 * @return <true> if the passed pending duration intersects the passed interval and one or two
+	 *         new pending durations have been added to the list of new pending durations
 	 */
 	private boolean managePendingDuration(PendingDuration d, long t0, long t1,
 			Map<String, Double> values, List<PendingDuration> newPending) {

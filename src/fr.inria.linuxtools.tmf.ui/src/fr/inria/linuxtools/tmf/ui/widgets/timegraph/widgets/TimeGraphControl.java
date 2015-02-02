@@ -172,6 +172,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     // @Framesoc
     private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+    private TimestampFormat fFormatter = new TimestampFormat();
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -2098,6 +2099,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void setTimeUnit(TimeUnit timeUnit) {
         this.fTimeUnit = timeUnit;
         this.fTimeGraphScale.setTimeUnit(timeUnit);
+        this.fFormatter.setTimeUnit(timeUnit);
     }
 
     /*
@@ -2105,7 +2107,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * instead.
      */
     private void updateStatusLine(int x) {
-        TimestampFormat formatter = new TimestampFormat(fTimeUnit);
         if (fStatusLineManager == null || null == fTimeProvider ||
                 fTimeProvider.getTime0() == fTimeProvider.getTime1()) {
             return;
@@ -2115,28 +2116,28 @@ public class TimeGraphControl extends TimeGraphBaseControl
             long time = getTimeAtX(x);
             if (time >= 0) {
                 message.append("T: "); //$NON-NLS-1$
-                message.append(formatter.format(time));
+                message.append(fFormatter.format(time));
                 message.append("     T1: "); //$NON-NLS-1$
                 long selectionBegin = fTimeProvider.getSelectionBegin();
                 long selectionEnd = fTimeProvider.getSelectionEnd();
-                message.append(formatter.format(Math.min(selectionBegin, selectionEnd)));
+                message.append(fFormatter.format(Math.min(selectionBegin, selectionEnd)));
                 if (selectionBegin != selectionEnd) {
                     message.append("     T2: "); //$NON-NLS-1$
-                    message.append(formatter.format(Math.max(selectionBegin, selectionEnd)));
+                    message.append(fFormatter.format(Math.max(selectionBegin, selectionEnd)));
                     message.append("     \u0394: "); //$NON-NLS-1$
-                    message.append(formatter.format(Math.abs(selectionBegin - selectionEnd)));
+                    message.append(fFormatter.format(Math.abs(selectionBegin - selectionEnd)));
                 }
             }
         } else if (fDragState == DRAG_SELECTION || fDragState == DRAG_ZOOM) {
             long time0 = fDragTime0;
             long time = getTimeAtX(fDragX);
             message.append("T1: "); //$NON-NLS-1$
-            message.append(formatter.format(Math.min(time, time0)));
+            message.append(fFormatter.format(Math.min(time, time0)));
             if (time != time0) {
                 message.append("     T2: "); //$NON-NLS-1$
-                message.append(formatter.format(Math.max(time, time0)));
+                message.append(fFormatter.format(Math.max(time, time0)));
                 message.append("     \u0394: "); //$NON-NLS-1$
-                message.append(formatter.format(Math.abs(time - time0)));
+                message.append(fFormatter.format(Math.abs(time - time0)));
             }
         }
         fStatusLineManager.setMessage(message.toString());
