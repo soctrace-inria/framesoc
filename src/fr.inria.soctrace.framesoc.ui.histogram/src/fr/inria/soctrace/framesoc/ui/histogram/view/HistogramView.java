@@ -920,11 +920,21 @@ public class HistogramView extends FramesocPart {
 					}
 
 					private void zoomChartAxis(boolean increase, int x, int y) {
-						long min = (long) plot.getDomainAxis().getRange().getLowerBound();
-						long max = (long) plot.getDomainAxis().getRange().getUpperBound();
-						X_FORMAT.setContext(min, max);
+						double min = plot.getDomainAxis().getRange().getLowerBound();
+						double max = plot.getDomainAxis().getRange().getUpperBound();
+						X_FORMAT.setContext((long) min, (long) max);
 						if (increase) {
-							if (min != max) {
+							double dmin = min;
+							double dmax = max;
+							if (dmin <= 0) {
+								double inc = -2 * dmin + 1;
+								dmin += inc;
+								dmax += inc;
+							}
+							double diff = (dmax - dmin) / dmin;
+							if (diff >= 0.01) {
+								// zoom only if the difference between max and min is at least 1% of
+								// the min
 								chartFrame.zoomInDomain(x, y);
 							}
 						} else {
