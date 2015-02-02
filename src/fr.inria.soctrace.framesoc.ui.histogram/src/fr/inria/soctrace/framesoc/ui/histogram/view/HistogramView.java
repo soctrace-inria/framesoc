@@ -40,7 +40,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -59,17 +58,17 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.IntervalMarker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
@@ -113,11 +112,14 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * <pre>
  * TODO
+ * - fix pixel to value
+ * - manage marker properly
  * - multi-selection
  * - min size for button sash
- * - color support for trees and color change event
- * - scroll with CTRL+wheel (as in gantt)
+ * - DONE color support for trees and color change event
+ * - fix scroll with CTRL+wheel (as in gantt) -> must scroll over the point where the mouse is
  * - selection using current zoom mouse gesture (as in gantt)
+ * - remove the sash and use a filter for types and producers, as in gantt
  * </pre>
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
@@ -145,107 +147,74 @@ public class HistogramView extends FramesocPart {
 	 */
 	public static final Logger logger = LoggerFactory.getLogger(HistogramView.class);
 
-	/**
-	 * UI Constants
+	/*
+	 * Constants
 	 */
-	public final static String TOOLTIP_FORMAT = "bin central timestamp: {1}, events: {2}";
-	public final static String POPUP_MENU_SHOW_EVENT_TABLE = "Show Event Table page for timestamp ";
-	public final static String POPUP_MENU_SHOW_GANTT_CHART = "Show Gantt Chart page for timestamp ";
-	public static final String HISTOGRAM_TITLE = "";
-	public static final String X_LABEL = "";
-	public static final String Y_LABEL = "";
+	private static final String TOOLTIP_FORMAT = "bin central timestamp: {1}, events: {2}";
+	private static final String HISTOGRAM_TITLE = "";
+	private static final String X_LABEL = "";
+	private static final String Y_LABEL = "";
+	private static final boolean HAS_LEGEND = false;
+	private static final boolean HAS_TOOLTIPS = true;
+	private static final boolean HAS_URLS = true;
+	private static final boolean USE_BUFFER = true;
+	private static final Color BACKGROUND_PAINT = new Color(255, 255, 255);
+	private static final Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
+	private static final Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
 
-	public static final boolean HAS_LEGEND = false;
-	public static final boolean HAS_TOOLTIPS = true;
-	public static final boolean HAS_URLS = true;
-	public static final boolean USE_BUFFER = true;
-
-	private final static Color BACKGROUND_PAINT = new Color(255, 255, 255);
-	private final static Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
-	private final static Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
-
 	private final TimestampFormat X_FORMAT = new TimestampFormat();
 	private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
 	private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
 			TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
 
-	/**
-	 * Size in pixel of the bigger timestamp
-	 */
 	private static final int TIMESTAMP_MAX_SIZE = 130;
-
-	/**
-	 * Build update timeout
-	 */
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
-
-	/**
-	 * Total work for build job
-	 */
 	private static final int TOTAL_WORK = 1000;
+	private static final int NO_STATUS = -1;
 
-	/**
-	 * The chart composite
+	private static final Object[] EMPTY_ARRAY = new Object[0];
+
+	/*
+	 * UI components
 	 */
 	private Composite compositeChart;
-
-	/**
-	 * The configuration composite
-	 */
 	private Composite compositeConf;
-
-	/**
-	 * The chart frame
-	 */
 	private ChartComposite chartFrame;
-
-	/**
-	 * The chart plot
-	 */
 	protected XYPlot plot;
-
-	/**
-	 * Time bar
-	 */
 	private TimeBar timeBar;
-
-	/**
-	 * Last requested interval
-	 */
-	private TimeInterval requestedInterval;
-
-	/**
-	 * Current loaded interval
-	 */
-	private TimeInterval loadedInterval;
-
-	/**
-	 * Buttons
-	 */
 	private Button btnCheckall;
 	private Button btnUncheckall;
 	private Button btnCheckSubtree;
 	private Button btnUncheckSubtree;
+	private IntervalMarker marker;
 
+	private List<SquareIconLabelProvider> labelProviders = new ArrayList<>();
+
+	/*
+	 * Loading data and configuration
+	 */
+	private TimeInterval requestedInterval;
+	private TimeInterval loadedInterval;
 	private ConfigurationDimension currentDimension = ConfigurationDimension.TYPE;
 	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
-
-	/**
-	 * Loader dataset
-	 */
 	private HistogramLoaderDataset dataset;
 
-	/**
-	 * Number of histogram ticks
+	/*
+	 * Timestamps management
 	 */
 	private long numberOfTicks = 10;
-	
-	/**
-	 * Label providers
+	private IStatusLineManager statusLineManager;
+	private TimestampFormat formatter = new TimestampFormat();
+
+	/*
+	 * Selection
 	 */
-	List<SquareIconLabelProvider> labelProviders = new ArrayList<>();
+	private boolean activeSelection = false;
+	private boolean dragInProgress = false;
+	private long selectedTs0 = Long.MAX_VALUE;
+	private long selectedTs1 = Long.MIN_VALUE;
 
 	/**
 	 * Tree node comparator
@@ -257,11 +226,9 @@ public class HistogramView extends FramesocPart {
 		}
 	};
 
-	private final static Object[] EMPTY_ARRAY = new Object[0];
-
 	public HistogramView() {
 		super();
-		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED); 
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED);
 		topics.registerAll();
 		configurationMap = new HashMap<>();
 		for (ConfigurationDimension dimension : ConfigurationDimension.values()) {
@@ -276,6 +243,8 @@ public class HistogramView extends FramesocPart {
 
 	@Override
 	public void createFramesocPartControl(Composite parent) {
+
+		statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 
 		// parent layout
 		GridLayout gl_parent = new GridLayout(1, false);
@@ -327,7 +296,7 @@ public class HistogramView extends FramesocPart {
 		CheckStateListener checkStateListener = new CheckStateListener();
 
 		SquareIconLabelProvider p = null;
-		
+
 		// Tab item types
 		TabItem tbtmEventTypes = new TabItem(tabFolder, SWT.NONE);
 		tbtmEventTypes.setData(ConfigurationDimension.TYPE);
@@ -544,26 +513,6 @@ public class HistogramView extends FramesocPart {
 		des.setTrace(currentShownTrace);
 		des.setTimeInterval(loadedInterval);
 		return des;
-	}
-
-	/**
-	 * Histogram mouse listener
-	 */
-	public class HistogramMouseListener implements ChartMouseListener {
-		@Override
-		public void chartMouseMoved(ChartMouseEvent event) {
-			// Do nothing
-			// System.out.println("move > " + event); // TODO
-		}
-
-		@Override
-		public void chartMouseClicked(ChartMouseEvent event) {
-			if (!(event.getEntity() instanceof XYItemEntity))
-				return;
-			// store selected bin timestamp
-			XYItemEntity selectedBin = (XYItemEntity) event.getEntity();
-			logger.debug("selected " + selectedBin);
-		}
 	}
 
 	@Override
@@ -852,7 +801,9 @@ public class HistogramView extends FramesocPart {
 		plot.setBackgroundPaint(BACKGROUND_PAINT);
 		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
 		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
-
+		// prepare invisible marker TODO
+		marker = new IntervalMarker(selectedTs0, selectedTs1);
+		plot.addDomainMarker(marker);
 		// set timestamp format time unit
 		X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 		// tooltip
@@ -894,6 +845,7 @@ public class HistogramView extends FramesocPart {
 				for (Control c : compositeChart.getChildren()) {
 					c.dispose();
 				}
+				plot.addDomainMarker(new IntervalMarker(selectedTs0, selectedTs1));
 				// histogram chart
 				chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER) {
 					@Override
@@ -902,6 +854,48 @@ public class HistogramView extends FramesocPart {
 						plot.getDomainAxis().setRange(histogramInterval.startTimestamp,
 								histogramInterval.endTimestamp);
 					}
+
+					@Override
+					public void mouseMove(MouseEvent e) {
+						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
+						PlotRenderingInfo plotInfo = info.getPlotInfo();
+						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
+								plotInfo.getDataArea(), plot.getDomainAxisEdge());
+						System.out.println((long) v);
+
+						if (dragInProgress) {
+							selectedTs1 = v;
+							System.out.println("s: " + selectedTs0 + ", " + selectedTs1);
+						}
+						
+						marker.setStartValue(Math.min(selectedTs0, selectedTs1));
+						marker.setEndValue(Math.max(selectedTs0, selectedTs1));
+						updateStatusLine(v);
+					}
+
+					@Override
+					public void mouseUp(MouseEvent e) {
+						dragInProgress = false;
+						selectedTs1 = getTimestampAt(e.x);
+						if (selectedTs0 > selectedTs1) {
+							long tmp = selectedTs1;
+							selectedTs1 = selectedTs0;
+							selectedTs0 = tmp;
+						} else if (selectedTs0 == selectedTs1) {
+							marker.setStartValue(selectedTs0);
+							marker.setEndValue(selectedTs0);
+							activeSelection = false;
+							updateStatusLine(selectedTs0);
+						}
+					}
+
+					@Override
+					public void mouseDown(MouseEvent e) {
+						selectedTs0 = getTimestampAt(e.x);
+						dragInProgress = true;
+						activeSelection = true;
+					}
+
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
@@ -947,34 +941,12 @@ public class HistogramView extends FramesocPart {
 
 				});
 
-				chartFrame.addMouseListener(new MouseListener() {
-
-					@Override
-					public void mouseUp(MouseEvent e) {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public void mouseDown(MouseEvent e) {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public void mouseDoubleClick(MouseEvent e) {
-						// TODO Auto-generated method stub
-
-					}
-				});
-
 				// - size
 				chartFrame.setSize(compositeChart.getSize());
 				// - prevent y zooming
 				chartFrame.setRangeZoomable(false);
 				// - prevent x zooming (we do it manually with wheel)
 				chartFrame.setDomainZoomable(false);
-				chartFrame.addChartMouseListener(new HistogramMouseListener());
 				// - workaround for last xaxis tick not shown (jfreechart bug)
 				RectangleInsets insets = plot.getInsets();
 				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets
@@ -995,6 +967,16 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 		logger.debug(dm.endMessage("Finished refreshing"));
+	}
+
+	// FIXME
+	long getTimestampAt(int pos) {
+		ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
+		PlotRenderingInfo plotInfo = info.getPlotInfo();
+		long v = (long) plot.getDomainAxis().java2DToValue(pos, plotInfo.getDataArea(),
+				plot.getDomainAxisEdge());
+		System.out.println(v);
+		return v;
 	}
 
 	/**
@@ -1275,11 +1257,46 @@ public class HistogramView extends FramesocPart {
 				return;
 			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
 			logger.debug("Colors changed: {}", des);
-			for (SquareIconLabelProvider p: labelProviders) {
+			for (SquareIconLabelProvider p : labelProviders) {
 				p.disposeImages();
 			}
 			refresh(false, false);
 		}
+	}
+
+	private void updateStatusLine(long x) {
+		if (statusLineManager == null) {
+			return;
+		}
+
+		if (x == NO_STATUS) {
+			statusLineManager.setMessage("");
+			return;
+		}
+
+		long ts0 = selectedTs0;
+		long ts1 = selectedTs1;
+		if (ts0 > ts1) {
+			long tmp = ts1;
+			ts1 = ts0;
+			ts0 = tmp;
+		}
+
+		StringBuilder message = new StringBuilder();
+		if (!dragInProgress) {
+			message.append("T: "); //$NON-NLS-1$
+			message.append(formatter.format(x));
+			message.append("     ");
+		}
+		message.append("T1: "); //$NON-NLS-1$
+		message.append(formatter.format(ts0));
+		if (activeSelection) {
+			message.append("     T2: "); //$NON-NLS-1$
+			message.append(formatter.format(ts1));
+			message.append("     \u0394: "); //$NON-NLS-1$
+			message.append(formatter.format(Math.abs(ts1 - ts0)));
+		}
+		statusLineManager.setMessage(message.toString());
 	}
 
 }
