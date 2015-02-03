@@ -791,7 +791,8 @@ public class HistogramView extends FramesocPart {
 		dm.start();
 		// get the last snapshot
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
-		// if we have not been cancelled, the x range corresponds to the requested interval
+		// if we have not been cancelled, the x range corresponds to the
+		// requested interval
 		final TimeInterval histogramInterval = new TimeInterval(requestedInterval);
 		if (cancelled) {
 			// we have been cancelled, the x range corresponds to the actual
@@ -829,7 +830,6 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseMove(MouseEvent e) {
-						System.out.println("mouse: " + e);
 						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
 						PlotRenderingInfo plotInfo = info.getPlotInfo();
 						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
@@ -876,7 +876,6 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseScrolled(MouseEvent e) {
-						System.out.println("mouse: " + e);
 						if ((e.stateMask & SWT.CTRL) == SWT.CTRL) {
 							if (e.count > 0) {
 								// zoom in
@@ -896,15 +895,6 @@ public class HistogramView extends FramesocPart {
 						PlotRenderingInfo plotInfo = chartFrame.getChartRenderingInfo()
 								.getPlotInfo();
 
-						if (min < histogramInterval.startTimestamp
-								|| max > histogramInterval.endTimestamp) {
-							// restore range if exceeding it
-							Range maxRange = new Range(histogramInterval.startTimestamp,
-									histogramInterval.endTimestamp);
-							plot.getDomainAxis().setRange(maxRange);
-							return;
-						}
-
 						if (increase) {
 							double dmin = min;
 							double dmax = max;
@@ -921,6 +911,14 @@ public class HistogramView extends FramesocPart {
 						} else {
 							plot.zoomDomainAxes(-0.5, plotInfo, p, true);
 						}
+
+						// adjust
+						min = plot.getDomainAxis().getRange().getLowerBound();
+						max = plot.getDomainAxis().getRange().getUpperBound();
+						Range maxRange = new Range(Math.max(histogramInterval.startTimestamp, min),
+								Math.min(histogramInterval.endTimestamp, max));
+						plot.getDomainAxis().setRange(maxRange);
+
 					}
 				});
 
