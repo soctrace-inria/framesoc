@@ -1208,7 +1208,9 @@ public class TimeGraphCombo extends Composite {
             if (itemHeight > 0 && !itemHeight.equals(item.getData(ITEM_HEIGHT))) {
                 ITimeGraphEntry entry = (ITimeGraphEntry) item.getData();
                 if (fTimeGraphViewer.getTimeGraphControl().setItemHeight(entry, itemHeight)) {
-                    item.setData(ITEM_HEIGHT, itemHeight);
+                    // @Framesoc: with this line uncommented we get alignment issues on Ubuntu
+                    // XXX Investigate
+                    //item.setData(ITEM_HEIGHT, itemHeight);
                 }
             }
             index++;
