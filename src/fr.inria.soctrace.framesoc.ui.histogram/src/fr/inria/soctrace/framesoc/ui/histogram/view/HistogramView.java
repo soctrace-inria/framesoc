@@ -10,7 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.histogram.view;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -273,7 +272,7 @@ public class HistogramView extends FramesocPart {
 			public void controlResized(ControlEvent e) {
 				int width = Math.max(compositeChart.getSize().x - 40, 1);
 				numberOfTicks = Math.max(width / TIMESTAMP_MAX_SIZE, 1);
-				refresh(false, false);
+				refresh(false, false, true);
 			}
 
 			@Override
@@ -721,12 +720,12 @@ public class HistogramView extends FramesocPart {
 						loaderThread.cancel();
 						logger.debug("Drawer thread cancelled");
 						// refresh one last time
-						refresh(first, true);
+						refresh(first, true, false);
 						first = false;
 						return Status.CANCEL_STATUS;
 					}
 					oldLoadedEnd = loadedInterval.endTimestamp;
-					refresh(first, false);
+					refresh(first, false, false);
 					first = false;
 
 					double delta = loadedInterval.endTimestamp - oldLoadedEnd;
@@ -736,7 +735,7 @@ public class HistogramView extends FramesocPart {
 				}
 				if (first) {
 					// refresh at least once when there is no data.
-					refresh(first, false);
+					refresh(first, false, false);
 				}
 				return Status.OK_STATUS;
 			} finally {
@@ -780,7 +779,7 @@ public class HistogramView extends FramesocPart {
 	 * @param first
 	 *            flag indicating if it is the first refresh for a given load
 	 */
-	private void refresh(final boolean first, final boolean cancelled) {
+	private void refresh(final boolean first, final boolean cancelled, final boolean keepZoom) {
 
 		if (dataset == null) {
 			return;
@@ -794,13 +793,17 @@ public class HistogramView extends FramesocPart {
 		dm.start();
 		// get the last snapshot
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
-		// if we have not been cancelled, the x range corresponds to the
-		// requested interval
+		// if we have not been cancelled, the x range corresponds to the requested interval
 		final TimeInterval histogramInterval = new TimeInterval(requestedInterval);
 		if (cancelled) {
-			// we have been cancelled, the x range corresponds to the actual
-			// loaded interval
+			// we have been cancelled, the x range corresponds to the actual loaded interval
 			histogramInterval.copy(loadedInterval);
+		}
+		if (keepZoom) {
+			long min = (long) plot.getDomainAxis().getRange().getLowerBound();
+			long max = (long) plot.getDomainAxis().getRange().getUpperBound();
+			TimeInterval displayed = new TimeInterval(min, max);
+			histogramInterval.copy(displayed);
 		}
 
 		/*
@@ -819,7 +822,17 @@ public class HistogramView extends FramesocPart {
 		logger.debug(dm.endMessage("Finished refreshing"));
 	}
 
-	private void displayChart(final JFreeChart chart, final TimeInterval histogramInterval,
+	/**
+	 * Display the chart in the UI thread, using the loaded interval.
+	 * 
+	 * @param chart
+	 *            jfreechart chart
+	 * @param histogramInterval
+	 *            displayed interval
+	 * @param first
+	 *            flag indicating if it is the first refresh for a given load
+	 */
+	private void displayChart(final JFreeChart chart, final TimeInterval displayed,
 			final boolean first) {
 		// prepare the new histogram UI
 		Display.getDefault().syncExec(new Runnable() {
@@ -922,8 +935,8 @@ public class HistogramView extends FramesocPart {
 						// adjust
 						min = plot.getDomainAxis().getRange().getLowerBound();
 						max = plot.getDomainAxis().getRange().getUpperBound();
-						Range maxRange = new Range(Math.max(histogramInterval.startTimestamp, min),
-								Math.min(histogramInterval.endTimestamp, max));
+						Range maxRange = new Range(Math.max(loadedInterval.startTimestamp, min),
+								Math.min(loadedInterval.endTimestamp, max));
 						plot.getDomainAxis().setRange(maxRange);
 
 					}
@@ -940,8 +953,8 @@ public class HistogramView extends FramesocPart {
 				plot.setInsets(new RectangleInsets(insets.getTop(), insets.getLeft(), insets
 						.getBottom(), 25));
 				// - time bounds
-				plot.getDomainAxis().setLowerBound(histogramInterval.startTimestamp);
-				plot.getDomainAxis().setUpperBound(histogramInterval.endTimestamp);
+				plot.getDomainAxis().setLowerBound(displayed.startTimestamp);
+				plot.getDomainAxis().setUpperBound(displayed.endTimestamp);
 				// producers and types
 				if (first) {
 					for (ConfigurationData data : configurationMap.values()) {
@@ -958,6 +971,14 @@ public class HistogramView extends FramesocPart {
 
 	}
 
+	/**
+	 * Prepare the plot
+	 * 
+	 * @param chart
+	 *            jfreechart chart
+	 * @param displayed
+	 *            displayed time interval
+	 */
 	private void preparePlot(JFreeChart chart, TimeInterval displayed) {
 		// Plot customization
 		plot = chart.getXYPlot();
@@ -1287,7 +1308,7 @@ public class HistogramView extends FramesocPart {
 			for (SquareIconLabelProvider p : labelProviders) {
 				p.disposeImages();
 			}
-			refresh(false, false);
+			refresh(false, false, true);
 		}
 	}
 
