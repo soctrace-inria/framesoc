@@ -12,6 +12,8 @@ package fr.inria.soctrace.framesoc.ui.histogram.view;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +75,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.experimental.chart.swt.ChartComposite;
 import org.jfree.ui.RectangleInsets;
@@ -112,12 +115,13 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * <pre>
  * TODO
+ * - when resizing: interval is reset and marker changes color...
  * - fix pixel to value
  * - manage marker properly
  * - multi-selection
  * - min size for button sash
  * - DONE color support for trees and color change event
- * - fix scroll with CTRL+wheel (as in gantt) -> must scroll over the point where the mouse is
+ * - DONE fix scroll with CTRL+wheel (as in gantt) -> must scroll over the point where the mouse is
  * - selection using current zoom mouse gesture (as in gantt)
  * - remove the sash and use a filter for types and producers, as in gantt
  * </pre>
@@ -202,7 +206,7 @@ public class HistogramView extends FramesocPart {
 	private HistogramLoaderDataset dataset;
 
 	/*
-	 * Timestamps management
+	 * Timestamp management
 	 */
 	private long numberOfTicks = 10;
 	private IStatusLineManager statusLineManager;
@@ -780,63 +784,38 @@ public class HistogramView extends FramesocPart {
 			return;
 		}
 
-		// prepare chart
+		/*
+		 * Prepare data
+		 */
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 		// get the last snapshot
 		HistogramDataset hdataset = dataset.getSnapshot(loadedInterval);
-		// if we have not been cancelled, the x range corresponds to the
-		// requested interval
+		// if we have not been cancelled, the x range corresponds to the requested interval
 		final TimeInterval histogramInterval = new TimeInterval(requestedInterval);
 		if (cancelled) {
 			// we have been cancelled, the x range corresponds to the actual
 			// loaded interval
 			histogramInterval.copy(loadedInterval);
 		}
+
+		/*
+		 * Prepare chart
+		 */
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
-		// Customization
-		plot = chart.getXYPlot();
-		// background color
-		plot.setBackgroundPaint(BACKGROUND_PAINT);
-		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
-		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
-		// prepare invisible marker TODO
-		marker = new IntervalMarker(selectedTs0, selectedTs1);
-		plot.addDomainMarker(marker);
-		// set timestamp format time unit
-		X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-		// tooltip
-		XYItemRenderer renderer = plot.getRenderer();
-		renderer.setBaseToolTipGenerator(TOOLTIP_GENERATOR);
-		// axis
-		NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
-		xaxis.setTickLabelFont(TICK_LABEL_FONT);
-		xaxis.setLabelFont(LABEL_FONT);
-		// x tick format
-		xaxis.setNumberFormatOverride(X_FORMAT);
-		// x tick units
-		xaxis.setTickUnit(new NumberTickUnit((histogramInterval.getDuration() / numberOfTicks)));
-		xaxis.addChangeListener(new AxisChangeListener() {
-			@Override
-			public void axisChanged(AxisChangeEvent arg) {
-				long max = ((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue();
-				long min = ((Double) plot.getDomainAxis().getRange().getLowerBound()).longValue();
-				NumberTickUnit newUnit = new NumberTickUnit((max - min) / numberOfTicks);
-				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
-				// ensure we don't loop
-				if (!currentUnit.equals(newUnit))
-					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
-			}
-		});
-		// y font
-		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
-		yaxis.setTickLabelFont(TICK_LABEL_FONT);
-		yaxis.setLabelFont(LABEL_FONT);
-		// disable bar white stripe
-		XYBarRenderer barRenderer = (XYBarRenderer) plot.getRenderer();
-		barRenderer.setBarPainter(new StandardXYBarPainter());
 
+		// customize plot
+		preparePlot(chart, histogramInterval);
+
+		// display chart in UI
+		displayChart(chart, histogramInterval, first);
+
+		logger.debug(dm.endMessage("Finished refreshing"));
+	}
+
+	private void displayChart(final JFreeChart chart, final TimeInterval histogramInterval,
+			final boolean first) {
 		// prepare the new histogram UI
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
@@ -845,31 +824,21 @@ public class HistogramView extends FramesocPart {
 				for (Control c : compositeChart.getChildren()) {
 					c.dispose();
 				}
-				plot.addDomainMarker(new IntervalMarker(selectedTs0, selectedTs1));
 				// histogram chart
 				chartFrame = new ChartComposite(compositeChart, SWT.NONE, chart, USE_BUFFER) {
-					@Override
-					public void restoreAutoBounds() {
-						// restore domain axis to trace range when dezooming
-						plot.getDomainAxis().setRange(histogramInterval.startTimestamp,
-								histogramInterval.endTimestamp);
-					}
 
 					@Override
 					public void mouseMove(MouseEvent e) {
+						System.out.println("mouse: " + e);
 						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
 						PlotRenderingInfo plotInfo = info.getPlotInfo();
 						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
 								plotInfo.getDataArea(), plot.getDomainAxisEdge());
-						System.out.println((long) v);
-
 						if (dragInProgress) {
 							selectedTs1 = v;
-							System.out.println("s: " + selectedTs0 + ", " + selectedTs1);
+							marker.setStartValue(Math.min(selectedTs0, selectedTs1));
+							marker.setEndValue(Math.max(selectedTs0, selectedTs1));
 						}
-						
-						marker.setStartValue(Math.min(selectedTs0, selectedTs1));
-						marker.setEndValue(Math.max(selectedTs0, selectedTs1));
 						updateStatusLine(v);
 					}
 
@@ -891,17 +860,23 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseDown(MouseEvent e) {
+						if (marker != null) {
+							plot.removeDomainMarker(marker);
+						}
 						selectedTs0 = getTimestampAt(e.x);
+						marker = new IntervalMarker(selectedTs0, selectedTs0);
+						marker.setAlpha(0.1f);
+						plot.addDomainMarker(marker);
 						dragInProgress = true;
 						activeSelection = true;
 					}
-
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
 
 					@Override
 					public void mouseScrolled(MouseEvent e) {
+						System.out.println("mouse: " + e);
 						if ((e.stateMask & SWT.CTRL) == SWT.CTRL) {
 							if (e.count > 0) {
 								// zoom in
@@ -917,6 +892,19 @@ public class HistogramView extends FramesocPart {
 						double min = plot.getDomainAxis().getRange().getLowerBound();
 						double max = plot.getDomainAxis().getRange().getUpperBound();
 						X_FORMAT.setContext((long) min, (long) max);
+						Point2D p = chartFrame.translateScreenToJava2D(new Point(x, y));
+						PlotRenderingInfo plotInfo = chartFrame.getChartRenderingInfo()
+								.getPlotInfo();
+
+						if (min < histogramInterval.startTimestamp
+								|| max > histogramInterval.endTimestamp) {
+							// restore range if exceeding it
+							Range maxRange = new Range(histogramInterval.startTimestamp,
+									histogramInterval.endTimestamp);
+							plot.getDomainAxis().setRange(maxRange);
+							return;
+						}
+
 						if (increase) {
 							double dmin = min;
 							double dmax = max;
@@ -927,18 +915,13 @@ public class HistogramView extends FramesocPart {
 							}
 							double diff = (dmax - dmin) / dmin;
 							if (diff >= 0.01) {
-								// zoom only if the difference between max and min is at least 1% of
-								// the min
-								chartFrame.zoomInDomain(x, y);
+								// zoom only if the (max - min) is at least 1% of the min
+								plot.zoomDomainAxes(0.5, plotInfo, p, true);
 							}
 						} else {
-							if (min > histogramInterval.startTimestamp
-									&& max < histogramInterval.endTimestamp) {
-								chartFrame.zoomOutDomain(x, y);
-							}
+							plot.zoomDomainAxes(-0.5, plotInfo, p, true);
 						}
 					}
-
 				});
 
 				// - size
@@ -963,10 +946,49 @@ public class HistogramView extends FramesocPart {
 						data.tree.getViewer().expandAll();
 					}
 				}
+				// timebar
 				timeBar.setSelection(loadedInterval);
 			}
 		});
-		logger.debug(dm.endMessage("Finished refreshing"));
+
+	}
+
+	private void preparePlot(JFreeChart chart, TimeInterval displayed) {
+		// Plot customization
+		plot = chart.getXYPlot();
+		// Grid and background colors
+		plot.setBackgroundPaint(BACKGROUND_PAINT);
+		plot.setDomainGridlinePaint(DOMAIN_GRIDLINE_PAINT);
+		plot.setRangeGridlinePaint(RANGE_GRIDLINE_PAINT);
+		// Tooltip
+		XYItemRenderer renderer = plot.getRenderer();
+		renderer.setBaseToolTipGenerator(TOOLTIP_GENERATOR);
+		// Disable bar white stripes
+		XYBarRenderer barRenderer = (XYBarRenderer) plot.getRenderer();
+		barRenderer.setBarPainter(new StandardXYBarPainter());
+		// X axis
+		X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
+		NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
+		xaxis.setTickLabelFont(TICK_LABEL_FONT);
+		xaxis.setLabelFont(LABEL_FONT);
+		xaxis.setNumberFormatOverride(X_FORMAT);
+		xaxis.setTickUnit(new NumberTickUnit((displayed.getDuration() / numberOfTicks)));
+		xaxis.addChangeListener(new AxisChangeListener() {
+			@Override
+			public void axisChanged(AxisChangeEvent arg) {
+				long max = ((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue();
+				long min = ((Double) plot.getDomainAxis().getRange().getLowerBound()).longValue();
+				NumberTickUnit newUnit = new NumberTickUnit((max - min) / numberOfTicks);
+				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
+				// ensure we don't loop
+				if (!currentUnit.equals(newUnit))
+					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
+			}
+		});
+		// Y axis
+		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
+		yaxis.setTickLabelFont(TICK_LABEL_FONT);
+		yaxis.setLabelFont(LABEL_FONT);
 	}
 
 	// FIXME
