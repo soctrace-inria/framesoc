@@ -115,7 +115,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * <pre>
  * TODO
- * - when resizing: interval is reset and marker changes color...
+ * - DONE: when resizing: interval is reset and marker changes color...
  * - fix pixel to value
  * - manage marker properly
  * - multi-selection
@@ -1015,6 +1015,10 @@ public class HistogramView extends FramesocPart {
 		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
 		yaxis.setTickLabelFont(TICK_LABEL_FONT);
 		yaxis.setLabelFont(LABEL_FONT);
+		// set the marker, if any was present
+		if (marker != null) {
+			plot.addDomainMarker(marker);
+		}
 	}
 
 	// FIXME
