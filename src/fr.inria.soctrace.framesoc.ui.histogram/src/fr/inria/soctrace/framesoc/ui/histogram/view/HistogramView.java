@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.histogram.view;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -165,6 +166,7 @@ public class HistogramView extends FramesocPart {
 	private static final Color BACKGROUND_PAINT = new Color(255, 255, 255);
 	private static final Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
 	private static final Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
+	private static final Color MARKER_OUTLINE_PAINT = new Color(0, 0, 255);
 
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
@@ -787,6 +789,7 @@ public class HistogramView extends FramesocPart {
 		/*
 		 * Prepare data
 		 */
+
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 		// get the last snapshot
@@ -803,6 +806,7 @@ public class HistogramView extends FramesocPart {
 		/*
 		 * Prepare chart
 		 */
+
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
 
@@ -865,7 +869,9 @@ public class HistogramView extends FramesocPart {
 						}
 						selectedTs0 = getTimestampAt(e.x);
 						marker = new IntervalMarker(selectedTs0, selectedTs0);
-						marker.setAlpha(0.1f);
+						marker.setPaint(BACKGROUND_PAINT);
+						marker.setOutlinePaint(MARKER_OUTLINE_PAINT);
+						marker.setAlpha(0.5f);
 						plot.addDomainMarker(marker);
 						dragInProgress = true;
 						activeSelection = true;
@@ -909,6 +915,7 @@ public class HistogramView extends FramesocPart {
 								plot.zoomDomainAxes(0.5, plotInfo, p, true);
 							}
 						} else {
+							// XXX On Fedora 17 this always dezoom all
 							plot.zoomDomainAxes(-0.5, plotInfo, p, true);
 						}
 
