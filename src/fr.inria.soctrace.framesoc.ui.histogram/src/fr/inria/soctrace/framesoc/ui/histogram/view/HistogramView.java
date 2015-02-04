@@ -196,7 +196,9 @@ public class HistogramView extends FramesocPart {
 	private ConfigurationDimension currentDimension = ConfigurationDimension.TYPE;
 	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
 	private HistogramLoaderDataset dataset;
-
+	private boolean timeChanged = false;
+	private boolean configurationChanged = false;
+	
 	/*
 	 * Timestamp management
 	 */
@@ -441,6 +443,7 @@ public class HistogramView extends FramesocPart {
 					marker.setStartValue(barInterval.startTimestamp);
 					marker.setEndValue(barInterval.endTimestamp);
 				}
+				timeChanged = !barInterval.equals(loadedInterval);
 			}
 		});
 		// button to synch the timebar, producers and type with the current loaded data
@@ -457,6 +460,7 @@ public class HistogramView extends FramesocPart {
 				for (ConfigurationData data : configurationMap.values()) {
 					data.tree.setCheckedElements(data.checked);
 				}
+				timeChanged = false;
 				enableTreeButtons();
 				enableSubTreeButtons();
 			}
@@ -466,7 +470,7 @@ public class HistogramView extends FramesocPart {
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (!timeBar.getSelection().equals(loadedInterval)) {
+				if (timeChanged || configurationChanged) {
 					loadHistogram(currentShownTrace, timeBar.getSelection());
 				}
 			}
@@ -725,6 +729,8 @@ public class HistogramView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh(first, false, false);
 				}
+				timeChanged = false;
+				configurationChanged = false;
 				return Status.OK_STATUS;
 			} finally {
 				enableButtons();
@@ -841,6 +847,7 @@ public class HistogramView extends FramesocPart {
 							long max = Math.max(selectedTs0, selectedTs1);
 							marker.setStartValue(min);
 							marker.setEndValue(max);
+							timeChanged = true;
 							timeBar.setSelection(min, max);
 						}
 						updateStatusLine(v);
@@ -1129,6 +1136,7 @@ public class HistogramView extends FramesocPart {
 			if (enable)
 				break;
 		}
+		configurationChanged = enable;
 		enableTreeButtons();
 		enableSubTreeButtons();
 	}
