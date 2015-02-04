@@ -113,10 +113,10 @@ public class ManageColorsDialog extends Dialog {
 			this.entity = entity;
 		}
 	}
-	
+
 	protected Map<Integer, Entity> entities;
-	protected final static String ET_NAME="Event Types";
-	private final static String EP_NAME="Event Producers";
+	protected final static String ET_NAME = "Event Types";
+	protected final static String EP_NAME = "Event Producers";
 			
 	/**
 	 * Constructor
@@ -287,7 +287,7 @@ public class ManageColorsDialog extends Dialog {
     	super.cancelPressed();
     }
     
-	private FramesocColor getColor(String name) {
+	protected FramesocColor getColor(String name) {
 		if (entity.equals(ModelEntity.EVENT_TYPE))
 			return FramesocColorManager.getInstance().getEventTypeColor(name);
 		else
@@ -315,7 +315,7 @@ public class ManageColorsDialog extends Dialog {
 			FramesocColorManager.getInstance().loadEventProducerColors();
 	}
 	
-	private Collection<String> getNames() {
+	protected Collection<String> getNames() {
 		if (entity.equals(ModelEntity.EVENT_TYPE))
 			return FramesocColorManager.getInstance().getEventTypeNames();
 		else 
