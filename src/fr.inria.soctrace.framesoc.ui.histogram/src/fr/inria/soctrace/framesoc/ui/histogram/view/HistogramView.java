@@ -198,7 +198,7 @@ public class HistogramView extends FramesocPart {
 	private HistogramLoaderDataset dataset;
 	private boolean timeChanged = false;
 	private boolean configurationChanged = false;
-	
+
 	/*
 	 * Timestamp management
 	 */
@@ -439,10 +439,12 @@ public class HistogramView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TimeInterval barInterval = timeBar.getSelection();
-				if (marker != null) {
-					marker.setStartValue(barInterval.startTimestamp);
-					marker.setEndValue(barInterval.endTimestamp);
+				if (marker == null) {
+					marker = getNewMarker();
+					plot.addDomainMarker(marker);
 				}
+				marker.setStartValue(barInterval.startTimestamp);
+				marker.setEndValue(barInterval.endTimestamp);
 				timeChanged = !barInterval.equals(loadedInterval);
 			}
 		});
@@ -455,6 +457,7 @@ public class HistogramView extends FramesocPart {
 					timeBar.setSelection(loadedInterval);
 					if (marker != null && plot != null) {
 						plot.removeDomainMarker(marker);
+						marker = null;
 					}
 				}
 				for (ConfigurationData data : configurationMap.values()) {
@@ -876,10 +879,7 @@ public class HistogramView extends FramesocPart {
 							plot.removeDomainMarker(marker);
 						}
 						selectedTs0 = getTimestampAt(e.x);
-						marker = new IntervalMarker(selectedTs0, selectedTs0);
-						marker.setPaint(BACKGROUND_PAINT);
-						marker.setOutlinePaint(MARKER_OUTLINE_PAINT);
-						marker.setAlpha(0.5f);
+						marker = getNewMarker();
 						plot.addDomainMarker(marker);
 						dragInProgress = true;
 						activeSelection = true;
@@ -966,6 +966,14 @@ public class HistogramView extends FramesocPart {
 
 	}
 
+	private IntervalMarker getNewMarker() {
+		IntervalMarker marker = new IntervalMarker(selectedTs0, selectedTs0);
+		marker.setPaint(BACKGROUND_PAINT);
+		marker.setOutlinePaint(MARKER_OUTLINE_PAINT);
+		marker.setAlpha(0.5f);
+		return marker;
+	}
+
 	/**
 	 * Prepare the plot
 	 * 
@@ -1010,9 +1018,10 @@ public class HistogramView extends FramesocPart {
 		NumberAxis yaxis = (NumberAxis) plot.getRangeAxis();
 		yaxis.setTickLabelFont(TICK_LABEL_FONT);
 		yaxis.setLabelFont(LABEL_FONT);
-		// set the marker, if any was present
-		if (marker != null && !first) {
-			plot.addDomainMarker(marker);
+		// remove the marker, if any
+		if (marker != null) {
+			plot.removeDomainMarker(marker);
+			marker = null;
 		}
 	}
 
