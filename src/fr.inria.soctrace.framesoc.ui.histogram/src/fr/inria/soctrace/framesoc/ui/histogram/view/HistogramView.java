@@ -833,6 +833,7 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseMove(MouseEvent e) {
+						super.mouseMove(e);
 						long v = getTimestampAt(e.x);
 						if (dragInProgress) {
 							selectedTs1 = v;
