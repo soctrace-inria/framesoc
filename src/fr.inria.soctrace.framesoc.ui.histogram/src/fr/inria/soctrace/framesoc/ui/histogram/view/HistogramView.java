@@ -877,6 +877,7 @@ public class HistogramView extends FramesocPart {
 					public void mouseDown(MouseEvent e) {
 						if (marker != null) {
 							plot.removeDomainMarker(marker);
+							marker = null;
 						}
 						selectedTs0 = getTimestampAt(e.x);
 						marker = getNewMarker();
@@ -884,6 +885,11 @@ public class HistogramView extends FramesocPart {
 						dragInProgress = true;
 						activeSelection = true;
 					}
+
+					// TODO
+//					private void changeCursor(int cursor) {
+//						getShell().setCursor(new Cursor(Display.getDefault(), cursor));
+//					}
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
