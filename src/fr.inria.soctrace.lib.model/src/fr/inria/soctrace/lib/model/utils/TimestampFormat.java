@@ -263,10 +263,16 @@ public class TimestampFormat extends NumberFormat {
 	 * Input: t0, t1, # of ticks (N)
 	 * Output: ticks
 	 * - compute step: (t1-t0)/N
-	 * - let D be the rounded step number considering only the most significant digit
+	 * - let S be the rounded step number considering only the most significant digit (D is that digit)
 	 * - in t0, consider only the digit up to the one in D position, obtaining t0' (rounded)
-	 * - the first tick is t0'+D
-	 * - to get the others, always sum D
+	 * - the first tick is (t0'+D)*10^(position of D in step)
+	 * - to get the others, always sum D*10^(position of D in step)
+	 * 
+	 * E.g.: t0: 5129, t1: ..., N: ..., step: 213
+	 * - D= 2 (2|13)
+	 * - t0'=51 (51|29)
+	 * - first tick: (51 + 2) * 10^2 = 5300
+	 * - other ticks: 5500, 5700, ....
 	 */
 
 }
