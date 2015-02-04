@@ -41,9 +41,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -271,12 +269,6 @@ public class HistogramView extends FramesocPart {
 				int width = Math.max(compositeChart.getSize().x - 40, 1);
 				numberOfTicks = Math.max(width / TIMESTAMP_MAX_SIZE, 1);
 				refresh(false, false, true);
-			}
-		});
-		compositeChart.addMouseMoveListener( new MouseMoveListener() {
-			@Override
-			public void mouseMove(MouseEvent e) {
-				System.out.println("composite chart move x: " + e.x);
 			}
 		});
 
@@ -844,7 +836,7 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseMove(MouseEvent e) {
-						System.out.println("chart frame move: " + e.x);
+						getTimestampAt(e.x); // XXX TEST
 						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
 						PlotRenderingInfo plotInfo = info.getPlotInfo();
 						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
@@ -1025,12 +1017,22 @@ public class HistogramView extends FramesocPart {
 
 	// FIXME
 	long getTimestampAt(int pos) {
-		ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
-		PlotRenderingInfo plotInfo = info.getPlotInfo();
-		long v = (long) plot.getDomainAxis().java2DToValue(pos, plotInfo.getDataArea(),
-				plot.getDomainAxisEdge());
-		System.out.println("get timestamp at " + pos + ": " + v);
-		return v;
+		if (chartFrame != null && plot != null) {
+			ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
+			PlotRenderingInfo plotInfo = info.getPlotInfo();
+
+			long v = (long) plot.getDomainAxis().java2DToValue(pos, plotInfo.getDataArea(),
+					plot.getDomainAxisEdge());
+			System.out.println("get timestamp at " + pos + ": " + v);
+			
+			long value = 0;
+			long java2d = (long)plot.getDomainAxis().valueToJava2D(value, plotInfo.getDataArea(),
+					plot.getDomainAxisEdge());
+			System.out.println("java2d at " + value + ": " + java2d);
+			
+			return v;
+		}
+		return 0;
 	}
 
 	/**
