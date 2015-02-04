@@ -466,7 +466,9 @@ public class HistogramView extends FramesocPart {
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				loadHistogram(currentShownTrace, timeBar.getSelection());
+				if (!timeBar.getSelection().equals(loadedInterval)) {
+					loadHistogram(currentShownTrace, timeBar.getSelection());
+				}
 			}
 		});
 
@@ -783,7 +785,7 @@ public class HistogramView extends FramesocPart {
 			// we have been cancelled, the x range corresponds to the actual loaded interval
 			histogramInterval.copy(loadedInterval);
 		}
-		if (keepZoom) {
+		if (keepZoom && plot != null) {
 			long min = (long) plot.getDomainAxis().getRange().getLowerBound();
 			long max = (long) plot.getDomainAxis().getRange().getUpperBound();
 			TimeInterval displayed = new TimeInterval(min, max);
@@ -1007,13 +1009,17 @@ public class HistogramView extends FramesocPart {
 	}
 
 	long getTimestampAt(int pos) {
-		if (chartFrame != null && plot != null) {
+		if (chartFrame != null && plot != null && loadedInterval != null) {
 			org.eclipse.swt.graphics.Rectangle swtRect = chartFrame.getScreenDataArea();
 			Rectangle2D screenDataArea = new Rectangle();
 			screenDataArea.setRect(swtRect.x, swtRect.y, swtRect.width, swtRect.height);
 			long v = (long) plot.getDomainAxis().java2DToValue(pos, screenDataArea,
 					plot.getDomainAxisEdge());
-			System.out.println("get timestamp at " + pos + ": " + v);
+			if (v < loadedInterval.startTimestamp) {
+				v = loadedInterval.startTimestamp;
+			} else if (v > loadedInterval.endTimestamp) {
+				v = loadedInterval.endTimestamp;
+			}
 			return v;
 		}
 		return 0;
@@ -1292,12 +1298,12 @@ public class HistogramView extends FramesocPart {
 		}
 	}
 
-	private void updateStatusLine(long x) {
-		if (statusLineManager == null) {
+	private void updateStatusLine(long timestamp) {
+		if (statusLineManager == null || currentShownTrace == null) {
 			return;
 		}
 
-		if (x == NO_STATUS) {
+		if (timestamp == NO_STATUS) {
 			statusLineManager.setMessage("");
 			return;
 		}
@@ -1310,10 +1316,13 @@ public class HistogramView extends FramesocPart {
 			ts0 = tmp;
 		}
 
+		ts0 = Math.max(ts0, currentShownTrace.getMinTimestamp());
+		ts1 = Math.min(ts1, currentShownTrace.getMaxTimestamp());
+
 		StringBuilder message = new StringBuilder();
 		if (!dragInProgress) {
 			message.append("T: "); //$NON-NLS-1$
-			message.append(formatter.format(x));
+			message.append(formatter.format(timestamp));
 			message.append("     ");
 		}
 		message.append("T1: "); //$NON-NLS-1$
