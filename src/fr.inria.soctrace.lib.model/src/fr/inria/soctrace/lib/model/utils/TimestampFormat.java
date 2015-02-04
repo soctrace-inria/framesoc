@@ -106,7 +106,7 @@ public class TimestampFormat extends NumberFormat {
 			break;
 		}
 
-		return formatCompact(number, toAppendTo);
+		return formatCompactFix(number, toAppendTo);
 	}
 
 	private StringBuffer formatCompact(double number, StringBuffer toAppendTo) {
@@ -179,5 +179,94 @@ public class TimestampFormat extends NumberFormat {
 		}
 		decimals = Math.min(decimals + 1, MAX_DECIMALS);
 	}
+
+	/*
+	 * EXPERIMENTAL
+	 */
+
+	private int eng = -1;
+
+	public void setFixContext(long t1, long t2) {
+		int e1 = getEngExp(t1);
+		int e2 = getEngExp(t2);
+		eng = Math.max(e1, e2);
+
+		StringBuffer sb1 = new StringBuffer();
+		StringBuffer sb2 = new StringBuffer();
+		decimals = 1;
+		for (; decimals < MAX_DECIMALS; decimals++) {
+			sb1.setLength(0);
+			sb2.setLength(0);
+			formatCompactFix(t1, sb1);
+			formatCompactFix(t2, sb2);
+			if (!sb1.toString().equals(sb2.toString()))
+				break;
+		}
+		decimals = Math.min(decimals + 1, MAX_DECIMALS);
+	}
+
+	private int getEngExp(long number) {
+		int eng = 0;
+		while (number > 1000) {
+			number /= 1000.0;
+			eng++;
+		}
+		return eng;
+	}
+
+	private StringBuffer formatCompactFix(double number, StringBuffer toAppendTo) {
+
+		// compute an exponent in engineering notation, or use the one set by the context
+		// transforming the number accordingly
+		int usedEng = 0;
+		Double tmp = number;
+		if (eng == -1) {
+			// a fixed context has not been set, find the lowest exponent in engineering notation
+			while (tmp.longValue() > 1000) {
+				tmp /= 1000.0;
+				usedEng++;
+			}
+		} else {
+			// a fixed context has been set, divide by 1000 according to the context
+			for (int i = 0; i < eng; i++) {
+				tmp /= 1000.0;
+			}
+			usedEng = eng;
+		}
+
+		// compute the real exponent, when expressing the number in seconds
+		int realExp = usedEng * 3 + unit.getInt();
+		if (realExp > 0) {
+			// number is more than seconds
+			tmp *= Math.pow(10, realExp);
+			if (realExp < 3) {
+				noExpFormat.setMaximumFractionDigits(decimals);
+				toAppendTo.append(noExpFormat.format(tmp));
+			} else {
+				expFormat.setMaximumFractionDigits(Math.max(1, decimals - 2));
+				toAppendTo.append(expFormat.format(tmp));
+			}
+			toAppendTo.append(" s");
+		} else {
+			// number is seconds or less
+			noExpFormat.setMaximumFractionDigits(decimals);
+			toAppendTo.append(noExpFormat.format(tmp));
+			toAppendTo.append(" ");
+			toAppendTo.append(TimeUnit.getLabel(realExp));
+		}
+		return toAppendTo;
+	}
+	
+	/*
+	 * Note: algorithm for bar splitting in ticks
+	 * 
+	 * Input: t0, t1, # of ticks (N)
+	 * Output: ticks
+	 * - compute step: (t1-t0)/N
+	 * - let D be the rounded step number considering only the most significant digit
+	 * - in t0, consider only the digit up to the one in D position, obtaining t0' (rounded)
+	 * - the first tick is t0'+D
+	 * - to get the others, always sum D
+	 */
 
 }
