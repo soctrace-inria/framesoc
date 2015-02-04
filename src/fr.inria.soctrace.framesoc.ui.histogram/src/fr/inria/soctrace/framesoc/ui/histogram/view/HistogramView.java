@@ -13,7 +13,9 @@ package fr.inria.soctrace.framesoc.ui.histogram.view;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +62,6 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -115,12 +116,6 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * <pre>
  * TODO
- * - DONE: when resizing: interval is reset and marker changes color...
- * - DONE color support for trees and color change event
- * - DONE fix scroll with CTRL+wheel (as in gantt) -> must scroll over the point where the mouse is
- * - DONE selection using current zoom mouse gesture (as in gantt)
- * - DONE manage marker properly
- * - fix pixel to value
  * - remove the sash and use a filter for types and producers, as in gantt
  * </pre>
  * 
@@ -836,11 +831,7 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseMove(MouseEvent e) {
-						getTimestampAt(e.x); // XXX TEST
-						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
-						PlotRenderingInfo plotInfo = info.getPlotInfo();
-						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
-								plotInfo.getDataArea(), plot.getDomainAxisEdge());
+						long v = getTimestampAt(e.x);
 						if (dragInProgress) {
 							selectedTs1 = v;
 							long min = Math.min(selectedTs0, selectedTs1);
@@ -1015,21 +1006,14 @@ public class HistogramView extends FramesocPart {
 		}
 	}
 
-	// FIXME
 	long getTimestampAt(int pos) {
 		if (chartFrame != null && plot != null) {
-			ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
-			PlotRenderingInfo plotInfo = info.getPlotInfo();
-
-			long v = (long) plot.getDomainAxis().java2DToValue(pos, plotInfo.getDataArea(),
+			org.eclipse.swt.graphics.Rectangle swtRect = chartFrame.getScreenDataArea();
+			Rectangle2D screenDataArea = new Rectangle();
+			screenDataArea.setRect(swtRect.x, swtRect.y, swtRect.width, swtRect.height);
+			long v = (long) plot.getDomainAxis().java2DToValue(pos, screenDataArea,
 					plot.getDomainAxisEdge());
 			System.out.println("get timestamp at " + pos + ": " + v);
-			
-			long value = 0;
-			long java2d = (long)plot.getDomainAxis().valueToJava2D(value, plotInfo.getDataArea(),
-					plot.getDomainAxisEdge());
-			System.out.println("java2d at " + value + ": " + java2d);
-			
 			return v;
 		}
 		return 0;
