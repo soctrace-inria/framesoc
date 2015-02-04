@@ -39,9 +39,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -116,13 +118,11 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * <pre>
  * TODO
  * - DONE: when resizing: interval is reset and marker changes color...
- * - fix pixel to value
- * - manage marker properly
- * - multi-selection
- * - min size for button sash
  * - DONE color support for trees and color change event
  * - DONE fix scroll with CTRL+wheel (as in gantt) -> must scroll over the point where the mouse is
- * - selection using current zoom mouse gesture (as in gantt)
+ * - DONE selection using current zoom mouse gesture (as in gantt)
+ * - DONE manage marker properly
+ * - fix pixel to value
  * - remove the sash and use a filter for types and producers, as in gantt
  * </pre>
  * 
@@ -154,6 +154,7 @@ public class HistogramView extends FramesocPart {
 	/*
 	 * Constants
 	 */
+	private static final Object[] EMPTY_ARRAY = new Object[0];
 	private static final String TOOLTIP_FORMAT = "bin central timestamp: {1}, events: {2}";
 	private static final String HISTOGRAM_TITLE = "";
 	private static final String X_LABEL = "";
@@ -166,6 +167,10 @@ public class HistogramView extends FramesocPart {
 	private static final Color DOMAIN_GRIDLINE_PAINT = new Color(230, 230, 230);
 	private static final Color RANGE_GRIDLINE_PAINT = new Color(200, 200, 200);
 	private static final Color MARKER_OUTLINE_PAINT = new Color(0, 0, 255);
+	private static final int TIMESTAMP_MAX_SIZE = 130;
+	private static final long BUILD_UPDATE_TIMEOUT = 300;
+	private static final int TOTAL_WORK = 1000;
+	private static final int NO_STATUS = -1;
 
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
@@ -173,13 +178,6 @@ public class HistogramView extends FramesocPart {
 	private final DecimalFormat Y_FORMAT = new DecimalFormat("0");
 	private final XYToolTipGenerator TOOLTIP_GENERATOR = new StandardXYToolTipGenerator(
 			TOOLTIP_FORMAT, X_FORMAT, Y_FORMAT);
-
-	private static final int TIMESTAMP_MAX_SIZE = 130;
-	private static final long BUILD_UPDATE_TIMEOUT = 300;
-	private static final int TOTAL_WORK = 1000;
-	private static final int NO_STATUS = -1;
-
-	private static final Object[] EMPTY_ARRAY = new Object[0];
 
 	/*
 	 * UI components
@@ -267,17 +265,18 @@ public class HistogramView extends FramesocPart {
 		compositeChart = new Composite(sashForm, SWT.BORDER);
 		FillLayout fl_compositeChart = new FillLayout(SWT.HORIZONTAL);
 		compositeChart.setLayout(fl_compositeChart);
-		compositeChart.addControlListener(new ControlListener() {
+		compositeChart.addControlListener(new ControlAdapter() {
 			@Override
 			public void controlResized(ControlEvent e) {
 				int width = Math.max(compositeChart.getSize().x - 40, 1);
 				numberOfTicks = Math.max(width / TIMESTAMP_MAX_SIZE, 1);
 				refresh(false, false, true);
 			}
-
+		});
+		compositeChart.addMouseMoveListener( new MouseMoveListener() {
 			@Override
-			public void controlMoved(ControlEvent e) {
-				// NOP
+			public void mouseMove(MouseEvent e) {
+				System.out.println("composite chart move x: " + e.x);
 			}
 		});
 
@@ -451,26 +450,26 @@ public class HistogramView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TimeInterval barInterval = timeBar.getSelection();
-				if (!barInterval.equals(loadedInterval)) {
-					enableResetLoadButtons(true);
-				} else {
-					enableResetLoadButtons(false);
+				if (marker != null) {
+					marker.setStartValue(barInterval.startTimestamp);
+					marker.setEndValue(barInterval.endTimestamp);
 				}
 			}
 		});
-		// button to synch the timebar, producers and type with the current
-		// loaded data
+		// button to synch the timebar, producers and type with the current loaded data
 		timeBar.getSynchButton().setToolTipText("Reset timebar, types and producers");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (loadedInterval != null) {
 					timeBar.setSelection(loadedInterval);
+					if (marker != null && plot != null) {
+						plot.removeDomainMarker(marker);
+					}
 				}
 				for (ConfigurationData data : configurationMap.values()) {
 					data.tree.setCheckedElements(data.checked);
 				}
-				enableResetLoadButtons(false);
 				enableTreeButtons();
 				enableSubTreeButtons();
 			}
@@ -766,8 +765,6 @@ public class HistogramView extends FramesocPart {
 					enableSubTreeButtons();
 					enableActions(true);
 					timeBar.setEnabled(true);
-					// force disable for synch and load buttons of timebar
-					enableResetLoadButtons(false);
 				}
 			});
 		}
@@ -814,7 +811,7 @@ public class HistogramView extends FramesocPart {
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
 
 		// customize plot
-		preparePlot(chart, histogramInterval);
+		preparePlot(first, chart, histogramInterval);
 
 		// display chart in UI
 		displayChart(chart, histogramInterval, first);
@@ -847,14 +844,18 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseMove(MouseEvent e) {
+						System.out.println("chart frame move: " + e.x);
 						ChartRenderingInfo info = chartFrame.getChartRenderingInfo();
 						PlotRenderingInfo plotInfo = info.getPlotInfo();
 						long v = (long) plot.getDomainAxis().java2DToValue(e.x,
 								plotInfo.getDataArea(), plot.getDomainAxisEdge());
 						if (dragInProgress) {
 							selectedTs1 = v;
-							marker.setStartValue(Math.min(selectedTs0, selectedTs1));
-							marker.setEndValue(Math.max(selectedTs0, selectedTs1));
+							long min = Math.min(selectedTs0, selectedTs1);
+							long max = Math.max(selectedTs0, selectedTs1);
+							marker.setStartValue(min);
+							marker.setEndValue(max);
+							timeBar.setSelection(min, max);
 						}
 						updateStatusLine(v);
 					}
@@ -871,6 +872,7 @@ public class HistogramView extends FramesocPart {
 							marker.setStartValue(selectedTs0);
 							marker.setEndValue(selectedTs0);
 							activeSelection = false;
+							timeBar.setSelection(loadedInterval);
 							updateStatusLine(selectedTs0);
 						}
 					}
@@ -979,7 +981,7 @@ public class HistogramView extends FramesocPart {
 	 * @param displayed
 	 *            displayed time interval
 	 */
-	private void preparePlot(JFreeChart chart, TimeInterval displayed) {
+	private void preparePlot(boolean first, JFreeChart chart, TimeInterval displayed) {
 		// Plot customization
 		plot = chart.getXYPlot();
 		// Grid and background colors
@@ -1016,7 +1018,7 @@ public class HistogramView extends FramesocPart {
 		yaxis.setTickLabelFont(TICK_LABEL_FONT);
 		yaxis.setLabelFont(LABEL_FONT);
 		// set the marker, if any was present
-		if (marker != null) {
+		if (marker != null && !first) {
 			plot.addDomainMarker(marker);
 		}
 	}
@@ -1027,7 +1029,7 @@ public class HistogramView extends FramesocPart {
 		PlotRenderingInfo plotInfo = info.getPlotInfo();
 		long v = (long) plot.getDomainAxis().java2DToValue(pos, plotInfo.getDataArea(),
 				plot.getDomainAxisEdge());
-		System.out.println(v);
+		System.out.println("get timestamp at " + pos + ": " + v);
 		return v;
 	}
 
@@ -1093,17 +1095,6 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Enable/disable the reset and load buttons.
-	 * 
-	 * @param enable
-	 *            flag stating if we must enable or not the load and reset buttons
-	 */
-	private void enableResetLoadButtons(boolean enable) {
-		timeBar.getSynchButton().setEnabled(enable);
-		timeBar.getLoadButton().setEnabled(enable);
-	}
-
-	/**
 	 * Enable/disable the checkAll/uncheckAll buttons, according to the context.
 	 */
 	private void enableTreeButtons() {
@@ -1145,7 +1136,6 @@ public class HistogramView extends FramesocPart {
 			if (enable)
 				break;
 		}
-		enableResetLoadButtons(enable);
 		enableTreeButtons();
 		enableSubTreeButtons();
 	}
