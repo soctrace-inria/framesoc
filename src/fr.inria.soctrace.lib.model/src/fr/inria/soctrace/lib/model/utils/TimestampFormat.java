@@ -256,23 +256,84 @@ public class TimestampFormat extends NumberFormat {
 		}
 		return toAppendTo;
 	}
-	
-	/*
-	 * Note: algorithm for bar splitting in ticks
+
+	/**
+	 * Compute a GradDescriptor to be used in timebar displaying.
 	 * 
-	 * Input: t0, t1, # of ticks (N)
-	 * Output: ticks
-	 * - compute step: (t1-t0)/N
-	 * - let S be the rounded step number considering only the most significant digit (D is that digit)
-	 * - in t0, consider only the digit up to the one in D position, obtaining t0' (rounded)
-	 * - the first tick is (t0'+D)*10^(position of D in step)
+	 * This method implements the following algorithm.
+	 * 
+	 * <pre>
+	 * Input: t0, t1, # of ticks hint (N) 
+	 * Output: first tick (t0') and delta (D) 
+	 * Algorithm:
+	 * - compute step: (t1-t0)/(N+1) 
+	 * - let D be the most significant digit in step 
+	 * - in t0, consider only the digit up to the one in D position, obtaining t0' (rounded) 
+	 * - the first tick is (t0')*10^(position of D in step) if this is bigger than t0,
+	 *   otherwise we sum D*10^(position of D in step)
 	 * - to get the others, always sum D*10^(position of D in step)
 	 * 
-	 * E.g.: t0: 5129, t1: ..., N: ..., step: 213
-	 * - D= 2 (2|13)
-	 * - t0'=51 (51|29)
-	 * - first tick: (51 + 2) * 10^2 = 5300
-	 * - other ticks: 5500, 5700, ....
+	 * E.g.: 
+	 * - t0: 5129, t1: 7259, N: 9
+	 * - step: 213 
+	 * - D = 2 (2|13) 
+	 * - position of D in step: 2nd position
+	 * - t0'=51 (51|29) 
+	 * - first tick: 
+	 *   - 51 * 10^2 = 5100 is less than t0 so we add 2 * 10^2: 5300
+	 * - second tick: 5300 * 10^2 = 5500 
+	 * - other ticks: 5700, 5900, ....
+	 * 
+	 * </pre>
+	 * 
+	 * @param t0
+	 *            minimum value
+	 * @param t1
+	 *            max value
+	 * @param numberOfTicksHint
+	 *            hint on the desired number of ticks
+	 * @return
 	 */
+	public TickDescriptor getTickDescriptor(long t0, long t1, int numberOfTicksHint) {
+		TickDescriptor des = new TickDescriptor();
+
+		des.delta = (t1 - t0) / (numberOfTicksHint + 1);
+		des.first = t0;
+
+		int exp = 0;
+		long step = des.delta;
+		while (step > 0) {
+			step /= 10;
+			exp++;
+		}
+		exp--;
+		long factor = (long) Math.pow(10, exp);
+
+		des.delta /= factor;
+		des.delta *= factor;
+		des.first /= factor;
+		des.first *= factor;
+		if (des.first < t0) {
+			des.first += des.delta;
+		}
+
+		return des;
+	}
+
+	/**
+	 * Tick Descriptor for time bar displaying.
+	 */
+	public static class TickDescriptor {
+
+		/**
+		 * First timestamp to display
+		 */
+		public long first;
+
+		/**
+		 * Delta between timestamps
+		 */
+		public long delta;
+	}
 
 }
