@@ -109,6 +109,7 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat.TickDescriptor;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -202,7 +203,7 @@ public class HistogramView extends FramesocPart {
 	/*
 	 * Timestamp management
 	 */
-	private long numberOfTicks = 10;
+	private int numberOfTicks = 10;
 	private IStatusLineManager statusLineManager;
 	private TimestampFormat formatter = new TimestampFormat();
 
@@ -887,9 +888,9 @@ public class HistogramView extends FramesocPart {
 					}
 
 					// TODO
-//					private void changeCursor(int cursor) {
-//						getShell().setCursor(new Cursor(Display.getDefault(), cursor));
-//					}
+					// private void changeCursor(int cursor) {
+					// getShell().setCursor(new Cursor(Display.getDefault(), cursor));
+					// }
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
@@ -1008,17 +1009,21 @@ public class HistogramView extends FramesocPart {
 		xaxis.setTickLabelFont(TICK_LABEL_FONT);
 		xaxis.setLabelFont(LABEL_FONT);
 		xaxis.setNumberFormatOverride(X_FORMAT);
-		xaxis.setTickUnit(new NumberTickUnit((displayed.getDuration() / numberOfTicks)));
+		TickDescriptor des = X_FORMAT.getTickDescriptor(displayed.startTimestamp,
+				displayed.endTimestamp, numberOfTicks);
+		xaxis.setTickUnit(new NumberTickUnit(des.delta));
 		xaxis.addChangeListener(new AxisChangeListener() {
 			@Override
 			public void axisChanged(AxisChangeEvent arg) {
 				long max = ((Double) plot.getDomainAxis().getRange().getUpperBound()).longValue();
 				long min = ((Double) plot.getDomainAxis().getRange().getLowerBound()).longValue();
-				NumberTickUnit newUnit = new NumberTickUnit((max - min) / numberOfTicks);
+				TickDescriptor des = X_FORMAT.getTickDescriptor(min, max, numberOfTicks);
+				NumberTickUnit newUnit = new NumberTickUnit(des.delta);
 				NumberTickUnit currentUnit = ((NumberAxis) arg.getAxis()).getTickUnit();
 				// ensure we don't loop
-				if (!currentUnit.equals(newUnit))
+				if (!currentUnit.equals(newUnit)) {
 					((NumberAxis) arg.getAxis()).setTickUnit(newUnit);
+				}
 			}
 		});
 		// Y axis
