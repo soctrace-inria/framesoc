@@ -47,6 +47,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -888,9 +889,9 @@ public class HistogramView extends FramesocPart {
 					}
 
 					// TODO
-					// private void changeCursor(int cursor) {
-					// getShell().setCursor(new Cursor(Display.getDefault(), cursor));
-					// }
+//					private void changeCursor(int cursor) {
+//						getShell().setCursor(new Cursor(Display.getDefault(), cursor));
+//					}
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
