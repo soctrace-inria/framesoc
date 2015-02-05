@@ -910,7 +910,7 @@ public class HistogramView extends FramesocPart {
 					private void zoomChartAxis(boolean increase, int x, int y) {
 						double min = plot.getDomainAxis().getRange().getLowerBound();
 						double max = plot.getDomainAxis().getRange().getUpperBound();
-						X_FORMAT.setContext((long) min, (long) max);
+						X_FORMAT.setContext((long) min, (long) max, true);
 						Point2D p = chartFrame.translateScreenToJava2D(new Point(x, y));
 						PlotRenderingInfo plotInfo = chartFrame.getChartRenderingInfo()
 								.getPlotInfo();
@@ -1003,6 +1003,7 @@ public class HistogramView extends FramesocPart {
 		barRenderer.setBarPainter(new StandardXYBarPainter());
 		// X axis
 		X_FORMAT.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
+		X_FORMAT.setContext(displayed.startTimestamp, displayed.endTimestamp, true);
 		NumberAxis xaxis = (NumberAxis) plot.getDomainAxis();
 		xaxis.setTickLabelFont(TICK_LABEL_FONT);
 		xaxis.setLabelFont(LABEL_FONT);

@@ -520,35 +520,6 @@ public class RangeSlider extends Canvas {
 	 * @param gc
 	 *            graphic context
 	 */
-//	private void drawBarsHorizontal(final GC gc) {
-//
-//		if (isEnabled()) {
-//			gc.setForeground(getForeground());
-//		} else {
-//			gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
-//		}
-//
-//		// to see the text
-//		gc.setBackground(getBackground());
-//
-//		final int numberOfTicks = Math.max(getSize().x / TIMESTAMP_MAX_SIZE, 1);
-//		final double pixelSize = computePixelSizeForHorizonalSlider();
-//		final double delta = Math.max(((this.maximum - this.minimum) / (double) numberOfTicks), 1);
-//		for (int i = 1; i < numberOfTicks; i++) {
-//			final int x = (int) (9 + pixelSize * delta * i);
-//			if (showGrads) {
-//				String value = formatter.format(delta * i + this.minimum);
-//				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
-//						SWT.NONE));
-//				Point textSize = gc.textExtent(value);
-//				gc.drawText(value, x - textSize.x / 2, -2);
-//			}
-//			gc.drawLine(x, getClientArea().height - BARHEIGHT - BARSIZE - BOTTOM, x,
-//					getClientArea().height - BARHEIGHT - BOTTOM);
-//		}
-//
-//	}
-
 	private void drawBarsHorizontal(final GC gc) {
 
 		if (isEnabled()) {
@@ -561,13 +532,13 @@ public class RangeSlider extends Canvas {
 		gc.setBackground(getBackground());
 
 		// to have the same time unit
-		formatter.setFixContext(this.minimum, this.maximum);
-		final int numberOfTicks = Math.max(getSize().x / TIMESTAMP_MAX_SIZE, 1);
+		formatter.setContext(this.minimum, this.maximum, true);
+		final int numberOfTicksHint = Math.max(getSize().x / TIMESTAMP_MAX_SIZE, 1);
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		TickDescriptor des = formatter.getTickDescriptor(this.minimum, this.maximum, numberOfTicks);
+		TickDescriptor des = formatter.getTickDescriptor(this.minimum, this.maximum, numberOfTicksHint);
 		long v = des.first;
 		while (v < this.maximum) {
-			final int x = (int) (9 + pixelSize * (v-this.minimum));
+			final int x = (int) (9 + pixelSize * (v - this.minimum));
 			if (showGrads) {
 				String value = formatter.format(v);
 				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
@@ -577,7 +548,7 @@ public class RangeSlider extends Canvas {
 			}
 			gc.drawLine(x, getClientArea().height - BARHEIGHT - BARSIZE - BOTTOM, x,
 					getClientArea().height - BARHEIGHT - BOTTOM);
-			v+=des.delta;
+			v += des.delta;
 		}
 	}
 

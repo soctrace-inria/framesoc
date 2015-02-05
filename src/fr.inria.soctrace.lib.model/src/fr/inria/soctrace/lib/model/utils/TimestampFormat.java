@@ -32,6 +32,21 @@ public class TimestampFormat extends NumberFormat {
 	private static final long serialVersionUID = -5615549237196509700L;
 
 	/**
+	 * Default number of decimalss
+	 */
+	private static final int DEFAULT_DECIMALS = 3;
+
+	/**
+	 * Constant for not set engineering notation exponent
+	 */
+	private static final int ENG_NOT_SET = -1;
+
+	/**
+	 * Maximum number of decimal digits
+	 */
+	private static final int MAX_DECIMALS = 9;
+
+	/**
 	 * Decimal format without exponent part
 	 */
 	private final DecimalFormat noExpFormat = new DecimalFormat("###.#");
@@ -42,19 +57,19 @@ public class TimestampFormat extends NumberFormat {
 	private final DecimalFormat expFormat = new DecimalFormat("###.#E0");
 
 	/**
-	 * Maximum number of decimal digits
-	 */
-	private static final int MAX_DECIMALS = 9;
-
-	/**
 	 * Number of fraction digits
 	 */
-	private int decimals = 3;
+	private int decimals = DEFAULT_DECIMALS;
 
 	/**
 	 * Time unit
 	 */
 	private TimeUnit unit;
+
+	/**
+	 * Engineering notation exponent to be used
+	 */
+	private int eng = ENG_NOT_SET;
 
 	/**
 	 * Create a timestamp format with a <code>TimeUnit.UNKNOWN</code> time unit.
@@ -106,38 +121,7 @@ public class TimestampFormat extends NumberFormat {
 			break;
 		}
 
-		return formatCompactFix(number, toAppendTo);
-	}
-
-	private StringBuffer formatCompact(double number, StringBuffer toAppendTo) {
-		// find the lowest exponent in engineering notation
-		int eng = 0;
-		Double tmp = number;
-		while (tmp.longValue() > 1000) {
-			tmp /= 1000.0;
-			eng++;
-		}
-		// compute the real exponent, when expressing the number in seconds
-		int realExp = eng * 3 + unit.getInt();
-		if (realExp > 0) {
-			// number is more than seconds
-			tmp *= Math.pow(10, realExp);
-			if (realExp < 3) {
-				noExpFormat.setMaximumFractionDigits(decimals);
-				toAppendTo.append(noExpFormat.format(tmp));
-			} else {
-				expFormat.setMaximumFractionDigits(Math.max(1, decimals - 2));
-				toAppendTo.append(expFormat.format(tmp));
-			}
-			toAppendTo.append(" s");
-		} else {
-			// number is seconds or less
-			noExpFormat.setMaximumFractionDigits(decimals);
-			toAppendTo.append(noExpFormat.format(tmp));
-			toAppendTo.append(" ");
-			toAppendTo.append(TimeUnit.getLabel(realExp));
-		}
-		return toAppendTo;
+		return formatCompact(number, toAppendTo);
 	}
 
 	/**
@@ -164,8 +148,14 @@ public class TimestampFormat extends NumberFormat {
 	 *            lowest displayed timestamp
 	 * @param t2
 	 *            highest displayed timestamp
+	 * @param useSameUnit
+	 *            boolean saying if in this context we have to use the same displayed time unit
 	 */
-	public void setContext(long t1, long t2) {
+	public void setContext(long t1, long t2, boolean useSameUnit) {
+		int e1 = getEngExp(t1);
+		int e2 = getEngExp(t2);
+		eng = Math.max(e1, e2);
+
 		StringBuffer sb1 = new StringBuffer();
 		StringBuffer sb2 = new StringBuffer();
 		decimals = 1;
@@ -180,31 +170,13 @@ public class TimestampFormat extends NumberFormat {
 		decimals = Math.min(decimals + 1, MAX_DECIMALS);
 	}
 
-	/*
-	 * EXPERIMENTAL
+	/**
+	 * Get the engineering notation exponent
+	 * 
+	 * @param number
+	 *            timestamp
+	 * @return the smallest engineering notation exponent
 	 */
-
-	private int eng = -1;
-
-	public void setFixContext(long t1, long t2) {
-		int e1 = getEngExp(t1);
-		int e2 = getEngExp(t2);
-		eng = Math.max(e1, e2);
-
-		StringBuffer sb1 = new StringBuffer();
-		StringBuffer sb2 = new StringBuffer();
-		decimals = 1;
-		for (; decimals < MAX_DECIMALS; decimals++) {
-			sb1.setLength(0);
-			sb2.setLength(0);
-			formatCompactFix(t1, sb1);
-			formatCompactFix(t2, sb2);
-			if (!sb1.toString().equals(sb2.toString()))
-				break;
-		}
-		decimals = Math.min(decimals + 1, MAX_DECIMALS);
-	}
-
 	private int getEngExp(long number) {
 		int eng = 0;
 		while (number > 1000) {
@@ -214,7 +186,16 @@ public class TimestampFormat extends NumberFormat {
 		return eng;
 	}
 
-	private StringBuffer formatCompactFix(double number, StringBuffer toAppendTo) {
+	/**
+	 * Format the number using the default settings or the ones computed when setting the context.
+	 * 
+	 * @param number
+	 *            timestamp
+	 * @param toAppendTo
+	 *            output string buffer
+	 * @return string buffer containing the formatted value
+	 */
+	private StringBuffer formatCompact(double number, StringBuffer toAppendTo) {
 
 		// compute an exponent in engineering notation, or use the one set by the context
 		// transforming the number accordingly
