@@ -454,7 +454,7 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 		// button to synch the timebar, producers and type with the current loaded data
-		timeBar.getSynchButton().setToolTipText("Reset timebar, types and producers");
+		timeBar.getSynchButton().setToolTipText("Reset Timebar, Types and Producers");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -473,8 +473,7 @@ public class HistogramView extends FramesocPart {
 				enableSubTreeButtons();
 			}
 		});
-		// draw button
-		timeBar.getLoadButton().setToolTipText("Load");
+		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

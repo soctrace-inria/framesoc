@@ -296,15 +296,14 @@ public final class EventTableView extends FramesocPart {
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
 		// button to synch the timeline with the table
-		timeBar.getSynchButton().setToolTipText("Synch with table");
+		timeBar.getSynchButton().setToolTipText("Synch Selection With Table");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				timeBar.setSelection(startTimestamp, endTimestamp);
 			}
 		});
-		// draw button
-		timeBar.getLoadButton().setToolTipText("Draw current selection");
+		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

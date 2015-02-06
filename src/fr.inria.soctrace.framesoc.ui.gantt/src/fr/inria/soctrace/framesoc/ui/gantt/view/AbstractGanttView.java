@@ -26,7 +26,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -284,10 +283,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		TreeViewer getTreeViewer() {
 			return combo.getTreeViewer();
-		}
-
-		IAction getShowFilterAction() {
-			return combo.getShowFilterAction();
 		}
 	}
 
@@ -940,7 +935,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 			}
 		});
-		fTimeBar.getSynchButton().setToolTipText("Synch selection with Gantt");
+		fTimeBar.getSynchButton().setToolTipText("Synch Selection With Gantt");
 		// draw button
 		fTimeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -954,7 +949,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				showTrace(currentShownTrace, des);
 			}
 		});
-		fTimeBar.getLoadButton().setToolTipText("Draw current selection");
 
 		// -------------------------------
 		// TOOL BAR
@@ -1161,22 +1155,16 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * @param manager
 	 *            the tool bar manager
 	 */
-	protected void fillLocalToolBar(IToolBarManager manager) {
-		if (fFilterColumns != null && fFilterLabelProvider != null && fFilterColumns.length > 0) {
-			manager.add(((TimeGraphComboWrapper) fTimeGraphWrapper).getShowFilterAction());
-		}
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getShowLegendAction());
-		manager.add(new Separator());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getResetScaleAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getPreviousEventAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getNextEventAction());
-		manager.add(fPreviousResourceAction);
-		manager.add(fNextResourceAction);
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getZoomInAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getZoomOutAction());
-		manager.add(new Separator());
-	}
+	protected abstract void fillLocalToolBar(IToolBarManager manager);
 
+	protected IAction getPreviousResourceAction() {
+		return fPreviousResourceAction;
+	}
+	
+	protected IAction getNextResourceAction() {
+		return fNextResourceAction;
+	}
+	
 	/**
 	 * Recursively sort the entries
 	 * 

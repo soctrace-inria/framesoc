@@ -132,11 +132,6 @@ public class GanttView extends AbstractGanttView {
 	private double arrowPercentage;
 
 	/**
-	 * Show type filter dialog action
-	 */
-	private IAction showTypeFilterAction;
-
-	/**
 	 * Roots of type hierarchy
 	 */
 	private CategoryNode[] typeHierarchy;
@@ -145,11 +140,6 @@ public class GanttView extends AbstractGanttView {
 	 * Tree nodes corresponding to checked nodes.
 	 */
 	private List<Object> visibleNodes;
-
-	/**
-	 * Action to use the CPU drawer
-	 */
-	private IAction useCpuDrawerAction;
 
 	/**
 	 * Constructor
@@ -514,22 +504,29 @@ public class GanttView extends AbstractGanttView {
 	@Override
 	protected void fillLocalToolBar(IToolBarManager manager) {
 
-		super.fillLocalToolBar(manager);
-
-		// Types
-		showTypeFilterAction = createShowTypeFilterAction();
-		manager.add(showTypeFilterAction);
-
-		// Links
+		// Filters
+		manager.add(getTimeGraphCombo().getShowFilterAction());
+		manager.add(createShowTypeFilterAction());
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
-
+		manager.add(new Separator());
+		
+		// zoom
+		manager.add(getTimeGraphViewer().getResetScaleAction());
+		manager.add(getTimeGraphViewer().getZoomInAction());
+		manager.add(getTimeGraphViewer().getZoomOutAction());
+		manager.add(new Separator());
+		
+		// navigation
+		manager.add(getTimeGraphViewer().getPreviousEventAction());
+		manager.add(getTimeGraphViewer().getNextEventAction());
+		manager.add(getPreviousResourceAction());
+		manager.add(getNextResourceAction());
 		manager.add(new Separator());
 
-		// CPU drawer
-		useCpuDrawerAction = createCpuDrawerAction();
-		manager.add(useCpuDrawerAction);
-
+		// others
+		manager.add(getTimeGraphViewer().getShowLegendAction());
+		manager.add(createCpuDrawerAction());
 		manager.add(new Separator());
 
 		// Framesoc
@@ -565,7 +562,7 @@ public class GanttView extends AbstractGanttView {
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/filter_types.gif"));
-		action.setToolTipText("Show Type Filter Dialog");
+		action.setToolTipText("Show Event Type Filter");
 		return action;
 	}
 
@@ -672,8 +669,8 @@ public class GanttView extends AbstractGanttView {
 
 		if (typeHierarchy.length > 0) {
 			typeFilterDialog.setInput(typeHierarchy);
-			typeFilterDialog.setTitle("Event type filter");
-			typeFilterDialog.setMessage("Check/uncheck the event types to show/hide them");
+			typeFilterDialog.setTitle("Event Type Filter");
+			typeFilterDialog.setMessage("Check the event types to show");
 
 			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());

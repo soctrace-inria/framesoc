@@ -77,7 +77,7 @@ public class TimeBar {
 		gd_prev.heightHint = 28;
 		prev.setLayoutData(gd_prev);
 		prev.setText("<");
-		prev.setToolTipText("Previous time window");
+		prev.setToolTipText("Previous Time Window");
 		prev.addSelectionListener(new PreviousWindowListener());
 		range = new RangeSlider(sliderBar, SWT.HORIZONTAL);
 		range.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1,
@@ -92,7 +92,7 @@ public class TimeBar {
 				1);
 		gd_next.heightHint = 28;
 		next.setLayoutData(gd_next);
-		next.setToolTipText("Next time window");
+		next.setToolTipText("Next Time Window");
 		next.setText(">");
 		next.addSelectionListener(new NextWindowListener());
 		all = new Button(sliderBar, SWT.NONE);
@@ -103,14 +103,14 @@ public class TimeBar {
 				range.setSelection(range.getMinimum(), range.getMaximum(), true);
 			}
 		});
-		all.setToolTipText("Select whole time interval");
+		all.setToolTipText("Select Whole Time Interval");
 		all.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/all_timebar.png"));
 		settings = new Button(sliderBar, SWT.NONE);
 		settings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false,
 				1, 1));
 		settings.addSelectionListener(new EditListener(parent.getShell()));
-		settings.setToolTipText("Manual editing");
+		settings.setToolTipText("Manual Editing");
 		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/edit2.png"));
 
@@ -126,7 +126,7 @@ public class TimeBar {
 			load = new Button(sliderBar, SWT.NONE);
 			load.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false,
 					1, 1));
-			load.setToolTipText("Draw current selection");
+			load.setToolTipText("Load");
 			load.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 					"icons/play.png"));
 		}
