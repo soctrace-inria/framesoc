@@ -445,7 +445,6 @@ public class HistogramView extends FramesocPart {
 				TimeInterval barInterval = timeBar.getSelection();
 				if (marker == null) {
 					addNewMarker(barInterval.startTimestamp, barInterval.endTimestamp);
-					System.out.println("A: " + activeSelection);
 				} else {
 					marker.setStartValue(barInterval.startTimestamp);
 					marker.setEndValue(barInterval.endTimestamp);
@@ -873,6 +872,7 @@ public class HistogramView extends FramesocPart {
 							timeChanged = true;
 							timeBar.setSelection(min, max);
 						}
+						
 						// update status line
 						updateStatusLine(v);
 					}
@@ -903,15 +903,9 @@ public class HistogramView extends FramesocPart {
 						dragInProgress = true;
 					}
 
-					private void changeCursor(Cursor cursor) {
-						getShell().setCursor(cursor);
-					}
-
 					private boolean isNear(int pos, long value) {
 						final int RANGE = 4;
 						int vPos = getPosAt(value);
-						System.out.println(vPos);
-						System.out.println(pos);
 						if (Math.abs(vPos - pos) <= RANGE) {
 							return true;
 						}
@@ -1085,7 +1079,7 @@ public class HistogramView extends FramesocPart {
 		}
 	}
 
-	int getPosAt(long timestamp) {
+	private int getPosAt(long timestamp) {
 		if (chartFrame != null && plot != null) {
 			org.eclipse.swt.graphics.Rectangle swtRect = chartFrame.getScreenDataArea();
 			Rectangle2D screenDataArea = new Rectangle();
@@ -1097,7 +1091,7 @@ public class HistogramView extends FramesocPart {
 		return 0;
 	}
 
-	long getTimestampAt(int pos) {
+	private long getTimestampAt(int pos) {
 		if (chartFrame != null && plot != null && loadedInterval != null) {
 			org.eclipse.swt.graphics.Rectangle swtRect = chartFrame.getScreenDataArea();
 			Rectangle2D screenDataArea = new Rectangle();
