@@ -166,6 +166,8 @@ public class HistogramView extends FramesocPart {
 	private static final long BUILD_UPDATE_TIMEOUT = 300;
 	private static final int TOTAL_WORK = 1000;
 	private static final int NO_STATUS = -1;
+	private static final Cursor ARROW_CURSOR = new Cursor(Display.getDefault(), SWT.CURSOR_ARROW);
+	private static final Cursor IBEAM_CURSOR = new Cursor(Display.getDefault(), SWT.CURSOR_IBEAM);
 
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
@@ -442,11 +444,12 @@ public class HistogramView extends FramesocPart {
 			public void widgetSelected(SelectionEvent e) {
 				TimeInterval barInterval = timeBar.getSelection();
 				if (marker == null) {
-					marker = getNewMarker();
-					plot.addDomainMarker(marker);
+					addNewMarker(barInterval.startTimestamp, barInterval.endTimestamp);
+					System.out.println("A: " + activeSelection);
+				} else {
+					marker.setStartValue(barInterval.startTimestamp);
+					marker.setEndValue(barInterval.endTimestamp);
 				}
-				marker.setStartValue(barInterval.startTimestamp);
-				marker.setEndValue(barInterval.endTimestamp);
 				timeChanged = !barInterval.equals(loadedInterval);
 			}
 		});
@@ -877,21 +880,27 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseDown(MouseEvent e) {
-						if (marker != null) {
-							plot.removeDomainMarker(marker);
-							marker = null;
-						}
+						removeMarker();
 						selectedTs0 = getTimestampAt(e.x);
-						marker = getNewMarker();
-						plot.addDomainMarker(marker);
-						dragInProgress = true;
+						addNewMarker(selectedTs0, selectedTs0);
 						activeSelection = true;
+						dragInProgress = true;
 					}
 
-					// TODO
-//					private void changeCursor(int cursor) {
-//						getShell().setCursor(new Cursor(Display.getDefault(), cursor));
-//					}
+					private void changeCursor(Cursor cursor) {
+						getShell().setCursor(cursor);
+					}
+
+					private boolean isNearValue(int pos, long value) {
+						final int RANGE = 4;
+						int vPos = getPosAt(value);
+						System.out.println(vPos);
+						System.out.println(pos);
+						if (Math.abs(vPos - pos) <= RANGE) {
+							return true;
+						}
+						return false;
+					}
 				};
 
 				chartFrame.addMouseWheelListener(new MouseWheelListener() {
@@ -974,12 +983,22 @@ public class HistogramView extends FramesocPart {
 
 	}
 
-	private IntervalMarker getNewMarker() {
-		IntervalMarker marker = new IntervalMarker(selectedTs0, selectedTs0);
+	private void removeMarker() {
+		if (marker != null) {
+			plot.removeDomainMarker(marker);
+			marker = null;
+		}
+	}
+
+	private void addNewMarker(long start, long end) {
+		marker = new IntervalMarker(selectedTs0, selectedTs0);
 		marker.setPaint(BACKGROUND_PAINT);
 		marker.setOutlinePaint(MARKER_OUTLINE_PAINT);
 		marker.setAlpha(0.5f);
-		return marker;
+		marker.setStartValue(start);
+		marker.setEndValue(end);
+		plot.addDomainMarker(marker);
+		activeSelection = true;
 	}
 
 	/**
@@ -1036,6 +1055,18 @@ public class HistogramView extends FramesocPart {
 			plot.removeDomainMarker(marker);
 			marker = null;
 		}
+	}
+
+	int getPosAt(long timestamp) {
+		if (chartFrame != null && plot != null) {
+			org.eclipse.swt.graphics.Rectangle swtRect = chartFrame.getScreenDataArea();
+			Rectangle2D screenDataArea = new Rectangle();
+			screenDataArea.setRect(swtRect.x, swtRect.y, swtRect.width, swtRect.height);
+			int pos = (int) plot.getDomainAxis().valueToJava2D(timestamp, screenDataArea,
+					plot.getDomainAxisEdge());
+			return pos;
+		}
+		return 0;
 	}
 
 	long getTimestampAt(int pos) {
