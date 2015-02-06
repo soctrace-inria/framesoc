@@ -208,7 +208,6 @@ public class HistogramView extends FramesocPart {
 	 */
 	private int numberOfTicks = 10;
 	private IStatusLineManager statusLineManager;
-	private TimestampFormat formatter = new TimestampFormat();
 
 	/*
 	 * Selection
@@ -449,6 +448,8 @@ public class HistogramView extends FramesocPart {
 					marker.setStartValue(barInterval.startTimestamp);
 					marker.setEndValue(barInterval.endTimestamp);
 				}
+				selectedTs0 = barInterval.startTimestamp;
+				selectedTs1 = barInterval.endTimestamp;
 				timeChanged = !barInterval.equals(loadedInterval);
 			}
 		});
@@ -598,8 +599,7 @@ public class HistogramView extends FramesocPart {
 		// set time unit and extrema
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		// nothing is loaded so far, so the interval is [start, start] (duration
-		// 0)
+		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
 
@@ -847,7 +847,7 @@ public class HistogramView extends FramesocPart {
 					@Override
 					public void mouseMove(MouseEvent e) {
 						super.mouseMove(e);
-						
+
 						// update cursor
 						if (!isInDataArea(e.x, e.y)) {
 							getShell().setCursor(ARROW_CURSOR);
@@ -860,10 +860,11 @@ public class HistogramView extends FramesocPart {
 								getShell().setCursor(ARROW_CURSOR);
 							}
 						}
-						
+
 						// update marker
 						long v = getTimestampAt(e.x);
 						if (dragInProgress) {
+							// when drag is in progress, the moving side is always Ts1
 							selectedTs1 = v;
 							long min = Math.min(selectedTs0, selectedTs1);
 							long max = Math.max(selectedTs0, selectedTs1);
@@ -872,7 +873,7 @@ public class HistogramView extends FramesocPart {
 							timeChanged = true;
 							timeBar.setSelection(min, max);
 						}
-						
+
 						// update status line
 						updateStatusLine(v);
 					}
@@ -882,6 +883,7 @@ public class HistogramView extends FramesocPart {
 						dragInProgress = false;
 						selectedTs1 = getTimestampAt(e.x);
 						if (selectedTs0 > selectedTs1) {
+							// reorder Ts0 and Ts1
 							long tmp = selectedTs1;
 							selectedTs1 = selectedTs0;
 							selectedTs0 = tmp;
@@ -898,34 +900,29 @@ public class HistogramView extends FramesocPart {
 					public void mouseDown(MouseEvent e) {
 						if (activeSelection) {
 							if (isNear(e.x, selectedTs0)) {
-								System.out.println("near 0");
-								// swap and continue
+								// swap in order to have Ts1 as moving side
 								long tmp = selectedTs0;
 								selectedTs0 = selectedTs1;
 								selectedTs1 = tmp;
 							} else if (isNear(e.x, selectedTs1)) {
-								System.out.println("near 1");
-								// simply continue
+								// nothing to do if the moving side is already Ts1
 							} else {
-								// near to no one: remove
-								System.out.println("near no one");
+								// near to no one: remove marker and add a new one
 								removeMarker();
 								selectedTs0 = getTimestampAt(e.x);
 								addNewMarker(selectedTs0, selectedTs0);
-								activeSelection = true;
-								dragInProgress = true;
 							}
 						} else {
 							removeMarker();
 							selectedTs0 = getTimestampAt(e.x);
 							addNewMarker(selectedTs0, selectedTs0);
-							activeSelection = true;
-							dragInProgress = true;							
 						}
+						activeSelection = true;
+						dragInProgress = true;
 					}
 
 					private boolean isNear(int pos, long value) {
-						final int RANGE = 4;
+						final int RANGE = 3;
 						int vPos = getPosAt(value);
 						if (Math.abs(vPos - pos) <= RANGE) {
 							return true;
@@ -1427,16 +1424,16 @@ public class HistogramView extends FramesocPart {
 		StringBuilder message = new StringBuilder();
 		if (!dragInProgress) {
 			message.append("T: "); //$NON-NLS-1$
-			message.append(formatter.format(timestamp));
+			message.append(X_FORMAT.format(timestamp));
 			message.append("     ");
 		}
 		message.append("T1: "); //$NON-NLS-1$
-		message.append(formatter.format(ts0));
+		message.append(X_FORMAT.format(ts0));
 		if (activeSelection) {
 			message.append("     T2: "); //$NON-NLS-1$
-			message.append(formatter.format(ts1));
+			message.append(X_FORMAT.format(ts1));
 			message.append("     \u0394: "); //$NON-NLS-1$
-			message.append(formatter.format(Math.abs(ts1 - ts0)));
+			message.append(X_FORMAT.format(Math.abs(ts1 - ts0)));
 		}
 		statusLineManager.setMessage(message.toString());
 	}
