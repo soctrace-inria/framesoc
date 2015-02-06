@@ -496,14 +496,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void createActions() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
-		// Framesoc Actions
-		TableTraceIntervalAction.add(manager, createTableAction());
-		GanttTraceIntervalAction.add(manager, createGanttAction());
-		HistogramTraceIntervalAction.add(manager, createHistogramAction());
-
-		// Separator before other actions
-		manager.add(new Separator());
-
 		// Expand all action
 		Action expandAction = new Action() {
 			public void run() {
@@ -516,7 +508,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				Activator.PLUGIN_ID, "icons/expandall.gif"));
 		manager.add(expandAction);
 
-		// Create the collapse all action
+		// Collapse all action
 		Action collapseAction = new Action() {
 			public void run() {
 				tableTreeViewer.collapseAll();
@@ -527,6 +519,14 @@ public class StatisticsPieChartView extends FramesocPart {
 		collapseAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, "icons/collapseall.gif"));
 		manager.add(collapseAction);
+
+		// Separator
+		manager.add(new Separator());
+
+		// Framesoc Actions
+		TableTraceIntervalAction.add(manager, createTableAction());
+		GanttTraceIntervalAction.add(manager, createGanttAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 
 		enableActions(false);
 	}
