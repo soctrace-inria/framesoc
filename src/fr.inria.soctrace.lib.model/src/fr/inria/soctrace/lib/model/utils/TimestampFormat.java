@@ -289,6 +289,9 @@ public class TimestampFormat extends NumberFormat {
 		}
 		exp--;
 		long factor = (long) Math.pow(10, exp);
+		if (factor == 0) {
+			return des;
+		}
 
 		des.delta /= factor;
 		des.delta *= factor;
