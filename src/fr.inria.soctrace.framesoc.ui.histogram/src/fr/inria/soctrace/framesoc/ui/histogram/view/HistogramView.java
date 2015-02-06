@@ -896,11 +896,32 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseDown(MouseEvent e) {
-						removeMarker();
-						selectedTs0 = getTimestampAt(e.x);
-						addNewMarker(selectedTs0, selectedTs0);
-						activeSelection = true;
-						dragInProgress = true;
+						if (activeSelection) {
+							if (isNear(e.x, selectedTs0)) {
+								System.out.println("near 0");
+								// swap and continue
+								long tmp = selectedTs0;
+								selectedTs0 = selectedTs1;
+								selectedTs1 = tmp;
+							} else if (isNear(e.x, selectedTs1)) {
+								System.out.println("near 1");
+								// simply continue
+							} else {
+								// near to no one: remove
+								System.out.println("near no one");
+								removeMarker();
+								selectedTs0 = getTimestampAt(e.x);
+								addNewMarker(selectedTs0, selectedTs0);
+								activeSelection = true;
+								dragInProgress = true;
+							}
+						} else {
+							removeMarker();
+							selectedTs0 = getTimestampAt(e.x);
+							addNewMarker(selectedTs0, selectedTs0);
+							activeSelection = true;
+							dragInProgress = true;							
+						}
 					}
 
 					private boolean isNear(int pos, long value) {
