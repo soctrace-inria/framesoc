@@ -848,6 +848,21 @@ public class HistogramView extends FramesocPart {
 					@Override
 					public void mouseMove(MouseEvent e) {
 						super.mouseMove(e);
+						
+						// update cursor
+						if (!isInDataArea(e.x, e.y)) {
+							getShell().setCursor(ARROW_CURSOR);
+						} else {
+							if (dragInProgress
+									|| (activeSelection && (isNear(e.x, selectedTs0)) || isNear(
+											e.x, selectedTs1))) {
+								getShell().setCursor(IBEAM_CURSOR);
+							} else {
+								getShell().setCursor(ARROW_CURSOR);
+							}
+						}
+						
+						// update marker
 						long v = getTimestampAt(e.x);
 						if (dragInProgress) {
 							selectedTs1 = v;
@@ -858,6 +873,7 @@ public class HistogramView extends FramesocPart {
 							timeChanged = true;
 							timeBar.setSelection(min, max);
 						}
+						// update status line
 						updateStatusLine(v);
 					}
 
@@ -891,13 +907,25 @@ public class HistogramView extends FramesocPart {
 						getShell().setCursor(cursor);
 					}
 
-					private boolean isNearValue(int pos, long value) {
+					private boolean isNear(int pos, long value) {
 						final int RANGE = 4;
 						int vPos = getPosAt(value);
 						System.out.println(vPos);
 						System.out.println(pos);
 						if (Math.abs(vPos - pos) <= RANGE) {
 							return true;
+						}
+						return false;
+					}
+
+					boolean isInDataArea(int x, int y) {
+						if (chartFrame != null) {
+							org.eclipse.swt.graphics.Rectangle swtRect = chartFrame
+									.getScreenDataArea();
+							Rectangle2D screenDataArea = new Rectangle();
+							screenDataArea.setRect(swtRect.x, swtRect.y, swtRect.width,
+									swtRect.height);
+							return swtRect.contains(x, y);
 						}
 						return false;
 					}
