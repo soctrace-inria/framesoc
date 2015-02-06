@@ -24,10 +24,10 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  swing2swt.jar,
- lib/jfreechart-swt-linux-1.2.0-inria.jar,
- lib/jfreechart-1.0.14.jar,
- lib/jcommon-1.0.17.jar,
- lib/opal-0.9.5.2.jar
+ lib/opal-0.9.5.2.jar,
+ lib/jcommon-1.0.23.jar,
+ lib/jfreechart-1.0.19-swt.jar,
+ lib/jfreechart-1.0.19.jar
 Export-Package: fr.inria.soctrace.framesoc.ui,
  fr.inria.soctrace.framesoc.ui.colors,
  fr.inria.soctrace.framesoc.ui.dialogs,
