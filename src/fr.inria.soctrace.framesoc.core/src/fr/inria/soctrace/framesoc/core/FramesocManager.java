@@ -293,7 +293,7 @@ public final class FramesocManager {
 
 		// get current date
 		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
+		sdf.setTimeZone(SimpleTimeZone.getDefault());
 		sdf.applyPattern("yyyyMMdd_HHmmss_z");
 		String date = sdf.format(new Date()).toString();
 
