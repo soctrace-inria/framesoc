@@ -127,7 +127,7 @@ public class ModelConstants {
 			for (TimeUnit t : TimeUnit.values())
 				if (t.getLabel().equals(label))
 					return t.getInt();
-			return Integer.MAX_VALUE;
+			return TimeUnit.UNKNOWN.getInt();
 		}
 
 		@Override
