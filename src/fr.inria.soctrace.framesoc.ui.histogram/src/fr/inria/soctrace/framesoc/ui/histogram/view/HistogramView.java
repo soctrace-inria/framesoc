@@ -642,13 +642,13 @@ public class HistogramView extends FramesocPart {
 					// create a new loader dataset
 					dataset = new HistogramLoaderDataset();
 
-					// create loader and builder threads
+					// create loader thread and drawer job
 					LoaderThread loaderThread = new LoaderThread(interval, loader,
 							confMap.get(ConfigurationDimension.TYPE),
 							confMap.get(ConfigurationDimension.PRODUCERS));
-					BuilderJob builderJob = new BuilderJob("Event Density Chart Job", loaderThread);
+					DrawerJob drawerJob = new DrawerJob("Event Density Chart Job", loaderThread);
 					loaderThread.start();
-					builderJob.schedule();
+					drawerJob.schedule();
 				} catch (SoCTraceException e) {
 					e.printStackTrace();
 				}
@@ -688,13 +688,13 @@ public class HistogramView extends FramesocPart {
 	}
 
 	/**
-	 * Builder job.
+	 * Drawer job.
 	 */
-	private class BuilderJob extends Job {
+	private class DrawerJob extends Job {
 
 		private final LoaderThread loaderThread;
 
-		public BuilderJob(String name, LoaderThread loaderThread) {
+		public DrawerJob(String name, LoaderThread loaderThread) {
 			super(name);
 			this.loaderThread = loaderThread;
 		}
@@ -716,7 +716,7 @@ public class HistogramView extends FramesocPart {
 					}
 					if (monitor.isCanceled()) {
 						loaderThread.cancel();
-						logger.debug("Drawer thread cancelled");
+						logger.debug("Drawer job cancelled");
 						// refresh one last time
 						refresh(first, true, false);
 						first = false;
