@@ -5,6 +5,7 @@ package fr.inria.soctrace.framesoc.ui.eventtable.loader;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
 

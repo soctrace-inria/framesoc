@@ -64,12 +64,12 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.IEventLoader;
-import fr.inria.soctrace.framesoc.ui.eventtable.loader.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -79,8 +79,8 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**

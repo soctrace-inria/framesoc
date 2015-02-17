@@ -11,14 +11,12 @@
 /**
  * 
  */
-package fr.inria.soctrace.framesoc.ui.eventtable.loader;
+package fr.inria.soctrace.framesoc.ui.model;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-
-import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 
 /**
  * Queue for streaming operations between one loader thread and one consumer
