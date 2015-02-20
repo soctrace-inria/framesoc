@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import org.eclipse.swt.widgets.Label;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
@@ -72,7 +73,7 @@ public class TimeBar {
 		sliderBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
 				1, 1));
 		prev = new Button(sliderBar, SWT.NONE);
-		GridData gd_prev = new GridData(SWT.RIGHT, SWT.BOTTOM, false, false, 1,
+		GridData gd_prev = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1,
 				1);
 		gd_prev.heightHint = 28;
 		prev.setLayoutData(gd_prev);
@@ -113,6 +114,8 @@ public class TimeBar {
 		settings.setToolTipText("Manual Editing");
 		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/edit2.png"));
+		new Label(sliderBar, SWT.NONE);
+		new Label(sliderBar, SWT.NONE);
 
 		if (hasSynch) {
 			synch = new Button(sliderBar, SWT.NONE);
