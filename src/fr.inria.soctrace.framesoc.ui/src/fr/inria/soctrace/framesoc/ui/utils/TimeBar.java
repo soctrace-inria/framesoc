@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
-import org.eclipse.swt.widgets.Label;
 
 /**
  * Time Bar widget, including a {@link RangeSlider}.
