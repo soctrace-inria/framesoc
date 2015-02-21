@@ -114,8 +114,6 @@ public class TimeBar {
 		settings.setToolTipText("Manual Editing");
 		settings.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/edit2.png"));
-		new Label(sliderBar, SWT.NONE);
-		new Label(sliderBar, SWT.NONE);
 
 		if (hasSynch) {
 			synch = new Button(sliderBar, SWT.NONE);
