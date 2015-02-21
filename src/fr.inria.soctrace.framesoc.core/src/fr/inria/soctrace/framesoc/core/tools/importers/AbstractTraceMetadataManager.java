@@ -33,6 +33,16 @@ import fr.inria.soctrace.lib.utils.IdManager;
  * {@link TraceMetadataManager#getTraceTypeName()} of {@link TraceMetadataManager} interface.
  * 
  * <p>
+ * Typical usage:
+ * 
+ * <pre>
+ * Trace t = new Trace(sysDB.getNewId(FramesocTable.TRACE.toString(), "ID"));
+ * meta.setTraceFields(t);
+ * meta.createMetadata();
+ * meta.saveMetadata();
+ * </pre>
+ * 
+ * <p>
  * Note that this class internally uses System DB methods to get unique IDs. It is the user's
  * responsibility to ensure that, when {@link #createMetadata()} is called, the System DB contains
  * updated (committed) information about any other trace, trace type, trace parameter or trace
