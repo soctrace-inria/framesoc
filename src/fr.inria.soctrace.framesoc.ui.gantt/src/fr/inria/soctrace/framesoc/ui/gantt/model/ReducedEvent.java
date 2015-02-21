@@ -41,6 +41,14 @@ public class ReducedEvent {
 	public int endProducerId;
 	
 	/**
+	 * Default Constructor. 
+	 * Creates an empty reduced event.
+	 */
+	public ReducedEvent() {
+		// do nothing
+	}
+	
+	/**
 	 * Builds a reduced event from the result set element obtained from a 
 	 * query done using the <code>SELECT_COLUMNS</code> query string.
 	 *  
