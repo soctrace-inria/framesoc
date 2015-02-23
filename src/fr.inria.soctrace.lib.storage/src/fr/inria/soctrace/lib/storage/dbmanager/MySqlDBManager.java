@@ -309,7 +309,8 @@ public class MySqlDBManager extends DBManager {
 					"TYPE TEXT COLLATE latin1_general_cs, " +
 					"COMMAND TEXT COLLATE latin1_general_cs, " +
 					"IS_PLUGIN BOOLEAN, " +
-					"DOC TEXT COLLATE latin1_general_cs)");
+					"DOC TEXT COLLATE latin1_general_cs, " + 
+					"EXTENSION_ID TEXT COLLATE latin1_general_cs)");
 
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
