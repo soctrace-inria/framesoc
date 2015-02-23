@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>fr.inria.soctrace.maven</groupId>
 		<artifactId>fr.inria.soctrace.maven.master</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
+		<version>1.0.4-SNAPSHOT</version>
 		<relativePath>../fr.inria.soctrace.maven.master</relativePath>
 	</parent>
 
