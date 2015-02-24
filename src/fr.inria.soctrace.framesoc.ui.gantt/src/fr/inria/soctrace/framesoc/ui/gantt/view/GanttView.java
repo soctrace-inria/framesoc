@@ -143,6 +143,16 @@ public class GanttView extends AbstractGanttView {
 	private List<Object> visibleNodes;
 
 	/**
+	 * Number of first intervals for whom we always allow refresh
+	 */
+	private static final int FIRST_INTERVALS = 3;
+
+	/**
+	 * Number of interval we wait before allowing refresh
+	 */
+	private static final int REFRESH_PERIOD = 1;
+
+	/**
 	 * Constructor
 	 */
 	public GanttView() {
@@ -360,8 +370,11 @@ public class GanttView extends AbstractGanttView {
 
 				long waited = 0;
 				TimeInterval partial = null;
+				int interval = 0;
+				boolean refreshRequested = false;
 				while (!queue.done()) {
 					try {
+						interval++;
 						dm.start();
 						List<ReducedEvent> events = queue.pop();
 						dm.end();
@@ -390,10 +403,26 @@ public class GanttView extends AbstractGanttView {
 						links = sortLinks(new ArrayList<>(drawer.getLinks()));
 
 						if (needRefresh) {
-							refresh();
+							refreshRequested = true;
+						}
+
+						System.out.println("interval: " + interval);
+						
+						if (interval <= FIRST_INTERVALS || interval % REFRESH_PERIOD == 0) {
+							// we are in an interval where refresh is allowed
+							if (refreshRequested) {
+								// we had a pending request
+								refresh();
+								System.out.println("refresh");
+								refreshRequested = false;
+							} else {
+								redraw();
+							}
 						} else {
+							System.out.println("redraw");
 							redraw();
 						}
+
 						closeIfCancelled = false;
 					} catch (InterruptedException e) {
 						logger.debug("Interrupted while taking the queue head");
@@ -511,13 +540,13 @@ public class GanttView extends AbstractGanttView {
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
 		manager.add(new Separator());
-		
+
 		// zoom
 		manager.add(getTimeGraphViewer().getResetScaleAction());
 		manager.add(getTimeGraphViewer().getZoomInAction());
 		manager.add(getTimeGraphViewer().getZoomOutAction());
 		manager.add(new Separator());
-		
+
 		// navigation
 		manager.add(getTimeGraphViewer().getPreviousEventAction());
 		manager.add(getTimeGraphViewer().getNextEventAction());
@@ -677,11 +706,11 @@ public class GanttView extends AbstractGanttView {
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleNodes);
 			typeFilterDialog.create();
-			
+
 			if (typeFilterDialog.open() != Window.OK) {
 				return;
 			}
-			
+
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
 				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
