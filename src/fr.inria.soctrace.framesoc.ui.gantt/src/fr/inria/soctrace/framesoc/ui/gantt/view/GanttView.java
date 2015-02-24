@@ -27,6 +27,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
@@ -676,8 +677,11 @@ public class GanttView extends AbstractGanttView {
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleNodes);
 			typeFilterDialog.create();
-			typeFilterDialog.open();
-
+			
+			if (typeFilterDialog.open() != Window.OK) {
+				return;
+			}
+			
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
 				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
