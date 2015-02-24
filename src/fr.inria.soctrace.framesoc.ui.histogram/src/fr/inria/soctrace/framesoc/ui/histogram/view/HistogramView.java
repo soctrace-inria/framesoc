@@ -879,6 +879,8 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseUp(MouseEvent e) {
+						super.mouseUp(e);
+						
 						dragInProgress = false;
 						selectedTs1 = getTimestampAt(e.x);
 						if (selectedTs0 > selectedTs1) {
@@ -897,6 +899,8 @@ public class HistogramView extends FramesocPart {
 
 					@Override
 					public void mouseDown(MouseEvent e) {
+						super.mouseDown(e);
+						
 						if (activeSelection) {
 							if (isNear(e.x, selectedTs0)) {
 								// swap in order to have Ts1 as moving side
