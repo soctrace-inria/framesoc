@@ -125,12 +125,19 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		List<Pair<String, Double>> slices = new ArrayList<>();
 		for (MergedItem i : merged) {
 			Double val = 0.0;
+			int baseItems = 0;
 			for (String s : i.getBaseItems()) {
+				if (excluded.contains(s)) {
+					continue;
+				}
 				// add the label to the merged set, in order to skip the slice after
+				baseItems++;
 				mergedSet.add(s);
 				val += values.get(s);
 			}
-			slices.add(new Pair<>(i.getLabel(), val));
+			if (baseItems > 0) {
+				slices.add(new Pair<>(i.getLabel(), val));
+			}
 		}
 
 		// add the other slices to the list and sort it
