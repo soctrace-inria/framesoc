@@ -24,7 +24,7 @@
 		</plugins>
 	</build>
 	<parent>
-		<version>1.0.4-SNAPSHOT</version>
+		<version>1.0.5-SNAPSHOT</version>
 		<groupId>fr.inria.soctrace.maven</groupId>
 		<artifactId>fr.inria.soctrace.maven.master</artifactId>
 		<relativePath>../fr.inria.soctrace.maven.master</relativePath>
@@ -34,37 +34,37 @@
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.framesoc.core</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.lib.model</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.lib.query</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.lib.search</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.lib.storage</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.inria.soctrace.maven</groupId>
 			<artifactId>fr.inria.soctrace.lib.utils</artifactId>
-			<version>1.0.4-SNAPSHOT</version>
+			<version>1.0.5-SNAPSHOT</version>
 			<type>eclipse-plugin</type>
 		</dependency>
 	</dependencies>
