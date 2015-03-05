@@ -40,6 +40,8 @@ public interface IEventLoader {
 	 * {@link LoaderQueue#setStop()} at the end of its operations. This prevents any thread waiting
 	 * for data to wait indefinitely.
 	 * 
+	 * The events pushed into the queue are sorted by timestamp.
+	 * 
 	 * @param start
 	 *            start timestamp
 	 * @param end
