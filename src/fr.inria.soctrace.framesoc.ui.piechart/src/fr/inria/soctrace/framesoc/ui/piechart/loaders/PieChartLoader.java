@@ -150,26 +150,31 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			}
 			slices.add(new Pair<>(entry.getKey(), entry.getValue()));
 		}
-		Collections.sort(slices, new ValueComparator());
 
-		// create dataset
+		// create sorted slices, with aggregation if supported
 		boolean aggregate = isAggregationSupported();
 		boolean isThereAnyAggregate = false;
-		DefaultPieDataset dataset = new DefaultPieDataset();
 		Double aggregatedValue = 0.0;
+		List<Pair<String, Double>> sortedSlices = new ArrayList<>();
 		for (Pair<String, Double> pair : slices) {
 			logger.debug(pair.toString());
 			if (aggregate && pair.getSecond() < threshold) {
 				aggregatedValue += pair.getSecond();
 				isThereAnyAggregate = true;
 			} else {
-				dataset.setValue(pair.getFirst(), pair.getSecond());
+				sortedSlices.add(pair);
 			}
 		}
 		if (isThereAnyAggregate) {
-			dataset.setValue(getAggregatedLabel(), aggregatedValue);
+			sortedSlices.add(new Pair<String, Double>(getAggregatedLabel(), aggregatedValue));
 		}
-
+		Collections.sort(sortedSlices, new ValueComparator());
+		
+		// create dataset
+		DefaultPieDataset dataset = new DefaultPieDataset();
+		for (Pair<String, Double> pair : sortedSlices) {
+			dataset.setValue(pair.getFirst(), pair.getSecond());
+		}
 		return dataset;
 	}
 

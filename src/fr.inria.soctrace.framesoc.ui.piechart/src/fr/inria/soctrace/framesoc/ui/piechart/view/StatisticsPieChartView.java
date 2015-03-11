@@ -93,7 +93,6 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItems;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
-import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
@@ -988,7 +987,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				} else {
 					tableTreeViewer.setInput(roots);
 				}
-				tableTreeViewer.expandAll();
+				tableTreeViewer.collapseAll();
 				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 				timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
 				timeBar.getSynchButton().setEnabled(false);
@@ -1079,12 +1078,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			StatisticsTableRow r1 = (StatisticsTableRow) e1;
 			StatisticsTableRow r2 = (StatisticsTableRow) e2;
-
-			// Aggregated rows at the end
-			if (r1 instanceof StatisticsTableFolderRow)
-				return +1;
-			if (r2 instanceof StatisticsTableFolderRow)
-				return -1;
 
 			int rc = 0;
 			try {
