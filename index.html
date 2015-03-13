@@ -56,7 +56,7 @@ If you don't already have a version of Eclipse installed, <a href="https://www.e
 </p>
 
 <p>
-Then, install Framesoc in Eclipse using the following procedure: Go to <em>Help &gt; Install New Software</em>. In the new dialog, put the following URL in the field <em>Work with:</em> </p>
+Then, install Framesoc in Eclipse using the following procedure: go to <em>Help &gt; Install New Software</em>. In the new dialog, put the following URL in the field <em>Work with:</em> </p>
 </p>
 
 <p><a href="http://soctrace-inria.github.io/updatesite/">http://soctrace-inria.github.io/updatesite/</a></p>
@@ -71,17 +71,55 @@ Then, install Framesoc in Eclipse using the following procedure: Go to <em>Help 
 <p>If you want to setup a development environment to hack the code, follow <a href="https://github.com/soctrace-inria/framesoc/wiki/Framesoc-Eclipse-Plugin-Development-Environment-Setup">this procedure</a>.</p>
 
 <h3>
-<a name="user-guide" class="anchor" href="#user-guide"><span class="octicon octicon-link"></span></a>User and Developer Guide</h3>
+  <a name="user-guide" class="anchor" href="#user-guide"><span class="octicon octicon-link"></span></a>User and Developer Guide
+</h3>
 
 <p>The Framesoc User Guide can be downloaded <a href="https://github.com/soctrace-inria/framesoc/blob/master/src/fr.inria.soctrace.maven.repository/archive/doc/framesoc_user_guide.pdf?raw=true">here</a>.</a>
 
 <p>The Framesoc GitHub wiki pages are available <a href="https://github.com/soctrace-inria/framesoc/wiki/">here</a></p>
 
 <h3>
+  <a name="formats" class="anchor" href="#formats"><span class="octicon octicon-link"></span></a>Supported Trace Formats
+</h3>
+
+We provide <a href="https://github.com/soctrace-inria/framesoc.importers">importers</a> (installed automatically with the plugin version) for the following trace formats:
+<ul>
+  <li>Pajé Dump</li>
+  <li>Pajé (only on linux)</li>
+  <li>CTF</li>
+  <li>OTF2 (only on linux)</li>
+  <li>Paraver (experimental)</li>
+  <li>GSTreamer</li>
+</ul>
+
+<h3>
+  <a name="test-traces" class="anchor" href="#test-traces"><span class="octicon octicon-link"></span></a>Test Traces
+</h3>
+
+<p>You can start playing with Framesoc using the following test traces.</p>
+
+<ul>
+  <li> Pajé Dump Scorep Trace
+    <p><a href="http://dx.doi.org/10.5281/zenodo.15989"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.15989.svg" alt="10.5281/zenodo.15989"></a></p>
+    This trace can be imported using the <em>Pajé Dump Importer</em> (default settings).
+    
+  <li> CTF Kernel Trace
+    <p><a href="http://dx.doi.org/10.5281/zenodo.16026"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.16026.svg" alt="10.5281/zenodo.16026"></a></p>
+    This trace can be imported extracting the archive, then using the <em>CTFTrace Importer</em>. This trace has been provided by the <a href="http://lttng.org/">Lttng project</a>.
+</ul>
+
+You can import traces using the following procedure:
+<ul>
+  <li> go to <em>Framesoc > Trace Analysis > Import Trace</em> </li>
+  <li> then select the right importer, according to the trace </li>  
+</ul>
+
+<h3>
 <a name="external-modules" class="anchor" href="#external-modules"><span class="octicon octicon-link"></span></a>External modules</h3>
 
 <ul>
-<li> <a href="http://soctrace-inria.github.io/ocelotl/">Ocelotl</a>, an analysis tool providing multidimensional overviews for huge traces. 
+  <li> <a href="http://soctrace-inria.github.io/ocelotl/">Ocelotl</a>, an analysis tool providing multidimensional overviews for huge traces.
+  <li> <a href="https://github.com/soctrace-inria/framesoc.importers">Framesoc Importers</a>, trace importers for several trace formats.  
 </ul>
 
 <h3>
@@ -92,10 +130,10 @@ Then, install Framesoc in Eclipse using the following procedure: Go to <em>Help 
 <p>
 <a href="mailto:generoso.pagano-at-inria.fr">Generoso Pagano</a>,
 <a href="mailto:damien.dosimont-at-imag.fr">Damien Dosimont</a>,
-<a href="mailto:youenn.corre-at-inria.fr">Youenn Corre</a>, (replace -at- with @)
+<a href="mailto:youenn.corre-at-inria.fr">Youenn Corre</a> (replace -at- with @)
 </p>
 
-<p>or follow us on <a href="https://github.com/soctrace-inria/framesoc">github</a>.</p>
+<p>Follow us on <a href="https://github.com/soctrace-inria/framesoc">github</a>!</p>
 
 <h3>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h3>
