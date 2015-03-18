@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -495,6 +496,10 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void createActions() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
+		// Filters actions
+		manager.add(createShowProducerFilterAction());
+		manager.add(createShowTypeFilterAction());
+		
 		// Expand all action
 		Action expandAction = new Action() {
 			public void run() {
@@ -528,6 +533,32 @@ public class StatisticsPieChartView extends FramesocPart {
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 
 		enableActions(false);
+	}
+
+	private IAction createShowProducerFilterAction() {
+		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+			@Override
+			public void run() {
+				//showProducerFilterAction();
+			}
+		};
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/producer_filter.gif"));
+		action.setToolTipText("Show Event Producer Filter");
+		return action;
+	}
+
+	private IAction createShowTypeFilterAction() {
+		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+			@Override
+			public void run() {
+				//showTypeFilterAction();
+			}
+		};
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/type_filter.gif"));
+		action.setToolTipText("Show Event Type Filter");
+		return action;
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
