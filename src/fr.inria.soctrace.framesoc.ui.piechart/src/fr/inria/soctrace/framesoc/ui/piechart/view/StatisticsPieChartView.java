@@ -101,6 +101,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
+import fr.inria.soctrace.framesoc.ui.utils.TreeFilterDialog;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -250,6 +251,10 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
 
+	// Filters
+	private TreeFilterDialog typeFilterDialog;
+	private TreeFilterDialog producerFilterDialog;
+	
 	/**
 	 * Constructor
 	 */
@@ -486,6 +491,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		// TOOL BAR
 		// ----------
 
+		// filters and actions
+		typeFilterDialog = new TreeFilterDialog(getSite().getShell());
+		producerFilterDialog = new TreeFilterDialog(getSite().getShell());
 		createActions();
 
 		// create SWT resources
@@ -499,6 +507,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Filters actions
 		manager.add(createShowProducerFilterAction());
 		manager.add(createShowTypeFilterAction());
+		
+		// Separator
+		manager.add(new Separator());
 		
 		// Expand all action
 		Action expandAction = new Action() {
