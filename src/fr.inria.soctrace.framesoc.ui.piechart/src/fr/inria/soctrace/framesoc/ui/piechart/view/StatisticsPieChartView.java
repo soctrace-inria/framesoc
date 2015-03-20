@@ -77,6 +77,8 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -102,6 +104,8 @@ import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.framesoc.ui.utils.TreeFilterDialog;
+import fr.inria.soctrace.lib.model.EventProducer;
+import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -252,6 +256,8 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color blackColor;
 
 	// Filters
+	private List<EventProducer> producers;
+	private List<EventType> types;
 	private TreeFilterDialog typeFilterDialog;
 	private TreeFilterDialog producerFilterDialog;
 	
