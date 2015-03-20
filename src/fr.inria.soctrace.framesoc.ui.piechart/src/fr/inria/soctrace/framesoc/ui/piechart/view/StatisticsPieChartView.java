@@ -79,6 +79,10 @@ import org.slf4j.LoggerFactory;
 
 
 
+
+
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -109,6 +113,10 @@ import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.query.EventProducerQuery;
+import fr.inria.soctrace.lib.query.EventTypeQuery;
+import fr.inria.soctrace.lib.storage.DBObject;
+import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -255,10 +263,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
 
-	// Filters
-	private List<EventProducer> producers;
+	// Filters: TODO put the three elements in the same class...
+	private List<EventProducer> producers; // entity
+	private List<Object> checkedProducers; // checked
+	private TreeFilterDialog typeFilterDialog; // filter dialog
 	private List<EventType> types;
-	private TreeFilterDialog typeFilterDialog;
+	private List<Object> checkedTypes;
 	private TreeFilterDialog producerFilterDialog;
 	
 	/**
@@ -1238,6 +1248,25 @@ public class StatisticsPieChartView extends FramesocPart {
 			return selectionIndex;
 		}
 
+	}
+	
+	// TODO init filter dialogs with trace
+	
+	private void initTypesAndProducers(Trace t) {
+		TraceDBObject traceDB = null;
+		try {
+			traceDB = TraceDBObject.openNewIstance(t.getDbName());
+			EventTypeQuery tq = new EventTypeQuery(traceDB);
+			types = tq.getList();
+			EventProducerQuery pq = new EventProducerQuery(traceDB);
+			producers = pq.getList();
+			traceDB.close();
+		} catch (SoCTraceException e) {
+			// TODO
+			e.printStackTrace();
+		} finally {
+			DBObject.finalClose(traceDB);
+		}
 	}
 
 }
