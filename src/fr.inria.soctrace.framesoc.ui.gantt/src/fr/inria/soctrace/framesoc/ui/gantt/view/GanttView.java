@@ -27,6 +27,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.ResourceManager;
@@ -511,13 +512,13 @@ public class GanttView extends AbstractGanttView {
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
 		manager.add(new Separator());
-		
+
 		// zoom
 		manager.add(getTimeGraphViewer().getResetScaleAction());
 		manager.add(getTimeGraphViewer().getZoomInAction());
 		manager.add(getTimeGraphViewer().getZoomOutAction());
 		manager.add(new Separator());
-		
+
 		// navigation
 		manager.add(getTimeGraphViewer().getPreviousEventAction());
 		manager.add(getTimeGraphViewer().getNextEventAction());
@@ -568,9 +569,9 @@ public class GanttView extends AbstractGanttView {
 	}
 
 	private IAction createHideArrowsAction() {
-		// ignore dialog settings (null is passed)
+		DialogSettings settings = (DialogSettings) Activator.getDefault().getDialogSettings();
 		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
-				null);
+				settings);
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
@@ -587,6 +588,7 @@ public class GanttView extends AbstractGanttView {
 		};
 		action.setImageDescriptor(defaultAction.getImageDescriptor());
 		action.setToolTipText(defaultAction.getToolTipText());
+		action.setChecked(defaultAction.isChecked());
 		return action;
 	}
 
@@ -677,11 +679,11 @@ public class GanttView extends AbstractGanttView {
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleNodes);
 			typeFilterDialog.create();
-			
+
 			if (typeFilterDialog.open() != Window.OK) {
 				return;
 			}
-			
+
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
 				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
