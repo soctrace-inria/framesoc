@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.swt.widgets.Shell;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
@@ -29,6 +31,41 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 		super(parent);
 	}
 
+	@Override
+	public void setContentProvider(ITreeContentProvider contentProvider) {
+		super.setContentProvider(contentProvider);
+	}
+	
+	@Override
+	public void setColumnNames(String[] columnNames) {
+		super.setColumnNames(columnNames);
+	}
+	
+	@Override
+	public void setLabelProvider(IBaseLabelProvider labelProvider) {
+		super.setLabelProvider(labelProvider);
+	}
+	
+	@Override
+    public void setInput(Object input) {
+		super.setInput(input);
+	}
+	
+	@Override
+	public void setExpandedElements(Object[] elements) {
+		super.setExpandedElements(elements);
+	}
+	
+	@Override
+    public void create() {
+		super.create();
+	}
+	
+	@Override
+	public int open() {
+		return super.open();
+	}
+	
 	/**
 	 * Get the event type hierarchy
 	 * 
@@ -84,6 +121,24 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 		return roots.toArray(new EventProducerNode[roots.size()]);
 	}
 	
+	/**
+	 * Explores the list of top-level inputs and returns all the inputs
+	 * 
+	 * @param inputs
+	 *            The top-level inputs
+	 * @return All the inputs
+	 */
+	public static List<Object> listAllInputs(List<? extends ITreeNode> inputs) {
+		ArrayList<Object> items = new ArrayList<>();
+		for (ITreeNode entry : inputs) {
+			items.add(entry);
+			if (entry.hasChildren()) {
+				items.addAll(listAllInputs(entry.getChildren()));
+			}
+		}
+		return items;
+	}
+	  
 	public static void printHierarchy(Collection<ITreeNode> roots, String tab) {
 		for (ITreeNode node : roots) {
 			System.out.println(tab + node.getName());
