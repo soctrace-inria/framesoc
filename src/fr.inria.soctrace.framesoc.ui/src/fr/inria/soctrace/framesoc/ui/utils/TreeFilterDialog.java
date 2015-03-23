@@ -139,7 +139,7 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 		return items;
 	}
 	  
-	public static void printHierarchy(Collection<ITreeNode> roots, String tab) {
+	public static void printHierarchy(Collection<? extends ITreeNode> roots, String tab) {
 		for (ITreeNode node : roots) {
 			System.out.println(tab + node.getName());
 			if (node.hasChildren()) {

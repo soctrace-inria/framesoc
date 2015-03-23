@@ -168,6 +168,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		public TimeInterval interval;
 		public List<String> excluded;
 		public MergedItems merged;
+		public List<Object> checkedProducers;
+		public List<Object> checkedTypes;
 		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
@@ -268,12 +270,9 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
 
-	// Filters: TODO put the elements in the same class...
-	private List<Object> checkedProducers; // checked
+	// Filters
 	private EventProducerNode[] producerHierarchy; // input
 	private TreeFilterDialog typeFilterDialog; // filter dialog
-
-	private List<Object> checkedTypes;
 	private CategoryNode[] typeHierarchy;
 	private TreeFilterDialog producerFilterDialog;
 
@@ -578,7 +577,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
 			@Override
 			public void run() {
-				// showProducerFilterAction();
+				showProducerFilterAction();
 			}
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
@@ -591,7 +590,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
 			@Override
 			public void run() {
-				// showTypeFilterAction();
+				showTypeFilterAction();
 			}
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
@@ -1013,7 +1012,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
-		globalLoadInterval.copy(currentDescriptor.interval); // XXX
+		globalLoadInterval.copy(currentDescriptor.interval); 
 		final IPieChartLoader loader = currentDescriptor.loader;
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
 		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
@@ -1212,7 +1211,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
-		initTypesAndProducers(trace); // XXX
+		initTypesAndProducers(trace);
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
@@ -1294,6 +1293,10 @@ public class StatisticsPieChartView extends FramesocPart {
 			List<EventProducer> producers = pq.getList();
 			producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
 			traceDB.close();
+			
+			TreeFilterDialog.printHierarchy(Arrays.asList(typeHierarchy), "");
+			TreeFilterDialog.printHierarchy(Arrays.asList(producerHierarchy), "");
+			
 		} catch (SoCTraceException e) {
 			// TODO
 			e.printStackTrace();
@@ -1307,10 +1310,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private void showTypeFilterAction() {
 
+		List<Object> checkedTypes = currentDescriptor.checkedTypes;
+		
 		if (typeHierarchy.length > 0) {
 			typeFilterDialog.setInput(typeHierarchy);
 			typeFilterDialog.setTitle("Event Type Filter");
-			typeFilterDialog.setMessage("Check the event types to show");
+			typeFilterDialog.setMessage("Check the event types to consider");
 
 			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays.asList(typeHierarchy));
 			if (checkedTypes == null) {
@@ -1327,6 +1332,40 @@ public class StatisticsPieChartView extends FramesocPart {
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
 				checkedTypes = Arrays.asList(typeFilterDialog.getResult());
+			}
+
+			refresh();
+		}
+
+	}
+
+	/**
+	 * Callback for the show type filter action
+	 */
+	private void showProducerFilterAction() {
+
+		List<Object> checkedProducers = currentDescriptor.checkedProducers;
+		
+		if (producerHierarchy.length > 0) {
+			producerFilterDialog.setInput(producerHierarchy);
+			producerFilterDialog.setTitle("Event Producer Filter");
+			producerFilterDialog.setMessage("Check the event producers to consider");
+
+			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays.asList(producerHierarchy));
+			if (checkedProducers == null) {
+				checkedProducers = allElements;
+			}
+			producerFilterDialog.setExpandedElements(allElements.toArray());
+			producerFilterDialog.setInitialElementSelections(checkedProducers);
+			producerFilterDialog.create();
+
+			if (producerFilterDialog.open() != Window.OK) {
+				return;
+			}
+
+			// Process selected elements
+			if (producerFilterDialog.getResult() != null) {
+				checkedProducers = Arrays.asList(typeFilterDialog.getResult());
 			}
 
 			refresh();
