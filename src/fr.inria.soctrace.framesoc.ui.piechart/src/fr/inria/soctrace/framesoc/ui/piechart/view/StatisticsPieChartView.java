@@ -270,11 +270,13 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
 
-	// Filters
-	private EventProducerNode[] producerHierarchy; // input
-	private TreeFilterDialog typeFilterDialog; // filter dialog
+	// Filters and actions
+	private EventProducerNode[] producerHierarchy;
 	private CategoryNode[] typeHierarchy;
 	private TreeFilterDialog producerFilterDialog;
+	private TreeFilterDialog typeFilterDialog;
+	private IAction producerFilterAction;
+	private IAction typeFilterAction;
 
 	/**
 	 * Constructor
@@ -574,29 +576,29 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private IAction createShowProducerFilterAction() {
-		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+		producerFilterAction = new Action("", IAction.AS_PUSH_BUTTON) {
 			@Override
 			public void run() {
 				showProducerFilterAction();
 			}
 		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/producer_filter.gif"));
-		action.setToolTipText("Show Event Producer Filter");
-		return action;
+		producerFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/producer_filter.png"));
+		producerFilterAction.setToolTipText("Show Event Producer Filter");
+		return producerFilterAction;
 	}
 
 	private IAction createShowTypeFilterAction() {
-		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+		typeFilterAction = new Action("", IAction.AS_PUSH_BUTTON) {
 			@Override
 			public void run() {
 				showTypeFilterAction();
 			}
 		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/type_filter.gif"));
-		action.setToolTipText("Show Event Type Filter");
-		return action;
+		typeFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/type_filter.png"));
+		typeFilterAction.setToolTipText("Show Event Type Filter");
+		return typeFilterAction;
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
@@ -1012,7 +1014,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
-		globalLoadInterval.copy(currentDescriptor.interval); 
+		globalLoadInterval.copy(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
 		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
@@ -1269,8 +1271,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	}
 
-	// TODO init filter dialogs with trace
-
 	private void createFilterDialogs() {
 		typeFilterDialog = new TreeFilterDialog(getSite().getShell());
 		typeFilterDialog.setColumnNames(new String[] { "Event Type" });
@@ -1293,10 +1293,10 @@ public class StatisticsPieChartView extends FramesocPart {
 			List<EventProducer> producers = pq.getList();
 			producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
 			traceDB.close();
-			
+
 			TreeFilterDialog.printHierarchy(Arrays.asList(typeHierarchy), "");
 			TreeFilterDialog.printHierarchy(Arrays.asList(producerHierarchy), "");
-			
+
 		} catch (SoCTraceException e) {
 			// TODO
 			e.printStackTrace();
@@ -1311,7 +1311,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void showTypeFilterAction() {
 
 		List<Object> checkedTypes = currentDescriptor.checkedTypes;
-		
+
 		if (typeHierarchy.length > 0) {
 			typeFilterDialog.setInput(typeHierarchy);
 			typeFilterDialog.setTitle("Event Type Filter");
@@ -1331,10 +1331,10 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				checkedTypes = Arrays.asList(typeFilterDialog.getResult());
+				// XXX
+				currentDescriptor.checkedTypes = Arrays.asList(typeFilterDialog.getResult());
+				updateTypeFilter(FilterStatus.SET);
 			}
-
-			refresh();
 		}
 
 	}
@@ -1345,13 +1345,14 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void showProducerFilterAction() {
 
 		List<Object> checkedProducers = currentDescriptor.checkedProducers;
-		
+
 		if (producerHierarchy.length > 0) {
 			producerFilterDialog.setInput(producerHierarchy);
 			producerFilterDialog.setTitle("Event Producer Filter");
 			producerFilterDialog.setMessage("Check the event producers to consider");
 
-			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays.asList(producerHierarchy));
+			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays
+					.asList(producerHierarchy));
 			if (checkedProducers == null) {
 				checkedProducers = allElements;
 			}
@@ -1365,12 +1366,65 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (producerFilterDialog.getResult() != null) {
-				checkedProducers = Arrays.asList(typeFilterDialog.getResult());
+				// XXX
+				currentDescriptor.checkedProducers = Arrays.asList(typeFilterDialog.getResult());
+				// TODO: 
+				// if all are checked and same as before, no filter
+				// if all checked but different as before, set
+				// if same as before, no play
+				updateProducerFilter(FilterStatus.SET);
 			}
-
-			refresh();
 		}
+	}
+
+	private void updateTypeFilter(FilterStatus status) {
+		StringBuilder icon = new StringBuilder("icons/");
+		StringBuilder tooltip = new StringBuilder("Show Event Type Filter");
+
+		switch (status) {
+		case APPLIED:
+			icon.append("type_filter_on.png");
+			tooltip.append(" (filter applied)");
+			break;
+		case SET:
+			icon.append("type_filter_set.png");
+			tooltip.append(" (filter set but not applied)");
+			break;
+		case UNSET:
+			icon.append("type_filter.png");
+			break;
+		}
+		
+		typeFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, icon.toString()));
+		typeFilterAction.setToolTipText(tooltip.toString());
+	}
+
+	private void updateProducerFilter(FilterStatus status) {
+		StringBuilder icon = new StringBuilder("icons/");
+		StringBuilder tooltip = new StringBuilder("Show Event Producer Filter");
+
+		switch (status) {
+		case APPLIED:
+			icon.append("producer_filter_on.png");
+			tooltip.append(" (filter applied)");
+			break;
+		case SET:
+			icon.append("producer_filter_set.png");
+			tooltip.append(" (filter set but not applied)");
+			break;
+		case UNSET:
+			icon.append("producer_filter.png");
+			break;
+		}
+		
+		producerFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, icon.toString()));
+		producerFilterAction.setToolTipText(tooltip.toString());
 
 	}
 
+	private static enum FilterStatus {
+		UNSET, SET, APPLIED;
+	}
 }
