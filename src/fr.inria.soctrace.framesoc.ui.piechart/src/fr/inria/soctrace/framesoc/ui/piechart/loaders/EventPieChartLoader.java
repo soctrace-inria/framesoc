@@ -26,6 +26,7 @@ import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import fr.inria.soctrace.lib.utils.IdManager;
 
 /**
  * Base abstract class for event Pie Chart loaders. It performs aggregation and the load method
@@ -201,23 +202,31 @@ public abstract class EventPieChartLoader extends PieChartLoader {
 	protected boolean hasEventTypeFilter() {
 		return types != null;
 	}
-	
+
 	protected void addFiltersToQuery(StringBuilder sb) {
 		if (hasEventProducerFilter()) {
-			sb.append(" AND EVENT_PRODUCER_ID IN ");
-			ValueListString vls = new ValueListString();
-			for (EventProducer p : producers) {
-				vls.addValue(String.valueOf(p.getId()));
+			if (producers.size() == 0) {
+				sb.append(" AND EVENT_PRODUCER_ID IN ( " + IdManager.RESERVED_NO_ID + " ) ");
+			} else {
+				sb.append(" AND EVENT_PRODUCER_ID IN ");
+				ValueListString vls = new ValueListString();
+				for (EventProducer p : producers) {
+					vls.addValue(String.valueOf(p.getId()));
+				}
+				sb.append(vls.getValueString());
 			}
-			sb.append(vls.getValueString());
 		}
 		if (hasEventTypeFilter()) {
-			sb.append(" AND EVENT_TYPE_ID IN ");
-			ValueListString vls = new ValueListString();
-			for (EventType t : types) {
-				vls.addValue(String.valueOf(t.getId()));
+			if (types.size() == 0) {
+				sb.append(" AND EVENT_TYPE_ID IN ( " + IdManager.RESERVED_NO_ID + " ) ");
+			} else {
+				sb.append(" AND EVENT_TYPE_ID IN ");
+				ValueListString vls = new ValueListString();
+				for (EventType t : types) {
+					vls.addValue(String.valueOf(t.getId()));
+				}
+				sb.append(vls.getValueString());
 			}
-			sb.append(vls.getValueString());
 		}
 	}
 

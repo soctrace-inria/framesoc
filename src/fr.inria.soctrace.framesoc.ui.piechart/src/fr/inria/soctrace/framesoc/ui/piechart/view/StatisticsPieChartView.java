@@ -16,9 +16,11 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -85,6 +87,7 @@ import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
@@ -168,8 +171,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		public TimeInterval interval;
 		public List<String> excluded;
 		public MergedItems merged;
-		public List<Object> checkedProducers;
-		public List<Object> checkedTypes;
+		public List<Object> checkedProducers = null;
+		public List<Object> checkedTypes = null;
 		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
@@ -862,6 +865,24 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		public void run() {
+			if (currentDescriptor.checkedProducers != null) {
+				List<EventProducer> prods = new ArrayList<>();
+				for (Object o : currentDescriptor.checkedProducers) {
+					EventProducerNode epn = (EventProducerNode) o;
+					prods.add(epn.getEventProducer());
+				}
+				currentDescriptor.loader.setEventProducerFilter(prods);
+			}
+			if (currentDescriptor.checkedTypes != null) {
+				List<EventType> types = new ArrayList<>();
+				for (Object o : currentDescriptor.checkedTypes) {
+					if (o instanceof CategoryNode)
+						continue;
+					EventTypeNode etn = (EventTypeNode) o;
+					types.add(etn.getEventType());
+				}
+				currentDescriptor.loader.setEventTypeFilter(types);
+			}
 			currentDescriptor.loader.load(currentShownTrace, loadInterval, currentDescriptor.map,
 					monitor);
 		}
@@ -1293,10 +1314,8 @@ public class StatisticsPieChartView extends FramesocPart {
 			List<EventProducer> producers = pq.getList();
 			producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
 			traceDB.close();
-
-			TreeFilterDialog.printHierarchy(Arrays.asList(typeHierarchy), "");
-			TreeFilterDialog.printHierarchy(Arrays.asList(producerHierarchy), "");
-
+			// TreeFilterDialog.printHierarchy(Arrays.asList(typeHierarchy), "");
+			// TreeFilterDialog.printHierarchy(Arrays.asList(producerHierarchy), "");
 		} catch (SoCTraceException e) {
 			// TODO
 			e.printStackTrace();
@@ -1331,8 +1350,11 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				// XXX
 				currentDescriptor.checkedTypes = Arrays.asList(typeFilterDialog.getResult());
+				if (areListEquals(currentDescriptor.checkedTypes, checkedTypes)) {
+					// checked state did not change
+					return;
+				}
 				updateTypeFilter(FilterStatus.SET);
 			}
 		}
@@ -1366,15 +1388,21 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (producerFilterDialog.getResult() != null) {
-				// XXX
-				currentDescriptor.checkedProducers = Arrays.asList(typeFilterDialog.getResult());
-				// TODO: 
-				// if all are checked and same as before, no filter
-				// if all checked but different as before, set
-				// if same as before, no play
+				currentDescriptor.checkedProducers = Arrays
+						.asList(producerFilterDialog.getResult());
+				if (areListEquals(currentDescriptor.checkedProducers, checkedProducers)) {
+					// checked state did not change
+					return;
+				}
 				updateProducerFilter(FilterStatus.SET);
 			}
 		}
+	}
+
+	private boolean areListEquals(List<Object> l1, List<Object> l2) {
+		Set<Object> s1 = new HashSet<>(l1);
+		Set<Object> s2 = new HashSet<>(l2);
+		return s1.equals(s2);
 	}
 
 	private void updateTypeFilter(FilterStatus status) {
@@ -1394,7 +1422,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			icon.append("type_filter.png");
 			break;
 		}
-		
+
 		typeFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, icon.toString()));
 		typeFilterAction.setToolTipText(tooltip.toString());
@@ -1417,7 +1445,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			icon.append("producer_filter.png");
 			break;
 		}
-		
+
 		producerFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
 				Activator.PLUGIN_ID, icon.toString()));
 		producerFilterAction.setToolTipText(tooltip.toString());

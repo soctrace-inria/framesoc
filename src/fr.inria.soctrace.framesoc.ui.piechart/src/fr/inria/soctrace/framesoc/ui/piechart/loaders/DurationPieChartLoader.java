@@ -225,6 +225,7 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 		} else {
 			query.append("TIMESTAMP >= " + t0 + " AND TIMESTAMP " + lastComp + " " + t1);
 		}
+		addFiltersToQuery(query);
 		String queryString = query.toString();
 		logger.debug(queryString);
 		int results = 0;
