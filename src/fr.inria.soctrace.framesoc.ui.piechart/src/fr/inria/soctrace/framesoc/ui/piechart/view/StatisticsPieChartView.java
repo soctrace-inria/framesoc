@@ -123,7 +123,11 @@ import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
- * Statistics pie chart view
+ * Statistics pie chart view.
+ * 
+ * All the operators share the time selection, the event producer filtering and the event type
+ * filtering. When changing operator, if previously loaded data are not up to date with current
+ * selection/filtering, data are automatically reloaded.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -169,11 +173,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		public IPieChartLoader loader;
 		public PieChartLoaderMap map;
 		public TimeInterval interval;
-		public List<String> excluded;
-		public MergedItems merged;
 		public List<Object> checkedProducers = null;
 		public List<Object> checkedTypes = null;
-		public boolean dirty = false;
+		public List<String> excluded;
+		public MergedItems merged;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
@@ -183,8 +186,27 @@ public class StatisticsPieChartView extends FramesocPart {
 			this.merged = new MergedItems();
 		}
 
-		public boolean dataReady() {
-			return (map != null && map.isComplete());
+		/**
+		 * Check if some data has been loaded (either complete or cancel status).
+		 */
+		public boolean dataLoaded() {
+			return (map != null && (map.isStop() || map.isComplete()));
+		}
+
+		public boolean producersOk() {
+			return areListsEqual(globalCheckedProducers, checkedProducers);
+		}
+
+		public boolean typesOk() {
+			return areListsEqual(globalCheckedTypes, checkedTypes);
+		}
+
+		public boolean intervalOk() {
+			return interval.equals(globalLoadInterval);
+		}
+
+		public boolean isAllOk() {
+			return intervalOk() && producersOk() && typesOk();
 		}
 
 		public void dispose() {
@@ -205,6 +227,16 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Global loaded interval, shared for all operators.
 	 */
 	private TimeInterval globalLoadInterval = new TimeInterval(0, 0);
+
+	/**
+	 * Global checked producers, shared for all operators.
+	 */
+	private List<Object> globalCheckedProducers = null;
+
+	/**
+	 * Global checked types, shared for all operators.
+	 */
+	private List<Object> globalCheckedTypes = null;
 
 	/**
 	 * Available loaders, read from the extension point. The i-th element of this array corresponds
@@ -280,6 +312,8 @@ public class StatisticsPieChartView extends FramesocPart {
 	private TreeFilterDialog typeFilterDialog;
 	private IAction producerFilterAction;
 	private IAction typeFilterAction;
+	private List<Object> allTypesElements;
+	private List<Object> allProducersElements;
 
 	/**
 	 * Constructor
@@ -366,11 +400,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				refreshFilter();
 				// use global load interval
 				timeBar.setSelection(globalLoadInterval);
-				if (!globalLoadInterval.equals(currentDescriptor.interval)) {
-					loadPieChart();
-				} else {
-					refresh();
-				}
+				loadPieChart();
 			}
 		});
 
@@ -493,7 +523,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo != null && timeBar != null && currentDescriptor != null) {
-					if (currentDescriptor.dirty) {
+					if (currentDescriptor.dataLoaded()) {
 						timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 								currentDescriptor.interval.endTimestamp);
 					} else {
@@ -501,7 +531,7 @@ public class StatisticsPieChartView extends FramesocPart {
 								currentShownTrace.getMaxTimestamp());
 					}
 					timeBar.getSynchButton().setEnabled(false);
-					timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
+					timeBar.getLoadButton().setEnabled(!currentDescriptor.isAllOk());
 				}
 			}
 		});
@@ -605,7 +635,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
-		if (currentShownTrace == null || !currentDescriptor.dirty)
+		if (currentShownTrace == null || !currentDescriptor.dataLoaded())
 			return null;
 		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 		des.setTrace(currentShownTrace);
@@ -865,24 +895,29 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		public void run() {
-			if (currentDescriptor.checkedProducers != null) {
+			// prepare producers to use
+			if (globalCheckedProducers != null) {
 				List<EventProducer> prods = new ArrayList<>();
-				for (Object o : currentDescriptor.checkedProducers) {
+				for (Object o : globalCheckedProducers) {
 					EventProducerNode epn = (EventProducerNode) o;
 					prods.add(epn.getEventProducer());
 				}
+				currentDescriptor.checkedProducers = new ArrayList<>(globalCheckedProducers);
 				currentDescriptor.loader.setEventProducerFilter(prods);
 			}
-			if (currentDescriptor.checkedTypes != null) {
+			// prepare types to use
+			if (globalCheckedTypes != null) {
 				List<EventType> types = new ArrayList<>();
-				for (Object o : currentDescriptor.checkedTypes) {
+				for (Object o : globalCheckedTypes) {
 					if (o instanceof CategoryNode)
 						continue;
 					EventTypeNode etn = (EventTypeNode) o;
 					types.add(etn.getEventType());
 				}
+				currentDescriptor.checkedTypes = new ArrayList<>(globalCheckedTypes);
 				currentDescriptor.loader.setEventTypeFilter(types);
 			}
+			// load pie
 			currentDescriptor.loader.load(currentShownTrace, loadInterval, currentDescriptor.map,
 					monitor);
 		}
@@ -977,9 +1012,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
-		currentDescriptor.dirty = true;
-
-		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {
+		if (currentDescriptor.dataLoaded() && currentDescriptor.isAllOk()) {
 			logger.debug("Data is ready. Nothing to do. Refresh only.");
 			refresh();
 			return;
@@ -1050,7 +1083,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void run() {
 
-				if (currentDescriptor.dataReady() && values.isEmpty()) {
+				if (currentDescriptor.dataLoaded() && values.isEmpty()) {
 					// store the loaded interval in case of no data
 					currentDescriptor.interval.startTimestamp = timeBar.getStartTimestamp();
 					currentDescriptor.interval.endTimestamp = timeBar.getEndTimestamp();
@@ -1062,7 +1095,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 
 				// create new chart
-				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dirty);
+				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dataLoaded());
 				compositePie.setText(title);
 				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
 						USE_BUFFER);
@@ -1085,9 +1118,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 				tableTreeViewer.collapseAll();
 				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-				timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
+				timeBar.getLoadButton().setEnabled(!currentDescriptor.isAllOk());
 				timeBar.getSynchButton().setEnabled(false);
-				if (currentDescriptor.dirty) {
+				if (currentDescriptor.dataLoaded()) {
 					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 							currentDescriptor.interval.endTimestamp);
 				} else {
@@ -1095,7 +1128,7 @@ public class StatisticsPieChartView extends FramesocPart {
 							currentShownTrace.getMaxTimestamp());
 				}
 				statusText.setText(getStatus(valuesCount, valuesCount));
-				enableActions(currentDescriptor.dirty);
+				enableActions(currentDescriptor.dataLoaded());
 
 			}
 		});
@@ -1310,14 +1343,13 @@ public class StatisticsPieChartView extends FramesocPart {
 			EventTypeQuery tq = new EventTypeQuery(traceDB);
 			List<EventType> types = tq.getList();
 			typeHierarchy = TreeFilterDialog.getTypeHierarchy(types);
+			allTypesElements = TreeFilterDialog.listAllInputs(Arrays.asList(typeHierarchy));
 			EventProducerQuery pq = new EventProducerQuery(traceDB);
 			List<EventProducer> producers = pq.getList();
 			producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
+			allProducersElements = TreeFilterDialog.listAllInputs(Arrays.asList(producerHierarchy));
 			traceDB.close();
-			// TreeFilterDialog.printHierarchy(Arrays.asList(typeHierarchy), "");
-			// TreeFilterDialog.printHierarchy(Arrays.asList(producerHierarchy), "");
 		} catch (SoCTraceException e) {
-			// TODO
 			e.printStackTrace();
 		} finally {
 			DBObject.finalClose(traceDB);
@@ -1329,19 +1361,16 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private void showTypeFilterAction() {
 
-		List<Object> checkedTypes = currentDescriptor.checkedTypes;
-
 		if (typeHierarchy.length > 0) {
 			typeFilterDialog.setInput(typeHierarchy);
 			typeFilterDialog.setTitle("Event Type Filter");
 			typeFilterDialog.setMessage("Check the event types to consider");
 
-			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays.asList(typeHierarchy));
-			if (checkedTypes == null) {
-				checkedTypes = allElements;
+			if (globalCheckedTypes == null) {
+				globalCheckedTypes = allTypesElements;
 			}
-			typeFilterDialog.setExpandedElements(allElements.toArray());
-			typeFilterDialog.setInitialElementSelections(checkedTypes);
+			typeFilterDialog.setExpandedElements(allTypesElements.toArray());
+			typeFilterDialog.setInitialElementSelections(globalCheckedTypes);
 			typeFilterDialog.create();
 
 			if (typeFilterDialog.open() != Window.OK) {
@@ -1350,12 +1379,21 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				currentDescriptor.checkedTypes = Arrays.asList(typeFilterDialog.getResult());
-				if (areListEquals(currentDescriptor.checkedTypes, checkedTypes)) {
-					// checked state did not change
-					return;
+				globalCheckedTypes = Arrays.asList(typeFilterDialog.getResult());
+				if (areListsEqual(allTypesElements, globalCheckedTypes)) {
+					// all checked
+					if (currentDescriptor.checkedTypes == null
+							|| areListsEqual(allTypesElements, currentDescriptor.checkedTypes)) {
+						updateTypeFilter(FilterStatus.UNSET);
+					} else {
+						// the loaded data is with unchecked elements
+						updateTypeFilter(FilterStatus.SET);
+					}
+				} else if (areListsEqual(currentDescriptor.checkedTypes, globalCheckedTypes)) {
+					updateTypeFilter(FilterStatus.APPLIED);
+				} else {
+					updateTypeFilter(FilterStatus.SET);
 				}
-				updateTypeFilter(FilterStatus.SET);
 			}
 		}
 
@@ -1366,20 +1404,16 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private void showProducerFilterAction() {
 
-		List<Object> checkedProducers = currentDescriptor.checkedProducers;
-
 		if (producerHierarchy.length > 0) {
 			producerFilterDialog.setInput(producerHierarchy);
 			producerFilterDialog.setTitle("Event Producer Filter");
 			producerFilterDialog.setMessage("Check the event producers to consider");
 
-			List<Object> allElements = TreeFilterDialog.listAllInputs(Arrays
-					.asList(producerHierarchy));
-			if (checkedProducers == null) {
-				checkedProducers = allElements;
+			if (globalCheckedProducers == null) {
+				globalCheckedProducers = allProducersElements;
 			}
-			producerFilterDialog.setExpandedElements(allElements.toArray());
-			producerFilterDialog.setInitialElementSelections(checkedProducers);
+			producerFilterDialog.setExpandedElements(allProducersElements.toArray());
+			producerFilterDialog.setInitialElementSelections(globalCheckedProducers);
 			producerFilterDialog.create();
 
 			if (producerFilterDialog.open() != Window.OK) {
@@ -1388,18 +1422,33 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// Process selected elements
 			if (producerFilterDialog.getResult() != null) {
-				currentDescriptor.checkedProducers = Arrays
-						.asList(producerFilterDialog.getResult());
-				if (areListEquals(currentDescriptor.checkedProducers, checkedProducers)) {
-					// checked state did not change
-					return;
+				globalCheckedProducers = Arrays.asList(producerFilterDialog.getResult());
+				if (areListsEqual(allProducersElements, globalCheckedProducers)) {
+					// all checked
+					if (currentDescriptor.checkedProducers == null
+							|| areListsEqual(allProducersElements,
+									currentDescriptor.checkedProducers)) {
+						updateProducerFilter(FilterStatus.UNSET);
+					} else {
+						// the loaded data is with unchecked elements
+						updateProducerFilter(FilterStatus.SET);
+					}
+				} else if (areListsEqual(currentDescriptor.checkedProducers, globalCheckedProducers)) {
+					updateProducerFilter(FilterStatus.APPLIED);
+				} else {
+					updateProducerFilter(FilterStatus.SET);
 				}
-				updateProducerFilter(FilterStatus.SET);
 			}
 		}
 	}
 
-	private boolean areListEquals(List<Object> l1, List<Object> l2) {
+	private boolean areListsEqual(List<Object> l1, List<Object> l2) {
+		if (l1 == null) {
+			return l2 == null;
+		}
+		if (l2 == null) {
+			return l1 == null;
+		}
 		Set<Object> s1 = new HashSet<>(l1);
 		Set<Object> s2 = new HashSet<>(l2);
 		return s1.equals(s2);
