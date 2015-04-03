@@ -395,6 +395,13 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				boolean firstTime = true;
+				for (LoaderDescriptor d : loaderDescriptors) {
+					firstTime = firstTime && !d.dataLoaded();
+				}
+				if (firstTime) {
+					return;
+				}
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
 				cleanFilter();
 				refreshFilter();
@@ -605,6 +612,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
 
+		// disable all actions
 		enableActions(false);
 	}
 
@@ -976,6 +984,16 @@ public class StatisticsPieChartView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh();
 				}
+				if (currentDescriptor.checkedProducers == null || areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
+					updateProducerFilter(FilterStatus.UNSET);
+				} else {
+					updateProducerFilter(FilterStatus.APPLIED);
+				}
+				if (currentDescriptor.checkedTypes == null || areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
+					updateTypeFilter(FilterStatus.UNSET);
+				} else {
+					updateTypeFilter(FilterStatus.APPLIED);
+				}
 				return Status.OK_STATUS;
 			} finally {
 				enableTimeBar(true);
@@ -1012,6 +1030,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
 
+		// reset the global interval
+		globalLoadInterval.copy(loadInterval);
+
 		if (currentDescriptor.dataLoaded() && currentDescriptor.isAllOk()) {
 			logger.debug("Data is ready. Nothing to do. Refresh only.");
 			refresh();
@@ -1024,8 +1045,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		// reset the loaded interval in the descriptor
 		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
 		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
-		// reset also the global interval
-		globalLoadInterval.copy(loadInterval);
 
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
@@ -1268,6 +1287,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
 		initTypesAndProducers(trace);
+		producerFilterAction.setEnabled(true);
+		typeFilterAction.setEnabled(true);
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
@@ -1395,6 +1416,9 @@ public class StatisticsPieChartView extends FramesocPart {
 					updateTypeFilter(FilterStatus.SET);
 				}
 			}
+			if (currentDescriptor.dataLoaded()) {
+				loadPieChart();
+			}
 		}
 
 	}
@@ -1438,6 +1462,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				} else {
 					updateProducerFilter(FilterStatus.SET);
 				}
+			}
+			if (currentDescriptor.dataLoaded()) {
+				loadPieChart();
 			}
 		}
 	}
