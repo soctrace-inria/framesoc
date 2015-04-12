@@ -211,8 +211,9 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		public void dispose() {
 			loader = null;
-			if (map != null)
+			if (map != null) {
 				map = null;
+			}
 		}
 
 		@Override
@@ -224,17 +225,17 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	/**
-	 * Global loaded interval, shared for all operators.
+	 * Global loaded interval, shared among all operators.
 	 */
 	private TimeInterval globalLoadInterval = new TimeInterval(0, 0);
 
 	/**
-	 * Global checked producers, shared for all operators.
+	 * Global checked producers, shared among all operators.
 	 */
 	private List<Object> globalCheckedProducers = null;
 
 	/**
-	 * Global checked types, shared for all operators.
+	 * Global checked types, shared among all operators.
 	 */
 	private List<Object> globalCheckedTypes = null;
 
@@ -511,19 +512,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(false);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
-		timeBar.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				TimeInterval barInterval = timeBar.getSelection();
-				if (!barInterval.equals(currentDescriptor.interval)) {
-					timeBar.getLoadButton().setEnabled(true);
-					timeBar.getSynchButton().setEnabled(true);
-				} else {
-					timeBar.getLoadButton().setEnabled(false);
-					timeBar.getSynchButton().setEnabled(false);
-				}
-			}
-		});
 
 		// button to synch the timebar with the gantt
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
@@ -537,8 +525,6 @@ public class StatisticsPieChartView extends FramesocPart {
 						timeBar.setSelection(currentShownTrace.getMinTimestamp(),
 								currentShownTrace.getMaxTimestamp());
 					}
-					timeBar.getSynchButton().setEnabled(false);
-					timeBar.getLoadButton().setEnabled(!currentDescriptor.isAllOk());
 				}
 			}
 		});
@@ -984,12 +970,14 @@ public class StatisticsPieChartView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh();
 				}
-				if (currentDescriptor.checkedProducers == null || areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
+				if (currentDescriptor.checkedProducers == null
+						|| areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
 					updateProducerFilter(FilterStatus.UNSET);
 				} else {
 					updateProducerFilter(FilterStatus.APPLIED);
 				}
-				if (currentDescriptor.checkedTypes == null || areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
+				if (currentDescriptor.checkedTypes == null
+						|| areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
 					updateTypeFilter(FilterStatus.UNSET);
 				} else {
 					updateTypeFilter(FilterStatus.APPLIED);
@@ -1137,8 +1125,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 				tableTreeViewer.collapseAll();
 				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-				timeBar.getLoadButton().setEnabled(!currentDescriptor.isAllOk());
-				timeBar.getSynchButton().setEnabled(false);
 				if (currentDescriptor.dataLoaded()) {
 					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 							currentDescriptor.interval.endTimestamp);
@@ -1303,7 +1289,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		} else {
 			combo.select(0);
-			timeBar.getLoadButton().setEnabled(true);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
 			txtDescription.setVisible(true);
 			globalLoadInterval.startTimestamp = trace.getMinTimestamp();
