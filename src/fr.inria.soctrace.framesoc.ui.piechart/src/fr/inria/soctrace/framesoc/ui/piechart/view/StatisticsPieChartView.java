@@ -404,8 +404,8 @@ public class StatisticsPieChartView extends FramesocPart {
 					return;
 				}
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				cleanFilter();
-				refreshFilter();
+				cleanTableFilter();
+				refreshTableFilter();
 				// use global load interval
 				timeBar.setSelection(globalLoadInterval);
 				loadPieChart();
@@ -439,14 +439,13 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// filter
 		textFilter = new Text(compositeTable, SWT.BORDER);
-		cleanFilter();
 		textFilter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		textFilter.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
 				String filter = textFilter.getText().trim();
 				if (filter.isEmpty()) {
-					cleanFilter();
+					cleanTableFilter();
 				}
 			}
 
@@ -465,11 +464,11 @@ public class StatisticsPieChartView extends FramesocPart {
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == SWT.CR || textFilter.getText().trim().isEmpty()) {
 					textFilter.setData(textFilter.getText());
-					refreshFilter();
+					refreshTableFilter();
 				}
 			}
 		});
-
+		
 		// table
 		tableTreeViewer = new TreeViewer(compositeTable, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
 				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
@@ -537,8 +536,8 @@ public class StatisticsPieChartView extends FramesocPart {
 				if (combo.getSelectionIndex() == -1)
 					return;
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				cleanFilter();
-				refreshFilter();
+				cleanTableFilter();
+				refreshTableFilter();
 				loadPieChart();
 			}
 		});
@@ -553,6 +552,8 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// create SWT resources
 		createResources();
+		// clean the filter, after creating the font
+		cleanTableFilter();
 
 	}
 
@@ -682,7 +683,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.excluded.addAll(rows);
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -728,7 +729,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.merged.removeMergedItems(rows);
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -743,7 +744,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -758,7 +759,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.merged.removeAllMergedItems();
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -1042,13 +1043,13 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	}
 
-	private void cleanFilter() {
+	private void cleanTableFilter() {
 		textFilter.setText(FILTER_HINT);
 		textFilter.setData("");
 		textFilter.setForeground(grayColor);
 	}
 
-	private void refreshFilter() {
+	private void refreshTableFilter() {
 		if (nameFilter == null || tableTreeViewer == null || statusText == null)
 			return;
 		if (currentDescriptor == null || currentDescriptor.map == null)
