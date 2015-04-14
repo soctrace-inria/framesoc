@@ -179,6 +179,8 @@ public class PluginImporterJob extends PluginToolJob {
 				System.err.println("Exception trying to rollback System DB.");
 				System.err.println(ex.getMessage());
 			}
+		} else {
+			rollback = true;
 		}
 		return rollback;
 	}
@@ -193,7 +195,9 @@ public class PluginImporterJob extends PluginToolJob {
 				System.err.println("Exception trying to drop Trace DB.");
 				System.err.println(ex.getMessage());
 			}
-		}		
+		} else {
+			drop = true;
+		}
 		return drop;
 	}
 
