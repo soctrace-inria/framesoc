@@ -19,6 +19,8 @@ import org.jfree.data.general.PieDataset;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.lib.model.EventProducer;
+import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -41,7 +43,7 @@ public interface IPieChartLoader {
 	/*
 	 * Loader properties
 	 */
-	
+
 	/**
 	 * Return true if aggregation is performed.
 	 * 
@@ -70,10 +72,26 @@ public interface IPieChartLoader {
 	 * @return
 	 */
 	NumberFormat getFormat();
-	
+
 	/*
 	 * Loading data
 	 */
+
+	/**
+	 * Specify the list of event producers that must be used in statistics computation.
+	 * By default, all producers are used if this method is not called.
+	 * 
+	 * @param producers
+	 */
+	void setEventProducerFilter(List<EventProducer> producers);
+
+	/**
+	 * Specify the list of event types that must be used in statistics computation.
+	 * By default, all types are used if this method is not called.
+	 * 
+	 * @param types
+	 */
+	void setEventTypeFilter(List<EventType> types);
 
 	/**
 	 * Load the statistics for the given trace and time interval into the passed map.
