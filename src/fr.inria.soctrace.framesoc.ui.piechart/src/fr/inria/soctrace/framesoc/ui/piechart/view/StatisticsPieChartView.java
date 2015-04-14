@@ -193,20 +193,24 @@ public class StatisticsPieChartView extends FramesocPart {
 			return (map != null && (map.isStop() || map.isComplete()));
 		}
 
-		public boolean producersOk() {
-			return areListsEqual(globalCheckedProducers, checkedProducers);
-		}
-
-		public boolean typesOk() {
-			return areListsEqual(globalCheckedTypes, checkedTypes);
+		/**
+		 * Check if the current loaded data is in synch with the current global time selection,
+		 * producer selection and type selection.
+		 */
+		public boolean isAllOk() {
+			return intervalOk() && producersOk() && typesOk();
 		}
 
 		public boolean intervalOk() {
 			return interval.equals(globalLoadInterval);
 		}
 
-		public boolean isAllOk() {
-			return intervalOk() && producersOk() && typesOk();
+		public boolean producersOk() {
+			return areListsEqual(globalCheckedProducers, checkedProducers);
+		}
+
+		public boolean typesOk() {
+			return areListsEqual(globalCheckedTypes, checkedTypes);
 		}
 
 		public void dispose() {
@@ -468,7 +472,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 			}
 		});
-		
+
 		// table
 		tableTreeViewer = new TreeViewer(compositeTable, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
 				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
