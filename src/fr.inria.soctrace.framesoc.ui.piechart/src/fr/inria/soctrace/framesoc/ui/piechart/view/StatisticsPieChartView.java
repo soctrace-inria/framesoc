@@ -608,7 +608,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private IAction createShowProducerFilterAction() {
-		producerFilterAction = new Action("", IAction.AS_PUSH_BUTTON) {
+		producerFilterAction = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				showProducerFilterAction();
@@ -621,7 +621,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private IAction createShowTypeFilterAction() {
-		typeFilterAction = new Action("", IAction.AS_PUSH_BUTTON) {
+		typeFilterAction = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				showTypeFilterAction();
@@ -1384,6 +1384,10 @@ public class StatisticsPieChartView extends FramesocPart {
 			typeFilterDialog.setInitialElementSelections(globalCheckedTypes);
 			typeFilterDialog.create();
 
+			// reset checked status, managed manually
+			typeFilterAction.setChecked(!typeFilterAction.isChecked());
+			
+			// open the dialog
 			if (typeFilterDialog.open() != Window.OK) {
 				return;
 			}
@@ -1430,6 +1434,10 @@ public class StatisticsPieChartView extends FramesocPart {
 			producerFilterDialog.setInitialElementSelections(globalCheckedProducers);
 			producerFilterDialog.create();
 
+			// reset checked status, managed manually
+			producerFilterAction.setChecked(!producerFilterAction.isChecked());
+			
+			// open the dialog
 			if (producerFilterDialog.open() != Window.OK) {
 				return;
 			}
@@ -1477,14 +1485,17 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		switch (status) {
 		case APPLIED:
-			icon.append("type_filter_on.png");
+			typeFilterAction.setChecked(true);
+			icon.append("type_filter.png");
 			tooltip.append(" (filter applied)");
 			break;
 		case SET:
+			typeFilterAction.setChecked(false);
 			icon.append("type_filter_set.png");
 			tooltip.append(" (filter set but not applied)");
 			break;
 		case UNSET:
+			typeFilterAction.setChecked(false);
 			icon.append("type_filter.png");
 			break;
 		}
@@ -1500,14 +1511,17 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		switch (status) {
 		case APPLIED:
-			icon.append("producer_filter_on.png");
+			producerFilterAction.setChecked(true);
+			icon.append("producer_filter.png");
 			tooltip.append(" (filter applied)");
 			break;
 		case SET:
+			producerFilterAction.setChecked(false);
 			icon.append("producer_filter_set.png");
 			tooltip.append(" (filter set but not applied)");
 			break;
 		case UNSET:
+			producerFilterAction.setChecked(false);
 			icon.append("producer_filter.png");
 			break;
 		}
