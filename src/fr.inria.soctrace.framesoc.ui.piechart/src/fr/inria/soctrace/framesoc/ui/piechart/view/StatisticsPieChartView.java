@@ -816,7 +816,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	private String getStatus(int events, int matched) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Filter matched ");
+		sb.append("Name Filter matched ");
 		sb.append(matched);
 		sb.append(" of ");
 		sb.append(events);
