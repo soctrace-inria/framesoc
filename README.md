@@ -5,7 +5,9 @@
 Framesoc is a generic trace management and analysis infrastructure.
 
 ## Install Framesoc
+
 ### Install Eclipse plugin version
+
 To easily start playing with Framesoc, you can install its Eclipse plugin version.
 
 - First, [download](https://www.eclipse.org/downloads/) and extract Eclipse (**version 4.3 or higher**).
@@ -16,7 +18,10 @@ To easily start playing with Framesoc, you can install its Eclipse plugin versio
 - Select at least Framesoc and Framesoc Importers, then click on *Next*, *Next*, accept the license agreement, 
   and finally click on *Finish*.
 
+For all the installation and initial configuration details, please see [this page](https://github.com/soctrace-inria/framesoc/wiki/Install-and-setup-a-standalone-version-of-Framesoc-using-the-update-site).
+
 ### Get the Sources
+
 Framesoc source code is available on [GitHub](https://github.com/soctrace-inria/framesoc).
 
 If you want to setup a development environment to hack the code, follow 
@@ -28,6 +33,7 @@ The Framesoc User Guide can be downloaded [here](https://github.com/soctrace-inr
 The Framesoc GitHub wiki pages are available [here](https://github.com/soctrace-inria/framesoc/wiki/).
 
 ## Supported Trace Formats
+
 We provide [importers](https://github.com/soctrace-inria/framesoc.importers)
 (installed automatically with the plugin version) for the following trace formats:
 - Pajé Dump
@@ -38,6 +44,7 @@ We provide [importers](https://github.com/soctrace-inria/framesoc.importers)
 - GSTreamer
 
 ## Test Traces
+
 You can start playing with Framesoc using the following test traces.
 
 - Pajé Dump Scorep Trace
@@ -58,6 +65,7 @@ You can import traces using the following procedure:
 - Select the right importer, according to the trace.
 
 ## External modules
+
 - [Ocelotl](http://soctrace-inria.github.io/ocelotl/), 
   an analysis tool providing multidimensional overviews for huge traces.
 - [Framesoc Importers](https://github.com/soctrace-inria/framesoc.importers), 
