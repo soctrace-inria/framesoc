@@ -1,6 +1,6 @@
 # Framesoc
 
-![Framesoc perspective](http://soctrace-inria.github.io/framesoc/images/framesoc.png)
+[[ http://soctrace-inria.github.io/framesoc/images/framesoc.png | width = 630px ]]
 
 Framesoc is a generic trace management and analysis infrastructure.
 
