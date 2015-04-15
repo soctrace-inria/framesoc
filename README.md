@@ -18,7 +18,7 @@ To easily start playing with Framesoc, you can install its Eclipse plugin versio
 - Select at least Framesoc and Framesoc Importers, then click on *Next*, *Next*, accept the license agreement, 
   and finally click on *Finish*.
 
-For all the installation and initial configuration details, please see [this page](https://github.com/soctrace-inria/framesoc/wiki/Install-and-setup-a-standalone-version-of-Framesoc-using-the-update-site).
+For all the installation and initial configuration details, please see [this page](https://github.com/soctrace-inria/framesoc/wiki/Framesoc-development-environment-setup).
 
 ### Get the Sources
 
