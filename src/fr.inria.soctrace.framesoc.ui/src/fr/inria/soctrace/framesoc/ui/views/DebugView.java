@@ -53,7 +53,7 @@ public class DebugView extends FramesocPart {
 					return;
 				}
 				OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(
-						ID, null);
+						ID, null, false);
 				if (status.part != null)
 					status.part.showTrace(TraceSelection.getCurrentSelectedTrace(), null);
 				else

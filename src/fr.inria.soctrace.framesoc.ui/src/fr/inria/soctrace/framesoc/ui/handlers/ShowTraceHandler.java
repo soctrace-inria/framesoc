@@ -68,7 +68,7 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 		// get a view already showing this trace or an empty view
 		Trace trace = HandlerCommons.getSelectedTrace(event);
 		OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(
-				getViewId(), trace);
+				getViewId(), trace, true);
 		if (status.part == null) {
 			MessageDialog.openError(HandlerUtil.getActiveShell(event), "Error", status.message);
 			return null;

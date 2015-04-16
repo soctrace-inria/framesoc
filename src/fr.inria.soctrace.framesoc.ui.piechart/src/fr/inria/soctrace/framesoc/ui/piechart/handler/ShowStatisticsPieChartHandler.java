@@ -19,7 +19,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.view.StatisticsPieChartView;
  */
 public class ShowStatisticsPieChartHandler extends ShowTraceHandler {
 
-	private final static String VIEW_NAME = "Event Table";
+	private final static String VIEW_NAME = "Statistics Pie Chart";
 
 	@Override
 	public String getViewId() {

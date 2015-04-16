@@ -109,7 +109,7 @@ public class FramesocPerspective implements IPerspectiveFactory {
 					Entry<String, Map<Integer, String>> entry = it.next();
 					Map<Integer, String> pmap = entry.getValue();
 					for (String id: pmap.values()) {
-						FramesocPartManager.getInstance().getPartInstance(id, null);	
+						FramesocPartManager.getInstance().getPartInstance(id, null, false);	
 					}				
 				}				
 			} 
@@ -129,7 +129,7 @@ public class FramesocPerspective implements IPerspectiveFactory {
 		Display.getDefault().asyncExec(new Runnable() { 
 			@Override 
 			public void run() { 
-				FramesocPartManager.getInstance().getPartInstance(FramesocViews.DEBUG_VIEW_ID, null);
+				FramesocPartManager.getInstance().getPartInstance(FramesocViews.DEBUG_VIEW_ID, null, false);
 			} 
 		}); 
 	}

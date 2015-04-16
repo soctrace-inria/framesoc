@@ -147,13 +147,13 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 *         maximum number of instances for the view has been reached, if PartInitException is
 	 *         launched.
 	 */
-	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace) {
+	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean allowNew) {
 
 		OpenFramesocPartStatus status = new OpenFramesocPartStatus();
 		status.message = "View loaded.";
 
 		// see if the trace is already loaded in a view
-		if (trace != null) {
+		if (trace != null && !allowNew) {
 			logger.debug("see if the trace is already loaded");
 			FramesocPart part = searchAlreadyLoaded(viewID, trace);
 			if (part != null) {
@@ -317,7 +317,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 */
 	private void displayFramesocView(String viewId, Object data) {
 		TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace());
+		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace(), false);
 		if (status.part == null) {
 			MessageDialog.openError(Display.getDefault().getActiveShell(),
 					"Error", status.message);

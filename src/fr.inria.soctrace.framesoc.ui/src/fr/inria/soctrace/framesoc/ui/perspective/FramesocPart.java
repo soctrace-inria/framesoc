@@ -125,7 +125,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 					getViewSite().getPage().hideView(FramesocPart.this);
 					// open the same view our way
 					logger.debug("Create the view with a secondary ID.");
-					FramesocPartManager.getInstance().getPartInstance(getId(), null);
+					FramesocPartManager.getInstance().getPartInstance(getId(), null, false);
 				}
 			});
 			// return now as we're done with the non-secondary-id view
