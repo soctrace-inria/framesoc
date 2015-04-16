@@ -35,6 +35,11 @@ public class TraceIntervalDescriptor {
 	private long endTimestamp;
 
 	/**
+	 * Flag forcing the opening of a new view
+	 */
+	private boolean forceNewView;
+	
+	/**
 	 * @return the trace
 	 */
 	public Trace getTrace() {
@@ -97,6 +102,20 @@ public class TraceIntervalDescriptor {
 	 */
 	public TimeInterval getTimeInterval() {
 		return new TimeInterval(this.startTimestamp, this.endTimestamp);
+	}
+
+	/**
+	 * @return the forceNewView
+	 */
+	public boolean isForceNewView() {
+		return forceNewView;
+	}
+
+	/**
+	 * @param forceNewView the forceNewView to set
+	 */
+	public void setForceNewView(boolean forceNewView) {
+		this.forceNewView = forceNewView;
 	}
 
 	@Override
