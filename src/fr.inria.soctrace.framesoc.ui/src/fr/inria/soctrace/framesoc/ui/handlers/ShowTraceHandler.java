@@ -36,6 +36,8 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.perspective.OpenFramesocPartStatus;
 import fr.inria.soctrace.framesoc.ui.utils.TraceSelection;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.utils.Configuration;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -50,15 +52,27 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(ShowTraceHandler.class);
 
+	private boolean allowViewReplication;
+
+	public ShowTraceHandler() {
+		super();
+		allowViewReplication = Configuration.getInstance()
+				.get(SoCTraceProperty.allow_view_replication).equals("true");
+	}
+
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
 		Trace t = (Trace) FramesocBus.getInstance().getVariable(
 				FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE);
-		FramesocPart part = FramesocPartManager.getInstance().searchAlreadyLoaded(getViewId(), t);
-		if (part == null) {
+		if (!allowViewReplication) {
 			element.setText("Show " + getViewName());
 		} else {
-			element.setText("Show Another " + getViewName());
+			FramesocPart p = FramesocPartManager.getInstance().searchAlreadyLoaded(getViewId(), t);
+			if (p == null) {
+				element.setText("Show " + getViewName());
+			} else {
+				element.setText("Show Another " + getViewName());
+			}
 		}
 	}
 
@@ -68,7 +82,7 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 		// get a view already showing this trace or an empty view
 		Trace trace = HandlerCommons.getSelectedTrace(event);
 		OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(
-				getViewId(), trace, true);
+				getViewId(), trace, allowViewReplication);
 		if (status.part == null) {
 			MessageDialog.openError(HandlerUtil.getActiveShell(event), "Error", status.message);
 			return null;

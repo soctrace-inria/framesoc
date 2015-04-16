@@ -64,6 +64,12 @@ public class Configuration {
 		 */
 		ask_for_tool_removal,
 
+		/**
+		 * Flag allowing the existence of multiple views of a given type for the same trace: true,
+		 * false.
+		 */
+		allow_view_replication,
+
 		// MySQL specific
 
 		/** Base URL to create DB connection */
@@ -230,6 +236,7 @@ public class Configuration {
 		defaults.setProperty(SoCTraceProperty.trace_db_ts_indexing.toString(), "true");
 		defaults.setProperty(SoCTraceProperty.trace_db_eid_indexing.toString(), "false");
 		defaults.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(), "false");
+		defaults.setProperty(SoCTraceProperty.allow_view_replication.toString(), "true");
 
 		// MySQL
 		defaults.setProperty(SoCTraceProperty.mysql_base_db_jdbc_url.toString(),
