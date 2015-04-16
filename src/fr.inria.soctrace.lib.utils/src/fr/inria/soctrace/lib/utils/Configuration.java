@@ -52,8 +52,11 @@ public class Configuration {
 		/** Max number of instances for a Framesoc view */
 		max_view_instances,
 
-		/** Flag stating if automatic indexing is done after import: true, false */
-		trace_db_indexing,
+		/** Flag stating if automatic timestamp indexing is done after import: true, false */
+		trace_db_ts_indexing,
+
+		/** Flag stating if automatic event id indexing is done after import: true, false */
+		trace_db_eid_indexing,
 
 		/**
 		 * Flag stating if tools and their results are automatically removed if not found in
@@ -224,7 +227,8 @@ public class Configuration {
 		defaults.setProperty(SoCTraceProperty.soctrace_dbms.toString(), DBMS.SQLITE.toString());
 		defaults.setProperty(SoCTraceProperty.soctrace_db_name.toString(), "SOCTRACE_SYSTEM_DB");
 		defaults.setProperty(SoCTraceProperty.max_view_instances.toString(), "5");
-		defaults.setProperty(SoCTraceProperty.trace_db_indexing.toString(), "true");
+		defaults.setProperty(SoCTraceProperty.trace_db_ts_indexing.toString(), "true");
+		defaults.setProperty(SoCTraceProperty.trace_db_eid_indexing.toString(), "false");
 		defaults.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(), "false");
 
 		// MySQL

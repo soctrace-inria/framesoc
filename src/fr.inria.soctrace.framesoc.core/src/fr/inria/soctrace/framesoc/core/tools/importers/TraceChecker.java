@@ -201,28 +201,38 @@ public class TraceChecker {
 	 */
 	private class IndexChecker implements IChecker {
 
-		private boolean enabled = true;
+		private boolean tsEnabled = true;
+		private boolean eidEnabled = true;
 
 		public IndexChecker() {
-			enabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_indexing)
+			tsEnabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_ts_indexing)
+					.equals("true");
+			eidEnabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_eid_indexing)
 					.equals("true");
 		}
 
 		@Override
 		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
 
-			if (!enabled)
+			if (!tsEnabled && !eidEnabled) {
 				return;
+			}
 
-			monitor.subTask("Indexing trace: " + t.getAlias());
-
-			if (!isDBExisting(t.getDbName()))
+			if (!isDBExisting(t.getDbName())) {
 				return;
+			}
 
 			TraceDBObject traceDB = null;
 			try {
 				traceDB = TraceDBObject.openNewIstance(t.getDbName());
-				traceDB.createTimestampIndex();
+				if (tsEnabled) {
+					monitor.subTask("Creating timestamp index on trace: " + t.getAlias());
+					traceDB.createTimestampIndex();
+				}
+				if (eidEnabled) {
+					monitor.subTask("Creating event param index on trace: " + t.getAlias());
+					traceDB.createEventParamIndex();
+				}
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
 			} finally {
