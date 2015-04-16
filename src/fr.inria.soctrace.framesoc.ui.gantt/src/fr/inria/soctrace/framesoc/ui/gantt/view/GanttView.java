@@ -124,6 +124,16 @@ public class GanttView extends AbstractGanttView {
 	private List<ILinkEvent> links;
 
 	/**
+	 * Event Producer filter dialog action
+	 */
+	private IAction producerFilterAction;
+
+	/**
+	 * Event Type filter dialog action
+	 */
+	private IAction typeFilterAction;
+
+	/**
 	 * Hide arrows action
 	 */
 	private IAction hideArrowsAction;
@@ -141,7 +151,12 @@ public class GanttView extends AbstractGanttView {
 	/**
 	 * Tree nodes corresponding to checked nodes.
 	 */
-	private List<Object> visibleNodes;
+	private List<Object> visibleTypeNodes;
+
+	/**
+	 * Number of event type nodes
+	 */
+	private int allTypeNodes;
 
 	/**
 	 * Constructor
@@ -319,7 +334,8 @@ public class GanttView extends AbstractGanttView {
 				Collection<EventType> types = loader.getTypes().values();
 				fPresentationProvider.setTypes(types);
 				typeHierarchy = getTypeHierarchy(types);
-				visibleNodes = listAllInputs(Arrays.asList(typeHierarchy));
+				visibleTypeNodes = listAllInputs(Arrays.asList(typeHierarchy));
+				allTypeNodes = visibleTypeNodes.size();
 				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
 				loader.release();
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
@@ -507,8 +523,10 @@ public class GanttView extends AbstractGanttView {
 	protected void fillLocalToolBar(IToolBarManager manager) {
 
 		// Filters
-		manager.add(getTimeGraphCombo().getShowFilterAction());
-		manager.add(createShowTypeFilterAction());
+		producerFilterAction = getTimeGraphCombo().getShowFilterAction();
+		manager.add(producerFilterAction);
+		typeFilterAction = createShowTypeFilterAction();
+		manager.add(typeFilterAction);
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
 		manager.add(new Separator());
@@ -556,7 +574,7 @@ public class GanttView extends AbstractGanttView {
 	}
 
 	private IAction createShowTypeFilterAction() {
-		IAction action = new Action("", IAction.AS_PUSH_BUTTON) {
+		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				showTypeFilterAction();
@@ -677,8 +695,11 @@ public class GanttView extends AbstractGanttView {
 
 			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());
-			typeFilterDialog.setInitialElementSelections(visibleNodes);
+			typeFilterDialog.setInitialElementSelections(visibleTypeNodes);
 			typeFilterDialog.create();
+
+			// reset checked status, managed manually
+			typeFilterAction.setChecked(!typeFilterAction.isChecked());
 
 			if (typeFilterDialog.open() != Window.OK) {
 				return;
@@ -686,9 +707,10 @@ public class GanttView extends AbstractGanttView {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				visibleNodes = Arrays.asList(typeFilterDialog.getResult());
+				visibleTypeNodes = Arrays.asList(typeFilterDialog.getResult());
+				checkTypeFilter(visibleTypeNodes.size() != allTypeNodes);
 				ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
-				filteredElements.removeAll(visibleNodes);
+				filteredElements.removeAll(visibleTypeNodes);
 				List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
 				for (Object o : filteredElements) {
 					if (o instanceof EventTypeNode) {
@@ -703,6 +725,17 @@ public class GanttView extends AbstractGanttView {
 			refresh();
 		}
 
+	}
+
+	private void checkTypeFilter(boolean check) {
+		if (check) {
+			typeFilterAction.setChecked(true);
+			typeFilterAction.setToolTipText("Show Event Type Filter (filter applied)");
+
+		} else {
+			typeFilterAction.setChecked(false);
+			typeFilterAction.setToolTipText("Show Event Type Filter");
+		}
 	}
 
 }
