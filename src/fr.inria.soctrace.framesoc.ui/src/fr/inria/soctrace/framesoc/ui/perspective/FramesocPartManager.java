@@ -479,7 +479,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 *            view ID
 	 * @return the part, or null if not found
 	 */
-	private FramesocPart searchAlreadyLoaded(String viewId, Trace trace) {
+	public FramesocPart searchAlreadyLoaded(String viewId, Trace trace) {
 		ViewDesc desc = viewDescMap.get(viewId);
 		if (desc != null) {
 			for (FramesocPart part : desc.openParts) {

@@ -20,11 +20,16 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
  */
 public class ShowEventTableHandler extends ShowTraceHandler {
 
+	private final static String VIEW_NAME = "Event Table";
+
 	@Override
 	public String getViewId() {
 		return FramesocViews.EVENT_TABLE_VIEW_ID;
 	}
 
+	@Override
+	public String getViewName() {
+		return VIEW_NAME;
+	}
+
 }
-
-
