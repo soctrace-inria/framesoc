@@ -67,8 +67,7 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 		if (!allowViewReplication) {
 			element.setText("Show " + getViewName());
 		} else {
-			FramesocPart p = FramesocPartManager.getInstance().searchAlreadyLoaded(getViewId(), t);
-			if (p == null) {
+			if (!FramesocPartManager.getInstance().isAlreadyLoaded(getViewId(), t)) {
 				element.setText("Show " + getViewName());
 			} else {
 				element.setText("Show Another " + getViewName());

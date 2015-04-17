@@ -15,6 +15,8 @@ import fr.inria.soctrace.lib.model.Trace;
 /**
  * Trace time interval descriptor. It is used for inter-view communication.
  * 
+ * Only views belonging to the same group will synchronize using this message.
+ * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class TraceIntervalDescriptor {
@@ -35,10 +37,11 @@ public class TraceIntervalDescriptor {
 	private long endTimestamp;
 
 	/**
-	 * Flag forcing the opening of a new view
+	 * View group. A group of view is a group of different view related to the same trace that will
+	 * synchronize over the Pub/Sub.
 	 */
-	private boolean forceNewView;
-	
+	private int group;
+
 	/**
 	 * @return the trace
 	 */
@@ -105,23 +108,24 @@ public class TraceIntervalDescriptor {
 	}
 
 	/**
-	 * @return the forceNewView
+	 * @return the group
 	 */
-	public boolean isForceNewView() {
-		return forceNewView;
+	public int getGroup() {
+		return group;
 	}
 
 	/**
-	 * @param forceNewView the forceNewView to set
+	 * @param group
+	 *            the group to set
 	 */
-	public void setForceNewView(boolean forceNewView) {
-		this.forceNewView = forceNewView;
+	public void setGroup(int group) {
+		this.group = group;
 	}
 
 	@Override
 	public String toString() {
-		return "TraceIntervalDescriptor [trace=" + trace.getAlias() + ", startTimestamp="
-				+ startTimestamp + ", endTimestamp=" + endTimestamp + "]";
+		return "TraceIntervalDescriptor [trace=" + trace + ", startTimestamp=" + startTimestamp
+				+ ", endTimestamp=" + endTimestamp + ", group=" + group + "]";
 	}
 
 }

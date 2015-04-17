@@ -315,7 +315,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createTableAction() {
-		return new TableTraceIntervalAction() {
+		return new TableTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -324,7 +324,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createGanttAction() {
-		return new GanttTraceIntervalAction() {
+		return new GanttTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -333,7 +333,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createPieAction() {
-		return new PieTraceIntervalAction() {
+		return new PieTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -342,7 +342,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createHistogramAction() {
-		return new HistogramTraceIntervalAction() {
+		return new HistogramTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
