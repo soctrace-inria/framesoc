@@ -218,12 +218,23 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			String name = currentShownTrace.getAlias();
 			logger.trace("Name before: '" + name + "'");
 			if (highlight) {
-				this.setPartName(HIGHLIGHT_START + name);
+				this.setPartName(HIGHLIGHT_START + getGroupString() + name);
 			} else {
-				this.setPartName(name);
+				this.setPartName(getGroupString() + name);
 			}
 			logger.trace("Name after: '" + name + "'");
 		}
+	}
+
+	private String getGroupString() {
+		int group = FramesocPartManager.getInstance().getPartGroup(currentShownTrace, this);
+		if (group == FramesocPartManager.NO_GROUP) {
+			return "";
+		} 
+		if (FramesocPartManager.getInstance().isUniqueGroup(currentShownTrace, group)) {
+			return "";
+		}
+		return "(" + (group + 1) + ") ";
 	}
 
 	@Override

@@ -61,7 +61,7 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  */
 public final class FramesocPartManager implements IFramesocBusListener {
 
-	private final static int NO_GROUP = -1;
+	public final static int NO_GROUP = -1;
 
 	/**
 	 * Logger
@@ -374,7 +374,8 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 */
 	private void displayFramesocView(String viewId, Object data) {
 		TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace(), false, des.getGroup());
+		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace(), false,
+				des.getGroup());
 		if (status.part == null) {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), "Error", status.message);
 			return;
@@ -427,13 +428,14 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		if (desc != null) {
 			desc.instances--;
 			desc.openParts.remove(framesocPart);
-			// TODO check this
 			Trace t = framesocPart.getCurrentShownTrace();
 			if (t != null) {
 				Map<FramesocPart, Integer> parts = desc.partToGroup.get(t);
 				if (parts != null) {
 					parts.remove(framesocPart);
 				}
+				// update also titles (possibly remove numbers)
+				updateTitlesHighlight(t);
 			}
 		}
 	}
@@ -616,6 +618,28 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			return NO_GROUP;
 		}
 		return desc.partToGroup.get(trace).get(part);
+	}
+
+	/**
+	 * Check if for the given trace there are only views for a given group.
+	 * 
+	 * @param trace
+	 *            trace
+	 * @param group
+	 *            group of views
+	 * @return true, if for the given trace, there are only views for the given group
+	 */
+	public boolean isUniqueGroup(Trace trace, int group) {
+		for (ViewDesc desc : viewDescMap.values()) {
+			if (desc.partToGroup.containsKey(trace)) {
+				for (Integer g : desc.partToGroup.get(trace).values()) {
+					if (g != group) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	// debug
