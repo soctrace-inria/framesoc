@@ -238,7 +238,6 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			// do not create object in the part to group map for null traces
 			return;
 		}
-		
 		if (!desc.partToGroup.containsKey(trace)) {
 			desc.partToGroup.put(trace, new HashMap<FramesocPart, Integer>());
 		}
