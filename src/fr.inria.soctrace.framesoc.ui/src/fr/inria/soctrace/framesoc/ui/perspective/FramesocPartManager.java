@@ -60,7 +60,7 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * 
  */
 public final class FramesocPartManager implements IFramesocBusListener {
-
+	
 	public final static int NO_GROUP = -1;
 
 	public final static int NEW_GROUP = -2;
@@ -213,6 +213,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		if (part != null) {
 			part.activateView();
 			status.part = part;
+			desc.instances++;
 			setGroup(part, trace, desc, group);
 			return status;
 		}
@@ -221,7 +222,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		logger.debug("create a new view if possible");
 
 		// check if max instances reached
-		if (desc.instances >= desc.maxInstances) {
+		if (desc.maxInstances != Configuration.INFINITE_VIEWS && desc.instances >= desc.maxInstances) {
 			status.part = null;
 			status.message = "Maximum number of instances reached for view '" + viewID + "'.";
 			logger.error(status.message);
@@ -431,7 +432,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	public void disposeFramesocPart(FramesocPart framesocPart) {
 		ViewDesc desc = viewDescMap.get(framesocPart.getId());
 		if (desc != null) {
-			desc.instances--;
+			desc.instances = Math.max(0, desc.instances - 1);
 			desc.openParts.remove(framesocPart);
 			Trace t = framesocPart.getCurrentShownTrace();
 			if (t != null) {
@@ -580,12 +581,14 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Check if a view part corresponding to a given view id is already open for a given trace.
 	 * 
-	 * @param viewId Framesoc part id
-	 * @param trace trace
+	 * @param viewId
+	 *            Framesoc part id
+	 * @param trace
+	 *            trace
 	 * @return true, if the trace is already loaded in a view corresponding to a given ID.
 	 */
 	public boolean isAlreadyLoaded(String viewId, Trace trace) {

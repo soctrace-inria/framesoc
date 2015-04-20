@@ -230,7 +230,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 		int group = FramesocPartManager.getInstance().getPartGroup(currentShownTrace, this);
 		if (group == FramesocPartManager.NO_GROUP) {
 			return "";
-		} 
+		}
 		if (FramesocPartManager.getInstance().isUniqueGroup(currentShownTrace, group)) {
 			return "";
 		}
@@ -248,10 +248,12 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 
 	/**
 	 * Handle the topics related to trace update/delete/selection.
-	 * 
-	 * - TOPIC_UI_REFRESH_TRACES_NEEDED: the view title is updated - TOPIC_UI_TRACES_SYNCHRONIZED:
-	 * updated or deleted shown trace is managed - TOPIC_UI_SYSTEM_INITIALIZED: shown trace no more
-	 * existing is managed
+	 * <ul>
+	 * <li>TOPIC_UI_REFRESH_TRACES_NEEDED: the view title is updated
+	 * <li>TOPIC_UI_TRACES_SYNCHRONIZED: updated or deleted shown trace
+	 * <li>TOPIC_UI_SYSTEM_INITIALIZED: shown trace no more existing
+	 * <li>TOPIC_UI_FOCUSED_TRACE: focused trace has changed
+	 * </ul>
 	 * 
 	 * @param topic
 	 *            bus topic

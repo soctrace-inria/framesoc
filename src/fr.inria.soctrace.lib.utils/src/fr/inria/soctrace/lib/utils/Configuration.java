@@ -37,6 +37,12 @@ public class Configuration {
 	private final static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
 	/**
+	 * Constant corresponding to an infinite number of views for the
+	 * {@link SoCTraceProperty.max_view_instances} property.
+	 */
+	public final static int INFINITE_VIEWS = -1;
+
+	/**
 	 * Enumeration for SoC-Trace configuration variables names.
 	 */
 	public enum SoCTraceProperty {
