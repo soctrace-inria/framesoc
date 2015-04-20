@@ -1282,16 +1282,20 @@ public class StatisticsPieChartView extends FramesocPart {
 		typeFilterAction.setEnabled(true);
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
-			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
-			if (operatorDialog.open() == Dialog.OK) {
-				if (operatorDialog.getSelectionIndex() != -1) {
-					combo.select(operatorDialog.getSelectionIndex());
-					currentDescriptor = loaderDescriptors.get(operatorDialog.getSelectionIndex());
-					timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
-					globalLoadInterval.copy(intDes.getTimeInterval());
-					loadPieChart();
+			// propose operator selection only if there is no data loaded
+			if (!currentDescriptor.dataLoaded()) {
+				OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
+				if (operatorDialog.open() == Dialog.OK) {
+					if (operatorDialog.getSelectionIndex() != -1) {
+						combo.select(operatorDialog.getSelectionIndex());
+						currentDescriptor = loaderDescriptors.get(operatorDialog
+								.getSelectionIndex());
+					}
 				}
 			}
+			timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
+			globalLoadInterval.copy(intDes.getTimeInterval());
+			loadPieChart();
 		} else {
 			combo.select(0);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
@@ -1386,7 +1390,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// reset checked status, managed manually
 			typeFilterAction.setChecked(!typeFilterAction.isChecked());
-			
+
 			// open the dialog
 			if (typeFilterDialog.open() != Window.OK) {
 				return;
@@ -1436,7 +1440,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 			// reset checked status, managed manually
 			producerFilterAction.setChecked(!producerFilterAction.isChecked());
-			
+
 			// open the dialog
 			if (producerFilterDialog.open() != Window.OK) {
 				return;
