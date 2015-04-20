@@ -179,6 +179,8 @@ public abstract class DurationPieChartLoader extends EventPieChartLoader {
 
 				loadedInterval.endTimestamp = t1;
 				map.setSnapshot(values, loadedInterval);
+				// use same time unit for value displayed in the table
+				formatter.setContext(loadedInterval.startTimestamp, loadedInterval.endTimestamp);
 
 				t0 = t1;
 			}
