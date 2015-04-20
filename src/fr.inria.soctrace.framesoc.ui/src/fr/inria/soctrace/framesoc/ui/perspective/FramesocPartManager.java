@@ -10,7 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.perspective;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -243,22 +242,15 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		}
 		Map<FramesocPart, Integer> p2g = desc.partToGroup.get(trace);
 		if (group == NO_GROUP) {
-			group = findNewGroup(p2g);
+			group = getNextGroupId(p2g);
 		}
 		p2g.put(part, group);
 	}
 
-	private int findNewGroup(Map<FramesocPart, Integer> p2g) {
-		Integer expected = 0;
-		List<Integer> g = new ArrayList<>(p2g.values());
-		Collections.sort(g);
-		for (Integer i : g) {
-			if (i > expected) {
-				break;
-			}
-			expected = i + 1;
-		}
-		return expected;
+	private int getNextGroupId(Map<FramesocPart, Integer> p2g) {
+		if (p2g.values().isEmpty())
+			return 0;
+		return Collections.max(p2g.values()) + 1;
 	}
 
 	/**
