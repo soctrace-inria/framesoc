@@ -28,6 +28,7 @@
             launchCommand="fr.inria.soctrace.framesoc.ui.histogram.command.showEventDensityHistogram"
             position="TOP_RIGHT"
             priority="0"
+            show_default="true"
             viewId="fr.inria.soctrace.framesoc.ui.HISTOGRAM">
       </part>
    </extension>

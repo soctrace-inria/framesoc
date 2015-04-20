@@ -29,6 +29,7 @@
             launchCommand="fr.inria.soctrace.framesoc.ui.gantt.command.ShowGantt"
             position="BOTTOM_RIGHT"
             priority="1"
+            show_default="true"
             viewId="fr.inria.soctrace.framesoc.ui.GANTT">
       </part>
    </extension>

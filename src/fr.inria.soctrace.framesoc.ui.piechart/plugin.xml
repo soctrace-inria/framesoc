@@ -29,6 +29,7 @@
             launchCommand="fr.inria.soctrace.framesoc.ui.piechart.command.ShowStatisticsPieChart"
             position="TOP_RIGHT"
             priority="1"
+            show_default="true"
             viewId="fr.inria.soctrace.framesoc.ui.PIE">
       </part>
    </extension>
