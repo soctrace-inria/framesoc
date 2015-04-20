@@ -50,7 +50,7 @@ public class FramesocPerspective implements IPerspectiveFactory {
 
 	@Override
 	public void createInitialLayout(IPageLayout layout) {
-
+		
 		IViewLayout viewLayout = null;
 		layout.setEditorAreaVisible(false);
 		layout.addPerspectiveShortcut(FramesocPerspective.ID);
@@ -122,6 +122,8 @@ public class FramesocPerspective implements IPerspectiveFactory {
 				}
 			}
 		});
+		
+		FramesocPartManager.getInstance().cleanFramesocParts();
 
 	}
 

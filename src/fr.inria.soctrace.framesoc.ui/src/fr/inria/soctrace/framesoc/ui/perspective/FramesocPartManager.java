@@ -60,7 +60,7 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * 
  */
 public final class FramesocPartManager implements IFramesocBusListener {
-	
+
 	public final static int NO_GROUP = -1;
 
 	public final static int NEW_GROUP = -2;
@@ -213,7 +213,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		if (part != null) {
 			part.activateView();
 			status.part = part;
-			desc.instances++;
+			desc.instances = 1; // there can be only one empty view
 			setGroup(part, trace, desc, group);
 			return status;
 		}
@@ -222,7 +222,8 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		logger.debug("create a new view if possible");
 
 		// check if max instances reached
-		if (desc.maxInstances != Configuration.INFINITE_VIEWS && desc.instances >= desc.maxInstances) {
+		if (desc.maxInstances != Configuration.INFINITE_VIEWS
+				&& desc.instances >= desc.maxInstances) {
 			status.part = null;
 			status.message = "Maximum number of instances reached for view '" + viewID + "'.";
 			logger.error(status.message);
