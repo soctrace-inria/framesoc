@@ -185,6 +185,7 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 				TraceIntervalDescriptor des = new TraceIntervalDescriptor();
 				des.setTrace(selectedNode.getTrace());
 				des.setTimeInterval(TimeInterval.NOT_SPECIFIED);
+				des.setGroup(FramesocPartManager.NEW_GROUP);
 				logger.debug(des.toString());
 				FramesocBus.getInstance().send(
 						FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);

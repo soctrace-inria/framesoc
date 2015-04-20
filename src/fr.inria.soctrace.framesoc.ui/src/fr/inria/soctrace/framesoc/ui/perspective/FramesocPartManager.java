@@ -48,7 +48,8 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * <p>
  * This manager provides the following functionalities:
  * <ul>
- * <li>create of Framesoc analysis views, ensuring correct secondary ID management
+ * <li>create Framesoc analysis views, ensuring correct secondary ID management
+ * <li>manage Framesoc analysis views groups, for a given trace
  * <li>clean the Framesoc perspective
  * <li>handle inter-view communication topics
  * <li>enable disposal of Framesoc analysis views
@@ -61,6 +62,8 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 public final class FramesocPartManager implements IFramesocBusListener {
 
 	public final static int NO_GROUP = -1;
+
+	public final static int NEW_GROUP = -2;
 
 	/**
 	 * Logger
@@ -133,20 +136,30 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		return instance;
 	}
 
-	/*
-	 * Public methods
-	 */
-
 	/**
-	 * TODO
+	 * Get an instance for the given Framesoc analysis view ID.
+	 * 
+	 * <p>
+	 * If an empty view corresponding to this ID is present, it is used. Otherwise a new one is
+	 * created and activated, if the maximum number of instance has not been reached yet.
+	 * 
+	 * @param viewID
+	 *            view ID corresponding to an existing Framesoc analysis view
+	 * @param trace
+	 *            the trace we want to load, or null if we need an empty view
+	 * @param forceNew
+	 *            forces the creation of another view for the passed ID, even if one is already
+	 *            existing
+	 * @return a view, or null if the passed ID does not correspond to a Framesoc view, if the
+	 *         maximum number of instances for the view has been reached, if PartInitException is
+	 *         launched.
 	 */
-
 	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean allowNew) {
 		return getPartInstance(viewID, trace, allowNew, NO_GROUP);
 	}
 
 	/**
-	 * Get an instance for the given Framesoc analysis view ID.
+	 * Get an instance for the given Framesoc analysis view ID, specifying the view group.
 	 * 
 	 * <p>
 	 * If an empty view corresponding to this ID is present, it is used. Otherwise a new one is
@@ -162,13 +175,13 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 *            existing
 	 * @param group
 	 *            group id requested for the new view. It is ignored if <code>forceNew</code> is
-	 *            false. If it is set to <code>NO_GROUP</code> the value is automatically assigned,
-	 *            according to the view ID and the trace.
+	 *            false. If it is set to <code>NO_GROUP</code> or <code>NEW_GROUP</code> the value
+	 *            is automatically assigned, according to the view ID and the trace.
 	 * @return a view, or null if the passed ID does not correspond to a Framesoc view, if the
 	 *         maximum number of instances for the view has been reached, if PartInitException is
 	 *         launched.
 	 */
-	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean forceNew,
+	protected OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean forceNew,
 			int group) {
 
 		OpenFramesocPartStatus status = new OpenFramesocPartStatus();
@@ -241,7 +254,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			desc.partToGroup.put(trace, new HashMap<FramesocPart, Integer>());
 		}
 		Map<FramesocPart, Integer> p2g = desc.partToGroup.get(trace);
-		if (group == NO_GROUP) {
+		if (group == NO_GROUP || group == NEW_GROUP) {
 			group = getNextGroupId(p2g);
 		}
 		p2g.put(part, group);
@@ -526,28 +539,6 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	}
 
 	/**
-	 * TODO
-	 * 
-	 * @param viewId
-	 * @param trace
-	 * @return
-	 */
-	public boolean isAlreadyLoaded(String viewId, Trace trace) {
-		ViewDesc desc = viewDescMap.get(viewId);
-		if (desc != null) {
-			for (FramesocPart part : desc.openParts) {
-				Trace t = part.getCurrentShownTrace();
-				if (t != null) {
-					if (trace.equals(t)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Look for a FramesocPart for the given id with the given trace loaded inside.
 	 * 
 	 * @param viewId
@@ -556,6 +547,8 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 * @return the part, or null if not found
 	 */
 	private FramesocPart searchAlreadyLoaded(String viewId, Trace trace, int group) {
+		if (group == NEW_GROUP)
+			return null;
 		ViewDesc desc = viewDescMap.get(viewId);
 		if (desc != null) {
 			for (FramesocPart part : desc.openParts) {
@@ -586,6 +579,28 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Check if a view part corresponding to a given view id is already open for a given trace.
+	 * 
+	 * @param viewId Framesoc part id
+	 * @param trace trace
+	 * @return true, if the trace is already loaded in a view corresponding to a given ID.
+	 */
+	public boolean isAlreadyLoaded(String viewId, Trace trace) {
+		ViewDesc desc = viewDescMap.get(viewId);
+		if (desc != null) {
+			for (FramesocPart part : desc.openParts) {
+				Trace t = part.getCurrentShownTrace();
+				if (t != null) {
+					if (trace.equals(t)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
