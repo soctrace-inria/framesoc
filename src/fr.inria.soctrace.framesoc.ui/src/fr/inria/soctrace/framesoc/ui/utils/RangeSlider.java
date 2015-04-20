@@ -532,7 +532,7 @@ public class RangeSlider extends Canvas {
 		gc.setBackground(getBackground());
 
 		// to have the same time unit
-		formatter.setContext(this.minimum, this.maximum, true);
+		formatter.setContext(this.minimum, this.maximum);
 		final int numberOfTicksHint = Math.max(getSize().x / TIMESTAMP_MAX_SIZE, 1);
 		final double pixelSize = computePixelSizeForHorizonalSlider();
 		TickDescriptor des = formatter.getTickDescriptor(this.minimum, this.maximum, numberOfTicksHint);

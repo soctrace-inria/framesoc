@@ -150,7 +150,7 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
      *            rectangle
      */
     public void drawTimestamp(GC gc, long time, Rectangle rect) {
-        fFormatter.setContext(fTimeProvider.getTime0(), fTimeProvider.getTime1(), true);
+        fFormatter.setContext(fTimeProvider.getTime0(), fTimeProvider.getTime1());
         String stime = fFormatter.format(time);
         Utils.drawText(gc, stime, rect, true);
     }

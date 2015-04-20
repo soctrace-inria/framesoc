@@ -88,7 +88,7 @@ public class TimestampFormatTest {
 		long l1 = 1111112;
 		long l2 = 1111114;
 		assertEquals(f.format(l1), f.format(l2));
-		f.setContext(l1, l2, true);
+		f.setContext(l1, l2);
 		assertNotEquals(f.format(l1), f.format(l2));
 	}
 

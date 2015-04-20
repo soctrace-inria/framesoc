@@ -148,10 +148,8 @@ public class TimestampFormat extends NumberFormat {
 	 *            lowest displayed timestamp
 	 * @param t2
 	 *            highest displayed timestamp
-	 * @param useSameUnit
-	 *            boolean saying if in this context we have to use the same displayed time unit
 	 */
-	public void setContext(long t1, long t2, boolean useSameUnit) {
+	public void setContext(long t1, long t2) {
 		int e1 = getEngExp(t1);
 		int e2 = getEngExp(t2);
 		eng = Math.max(e1, e2);

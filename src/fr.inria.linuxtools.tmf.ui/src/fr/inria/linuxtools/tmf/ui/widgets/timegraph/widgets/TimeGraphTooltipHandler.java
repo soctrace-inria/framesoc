@@ -229,7 +229,7 @@ public class TimeGraphTooltipHandler {
                         }
                         if (eventDuration > 0) {
                             contextFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
-                            contextFormatter.setContext(eventStartTime, eventEndTime, true);
+                            contextFormatter.setContext(eventStartTime, eventEndTime);
                             addItem(Messages.TmfTimeTipHandler_TRACE_START_TIME, eventStartTime > -1 ?
                                     contextFormatter.format(eventStartTime) : "?"); //$NON-NLS-1$
                             addItem(Messages.TmfTimeTipHandler_TRACE_STOP_TIME, eventEndTime > -1 ?
@@ -283,7 +283,7 @@ public class TimeGraphTooltipHandler {
                     if (duration > 0) {
                         simpleFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
                         contextFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
-                        contextFormatter.setContext(sourceTime, targetTime, true);
+                        contextFormatter.setContext(sourceTime, targetTime);
                         addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, contextFormatter.format(sourceTime));
                         addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, contextFormatter.format(targetTime));
                         // Duration in relative format in any case

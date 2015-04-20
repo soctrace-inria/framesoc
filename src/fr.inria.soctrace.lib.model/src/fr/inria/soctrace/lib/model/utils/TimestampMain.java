@@ -14,7 +14,7 @@ public class TimestampMain {
 		System.out.println(f.format(ts));
 		System.out.println(f.format(te));
 		
-		f.setContext(ts, te, true);
+		f.setContext(ts, te);
 
 		System.out.println(f.format(ts));
 		System.out.println(f.format(te));
