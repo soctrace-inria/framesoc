@@ -38,6 +38,7 @@ class FramesocPartContributionManager {
 	private static final String COMMAND = "launchCommand"; //$NON-NLS-1$
 	private static final String POSITION = "position"; //$NON-NLS-1$
 	private static final String PRIORITY = "priority"; //$NON-NLS-1$
+	private static final String SHOW_DEFAULT = "show_default"; //$NON-NLS-1$
 
 	private List<PartContributionDescriptor> parts = new LinkedList<PartContributionDescriptor>();
 
@@ -67,6 +68,7 @@ class FramesocPartContributionManager {
 				e.printStackTrace();
 				des.priority = Integer.MAX_VALUE;
 			}
+			des.showDefault = Boolean.valueOf(elem.getAttribute(SHOW_DEFAULT));
 			logger.debug("descriptor: {}", des);
 			parts.add(des);
 		}		
@@ -150,11 +152,12 @@ class FramesocPartContributionManager {
 		public String commandId;
 		public String position;
 		public int priority;
+		public boolean showDefault;
 		@Override
 		public String toString() {
-			return "PartContributionDescriptor [id=" + id + ", icon=" + icon
-					+ ", commandId=" + commandId + ", position=" + position 
-					+ ", priority=" + priority + "]";
+			return "PartContributionDescriptor [id=" + id + ", icon=" + icon + ", commandId="
+					+ commandId + ", position=" + position + ", priority=" + priority
+					+ ", showDefault=" + showDefault + "]";
 		}		
 	}
 
