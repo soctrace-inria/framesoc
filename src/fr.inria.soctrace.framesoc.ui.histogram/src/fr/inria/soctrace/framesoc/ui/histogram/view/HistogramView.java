@@ -105,7 +105,7 @@ public class HistogramView extends FramesocPart {
 		}
 
 		@Override
-		public void filterChanged() {
+		public void reloadAfterChange() {
 			loadHistogram(currentShownTrace, loadedInterval);
 		}
 	}
@@ -303,9 +303,8 @@ public class HistogramView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
 		// Filters actions
-		for (HistogramFilterData data : configurationMap.values()) {
-			manager.add(data.initFilterAction());
-		}
+		manager.add(configurationMap.get(FilterDimension.PRODUCERS).initFilterAction());
+		manager.add(configurationMap.get(FilterDimension.TYPE).initFilterAction());
 
 		// Separator
 		manager.add(new Separator());
@@ -417,7 +416,6 @@ public class HistogramView extends FramesocPart {
 				DrawerJob drawerJob = new DrawerJob("Event Density Chart Job", loaderThread);
 				loaderThread.start();
 				drawerJob.schedule();
-
 			}
 		};
 		showThread.start();

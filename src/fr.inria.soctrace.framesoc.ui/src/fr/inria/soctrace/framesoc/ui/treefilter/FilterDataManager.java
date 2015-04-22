@@ -28,6 +28,13 @@ import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
  */
 public abstract class FilterDataManager {
 
+	/**
+	 * Filter status
+	 */
+	private static enum FilterStatus {
+		UNSET, SET, APPLIED;
+	}
+
 	private FilterDimensionData dimensionData;
 	private IAction filterAction;
 	private TreeFilterDialog filterDialog;
@@ -58,17 +65,16 @@ public abstract class FilterDataManager {
 	 * @return the action
 	 */
 	public IAction initFilterAction() {
-		IAction action = new Action("", IAction.AS_CHECK_BOX) {
+		filterAction = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
 				showFilterAction();
 			}
 		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/" + dimensionData.getIconName()));
-		action.setToolTipText(dimensionData.getActionToolTipMessage()); 
-		filterAction = action;
-		return action;
+		filterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/" + dimensionData.getIconName()));
+		filterAction.setToolTipText(dimensionData.getActionToolTipMessage());
+		return filterAction;
 	}
 
 	/**
@@ -116,14 +122,14 @@ public abstract class FilterDataManager {
 	/**
 	 * Handler called after the filtering configuration has been changed.
 	 */
-	public abstract void filterChanged();
+	public abstract void reloadAfterChange();
 
 	/*
-	 * Utilities 
+	 * Utilities
 	 */
-	
+
 	private void showFilterAction() {
-		
+
 		if (roots.length > 0) {
 			filterDialog.setInput(roots);
 			filterDialog.setTitle(dimensionData.getName() + " Filter");
@@ -151,14 +157,16 @@ public abstract class FilterDataManager {
 						// the loaded data is with unchecked elements
 						updateFilter(FilterStatus.SET);
 						checked = currentChecked;
-						filterChanged();
+						reloadAfterChange();
+						updateFilter(FilterStatus.UNSET);
 					}
 				} else if (areListsEqual(checked, currentChecked)) {
 					updateFilter(FilterStatus.APPLIED);
 				} else {
-					checked = currentChecked;
 					updateFilter(FilterStatus.SET);
-					filterChanged();
+					checked = currentChecked;
+					reloadAfterChange();
+					updateFilter(FilterStatus.APPLIED);
 				}
 			}
 		}
@@ -171,7 +179,7 @@ public abstract class FilterDataManager {
 		switch (status) {
 		case APPLIED:
 			filterAction.setChecked(true);
-			icon.append(dimensionData.getAppliedIconName()); 
+			icon.append(dimensionData.getAppliedIconName());
 			tooltip.append(" (filter applied)");
 			break;
 		case SET:
@@ -202,7 +210,4 @@ public abstract class FilterDataManager {
 		return s1.equals(s2);
 	}
 
-	private static enum FilterStatus {
-		UNSET, SET, APPLIED;
-	}
 }
