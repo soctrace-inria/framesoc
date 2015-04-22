@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.jfree.data.statistics.HistogramType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
+import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -54,16 +57,24 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
 public class DensityHistogramLoader {
 
 	public enum ConfigurationDimension {
-		PRODUCERS("Event Producers"), TYPE("Event Types");
+
+		PRODUCERS("Event Producers", new EventProducerTreeLabelProvider()), 
+		TYPE("Event Types", new EventTypeTreeLabelProvider());
 
 		private String name;
+		private IBaseLabelProvider labelProvider;
 
-		ConfigurationDimension(String str) {
-			name = str;
+		ConfigurationDimension(String name, IBaseLabelProvider labelProvider) {
+			this.name = name;
+			this.labelProvider = labelProvider;
 		}
 
 		public String getName() {
 			return name;
+		}
+
+		public IBaseLabelProvider getLabelProvider() {
+			return labelProvider;
 		}
 	}
 

@@ -1422,7 +1422,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	/**
-	 * Callback for the show type filter action
+	 * Callback for the show producer filter action
 	 */
 	private void showProducerFilterAction() {
 
