@@ -1,4 +1,4 @@
-package fr.inria.soctrace.framesoc.ui.utils;
+package fr.inria.soctrace.framesoc.ui.treefilter;
 
 import java.util.ArrayList;
 import java.util.Collection;

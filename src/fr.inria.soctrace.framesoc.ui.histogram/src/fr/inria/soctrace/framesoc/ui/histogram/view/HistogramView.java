@@ -18,24 +18,18 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -47,11 +41,9 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -75,13 +67,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
-import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
-import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader.ConfigurationDimension;
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
-import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -89,9 +78,12 @@ import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.SquareIconLabelProvider;
-import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDataManager;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimensionData;
+import fr.inria.soctrace.framesoc.ui.treefilter.ProducerFilterData;
+import fr.inria.soctrace.framesoc.ui.treefilter.TypeFilterData;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
-import fr.inria.soctrace.framesoc.ui.utils.TreeFilterDialog;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -106,16 +98,15 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  */
 public class HistogramView extends FramesocPart {
 
-	private static class ConfigurationData {
-		ConfigurationDimension dimension;
-		IAction filterAction;
-		TreeFilterDialog filterDialog;
-		ITreeNode[] roots;
-		List<Object> checked;
-		List<Object> allElements;
+	private class HistogramFilterData extends FilterDataManager {
 
-		ConfigurationData(ConfigurationDimension dimension) {
-			this.dimension = dimension;
+		public HistogramFilterData(FilterDimensionData dimension) {
+			super(dimension);
+		}
+
+		@Override
+		public void filterChanged() {
+			loadHistogram(currentShownTrace, loadedInterval);
 		}
 	}
 
@@ -165,10 +156,6 @@ public class HistogramView extends FramesocPart {
 	private ChartComposite chartFrame;
 	protected XYPlot plot;
 	private TimeBar timeBar;
-	private Button btnCheckall;
-	private Button btnUncheckall;
-	private Button btnCheckSubtree;
-	private Button btnUncheckSubtree;
 	private IntervalMarker marker;
 
 	private List<SquareIconLabelProvider> labelProviders = new ArrayList<>();
@@ -178,10 +165,8 @@ public class HistogramView extends FramesocPart {
 	 */
 	private TimeInterval requestedInterval;
 	private TimeInterval loadedInterval;
-	private Map<ConfigurationDimension, ConfigurationData> configurationMap;
+	private Map<FilterDimension, HistogramFilterData> configurationMap;
 	private HistogramLoaderDataset dataset;
-	private boolean timeChanged = false; // XXX maybe remove
-	private boolean configurationChanged = false; // XXX maybe remove
 
 	/*
 	 * Timestamp management
@@ -202,9 +187,9 @@ public class HistogramView extends FramesocPart {
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED);
 		topics.registerAll();
 		configurationMap = new HashMap<>();
-		for (ConfigurationDimension dimension : ConfigurationDimension.values()) {
-			configurationMap.put(dimension, new ConfigurationData(dimension));
-		}
+		configurationMap.put(FilterDimension.PRODUCERS, new HistogramFilterData(
+				new ProducerFilterData()));
+		configurationMap.put(FilterDimension.TYPE, new HistogramFilterData(new TypeFilterData()));
 	}
 
 	/* Uncomment this to use the window builder */
@@ -262,7 +247,6 @@ public class HistogramView extends FramesocPart {
 				}
 				selectedTs0 = barInterval.startTimestamp;
 				selectedTs1 = barInterval.endTimestamp;
-				timeChanged = !barInterval.equals(loadedInterval);
 			}
 		});
 		// button to synch the timebar, producers and type with the current loaded data
@@ -277,14 +261,13 @@ public class HistogramView extends FramesocPart {
 						marker = null;
 					}
 				}
-				timeChanged = false;
 			}
 		});
 		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (timeChanged || configurationChanged) {
+				if (!timeBar.getSelection().equals(loadedInterval)) {
 					loadHistogram(currentShownTrace, timeBar.getSelection());
 				}
 			}
@@ -295,18 +278,24 @@ public class HistogramView extends FramesocPart {
 		// ----------
 
 		// filters and actions
-		createFilterDialogs();
+		initFilterDialogs();
 		createActions();
 
 	}
 
-	private void createFilterDialogs() {
-		for (ConfigurationDimension d : ConfigurationDimension.values()) {
-			TreeFilterDialog dialog = configurationMap.get(d).filterDialog;
-			dialog = new TreeFilterDialog(getSite().getShell());
-			dialog.setColumnNames(new String[] { d.getName() });
-			dialog.setContentProvider(new TreeContentProvider());
-			dialog.setLabelProvider(d.getLabelProvider());
+	private void initFilterData(Trace t) {
+		for (HistogramFilterData data : configurationMap.values()) {
+			try {
+				data.setFilterRoots(DensityHistogramLoader.loadDimension(data.getDimension(), t));
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void initFilterDialogs() {
+		for (HistogramFilterData data : configurationMap.values()) {
+			data.initFilterDialog(getSite().getShell());
 		}
 	}
 
@@ -314,8 +303,9 @@ public class HistogramView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
 		// Filters actions
-		manager.add(createShowProducerFilterAction());
-		manager.add(createShowTypeFilterAction());
+		for (HistogramFilterData data : configurationMap.values()) {
+			manager.add(data.initFilterAction());
+		}
 
 		// Separator
 		manager.add(new Separator());
@@ -327,142 +317,6 @@ public class HistogramView extends FramesocPart {
 
 		// disable all actions
 		enableActions(false);
-	}
-
-	private IAction createShowProducerFilterAction() {
-		IAction action = new Action("", IAction.AS_CHECK_BOX) {
-			@Override
-			public void run() {
-				showFilterAction(ConfigurationDimension.PRODUCERS);
-			}
-		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/producer_filter.png"));
-		action.setToolTipText("Show Event Producer Filter");
-		configurationMap.get(ConfigurationDimension.PRODUCERS).filterAction = action;
-		return action;
-	}
-
-	private IAction createShowTypeFilterAction() {
-		IAction action = new Action("", IAction.AS_CHECK_BOX) {
-			@Override
-			public void run() {
-				showFilterAction(ConfigurationDimension.PRODUCERS);
-			}
-		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/type_filter.png"));
-		action.setToolTipText("Show Event Type Filter");
-		configurationMap.get(ConfigurationDimension.TYPE).filterAction = action;
-		return action;
-	}
-
-	/**
-	 * Callback for the show filter action
-	 */
-	private void showFilterAction(ConfigurationDimension dimension) {
-
-		ITreeNode[] roots = configurationMap.get(dimension).roots;
-		List<Object> checked = configurationMap.get(dimension).checked;
-		TreeFilterDialog dialog = configurationMap.get(dimension).filterDialog;
-		List<Object> allElements = configurationMap.get(dimension).allElements;
-		IAction filterAction = configurationMap.get(dimension).filterAction;
-
-		if (roots.length > 0) {
-			dialog.setInput(roots);
-			dialog.setTitle(ConfigurationDimension.PRODUCERS.getName() + " Filter");
-			dialog.setMessage("Check the elements to consider");
-			dialog.setExpandedElements(allElements.toArray());
-			dialog.setInitialElementSelections(checked);
-			dialog.create();
-
-			// reset checked status, managed manually
-			filterAction.setChecked(!filterAction.isChecked());
-
-			// open the dialog
-			if (dialog.open() != Window.OK) {
-				return;
-			}
-
-			// Process selected elements
-			if (dialog.getResult() != null) {
-				List<Object> currentChecked = Arrays.asList(dialog.getResult());
-				if (areListsEqual(allElements, currentChecked)) {
-					// all checked
-					if (checked == null || areListsEqual(allElements, checked)) {
-						updateFilter(dimension, FilterStatus.UNSET);
-					} else {
-						// the loaded data is with unchecked elements
-						updateFilter(dimension, FilterStatus.SET);
-					}
-				} else if (areListsEqual(checked, currentChecked)) {
-					updateFilter(dimension, FilterStatus.APPLIED);
-				} else {
-					updateFilter(dimension, FilterStatus.SET);
-				}
-			}
-			loadHistogram(currentShownTrace, loadedInterval);
-		}
-	}
-
-	/**
-	 * FACTORIZE
-	 * 
-	 * @author "Generoso Pagano <generoso.pagano@inria.fr>"
-	 */
-	private static enum FilterStatus {
-		UNSET, SET, APPLIED;
-	}
-
-	/**
-	 * FACTORIZE
-	 * 
-	 * @param status
-	 */
-	private void updateFilter(ConfigurationDimension dimension, FilterStatus status) {
-		StringBuilder icon = new StringBuilder("icons/");
-		StringBuilder tooltip = new StringBuilder("Show " + dimension.getName() + " Filter");
-		IAction filterAction = configurationMap.get(dimension).filterAction;
-
-		switch (status) {
-		case APPLIED:
-			filterAction.setChecked(true);
-			icon.append("producer_filter.png"); // FIXME
-			tooltip.append(" (filter applied)");
-			break;
-		case SET:
-			filterAction.setChecked(false);
-			icon.append("producer_filter_set.png"); // FIXME
-			tooltip.append(" (filter set but not applied)");
-			break;
-		case UNSET:
-			filterAction.setChecked(false);
-			icon.append("producer_filter.png"); // FIXME
-			break;
-		}
-
-		filterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, icon.toString()));
-		filterAction.setToolTipText(tooltip.toString());
-	}
-
-	/**
-	 * TODO FACTORIZE
-	 * 
-	 * @param l1
-	 * @param l2
-	 * @return
-	 */
-	private boolean areListsEqual(List<Object> l1, List<Object> l2) {
-		if (l1 == null) {
-			return l2 == null;
-		}
-		if (l2 == null) {
-			return l1 == null;
-		}
-		Set<Object> s1 = new HashSet<>(l1);
-		Set<Object> s2 = new HashSet<>(l2);
-		return s1.equals(s2);
 	}
 
 	@Override
@@ -495,6 +349,8 @@ public class HistogramView extends FramesocPart {
 
 		if (trace == null)
 			return;
+
+		initFilterData(trace);
 
 		if (data == null) {
 			// called after right click on trace tree menu
@@ -546,53 +402,22 @@ public class HistogramView extends FramesocPart {
 		Thread showThread = new Thread() {
 			@Override
 			public void run() {
-				try {
-					// prepare the configuration for the loader
-					Map<ConfigurationDimension, List<Integer>> confMap = new HashMap<>();
-					for (ConfigurationData confData : configurationMap.values()) {
-						if (confData.roots == null) {
-							// first time, tree information not loaded yet
-							continue;
-						}
-						// store in confData.checked a sorted array containing
-						// a snapshot of checked elements at load time
-						// Object[] currentChecked = confData.tree.getCheckedElements();
-						// confData.checked = new ITreeNode[currentChecked.length];
-						// List<Integer> toLoad = new ArrayList<Integer>(currentChecked.length);
-						// confMap.put(confData.dimension, toLoad);
-						// for (int i = 0; i < currentChecked.length; i++) {
-						// confData.checked[i] = (ITreeNode) currentChecked[i];
-						// if (!(currentChecked[i] instanceof IModelElementNode))
-						// continue;
-						// toLoad.add(((IModelElementNode) currentChecked[i]).getId());
-						// }
-						// Arrays.sort(confData.checked, TREE_NODE_COMPARATOR);
-					}
-
-					// create loader
-					DensityHistogramLoader loader = new DensityHistogramLoader();
-
-					// load producers and types if necessary
-					for (ConfigurationData data : configurationMap.values()) {
-						if (data.roots == null) {
-							data.roots = loader.loadDimension(data.dimension, currentShownTrace);
-							data.checked = null;
-						}
-					}
-
-					// create a new loader dataset
-					dataset = new HistogramLoaderDataset();
-
-					// create loader thread and drawer job
-					LoaderThread loaderThread = new LoaderThread(interval, loader,
-							confMap.get(ConfigurationDimension.TYPE),
-							confMap.get(ConfigurationDimension.PRODUCERS));
-					DrawerJob drawerJob = new DrawerJob("Event Density Chart Job", loaderThread);
-					loaderThread.start();
-					drawerJob.schedule();
-				} catch (SoCTraceException e) {
-					e.printStackTrace();
+				// prepare the configuration for the loader
+				Map<FilterDimension, List<Integer>> confMap = new HashMap<>();
+				for (HistogramFilterData data : configurationMap.values()) {
+					confMap.put(data.getDimension(), data.getCheckedId());
 				}
+
+				// create a new loader dataset
+				dataset = new HistogramLoaderDataset();
+
+				// create loader thread and drawer job
+				LoaderThread loaderThread = new LoaderThread(interval,
+						confMap.get(FilterDimension.TYPE), confMap.get(FilterDimension.PRODUCERS));
+				DrawerJob drawerJob = new DrawerJob("Event Density Chart Job", loaderThread);
+				loaderThread.start();
+				drawerJob.schedule();
+
 			}
 		};
 		showThread.start();
@@ -604,15 +429,12 @@ public class HistogramView extends FramesocPart {
 	private class LoaderThread extends Thread {
 
 		private final TimeInterval interval;
-		private final DensityHistogramLoader loader;
 		private final IProgressMonitor monitor;
 		private List<Integer> types;
 		private List<Integer> producer;
 
-		public LoaderThread(TimeInterval interval, DensityHistogramLoader loader,
-				List<Integer> types, List<Integer> producers) {
+		public LoaderThread(TimeInterval interval, List<Integer> types, List<Integer> producers) {
 			this.interval = interval;
-			this.loader = loader;
 			this.types = types;
 			this.producer = producers;
 			this.monitor = new NullProgressMonitor();
@@ -620,7 +442,8 @@ public class HistogramView extends FramesocPart {
 
 		@Override
 		public void run() {
-			loader.load(currentShownTrace, interval, types, producer, dataset, monitor);
+			DensityHistogramLoader.load(currentShownTrace, interval, types, producer, dataset,
+					monitor);
 		}
 
 		public void cancel() {
@@ -676,8 +499,6 @@ public class HistogramView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh(first, false, false);
 				}
-				timeChanged = false;
-				configurationChanged = false;
 				return Status.OK_STATUS;
 			} finally {
 				enableButtons();
@@ -691,10 +512,6 @@ public class HistogramView extends FramesocPart {
 				public void run() {
 					timeBar.setEnabled(false);
 					enableActions(false);
-					btnCheckall.setEnabled(false);
-					btnCheckSubtree.setEnabled(false);
-					btnUncheckall.setEnabled(false);
-					btnUncheckSubtree.setEnabled(false);
 				}
 			});
 		}
@@ -808,7 +625,6 @@ public class HistogramView extends FramesocPart {
 							long max = Math.max(selectedTs0, selectedTs1);
 							marker.setStartValue(min);
 							marker.setEndValue(max);
-							timeChanged = true;
 							timeBar.setSelection(min, max);
 						}
 

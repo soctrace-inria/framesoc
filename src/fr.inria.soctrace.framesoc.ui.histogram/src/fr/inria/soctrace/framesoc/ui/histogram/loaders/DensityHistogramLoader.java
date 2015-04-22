@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.jfree.data.statistics.HistogramType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +32,7 @@ import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
-import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
-import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -56,32 +54,10 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  */
 public class DensityHistogramLoader {
 
-	public enum ConfigurationDimension {
-
-		PRODUCERS("Event Producers", new EventProducerTreeLabelProvider()), 
-		TYPE("Event Types", new EventTypeTreeLabelProvider());
-
-		private String name;
-		private IBaseLabelProvider labelProvider;
-
-		ConfigurationDimension(String name, IBaseLabelProvider labelProvider) {
-			this.name = name;
-			this.labelProvider = labelProvider;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public IBaseLabelProvider getLabelProvider() {
-			return labelProvider;
-		}
-	}
-
 	/**
 	 * Average number of event to load in each query
 	 */
-	protected final int EVENTS_PER_QUERY = 1000000;
+	protected final static int EVENTS_PER_QUERY = 1000000;
 
 	/**
 	 * Logger
@@ -112,7 +88,7 @@ public class DensityHistogramLoader {
 	 *            loader dataset
 	 * @throws SoCTraceException
 	 */
-	public void load(Trace trace, TimeInterval loadInterval, List<Integer> types,
+	public static void load(Trace trace, TimeInterval loadInterval, List<Integer> types,
 			List<Integer> producers, HistogramLoaderDataset dataset, IProgressMonitor monitor) {
 
 		DeltaManager dm = new DeltaManager();
@@ -180,7 +156,7 @@ public class DensityHistogramLoader {
 		}
 	}
 
-	protected boolean checkCancel(HistogramLoaderDataset dataset, IProgressMonitor monitor) {
+	protected static boolean checkCancel(HistogramLoaderDataset dataset, IProgressMonitor monitor) {
 		if (monitor.isCanceled()) {
 			dataset.setStop();
 			return true;
@@ -198,7 +174,7 @@ public class DensityHistogramLoader {
 	 * @return the hierarchy of items for the passed dimension
 	 * @throws SoCTraceException
 	 */
-	public ITreeNode[] loadDimension(ConfigurationDimension dimension, Trace trace)
+	public static ITreeNode[] loadDimension(FilterDimension dimension, Trace trace)
 			throws SoCTraceException {
 		switch (dimension) {
 		case TYPE:
@@ -206,7 +182,7 @@ public class DensityHistogramLoader {
 		case PRODUCERS:
 			return loadProducers(trace);
 		}
-		throw new SoCTraceException("Unknown dimension: " + dimension.getName());
+		throw new SoCTraceException("Unknown dimension: " + dimension);
 	}
 
 	/**
@@ -217,7 +193,7 @@ public class DensityHistogramLoader {
 	 * @return the event producer roots
 	 * @throws SoCTraceException
 	 */
-	public EventProducerNode[] loadProducers(Trace trace) throws SoCTraceException {
+	public static EventProducerNode[] loadProducers(Trace trace) throws SoCTraceException {
 		List<EventProducerNode> roots = new LinkedList<>();
 		TraceDBObject traceDB = null;
 		try {
@@ -249,7 +225,7 @@ public class DensityHistogramLoader {
 	 * @return the root nodes, corresponding to the event category
 	 * @throws SoCTraceException
 	 */
-	public CategoryNode[] loadEventTypes(Trace trace) throws SoCTraceException {
+	public static CategoryNode[] loadEventTypes(Trace trace) throws SoCTraceException {
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		TraceDBObject traceDB = null;
 		try {
@@ -269,7 +245,7 @@ public class DensityHistogramLoader {
 		return categories.values().toArray(new CategoryNode[categories.values().size()]);
 	}
 
-	private EventProducerNode getProducerNode(EventProducer ep,
+	private static EventProducerNode getProducerNode(EventProducer ep,
 			Map<Integer, EventProducer> prodMap, Map<Integer, EventProducerNode> nodeMap) {
 		if (nodeMap.containsKey(ep.getId()))
 			return nodeMap.get(ep.getId());
@@ -304,7 +280,7 @@ public class DensityHistogramLoader {
 	 *            flag indicating if we are loading the last interval
 	 * @throws SoCTraceException
 	 */
-	private void getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
+	private static void getTimestapsSeries(TraceDBObject traceDB, List<Integer> types,
 			List<Integer> producers, long t0, long t1, boolean last, List<Long> tsl)
 			throws SoCTraceException {
 		Statement stm;
@@ -328,7 +304,7 @@ public class DensityHistogramLoader {
 		}
 	}
 
-	private String prepareQuery(TraceDBObject traceDB, List<Integer> types,
+	private static String prepareQuery(TraceDBObject traceDB, List<Integer> types,
 			List<Integer> producers, long t0, long t1, boolean last) throws SoCTraceException {
 
 		ComparisonOperation endComp = (last) ? ComparisonOperation.LE : ComparisonOperation.LT;
@@ -410,7 +386,7 @@ public class DensityHistogramLoader {
 		return sb.toString();
 	}
 
-	private Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB,
+	private static Map<Integer, Integer> getTypesPerCategory(TraceDBObject traceDB,
 			Map<Integer, EventType> typesMap) throws SoCTraceException {
 		Map<Integer, Integer> typesPerCategory = new HashMap<>();
 		EventTypeQuery etq = new EventTypeQuery(traceDB);
@@ -425,7 +401,7 @@ public class DensityHistogramLoader {
 		return typesPerCategory;
 	}
 
-	private int getNumberOfProducers(TraceDBObject traceDB) throws SoCTraceException {
+	private static int getNumberOfProducers(TraceDBObject traceDB) throws SoCTraceException {
 		int count = 0;
 		try {
 			Statement stm = traceDB.getConnection().createStatement();

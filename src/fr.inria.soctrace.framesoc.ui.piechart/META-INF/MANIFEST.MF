@@ -18,4 +18,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: INRIA
 Import-Package: fr.inria.linuxtools.internal.tmf.ui,
- fr.inria.linuxtools.tmf.core.util
+ fr.inria.linuxtools.tmf.core.util,
+ fr.inria.soctrace.framesoc.ui.histogram.loaders
