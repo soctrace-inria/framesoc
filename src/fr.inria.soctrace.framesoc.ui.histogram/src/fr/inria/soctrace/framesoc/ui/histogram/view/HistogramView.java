@@ -390,6 +390,7 @@ public class HistogramView extends FramesocPart {
 	 */
 	public void loadHistogram(final Trace trace, final TimeInterval interval) {
 
+		System.out.println("int: " + interval);
 		currentShownTrace = trace;
 		// set time unit and extrema
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));

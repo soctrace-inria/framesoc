@@ -70,6 +70,8 @@ public class DensityHistogramLoader {
 	public final static int NUMBER_OF_BINS = 1000;
 	public final static String DATASET_NAME = "Event frequency";
 	public final static HistogramType HISTOGRAM_TYPE = HistogramType.FREQUENCY;
+	
+	private static final double[] EMPTY_TIMESTAMPS = {};
 
 	/**
 	 * Load a dataset for the Event Density Histogram
@@ -98,6 +100,7 @@ public class DensityHistogramLoader {
 			throw new NullPointerException();
 
 		if ((types != null && types.size() == 0) || (producers != null && producers.size() == 0)) {
+			dataset.setSnapshot(EMPTY_TIMESTAMPS, loadInterval);
 			dataset.setStop();
 			return;
 		}
