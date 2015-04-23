@@ -928,19 +928,6 @@ public class StatisticsPieChartView extends FramesocPart {
 					refresh();
 				}
 
-				// TODO
-				// if (currentDescriptor.checkedProducers == null
-				// || areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
-				// updateProducerFilter(FilterStatus.UNSET);
-				// } else {
-				// updateProducerFilter(FilterStatus.APPLIED);
-				// }
-				// if (currentDescriptor.checkedTypes == null
-				// || areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
-				// updateTypeFilter(FilterStatus.UNSET);
-				// } else {
-				// updateTypeFilter(FilterStatus.APPLIED);
-				// }
 				return Status.OK_STATUS;
 			} finally {
 				enableTimeBar(true);
@@ -1232,7 +1219,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
 		initTypesAndProducers(trace);
-		// TODO enable actions for types and producers??
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			// propose operator selection only if there is no data loaded
