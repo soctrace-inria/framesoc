@@ -103,7 +103,7 @@ public class TraceDetailsLoader {
 		properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String
 				.valueOf(trace.getMaxTimestamp()), false, true));
 		properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit.getLabel(trace
-				.getTimeUnit()), false, true));
+				.getTimeUnit()), false, false));
 		properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), trace.getDbName(), false,
 				true));
 
