@@ -762,15 +762,6 @@ public class HistogramView extends FramesocPart {
 				// - time bounds
 				plot.getDomainAxis().setLowerBound(displayed.startTimestamp);
 				plot.getDomainAxis().setUpperBound(displayed.endTimestamp);
-				// producers and types
-				// if (first) {
-				// for (ConfigurationData data : configurationMap.values()) {
-				// data.tree.getViewer().setInput(data.roots);
-				// data.tree.setCheckedElements(data.checked);
-				// data.tree.getViewer().refresh();
-				// data.tree.getViewer().expandAll();
-				// }
-				// }
 				// timebar
 				timeBar.setSelection(loadedInterval);
 			}
