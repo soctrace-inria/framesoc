@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.ui.loaders.LoaderUtils;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
-import fr.inria.soctrace.lib.model.EventProducer;
-import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.ValueListString;
@@ -51,20 +49,20 @@ public abstract class EventPieChartLoader extends PieChartLoader {
 	/**
 	 * Event producers to use (all if null)
 	 */
-	protected List<EventProducer> producers = null;
+	protected List<Integer> producers = null;
 
 	/**
 	 * Event type to use (all if null)
 	 */
-	protected List<EventType> types = null;
+	protected List<Integer> types = null;
 
 	@Override
-	public void setEventProducerFilter(List<EventProducer> producers) {
+	public void setEventProducerFilter(List<Integer> producers) {
 		this.producers = producers;
 	}
 
 	@Override
-	public void setEventTypeFilter(List<EventType> types) {
+	public void setEventTypeFilter(List<Integer> types) {
 		this.types = types;
 	}
 
@@ -210,8 +208,8 @@ public abstract class EventPieChartLoader extends PieChartLoader {
 			} else {
 				sb.append(" AND EVENT_PRODUCER_ID IN ");
 				ValueListString vls = new ValueListString();
-				for (EventProducer p : producers) {
-					vls.addValue(String.valueOf(p.getId()));
+				for (Integer p : producers) {
+					vls.addValue(p.toString());
 				}
 				sb.append(vls.getValueString());
 			}
@@ -222,8 +220,8 @@ public abstract class EventPieChartLoader extends PieChartLoader {
 			} else {
 				sb.append(" AND EVENT_TYPE_ID IN ");
 				ValueListString vls = new ValueListString();
-				for (EventType t : types) {
-					vls.addValue(String.valueOf(t.getId()));
+				for (Integer t : types) {
+					vls.addValue(t.toString());
 				}
 				sb.append(vls.getValueString());
 			}

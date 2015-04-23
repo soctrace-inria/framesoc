@@ -165,7 +165,7 @@ public class HistogramView extends FramesocPart {
 	 */
 	private TimeInterval requestedInterval;
 	private TimeInterval loadedInterval;
-	private Map<FilterDimension, HistogramFilterData> configurationMap;
+	private Map<FilterDimension, HistogramFilterData> filterMap;
 	private HistogramLoaderDataset dataset;
 
 	/*
@@ -186,10 +186,9 @@ public class HistogramView extends FramesocPart {
 		super();
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED);
 		topics.registerAll();
-		configurationMap = new HashMap<>();
-		configurationMap.put(FilterDimension.PRODUCERS, new HistogramFilterData(
-				new ProducerFilterData()));
-		configurationMap.put(FilterDimension.TYPE, new HistogramFilterData(new TypeFilterData()));
+		filterMap = new HashMap<>();
+		filterMap.put(FilterDimension.PRODUCERS, new HistogramFilterData(new ProducerFilterData()));
+		filterMap.put(FilterDimension.TYPE, new HistogramFilterData(new TypeFilterData()));
 	}
 
 	/* Uncomment this to use the window builder */
@@ -283,7 +282,7 @@ public class HistogramView extends FramesocPart {
 	}
 
 	private void initFilterData(Trace t) {
-		for (HistogramFilterData data : configurationMap.values()) {
+		for (HistogramFilterData data : filterMap.values()) {
 			try {
 				data.setFilterRoots(DensityHistogramLoader.loadDimension(data.getDimension(), t));
 			} catch (SoCTraceException e) {
@@ -293,7 +292,7 @@ public class HistogramView extends FramesocPart {
 	}
 
 	private void initFilterDialogs() {
-		for (HistogramFilterData data : configurationMap.values()) {
+		for (HistogramFilterData data : filterMap.values()) {
 			data.initFilterDialog(getSite().getShell());
 		}
 	}
@@ -302,8 +301,8 @@ public class HistogramView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
 		// Filters actions
-		manager.add(configurationMap.get(FilterDimension.PRODUCERS).initFilterAction());
-		manager.add(configurationMap.get(FilterDimension.TYPE).initFilterAction());
+		manager.add(filterMap.get(FilterDimension.PRODUCERS).initFilterAction());
+		manager.add(filterMap.get(FilterDimension.TYPE).initFilterAction());
 
 		// Separator
 		manager.add(new Separator());
@@ -402,7 +401,7 @@ public class HistogramView extends FramesocPart {
 			public void run() {
 				// prepare the configuration for the loader
 				Map<FilterDimension, List<Integer>> confMap = new HashMap<>();
-				for (HistogramFilterData data : configurationMap.values()) {
+				for (HistogramFilterData data : filterMap.values()) {
 					confMap.put(data.getDimension(), data.getCheckedId());
 				}
 

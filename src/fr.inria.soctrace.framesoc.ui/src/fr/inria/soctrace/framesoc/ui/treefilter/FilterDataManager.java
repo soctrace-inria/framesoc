@@ -118,6 +118,10 @@ public abstract class FilterDataManager {
 		}
 		return toLoad;
 	}
+	
+	public boolean areCheckedEqual(List<Object> c) {
+		return areListsEqual(c, checked);
+	}
 
 	/**
 	 * Handler called after the filtering configuration has been changed.

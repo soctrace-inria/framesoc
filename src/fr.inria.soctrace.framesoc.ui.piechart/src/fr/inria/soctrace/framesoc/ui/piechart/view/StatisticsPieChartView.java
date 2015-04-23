@@ -15,12 +15,10 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,7 +26,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -41,7 +38,6 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusEvent;
@@ -84,12 +80,10 @@ import org.slf4j.LoggerFactory;
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
-import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
-import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
-import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -105,11 +99,14 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
-import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
-import fr.inria.soctrace.framesoc.ui.providers.EventTypeTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDataManager;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimensionData;
+import fr.inria.soctrace.framesoc.ui.treefilter.ProducerFilterData;
 import fr.inria.soctrace.framesoc.ui.treefilter.TreeFilterDialog;
+import fr.inria.soctrace.framesoc.ui.treefilter.TypeFilterData;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
@@ -132,6 +129,23 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class StatisticsPieChartView extends FramesocPart {
+
+	private class PieFilterData extends FilterDataManager {
+
+		public PieFilterData(FilterDimensionData dimension) {
+			super(dimension);
+		}
+
+		@Override
+		public void reloadAfterChange() {
+			loadPieChart();
+		}
+	}
+
+	/**
+	 * Global filters data.
+	 */
+	private Map<FilterDimension, PieFilterData> globalFilters;
 
 	/**
 	 * Logger
@@ -206,11 +220,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 
 		public boolean producersOk() {
-			return areListsEqual(globalCheckedProducers, checkedProducers);
+			return globalFilters.get(FilterDimension.PRODUCERS).areCheckedEqual(checkedProducers);
 		}
 
 		public boolean typesOk() {
-			return areListsEqual(globalCheckedTypes, checkedTypes);
+			return globalFilters.get(FilterDimension.TYPE).areCheckedEqual(checkedTypes);
 		}
 
 		public void dispose() {
@@ -232,16 +246,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * Global loaded interval, shared among all operators.
 	 */
 	private TimeInterval globalLoadInterval = new TimeInterval(0, 0);
-
-	/**
-	 * Global checked producers, shared among all operators.
-	 */
-	private List<Object> globalCheckedProducers = null;
-
-	/**
-	 * Global checked types, shared among all operators.
-	 */
-	private List<Object> globalCheckedTypes = null;
 
 	/**
 	 * Available loaders, read from the extension point. The i-th element of this array corresponds
@@ -310,16 +314,6 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
 
-	// Filters and actions
-	private EventProducerNode[] producerHierarchy;
-	private CategoryNode[] typeHierarchy;
-	private TreeFilterDialog producerFilterDialog;
-	private TreeFilterDialog typeFilterDialog;
-	private IAction producerFilterAction;
-	private IAction typeFilterAction;
-	private List<Object> allTypesElements;
-	private List<Object> allProducersElements;
-
 	/**
 	 * Constructor
 	 */
@@ -332,6 +326,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		for (IPieChartLoader loader : loaders) {
 			loaderDescriptors.add(new LoaderDescriptor(loader));
 		}
+		globalFilters = new HashMap<>();
+		globalFilters.put(FilterDimension.PRODUCERS, new PieFilterData(new ProducerFilterData()));
+		globalFilters.put(FilterDimension.TYPE, new PieFilterData(new TypeFilterData()));
 	}
 
 	/**
@@ -564,8 +561,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
 		// Filters actions
-		manager.add(createShowProducerFilterAction());
-		manager.add(createShowTypeFilterAction());
+		manager.add(globalFilters.get(FilterDimension.PRODUCERS).initFilterAction());
+		manager.add(globalFilters.get(FilterDimension.TYPE).initFilterAction());
 
 		// Separator
 		manager.add(new Separator());
@@ -604,32 +601,6 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// disable all actions
 		enableActions(false);
-	}
-
-	private IAction createShowProducerFilterAction() {
-		producerFilterAction = new Action("", IAction.AS_CHECK_BOX) {
-			@Override
-			public void run() {
-				showProducerFilterAction();
-			}
-		};
-		producerFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/producer_filter.png"));
-		producerFilterAction.setToolTipText("Show Event Producer Filter");
-		return producerFilterAction;
-	}
-
-	private IAction createShowTypeFilterAction() {
-		typeFilterAction = new Action("", IAction.AS_CHECK_BOX) {
-			@Override
-			public void run() {
-				showTypeFilterAction();
-			}
-		};
-		typeFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/type_filter.png"));
-		typeFilterAction.setToolTipText("Show Event Type Filter");
-		return typeFilterAction;
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
@@ -893,31 +864,13 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		public void run() {
+			IPieChartLoader l = currentDescriptor.loader;
 			// prepare producers to use
-			if (globalCheckedProducers != null) {
-				List<EventProducer> prods = new ArrayList<>();
-				for (Object o : globalCheckedProducers) {
-					EventProducerNode epn = (EventProducerNode) o;
-					prods.add(epn.getEventProducer());
-				}
-				currentDescriptor.checkedProducers = new ArrayList<>(globalCheckedProducers);
-				currentDescriptor.loader.setEventProducerFilter(prods);
-			}
+			l.setEventProducerFilter(globalFilters.get(FilterDimension.PRODUCERS).getCheckedId());
 			// prepare types to use
-			if (globalCheckedTypes != null) {
-				List<EventType> types = new ArrayList<>();
-				for (Object o : globalCheckedTypes) {
-					if (o instanceof CategoryNode)
-						continue;
-					EventTypeNode etn = (EventTypeNode) o;
-					types.add(etn.getEventType());
-				}
-				currentDescriptor.checkedTypes = new ArrayList<>(globalCheckedTypes);
-				currentDescriptor.loader.setEventTypeFilter(types);
-			}
+			l.setEventTypeFilter(globalFilters.get(FilterDimension.TYPE).getCheckedId());
 			// load pie
-			currentDescriptor.loader.load(currentShownTrace, loadInterval, currentDescriptor.map,
-					monitor);
+			l.load(currentShownTrace, loadInterval, currentDescriptor.map, monitor);
 		}
 
 		public void cancel() {
@@ -974,18 +927,20 @@ public class StatisticsPieChartView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh();
 				}
-				if (currentDescriptor.checkedProducers == null
-						|| areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
-					updateProducerFilter(FilterStatus.UNSET);
-				} else {
-					updateProducerFilter(FilterStatus.APPLIED);
-				}
-				if (currentDescriptor.checkedTypes == null
-						|| areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
-					updateTypeFilter(FilterStatus.UNSET);
-				} else {
-					updateTypeFilter(FilterStatus.APPLIED);
-				}
+
+				// TODO
+				// if (currentDescriptor.checkedProducers == null
+				// || areListsEqual(currentDescriptor.checkedProducers, allProducersElements)) {
+				// updateProducerFilter(FilterStatus.UNSET);
+				// } else {
+				// updateProducerFilter(FilterStatus.APPLIED);
+				// }
+				// if (currentDescriptor.checkedTypes == null
+				// || areListsEqual(currentDescriptor.checkedTypes, allTypesElements)) {
+				// updateTypeFilter(FilterStatus.UNSET);
+				// } else {
+				// updateTypeFilter(FilterStatus.APPLIED);
+				// }
 				return Status.OK_STATUS;
 			} finally {
 				enableTimeBar(true);
@@ -1277,8 +1232,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
 		initTypesAndProducers(trace);
-		producerFilterAction.setEnabled(true);
-		typeFilterAction.setEnabled(true);
+		// TODO enable actions for types and producers??
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			// propose operator selection only if there is no data loaded
@@ -1340,28 +1294,25 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private void createFilterDialogs() {
-		typeFilterDialog = new TreeFilterDialog(getSite().getShell());
-		typeFilterDialog.setColumnNames(new String[] { "Event Type" });
-		typeFilterDialog.setContentProvider(new TreeContentProvider());
-		typeFilterDialog.setLabelProvider(new EventTypeTreeLabelProvider());
-		producerFilterDialog = new TreeFilterDialog(getSite().getShell());
-		producerFilterDialog.setColumnNames(new String[] { "Event Producer" });
-		producerFilterDialog.setContentProvider(new TreeContentProvider());
-		producerFilterDialog.setLabelProvider(new EventProducerTreeLabelProvider());
+		for (PieFilterData data : globalFilters.values()) {
+			data.initFilterDialog(getSite().getShell());
+		}
 	}
 
 	private void initTypesAndProducers(Trace t) {
 		TraceDBObject traceDB = null;
 		try {
 			traceDB = TraceDBObject.openNewIstance(t.getDbName());
+			// types
 			EventTypeQuery tq = new EventTypeQuery(traceDB);
 			List<EventType> types = tq.getList();
-			typeHierarchy = TreeFilterDialog.getTypeHierarchy(types);
-			allTypesElements = TreeFilterDialog.listAllInputs(Arrays.asList(typeHierarchy));
+			ITreeNode[] typeHierarchy = TreeFilterDialog.getTypeHierarchy(types);
+			globalFilters.get(FilterDimension.TYPE).setFilterRoots(typeHierarchy);
+			// producers
 			EventProducerQuery pq = new EventProducerQuery(traceDB);
 			List<EventProducer> producers = pq.getList();
-			producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
-			allProducersElements = TreeFilterDialog.listAllInputs(Arrays.asList(producerHierarchy));
+			ITreeNode[] producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
+			globalFilters.get(FilterDimension.PRODUCERS).setFilterRoots(producerHierarchy);
 			traceDB.close();
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
@@ -1370,172 +1321,4 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 	}
 
-	/**
-	 * Callback for the show type filter action
-	 */
-	private void showTypeFilterAction() {
-
-		if (typeHierarchy.length > 0) {
-			typeFilterDialog.setInput(typeHierarchy);
-			typeFilterDialog.setTitle("Event Type Filter");
-			typeFilterDialog.setMessage("Check the event types to consider");
-
-			if (globalCheckedTypes == null) {
-				globalCheckedTypes = allTypesElements;
-			}
-			typeFilterDialog.setExpandedElements(allTypesElements.toArray());
-			typeFilterDialog.setInitialElementSelections(globalCheckedTypes);
-			typeFilterDialog.create();
-
-			// reset checked status, managed manually
-			typeFilterAction.setChecked(!typeFilterAction.isChecked());
-
-			// open the dialog
-			if (typeFilterDialog.open() != Window.OK) {
-				return;
-			}
-
-			// Process selected elements
-			if (typeFilterDialog.getResult() != null) {
-				globalCheckedTypes = Arrays.asList(typeFilterDialog.getResult());
-				if (areListsEqual(allTypesElements, globalCheckedTypes)) {
-					// all checked
-					if (currentDescriptor.checkedTypes == null
-							|| areListsEqual(allTypesElements, currentDescriptor.checkedTypes)) {
-						updateTypeFilter(FilterStatus.UNSET);
-					} else {
-						// the loaded data is with unchecked elements
-						updateTypeFilter(FilterStatus.SET);
-					}
-				} else if (areListsEqual(currentDescriptor.checkedTypes, globalCheckedTypes)) {
-					updateTypeFilter(FilterStatus.APPLIED);
-				} else {
-					updateTypeFilter(FilterStatus.SET);
-				}
-			}
-			if (currentDescriptor.dataLoaded()) {
-				loadPieChart();
-			}
-		}
-
-	}
-
-	/**
-	 * Callback for the show producer filter action
-	 */
-	private void showProducerFilterAction() {
-
-		if (producerHierarchy.length > 0) {
-			producerFilterDialog.setInput(producerHierarchy);
-			producerFilterDialog.setTitle("Event Producer Filter");
-			producerFilterDialog.setMessage("Check the event producers to consider");
-
-			if (globalCheckedProducers == null) {
-				globalCheckedProducers = allProducersElements;
-			}
-			producerFilterDialog.setExpandedElements(allProducersElements.toArray());
-			producerFilterDialog.setInitialElementSelections(globalCheckedProducers);
-			producerFilterDialog.create();
-
-			// reset checked status, managed manually
-			producerFilterAction.setChecked(!producerFilterAction.isChecked());
-
-			// open the dialog
-			if (producerFilterDialog.open() != Window.OK) {
-				return;
-			}
-
-			// Process selected elements
-			if (producerFilterDialog.getResult() != null) {
-				globalCheckedProducers = Arrays.asList(producerFilterDialog.getResult());
-				if (areListsEqual(allProducersElements, globalCheckedProducers)) {
-					// all checked
-					if (currentDescriptor.checkedProducers == null
-							|| areListsEqual(allProducersElements,
-									currentDescriptor.checkedProducers)) {
-						updateProducerFilter(FilterStatus.UNSET);
-					} else {
-						// the loaded data is with unchecked elements
-						updateProducerFilter(FilterStatus.SET);
-					}
-				} else if (areListsEqual(currentDescriptor.checkedProducers, globalCheckedProducers)) {
-					updateProducerFilter(FilterStatus.APPLIED);
-				} else {
-					updateProducerFilter(FilterStatus.SET);
-				}
-			}
-			if (currentDescriptor.dataLoaded()) {
-				loadPieChart();
-			}
-		}
-	}
-
-	private boolean areListsEqual(List<Object> l1, List<Object> l2) {
-		if (l1 == null) {
-			return l2 == null;
-		}
-		if (l2 == null) {
-			return l1 == null;
-		}
-		Set<Object> s1 = new HashSet<>(l1);
-		Set<Object> s2 = new HashSet<>(l2);
-		return s1.equals(s2);
-	}
-
-	private void updateTypeFilter(FilterStatus status) {
-		StringBuilder icon = new StringBuilder("icons/");
-		StringBuilder tooltip = new StringBuilder("Show Event Type Filter");
-
-		switch (status) {
-		case APPLIED:
-			typeFilterAction.setChecked(true);
-			icon.append("type_filter.png");
-			tooltip.append(" (filter applied)");
-			break;
-		case SET:
-			typeFilterAction.setChecked(false);
-			icon.append("type_filter_set.png");
-			tooltip.append(" (filter set but not applied)");
-			break;
-		case UNSET:
-			typeFilterAction.setChecked(false);
-			icon.append("type_filter.png");
-			break;
-		}
-
-		typeFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, icon.toString()));
-		typeFilterAction.setToolTipText(tooltip.toString());
-	}
-
-	private void updateProducerFilter(FilterStatus status) {
-		StringBuilder icon = new StringBuilder("icons/");
-		StringBuilder tooltip = new StringBuilder("Show Event Producer Filter");
-
-		switch (status) {
-		case APPLIED:
-			producerFilterAction.setChecked(true);
-			icon.append("producer_filter.png");
-			tooltip.append(" (filter applied)");
-			break;
-		case SET:
-			producerFilterAction.setChecked(false);
-			icon.append("producer_filter_set.png");
-			tooltip.append(" (filter set but not applied)");
-			break;
-		case UNSET:
-			producerFilterAction.setChecked(false);
-			icon.append("producer_filter.png");
-			break;
-		}
-
-		producerFilterAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, icon.toString()));
-		producerFilterAction.setToolTipText(tooltip.toString());
-
-	}
-
-	private static enum FilterStatus {
-		UNSET, SET, APPLIED;
-	}
 }
