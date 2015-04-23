@@ -103,7 +103,7 @@ public class TimeBar {
 				range.setSelection(range.getMinimum(), range.getMaximum(), true);
 			}
 		});
-		all.setToolTipText("Select Whole Time Interval");
+		all.setToolTipText("Select All");
 		all.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 				"icons/all_timebar.png"));
 		settings = new Button(sliderBar, SWT.NONE);
@@ -118,6 +118,7 @@ public class TimeBar {
 			synch = new Button(sliderBar, SWT.NONE);
 			synch.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false,
 					false, 1, 1));
+			synch.setToolTipText("Resynchronize");
 			synch.setImage(ResourceManager.getPluginImage(Activator.PLUGIN_ID,
 					"icons/load.png"));
 		}

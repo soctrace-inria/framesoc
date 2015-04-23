@@ -250,7 +250,6 @@ public class HistogramView extends FramesocPart {
 			}
 		});
 		// button to synch the timebar, producers and type with the current loaded data
-		timeBar.getSynchButton().setToolTipText("Reset Timebar, Types and Producers");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

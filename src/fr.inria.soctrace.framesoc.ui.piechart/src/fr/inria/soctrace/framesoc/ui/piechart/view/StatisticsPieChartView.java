@@ -531,7 +531,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 			}
 		});
-		timeBar.getSynchButton().setToolTipText("Synch Selection With Pie Chart");
 
 		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {

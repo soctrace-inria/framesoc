@@ -935,7 +935,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 			}
 		});
-		fTimeBar.getSynchButton().setToolTipText("Synch Selection With Gantt");
 		// draw button
 		fTimeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
