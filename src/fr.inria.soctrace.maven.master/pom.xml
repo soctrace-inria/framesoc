@@ -10,8 +10,8 @@
 	<description>Maven master project for Framesoc. It contains the parent pom.xml.	</description>
 
 	<properties>
-		<tycho-version>0.18.1</tycho-version>
-		<tycho-extras-version>0.18.0</tycho-extras-version>
+		<tycho-version>0.21.0</tycho-version>
+		<tycho-extras-version>0.21.0</tycho-extras-version>
 	</properties>
 
 	<build>
