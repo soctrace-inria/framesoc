@@ -2,9 +2,8 @@
 
 This archive contains:
 1. The Framesoc features: fr.inria.soctrace.maven.repository-*.zip
-2. A README file
-3. Some documentation: ./doc
-4. Some test traces: ./traces/
+2. Some documentation: ./doc
+3. Some test traces: ./traces/
 
 1. Framesoc features
 
@@ -26,12 +25,7 @@ This archive contains:
   All the license files are included in the feature, as specified by the 
   Eclipse guidelines: http://www.eclipse.org/legal/guidetolegaldoc.php
 
-2. Readme
-
-   The README file gives some guidelines about using Framesoc and developing 
-   Framesoc plugins.
-    
-3. Documentation
+2. Documentation
 
    The ./doc folder contains:
    - a document describing the new Framesoc data model
@@ -39,7 +33,7 @@ This archive contains:
    - the Framesoc database schema
    - the javadoc documentation
   
-4. Test Traces 
+3. Test Traces 
 
    The ./traces folder contains one trace for each of the following formats:
    - gstreamer
