@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Utils
 Bundle-SymbolicName: fr.inria.soctrace.lib.utils
-Bundle-Version: 1.0.5.qualifier
+Bundle-Version: 1.0.6.qualifier
 Bundle-Activator: fr.inria.soctrace.lib.utils.Activator
 Bundle-Vendor: INRIA
 Require-Bundle: org.eclipse.ui,
