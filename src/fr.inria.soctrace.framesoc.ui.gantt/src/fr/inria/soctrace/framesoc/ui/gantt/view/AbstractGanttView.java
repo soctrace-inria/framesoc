@@ -696,6 +696,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected String getPrevTooltip() {
 		return "Previous";
 	}
+	
+	public boolean isfUserChangedTimeRange() {
+		return fUserChangedTimeRange;
+	}
+
+	public void setfUserChangedTimeRange(boolean fUserChangedTimeRange) {
+		this.fUserChangedTimeRange = fUserChangedTimeRange;
+	}
 
 	// ------------------------------------------------------------------------
 	// ViewPart

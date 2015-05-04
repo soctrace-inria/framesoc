@@ -393,7 +393,7 @@ public class GanttView extends AbstractGanttView {
 				setMaxTime(max);
 				setStartTime(Long.MAX_VALUE);
 				setEndTime(Long.MIN_VALUE);
-
+				
 				long waited = 0;
 				TimeInterval partial = null;
 				while (!queue.done()) {
@@ -427,6 +427,8 @@ public class GanttView extends AbstractGanttView {
 
 						if (needRefresh) {
 							refresh();
+							// Do not resize the Gantt after the first display
+							setfUserChangedTimeRange(true);
 						} else {
 							redraw();
 						}
