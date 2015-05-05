@@ -23,13 +23,14 @@ import fr.inria.soctrace.lib.model.Event;
 public class TimeSlices {
 	
 	private TreeMap<Long, TimeSlice> slices = new TreeMap<Long, TimeSlice>();
-	
+
 	public void addTimeSlice(TimeSlice t) {
 		slices.put(t.getStart(), t);
 	}
-	
+
 	/**
 	 * Add the event in the right time slice
+	 * 
 	 * @param e
 	 */
 	public void addEvent(Event e) {
@@ -40,12 +41,12 @@ public class TimeSlices {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("TIME SLICES \n");
-		for (TimeSlice s: slices.values()) {
+		for (TimeSlice s : slices.values()) {
 			sb.append(s.toString());
 		}
 		return sb.toString();
 	}
-	
+
 	// XXX
 	public TreeMap<Long, TimeSlice> getSlices() {
 		return slices;
@@ -57,8 +58,8 @@ public class TimeSlices {
 
 	public int size() {
 		int s = 0;
-		for (TimeSlice ts: slices.values()) {
-			s+=ts.size();
+		for (TimeSlice ts : slices.values()) {
+			s += ts.size();
 		}
 		return s;
 	}

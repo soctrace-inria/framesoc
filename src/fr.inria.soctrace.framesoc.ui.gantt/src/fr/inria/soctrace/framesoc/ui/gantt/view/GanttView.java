@@ -157,6 +157,19 @@ public class GanttView extends AbstractGanttView {
 	 * Number of event type nodes
 	 */
 	private int allTypeNodes;
+	
+	/**
+	 * Flag specifying if we use the CPU drawer? 
+	 */
+	private boolean forceCpuDrawer = false;
+	
+	public boolean isForceCpuDrawer() {
+		return forceCpuDrawer;
+	}
+
+	public void setForceCpuDrawer(boolean forceCpuDrawer) {
+		this.forceCpuDrawer = forceCpuDrawer;
+	}
 
 	/**
 	 * Constructor
@@ -269,7 +282,13 @@ public class GanttView extends AbstractGanttView {
 		}
 
 		// create the event drawer
-		IEventDrawer drawer = GanttContributionManager.getEventDrawer(trace.getType().getId());
+		IEventDrawer drawer;
+		if (forceCpuDrawer) {
+			drawer = new CpuEventDrawer();
+		} else {
+			drawer = GanttContributionManager.getEventDrawer(trace.getType()
+					.getId());
+		}
 		drawer.setProducers(loader.getProducers());
 
 		// launch the job loading the queue
@@ -279,7 +298,7 @@ public class GanttView extends AbstractGanttView {
 		launchDrawerThread(drawer, interval, trace, queue);
 	}
 
-	private void reloadWindow(Trace trace, long start, long end, boolean forceCpuDrawer) {
+	private void reloadWindow(Trace trace, long start, long end) {
 
 		if (trace == null) {
 			return;
@@ -374,7 +393,7 @@ public class GanttView extends AbstractGanttView {
 				setMaxTime(max);
 				setStartTime(Long.MAX_VALUE);
 				setEndTime(Long.MIN_VALUE);
-
+				
 				long waited = 0;
 				TimeInterval partial = null;
 				while (!queue.done()) {
@@ -408,6 +427,8 @@ public class GanttView extends AbstractGanttView {
 
 						if (needRefresh) {
 							refresh();
+							// Do not resize the Gantt after the first display
+							setfUserChangedTimeRange(true);
 						} else {
 							redraw();
 						}
@@ -423,6 +444,10 @@ public class GanttView extends AbstractGanttView {
 					setStartTime(Math.max(requestedInterval.startTimestamp,
 							queueInterval.startTimestamp));
 					setEndTime(Math.min(requestedInterval.endTimestamp, queueInterval.endTimestamp));
+					
+					// Update loadedInterval values
+					loadedInterval.startTimestamp = getStartTime();
+					loadedInterval.endTimestamp = getEndTime();
 				} else {
 					// something has not been loaded
 					if (partial != null && queueInterval != null) {
@@ -612,9 +637,11 @@ public class GanttView extends AbstractGanttView {
 
 	private IAction createCpuDrawerAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
+			 
 			@Override
 			public void run() {
-				reloadWindow(currentShownTrace, getStartTime(), getEndTime(), isChecked());
+				setForceCpuDrawer(isChecked());
+				reloadWindow(currentShownTrace, getStartTime(), getEndTime());
 			}
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,

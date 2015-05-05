@@ -59,10 +59,10 @@ public class ReducedEvent {
 		cpu = res.getInt(ReducedEvent.CPU);
 		category = res.getInt(ReducedEvent.CATEGORY);
 		timestamp = res.getLong(ReducedEvent.TIMESTAMP);
-		endTimestamp =res.getLong(ReducedEvent.END_TIMESTAMP);
-		typeId =res.getInt(ReducedEvent.TYPE_ID);
+		endTimestamp = res.getLong(ReducedEvent.END_TIMESTAMP);
+		typeId = res.getInt(ReducedEvent.TYPE_ID);
 		producerId = res.getInt(ReducedEvent.PRODUCER_ID);
-		endProducerId = res.getInt(ReducedEvent.END_PRODUCER_ID); 
+		endProducerId = res.getInt(ReducedEvent.END_PRODUCER_ID);
 	}
 
 	@Override
