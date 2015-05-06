@@ -64,6 +64,8 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	public final static int NO_GROUP = -1;
 
 	public final static int NEW_GROUP = -2;
+	
+	private final int MaxViewInstancesDefault = 5;
 
 	/**
 	 * Logger
@@ -95,7 +97,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 */
 	private class ViewDesc {
 
-		public final int maxInstances;
+		public int maxInstances;
 		public int instances;
 		public List<FramesocPart> openParts;
 		public Map<Trace, Map<FramesocPart, Integer>> partToGroup;
@@ -225,7 +227,9 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		if (desc.maxInstances != Configuration.INFINITE_VIEWS
 				&& desc.instances >= desc.maxInstances) {
 			status.part = null;
-			status.message = "Maximum number of instances reached for view '" + viewID + "'.";
+			status.message = "Maximum number of instances ("
+					+ desc.maxInstances + ") reached for view '" + viewID
+					+ "'.";
 			logger.error(status.message);
 			return status;
 		}
@@ -516,7 +520,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 * Load constants in view descriptor map.
 	 */
 	private void loadDescMap() {
-		int max = 5;
+		int max = MaxViewInstancesDefault;
 		try {
 			max = Integer.valueOf(Configuration.getInstance().get(
 					SoCTraceProperty.max_view_instances));
@@ -663,5 +667,26 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			logger.debug("Descriptor: {}", e.getValue());
 		}
 	}
+	
+	/**
+	 * Change the value of max instance of a view with the current value in
+	 * configuration
+	 */
+	public void updateMaxInstances() {
+		Integer max = MaxViewInstancesDefault;
+		
+		try {
+			max = Integer.valueOf(Configuration.getInstance().get(
+					SoCTraceProperty.max_view_instances));
+		} catch (NumberFormatException e) {
+			logger.error(SoCTraceProperty.max_view_instances.toString()
+					+ " is not an integer, using " + max + " instead.");
+		}
+		
+		for (ViewDesc viewDesc : viewDescMap.values()) {
+			viewDesc.maxInstances = max;
+		}
+	}
+	
 
 }
