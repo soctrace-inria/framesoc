@@ -54,7 +54,7 @@ public class ConfigurationHandler extends AbstractHandler {
 		try {
 			sysDB = SystemDBObject.openNewIstance();
 
-			Map<Integer, Tool> newTools = dialog.getNewTools();
+			Map<Integer, Tool> newTools = dialog.getManageToolsComposite().getNewTools();
 			Map<Integer, Tool> oldTools = dialog.getOldTools();
 			for (Integer id : oldTools.keySet()) {
 				if (newTools.containsKey(id)) {
