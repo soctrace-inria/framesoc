@@ -52,12 +52,16 @@ public enum Initializer {
 
 	public boolean initializeSystem(Shell shell, boolean firstime) {
 
+		boolean done = false;
+
 		try {
 
 			InitWizard wizard = new InitWizard(firstime);
 			WizardDialog dialog = new WizardDialog(shell, wizard);
-			if (dialog.open() == Window.CANCEL)
+			if (dialog.open() != Window.OK)
 				return false;
+
+			done = true;
 
 			InitProperties properties = wizard.getInitProperties();
 
@@ -96,19 +100,20 @@ public enum Initializer {
 			MessageDialog.openError(shell, "Error creating the system DB", e.getMessage());
 			return false;
 		} finally {
-			// refresh Traces view and Trace Details
-			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
-					null);
-			FramesocBus.getInstance().setVariable(
-					FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
-			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			if (done) {
+				// refresh Traces view and Trace Details
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE, null);
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
+				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			}
 		}
 	}
 
 	/**
-	 * Manage Framesoc tools registering all the plugin tools in the runtime not
-	 * yet registered, and removing all the plugin tools registered but not
-	 * present in the runtime.
+	 * Manage Framesoc tools registering all the plugin tools in the runtime not yet registered, and
+	 * removing all the plugin tools registered but not present in the runtime.
 	 */
 	public void manageTools(Shell shell) {
 
@@ -168,8 +173,7 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing, removing them if
-	 * it is not the case.
+	 * Check if all the registered TraceDBs are still existing, removing them if it is not the case.
 	 */
 	public void manageDatabases() {
 

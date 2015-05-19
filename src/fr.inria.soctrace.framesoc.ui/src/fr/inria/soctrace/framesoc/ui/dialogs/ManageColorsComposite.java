@@ -312,11 +312,6 @@ public class ManageColorsComposite extends Composite {
 			return FramesocColorManager.getInstance().getEventProducerNames();
 	}
 
-	// @Override
-	// protected Point getInitialSize() {
-	// return new Point(504, 464);
-	// }
-
 	public ModelEntity getEntity() {
 		return entity;
 	}
