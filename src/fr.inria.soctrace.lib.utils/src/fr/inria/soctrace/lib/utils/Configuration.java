@@ -49,6 +49,8 @@ public class Configuration {
 	 */
 	public final static int INFINITE_VIEWS = -1;
 	
+	private static boolean configDirHome = false;
+	
 	/**
 	 * Enumeration for SoC-Trace configuration variables names.
 	 */
@@ -225,19 +227,16 @@ public class Configuration {
 		if (!dir.exists()) {
 			if (dir.canWrite()) {
 				dir.mkdir();
-			} else {
-				// Set as default in the home directory
-				dir = new File(System.getProperty("user.home") + CONF_DIR);
-				MessageDialog
-						.openError(
-								Display.getCurrent().getActiveShell(),
-								"Configuration file locations",
-								"Warning: Configuration file will not in default location since the eclipse directory does not the write permission."
-										+ "The configuration file will be placed in "
-										+ dir);
-				if (!dir.exists())
-					dir.mkdir();
 			}
+		}
+		
+		if (!dir.canWrite()) {
+			// Set as default in the home directory
+			dir = new File(System.getProperty("user.home") + File.separator + CONF_DIR);
+
+			configDirHome = true;
+			if (!dir.exists())
+				dir.mkdirs();
 		}
 		
 		ConfFilePath = dir + File.separator + CONF_FILE_NAME;
@@ -323,6 +322,16 @@ public class Configuration {
 				logger.debug("##########################################################################");
 
 				saveOnFile();
+				
+				// If the configuration was located inside the home directory
+				if (configDirHome)
+					// Display a warning
+					MessageDialog
+							.openError(
+									Display.getCurrent().getActiveShell(),
+									"Configuration File Location",
+									"Warning: Configuration file will not in default location since the eclipse directory does not the write permission. The configuration file will be placed in "
+											+ ConfFilePath);
 			} else {
 				logger.debug("Configuration file: " + ConfFilePath);
 				config.load(new FileInputStream(file));
@@ -352,7 +361,7 @@ public class Configuration {
 			return ConfFilePath;
 
 		// Set ConfFilePath in the home directory
-		return System.getProperty("user.home") + CONF_DIR + CONF_FILE_NAME;
+		return System.getProperty("user.home") + File.separator + CONF_DIR + File.separator + CONF_FILE_NAME;
 	}
 
 	/**
@@ -381,11 +390,11 @@ public class Configuration {
 			return true;
 
 		// Check in home directory
-		file = new File(System.getProperty("user.home") + CONF_DIR
-				+ CONF_FILE_NAME);
+		file = new File(System.getProperty("user.home") + File.separator + CONF_DIR
+				+ File.separator + CONF_FILE_NAME);
 		if (file.exists()) {
-			ConfFilePath = System.getProperty("user.home") + CONF_DIR
-					+ CONF_FILE_NAME;
+			ConfFilePath = System.getProperty("user.home") + File.separator + CONF_DIR
+					+ File.separator + CONF_FILE_NAME;
 			return true;
 		}
 		return false;
