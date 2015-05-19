@@ -11,13 +11,8 @@
 package fr.inria.soctrace.framesoc.ui.dialogs;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -51,8 +46,6 @@ import fr.inria.soctrace.lib.search.TraceSearch;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
-import fr.inria.soctrace.lib.utils.IdManager;
-import fr.inria.soctrace.lib.utils.IdManager.Direction;
 
 /**
  * Eclipse Dialog to configure Framesoc settings
@@ -99,24 +92,8 @@ public class ConfigurationDialog extends Dialog {
 	 */
 	private ManageToolsComposite manageToolsComposite;
 
-	/**
-	 * Tools map, always synchronized with the viewer.
-	 */
-	private Map<Integer, Tool> toolsMap;
-
-	/**
-	 * Installed tool names. Names are unique for tools.
-	 */
-	private Set<String> oldToolNames;
 	
 	Map<Integer, Tool> oldTools;
-
-	/**
-	 * For added tools we use temporary negative IDs. Actual ID are assigned by the Dialog user.
-	 */
-	private IdManager newToolIdManager;
-	
-	private final int TMP_START_ID = -1000;
 
 	public ConfigurationDialog(Shell parentShell) {
 		super(parentShell);
@@ -124,17 +101,6 @@ public class ConfigurationDialog extends Dialog {
 
 		// Tool Management
 		oldTools = loadTools();
-		oldToolNames = new HashSet<String>();
-		toolsMap = new HashMap<Integer, Tool>();
-		Iterator<Entry<Integer, Tool>> iterator = oldTools.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<Integer, Tool> pair = iterator.next();
-			toolsMap.put(pair.getKey(), pair.getValue());
-			oldToolNames.add(pair.getValue().getName());
-		}
-		newToolIdManager = new IdManager();
-		newToolIdManager.setNextId(TMP_START_ID);
-		newToolIdManager.setDirection(Direction.DESCENDING);
 	}
 
 	@Override

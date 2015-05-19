@@ -240,7 +240,7 @@ public class Configuration {
 			}
 		}
 		
-		ConfFilePath = dir + CONF_FILE_NAME;
+		ConfFilePath = dir + File.separator + CONF_FILE_NAME;
 		File file = new File(ConfFilePath);
 		
 		checkPaths();

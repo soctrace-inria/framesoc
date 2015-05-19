@@ -25,6 +25,7 @@ import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.ui.dialogs.ConfigurationDialog;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
@@ -88,6 +89,8 @@ public class ConfigurationHandler extends AbstractHandler {
 		} catch (SoCTraceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			DBObject.finalClose(sysDB);
 		}
 		return null;
 	}
