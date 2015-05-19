@@ -61,7 +61,6 @@ public class ConfigurationDialog extends Dialog {
 	private Spinner maxViewInstance;
 	private Button btnLaunchDBWizard;
 	private Button btnAllowViewReplication;
-	private Composite compositeDatabaseParameters;
 	private Composite databaseComposite;
 
 	/**
@@ -123,7 +122,7 @@ public class ConfigurationDialog extends Dialog {
 		// tab item + corresponding composite
 		final TabItem tbtmDatabaseParameters = new TabItem(tabFolder, 0);
 		tbtmDatabaseParameters.setText("Database");
-		compositeDatabaseParameters = new Composite(tabFolder, SWT.NONE);
+		Composite compositeDatabaseParameters = new Composite(tabFolder, SWT.NONE);
 		tbtmDatabaseParameters.setControl(compositeDatabaseParameters);
 		compositeDatabaseParameters.setLayout(new GridLayout(1, false));
 
@@ -188,7 +187,7 @@ public class ConfigurationDialog extends Dialog {
 		groupGUISettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		groupGUISettings.setText("GUI Settings");
 		groupGUISettings.setLayout(new GridLayout(1, false));
-		
+
 		Composite instances = new Composite(groupGUISettings, SWT.NONE);
 		instances.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		instances.setLayout(new GridLayout(2, false));
@@ -214,7 +213,7 @@ public class ConfigurationDialog extends Dialog {
 				.setToolTipText("Enable to open several instances of the same view on the same trace");
 
 		// Colors
-		
+
 		// tab item + corresponding composite
 		final TabItem tbtmColorsParameters = new TabItem(tabFolder, 0);
 		tbtmColorsParameters.setText("Colors");
@@ -363,8 +362,8 @@ public class ConfigurationDialog extends Dialog {
 		}
 
 		// Update the DB view
-		compositeDatabaseParameters.layout();
-		compositeDatabaseParameters.update();
+		databaseComposite.layout();
+		databaseComposite.update();
 	}
 
 	private class LaunchDMBSWizard extends SelectionAdapter {
