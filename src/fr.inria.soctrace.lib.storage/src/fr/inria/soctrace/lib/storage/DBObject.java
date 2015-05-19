@@ -93,6 +93,19 @@ public abstract class DBObject {
 	}
 	
 	/**
+	 * Check if the settings for a database are correct
+	 * 
+	 * @param name
+	 *            database name
+	 * @return true if the settings are correct
+	 * @throws SoCTraceException
+	 */
+	public static boolean checkSettings(String name) throws SoCTraceException {
+		DBManager dbm = getDBManager(name);
+		return dbm.checkSettings();
+	}
+	
+	/**
 	 * Close the database.
 	 * To be used in a finally block.
 	 * 

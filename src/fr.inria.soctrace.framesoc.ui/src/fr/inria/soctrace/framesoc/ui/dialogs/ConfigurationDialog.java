@@ -67,13 +67,36 @@ public class ConfigurationDialog extends Dialog {
 	private Button btnIndexingEP;
 	private Spinner maxViewInstance;
 
+	/**
+	 * Maximum value allowed for the number of view instances
+	 */
 	private final Integer MaxViewInstances = 100000;
+
+	/**
+	 * Minimum value allowed for the number of view instances
+	 */
 	private final Integer MinViewInstances = -1;
+
+	/**
+	 * Incremental step for number of view instances
+	 */
 	private final Integer IncrementViewInstances = 1;
+
+	/**
+	 * Default value set when 0 is set as value in number of view instances
+	 */
+	private final String replace0InstanceValue = "1";
 
 	private Button btnAllowViewReplication;
 
+	/**
+	 * Composite for color management
+	 */
 	private ManageColorsComposite manageColorComposite;
+
+	/**
+	 * Composite for tool management
+	 */
 	private ManageToolsComposite manageToolsComposite;
 
 	/**
@@ -95,7 +118,6 @@ public class ConfigurationDialog extends Dialog {
 	private final int TMP_START_ID = -1000;
 	private Composite databaseComposite;
 	private Button btnLaunchDBWizard;
-
 
 	public ConfigurationDialog(Shell parentShell) {
 		super(parentShell);
@@ -190,7 +212,6 @@ public class ConfigurationDialog extends Dialog {
 
 		sashFormDatabaseParameters.setWeights(new int[] { 1, 3 });
 
-		
 		// GUI settings
 		final TabItem tbtmGUIParameters = new TabItem(tabFolder, 0);
 		tbtmGUIParameters.setText("GUI");
@@ -232,11 +253,10 @@ public class ConfigurationDialog extends Dialog {
 		btnAllowViewReplication
 				.setToolTipText("Enable to open several instances of the same view on the same trace");
 
-		
 		// Colors
 		final TabItem tbtmColorsParameters = new TabItem(tabFolder, 0);
 		tbtmColorsParameters.setText("Colors");
-		
+
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
 		layout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
@@ -253,7 +273,6 @@ public class ConfigurationDialog extends Dialog {
 		final TabItem tbtmToolsParameters = new TabItem(tabFolder, 0);
 		tbtmToolsParameters.setText("Tools");
 
-
 		GridLayout layoutTools = new GridLayout();
 		layoutTools.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
 		layoutTools.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
@@ -265,14 +284,22 @@ public class ConfigurationDialog extends Dialog {
 		manageColorComposite.setBackground(tabFolder.getBackground());
 		manageToolsComposite.createPartControl();
 		tbtmToolsParameters.setControl(manageToolsComposite);
-		
+
 		return composite;
 	}
 
 	@Override
 	protected void okPressed() {
-		config.set(SoCTraceProperty.max_view_instances,
-				maxViewInstance.getText());
+
+		// Check if value is 0
+		if (!maxViewInstance.getText().equals("0")) {
+			config.set(SoCTraceProperty.max_view_instances,
+					maxViewInstance.getText());
+		} else {
+			// if 0, put a default value instead
+			config.set(SoCTraceProperty.max_view_instances,
+					replace0InstanceValue);
+		}
 		config.set(SoCTraceProperty.trace_db_ts_indexing,
 				String.valueOf(btnIndexingTime.getSelection()));
 		config.set(SoCTraceProperty.trace_db_eid_indexing,
@@ -311,7 +338,7 @@ public class ConfigurationDialog extends Dialog {
 		manageColorComposite.disposeImages();
 		return super.close();
 	}
-	
+
 	@Override
 	protected Point getInitialSize() {
 		return new Point(550, 604);
@@ -325,7 +352,6 @@ public class ConfigurationDialog extends Dialog {
 		super.configureShell(newShell);
 		newShell.setText("Framesoc Configuration");
 	}
-
 
 	/************************* Manage tools stuff ****************************/
 
@@ -351,7 +377,8 @@ public class ConfigurationDialog extends Dialog {
 		return manageToolsComposite;
 	}
 
-	public void setManageToolsComposite(ManageToolsComposite manageToolsComposite) {
+	public void setManageToolsComposite(
+			ManageToolsComposite manageToolsComposite) {
 		this.manageToolsComposite = manageToolsComposite;
 	}
 
@@ -365,6 +392,9 @@ public class ConfigurationDialog extends Dialog {
 
 	/************************* Database stuff ****************************/
 
+	/**
+	 * Update the displayed settings for the current DMBS
+	 */
 	public void changeDBSettings() {
 		// Remove the currently displayed interface
 		disposeChildren(databaseComposite);
@@ -395,6 +425,12 @@ public class ConfigurationDialog extends Dialog {
 		}
 	}
 
+	/**
+	 * Dispose all the children widgets of a given composite
+	 * 
+	 * @param composite
+	 *            the composite whose children are disposed
+	 */
 	void disposeChildren(Composite composite) {
 		for (Control control : composite.getChildren()) {
 			control.dispose();

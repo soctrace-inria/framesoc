@@ -313,6 +313,16 @@ public final class FramesocManager {
 	public boolean isSystemDBExisting() throws SoCTraceException {
 		return DBObject.isDBExisting(sysDbName);
 	}
+	
+	/**
+	 * Check whether the System DB are correct
+	 * 
+	 * @return true if the settings are correct, false otherwise
+	 * @throws SoCTraceException
+	 */
+	public boolean isSystemDBParameterCorrect() throws SoCTraceException {
+		return DBObject.checkSettings(sysDbName);
+	}
 
 	/**
 	 * Get a new System DB object. WARNING: The client of this method MUST close the connection.

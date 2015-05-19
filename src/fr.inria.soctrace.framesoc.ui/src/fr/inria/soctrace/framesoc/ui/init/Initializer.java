@@ -106,8 +106,9 @@ public enum Initializer {
 	}
 
 	/**
-	 * Manage Framesoc tools registering all the plugin tools in the runtime not yet registered, and
-	 * removing all the plugin tools registered but not present in the runtime.
+	 * Manage Framesoc tools registering all the plugin tools in the runtime not
+	 * yet registered, and removing all the plugin tools registered but not
+	 * present in the runtime.
 	 */
 	public void manageTools(Shell shell) {
 
@@ -167,7 +168,8 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing, removing them if it is not the case.
+	 * Check if all the registered TraceDBs are still existing, removing them if
+	 * it is not the case.
 	 */
 	public void manageDatabases() {
 

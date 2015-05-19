@@ -64,8 +64,8 @@ public class FramesocColorManager {
 	private final static String CONF_DIR = "configuration" + File.separator + Activator.PLUGIN_ID + File.separator;
 	private final static String ET_FILE = CONF_DIR + "event_type_colors";
 	private final static String EP_FILE = CONF_DIR + "event_producer_colors";
-	private final static String SEPARATOR = ",";
-	private final static String EQUAL = "=";
+	public final static String SEPARATOR = ",";
+	public final static String EQUAL = "=";
 	private final static String ERROR_NEAR = "Color configuration file error near: ";
 	
 	private Map<String, FramesocColor> etColors = new HashMap<String, FramesocColor>();
