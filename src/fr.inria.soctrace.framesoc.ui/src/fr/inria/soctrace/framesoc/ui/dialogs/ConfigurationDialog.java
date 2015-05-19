@@ -129,7 +129,7 @@ public class ConfigurationDialog extends Dialog {
 
 		// dbms settings
 		final Group groupDatabaseSettings = new Group(compositeDatabaseParameters, SWT.NONE);
-		groupDatabaseSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		groupDatabaseSettings.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		groupDatabaseSettings.setText("Database Settings");
 		groupDatabaseSettings.setLayout(new GridLayout(1, true));
 
