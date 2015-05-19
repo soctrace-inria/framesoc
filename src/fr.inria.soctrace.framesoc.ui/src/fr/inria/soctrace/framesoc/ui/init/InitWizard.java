@@ -40,11 +40,13 @@ public class InitWizard extends Wizard {
 	 * Constructor 
 	 */
 	public InitWizard(boolean firstime) {
-		// set default properties here
+		// set current properties here
 		properties = new InitProperties();
-		properties.setDbms(Configuration.getInstance().getDefault(SoCTraceProperty.soctrace_dbms));
-		properties.setMysqlUser(Configuration.getInstance().getDefault(SoCTraceProperty.mysql_db_user));
-		properties.setMysqlUrl(Configuration.getInstance().getDefault(SoCTraceProperty.mysql_base_db_jdbc_url));
+		properties.setDbms(Configuration.getInstance().get(SoCTraceProperty.soctrace_dbms));
+		properties.setMysqlUser(Configuration.getInstance().get(SoCTraceProperty.mysql_db_user));
+		properties.setMysqlUrl(Configuration.getInstance().get(SoCTraceProperty.mysql_base_db_jdbc_url));
+		properties.setMysqlPassword(Configuration.getInstance().get(SoCTraceProperty.mysql_db_password));
+		properties.setSqliteDirectory(Configuration.getInstance().get(SoCTraceProperty.sqlite_db_directory));
 		
 		// first time page
 		if (firstime) {

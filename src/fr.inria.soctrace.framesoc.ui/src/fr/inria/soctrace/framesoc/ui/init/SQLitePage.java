@@ -58,7 +58,7 @@ public class SQLitePage extends InitPage {
 		label.setText("Select DBs directory");
 
 		dbDirectory = new Text(container, SWT.BORDER | SWT.SINGLE);
-		dbDirectory.setText("");
+		dbDirectory.setText(properties.getSqliteDirectory());
 		dbDirectory.addModifyListener(new TraceDBDirectory()); 
 	
 		GridData gd_text1 = new GridData(GridData.FILL_HORIZONTAL);
