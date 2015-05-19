@@ -84,19 +84,21 @@ public class SQLitePage extends InitPage {
 			}
 		});
 		btnBrowse.setText("Browse");
-		setPageComplete(false);
+		updatePageComplete();
+	}
+	
+	private void updatePageComplete() {
+		File currentDBDir = new File(dbDirectory.getText());
+		if (currentDBDir.exists() && currentDBDir.isDirectory())
+			setPageComplete(true);
+		else
+			setPageComplete(false);		
 	}
 	
 	private class TraceDBDirectory implements ModifyListener {
 		@Override
 		public void modifyText(ModifyEvent e) {
-
-			File currentDBDir = new File(dbDirectory.getText());
-			if (currentDBDir.exists() && currentDBDir.isDirectory())
-				setPageComplete(true);
-			else
-				setPageComplete(false);
-			
+			updatePageComplete();
 			properties.setSqliteDirectory(dbDirectory.getText());
 		}
 	}
