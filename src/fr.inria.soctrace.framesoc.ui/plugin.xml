@@ -134,16 +134,12 @@
                      style="push">
                </command>
             </menu>
-            <menu
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.Configuration"
                   icon="icons/management.png"
-                  id="management"
-                  label="Management">
-               <command
-                     commandId="fr.inria.soctrace.framesoc.ui.commands.Configuration"
-                     icon="icons/manage_tools.png"
-                     style="push">
-               </command>
-            </menu>
+                  label="Preferences"
+                  style="push">
+            </command>
             <visibleWhen
                   checkEnabled="false">
                <with

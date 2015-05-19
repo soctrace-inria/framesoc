@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Generoso Pagano - initial API and implementation
+ *     Youenn Corre - initial API and implementation
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.dialogs;
 
@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -49,16 +49,15 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.search.ITraceSearch;
 import fr.inria.soctrace.lib.search.TraceSearch;
 import fr.inria.soctrace.lib.utils.Configuration;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
 import fr.inria.soctrace.lib.utils.IdManager;
-import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.IdManager.Direction;
 
 /**
  * Eclipse Dialog to configure Framesoc settings
  * 
- * @author youenn
- *
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
 public class ConfigurationDialog extends Dialog {
 
@@ -66,28 +65,29 @@ public class ConfigurationDialog extends Dialog {
 	private Configuration config;
 	private Button btnIndexingEP;
 	private Spinner maxViewInstance;
+	private Composite databaseComposite;
+	private Button btnLaunchDBWizard;
+	private Button btnAllowViewReplication;
 
 	/**
 	 * Maximum value allowed for the number of view instances
 	 */
-	private final Integer MaxViewInstances = 100000;
+	private final static Integer MAX_VIEW_INSTANCES = 100000;
 
 	/**
 	 * Minimum value allowed for the number of view instances
 	 */
-	private final Integer MinViewInstances = -1;
+	private final static Integer MIN_VIEW_INSTANCES = -1;
 
 	/**
 	 * Incremental step for number of view instances
 	 */
-	private final Integer IncrementViewInstances = 1;
+	private final static Integer INCREMENT_VIEW_INSTANCES = 1;
 
 	/**
 	 * Default value set when 0 is set as value in number of view instances
 	 */
-	private final String replace0InstanceValue = "1";
-
-	private Button btnAllowViewReplication;
+	private final static String REPLACE_0_INSTANCE_VALUE = "1";
 
 	/**
 	 * Composite for color management
@@ -108,16 +108,15 @@ public class ConfigurationDialog extends Dialog {
 	 * Installed tool names. Names are unique for tools.
 	 */
 	private Set<String> oldToolNames;
+	
 	Map<Integer, Tool> oldTools;
 
 	/**
-	 * For added tools we use temporary negative IDs. Actual ID are assigned by
-	 * the Dialog user.
+	 * For added tools we use temporary negative IDs. Actual ID are assigned by the Dialog user.
 	 */
 	private IdManager newToolIdManager;
+	
 	private final int TMP_START_ID = -1000;
-	private Composite databaseComposite;
-	private Button btnLaunchDBWizard;
 
 	public ConfigurationDialog(Shell parentShell) {
 		super(parentShell);
@@ -127,8 +126,7 @@ public class ConfigurationDialog extends Dialog {
 		oldTools = loadTools();
 		oldToolNames = new HashSet<String>();
 		toolsMap = new HashMap<Integer, Tool>();
-		Iterator<Entry<Integer, Tool>> iterator = oldTools.entrySet()
-				.iterator();
+		Iterator<Entry<Integer, Tool>> iterator = oldTools.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<Integer, Tool> pair = iterator.next();
 			toolsMap.put(pair.getKey(), pair.getValue());
@@ -144,10 +142,8 @@ public class ConfigurationDialog extends Dialog {
 		Composite composite = (Composite) super.createDialogArea(parent);
 
 		final SashForm sashFormGlobal = new SashForm(composite, SWT.VERTICAL);
-		sashFormGlobal.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-				true, 1, 1));
-		sashFormGlobal.setBackground(SWTResourceManager
-				.getColor(SWT.COLOR_WIDGET_BACKGROUND));
+		sashFormGlobal.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		sashFormGlobal.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
 
 		TabFolder tabFolder = new TabFolder(sashFormGlobal, SWT.NONE);
 
@@ -155,15 +151,12 @@ public class ConfigurationDialog extends Dialog {
 		final TabItem tbtmDatabaseParameters = new TabItem(tabFolder, 0);
 		tbtmDatabaseParameters.setText("Database");
 
-		final SashForm sashFormDatabaseParameters = new SashForm(tabFolder,
-				SWT.VERTICAL);
+		final SashForm sashFormDatabaseParameters = new SashForm(tabFolder, SWT.VERTICAL);
 		tbtmDatabaseParameters.setControl(sashFormDatabaseParameters);
 
-		final SashForm sashFormIndexing = new SashForm(
-				sashFormDatabaseParameters, SWT.VERTICAL);
+		final SashForm sashFormIndexing = new SashForm(sashFormDatabaseParameters, SWT.VERTICAL);
 
-		final Group groupIndexingSettings = new Group(sashFormIndexing,
-				SWT.NONE);
+		final Group groupIndexingSettings = new Group(sashFormIndexing, SWT.NONE);
 		groupIndexingSettings.setText("Indexing Settings");
 		groupIndexingSettings.setLayout(new GridLayout(1, false));
 
@@ -179,16 +172,13 @@ public class ConfigurationDialog extends Dialog {
 		btnIndexingEP.setText("Index traces on event ID");
 		btnIndexingEP.setToolTipText("Imported traces are indexed on event ID");
 
-		final SashForm sashFormDatabase = new SashForm(
-				sashFormDatabaseParameters, SWT.VERTICAL);
+		final SashForm sashFormDatabase = new SashForm(sashFormDatabaseParameters, SWT.VERTICAL);
 
-		final Group groupDatabaseSettings = new Group(sashFormDatabase,
-				SWT.NONE);
+		final Group groupDatabaseSettings = new Group(sashFormDatabase, SWT.NONE);
 		groupDatabaseSettings.setText("Database Settings");
 		groupDatabaseSettings.setLayout(new GridLayout(1, true));
 
-		Composite databaseComposite2 = new Composite(groupDatabaseSettings,
-				SWT.NONE);
+		Composite databaseComposite2 = new Composite(groupDatabaseSettings, SWT.NONE);
 		databaseComposite2.setLayout(new GridLayout(3, true));
 
 		final Label lblSqlCurrentDBMS = new Label(databaseComposite2, SWT.NONE);
@@ -196,18 +186,15 @@ public class ConfigurationDialog extends Dialog {
 		lblSqlCurrentDBMS.setToolTipText("Current DataBase Management System");
 
 		final Label lblCurrentDBMSName = new Label(databaseComposite2, SWT.NONE);
-		lblCurrentDBMSName.setText(config
-				.getDefault(SoCTraceProperty.soctrace_dbms));
+		lblCurrentDBMSName.setText(config.getDefault(SoCTraceProperty.soctrace_dbms));
 
 		btnLaunchDBWizard = new Button(groupDatabaseSettings, SWT.PUSH);
 		btnLaunchDBWizard.setText("Launch DBMS Configuration");
-		btnLaunchDBWizard
-				.setToolTipText("Launch the DBMS configuration wizard");
+		btnLaunchDBWizard.setToolTipText("Launch the DBMS configuration wizard");
 		btnLaunchDBWizard.addSelectionListener(new LaunchDMBSWizard());
 
 		databaseComposite = new Composite(groupDatabaseSettings, SWT.NONE);
-		databaseComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-				true, 1, 1));
+		databaseComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		changeDBSettings();
 
 		sashFormDatabaseParameters.setWeights(new int[] { 1, 3 });
@@ -216,15 +203,12 @@ public class ConfigurationDialog extends Dialog {
 		final TabItem tbtmGUIParameters = new TabItem(tabFolder, 0);
 		tbtmGUIParameters.setText("GUI");
 
-		final SashForm sashFormGUIParameters = new SashForm(tabFolder,
-				SWT.VERTICAL);
+		final SashForm sashFormGUIParameters = new SashForm(tabFolder, SWT.VERTICAL);
 		tbtmGUIParameters.setControl(sashFormGUIParameters);
 
-		final SashForm sashFormViewsParameters = new SashForm(
-				sashFormGUIParameters, SWT.VERTICAL);
+		final SashForm sashFormViewsParameters = new SashForm(sashFormGUIParameters, SWT.VERTICAL);
 
-		final Group groupGUISettings = new Group(sashFormViewsParameters,
-				SWT.NONE);
+		final Group groupGUISettings = new Group(sashFormViewsParameters, SWT.NONE);
 		groupGUISettings.setText("GUI Settings");
 		groupGUISettings.setLayout(new GridLayout(2, false));
 
@@ -232,19 +216,14 @@ public class ConfigurationDialog extends Dialog {
 		lblMaxViewInstance.setText("Maximum number of view instances: ");
 
 		maxViewInstance = new Spinner(groupGUISettings, SWT.BORDER);
-		maxViewInstance.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-				false, 1, 1));
-		maxViewInstance.setIncrement(IncrementViewInstances);
-		maxViewInstance.setMaximum(MaxViewInstances);
-		maxViewInstance.setMinimum(MinViewInstances);
+		maxViewInstance.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		maxViewInstance.setIncrement(INCREMENT_VIEW_INSTANCES);
+		maxViewInstance.setMaximum(MAX_VIEW_INSTANCES);
+		maxViewInstance.setMinimum(MIN_VIEW_INSTANCES);
 		maxViewInstance.setSelection(Integer.valueOf(config
 				.get(SoCTraceProperty.max_view_instances)));
-		maxViewInstance
-				.setToolTipText("Maximum number of instances of the same view (["
-						+ MinViewInstances
-						+ ", "
-						+ MaxViewInstances
-						+ "]; -1 = no limit).");
+		maxViewInstance.setToolTipText("Maximum number of instances of the same view (["
+				+ MIN_VIEW_INSTANCES + ", " + MAX_VIEW_INSTANCES + "]; -1 = no limit).");
 
 		btnAllowViewReplication = new Button(groupGUISettings, SWT.CHECK);
 		btnAllowViewReplication.setSelection(Boolean.valueOf(config
@@ -293,12 +272,10 @@ public class ConfigurationDialog extends Dialog {
 
 		// Check if value is 0
 		if (!maxViewInstance.getText().equals("0")) {
-			config.set(SoCTraceProperty.max_view_instances,
-					maxViewInstance.getText());
+			config.set(SoCTraceProperty.max_view_instances, maxViewInstance.getText());
 		} else {
 			// if 0, put a default value instead
-			config.set(SoCTraceProperty.max_view_instances,
-					replace0InstanceValue);
+			config.set(SoCTraceProperty.max_view_instances, REPLACE_0_INSTANCE_VALUE);
 		}
 		config.set(SoCTraceProperty.trace_db_ts_indexing,
 				String.valueOf(btnIndexingTime.getSelection()));
@@ -314,8 +291,7 @@ public class ConfigurationDialog extends Dialog {
 		manageColorComposite.saveColors();
 		ColorsChangeDescriptor des = new ColorsChangeDescriptor();
 		des.setEntity(manageColorComposite.getEntity());
-		FramesocBus.getInstance().send(
-				FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
+		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
 
 		FramesocPartManager.getInstance().updateMaxInstances();
 
@@ -328,8 +304,7 @@ public class ConfigurationDialog extends Dialog {
 		manageColorComposite.loadColors();
 		ColorsChangeDescriptor des = new ColorsChangeDescriptor();
 		des.setEntity(manageColorComposite.getEntity());
-		FramesocBus.getInstance().send(
-				FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
+		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
 		super.cancelPressed();
 	}
 
@@ -377,8 +352,7 @@ public class ConfigurationDialog extends Dialog {
 		return manageToolsComposite;
 	}
 
-	public void setManageToolsComposite(
-			ManageToolsComposite manageToolsComposite) {
+	public void setManageToolsComposite(ManageToolsComposite manageToolsComposite) {
 		this.manageToolsComposite = manageToolsComposite;
 	}
 
@@ -399,13 +373,11 @@ public class ConfigurationDialog extends Dialog {
 		// Remove the currently displayed interface
 		disposeChildren(databaseComposite);
 
-		if (config.get(SoCTraceProperty.soctrace_dbms).equals(
-				DBMS.MYSQL.toString())) {
+		if (config.get(SoCTraceProperty.soctrace_dbms).equals(DBMS.MYSQL.toString())) {
 			new MySQLDialog(databaseComposite, this);
 		}
 
-		if (config.get(SoCTraceProperty.soctrace_dbms).equals(
-				DBMS.SQLITE.toString())) {
+		if (config.get(SoCTraceProperty.soctrace_dbms).equals(DBMS.SQLITE.toString())) {
 			new SQLiteDialog(databaseComposite, this);
 		}
 
