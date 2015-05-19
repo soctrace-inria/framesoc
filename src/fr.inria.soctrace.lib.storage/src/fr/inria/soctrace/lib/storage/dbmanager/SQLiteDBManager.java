@@ -88,8 +88,14 @@ public class SQLiteDBManager extends DBManager {
 	
 	@Override
 	public boolean checkSettings() throws SoCTraceException {
-		// Check if write permission ?
-		return true;
+		File f = new File(Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory));
+		if (f.canWrite()) {
+			return true;
+		} else {
+			throw new SoCTraceException(
+					"The current directory does not have the write permission.");
+		}
 	}
 
 	@Override

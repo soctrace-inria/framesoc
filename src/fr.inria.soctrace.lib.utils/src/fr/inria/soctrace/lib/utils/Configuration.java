@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,7 @@ public class Configuration {
 	 * {@link SoCTraceProperty.max_view_instances} property.
 	 */
 	public final static int INFINITE_VIEWS = -1;
-
+	
 	/**
 	 * Enumeration for SoC-Trace configuration variables names.
 	 */
@@ -226,6 +228,13 @@ public class Configuration {
 			} else {
 				// Set as default in the home directory
 				dir = new File(System.getProperty("user.home") + CONF_DIR);
+				MessageDialog
+						.openError(
+								Display.getCurrent().getActiveShell(),
+								"Configuration file locations",
+								"Warning: Configuration file will not in default location since the eclipse directory does not the write permission."
+										+ "The configuration file will be placed in "
+										+ dir);
 				if (!dir.exists())
 					dir.mkdir();
 			}
@@ -314,7 +323,6 @@ public class Configuration {
 				logger.debug("##########################################################################");
 
 				saveOnFile();
-
 			} else {
 				logger.debug("Configuration file: " + ConfFilePath);
 				config.load(new FileInputStream(file));

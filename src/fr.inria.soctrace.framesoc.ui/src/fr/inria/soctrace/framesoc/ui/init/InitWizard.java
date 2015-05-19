@@ -90,11 +90,13 @@ public class InitWizard extends Wizard {
 		try {
 			if (FramesocManager.getInstance().isSystemDBExisting())
 				return true;
-			if(!FramesocManager.getInstance().isSystemDBParameterCorrect())
+			if (!FramesocManager.getInstance().isSystemDBParameterCorrect())
 				return false;
 		} catch (SoCTraceException e) {
+			String trimMessage = e.getMessage().substring(
+					e.getMessage().indexOf(":") + 1);
 			MessageDialog.openError(Display.getCurrent().getActiveShell(),
-					"Invalid DB parameters", e.getMessage());
+					"Invalid DB parameters", trimMessage);
 			return false;
 		} finally {
 			// Set the configuration back to its previous values
