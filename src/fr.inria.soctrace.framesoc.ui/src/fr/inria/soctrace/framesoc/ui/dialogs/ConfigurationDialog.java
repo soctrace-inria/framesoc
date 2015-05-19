@@ -13,11 +13,11 @@ package fr.inria.soctrace.framesoc.ui.dialogs;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -51,6 +51,7 @@ import fr.inria.soctrace.lib.utils.DBMS;
  * Eclipse Dialog to configure Framesoc settings
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class ConfigurationDialog extends Dialog {
 
@@ -58,9 +59,10 @@ public class ConfigurationDialog extends Dialog {
 	private Configuration config;
 	private Button btnIndexingEP;
 	private Spinner maxViewInstance;
-	private Composite databaseComposite;
 	private Button btnLaunchDBWizard;
 	private Button btnAllowViewReplication;
+	private Composite compositeDatabaseParameters;
+	private Composite databaseComposite;
 
 	/**
 	 * Maximum value allowed for the number of view instances
@@ -92,7 +94,6 @@ public class ConfigurationDialog extends Dialog {
 	 */
 	private ManageToolsComposite manageToolsComposite;
 
-	
 	Map<Integer, Tool> oldTools;
 
 	public ConfigurationDialog(Shell parentShell) {
@@ -107,22 +108,58 @@ public class ConfigurationDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite) super.createDialogArea(parent);
 
-		final SashForm sashFormGlobal = new SashForm(composite, SWT.VERTICAL);
-		sashFormGlobal.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		sashFormGlobal.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
+		// global composite
+		final Composite global = new Composite(composite, SWT.NONE);
+		global.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		global.setLayout(new GridLayout(1, false));
+		global.setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
 
-		TabFolder tabFolder = new TabFolder(sashFormGlobal, SWT.NONE);
+		// global tab folder
+		TabFolder tabFolder = new TabFolder(global, SWT.NONE);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		// Database settings
+
+		// tab item + corresponding composite
 		final TabItem tbtmDatabaseParameters = new TabItem(tabFolder, 0);
 		tbtmDatabaseParameters.setText("Database");
+		compositeDatabaseParameters = new Composite(tabFolder, SWT.NONE);
+		tbtmDatabaseParameters.setControl(compositeDatabaseParameters);
+		compositeDatabaseParameters.setLayout(new GridLayout(1, false));
 
-		final SashForm sashFormDatabaseParameters = new SashForm(tabFolder, SWT.VERTICAL);
-		tbtmDatabaseParameters.setControl(sashFormDatabaseParameters);
+		// dbms settings
+		final Group groupDatabaseSettings = new Group(compositeDatabaseParameters, SWT.NONE);
+		groupDatabaseSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		groupDatabaseSettings.setText("Database Settings");
+		groupDatabaseSettings.setLayout(new GridLayout(1, true));
 
-		final SashForm sashFormIndexing = new SashForm(sashFormDatabaseParameters, SWT.VERTICAL);
+		// dbms name
+		final Composite dbmsComposite = new Composite(groupDatabaseSettings, SWT.NONE);
+		dbmsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		dbmsComposite.setLayout(new GridLayout(2, true));
 
-		final Group groupIndexingSettings = new Group(sashFormIndexing, SWT.NONE);
+		final Label lblSqlCurrentDBMS = new Label(dbmsComposite, SWT.NONE);
+		lblSqlCurrentDBMS.setText("Current DBMS:");
+		lblSqlCurrentDBMS.setToolTipText("Current Database Management System");
+
+		final Label lblCurrentDBMSName = new Label(dbmsComposite, SWT.NONE);
+		lblCurrentDBMSName.setText(config.getDefault(SoCTraceProperty.soctrace_dbms));
+
+		// wizard button
+		btnLaunchDBWizard = new Button(groupDatabaseSettings, SWT.PUSH);
+		btnLaunchDBWizard.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		btnLaunchDBWizard.setText("Launch DBMS Configuration");
+		btnLaunchDBWizard.setToolTipText("Launch the DBMS configuration wizard");
+		btnLaunchDBWizard.addSelectionListener(new LaunchDMBSWizard());
+
+		// composite containing dbms specific content
+		databaseComposite = new Composite(groupDatabaseSettings, SWT.NONE);
+		databaseComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		loadDBSettings();
+
+		// indexing settings
+		final Group groupIndexingSettings = new Group(compositeDatabaseParameters, SWT.NONE);
+		groupIndexingSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		groupIndexingSettings.setText("Indexing Settings");
 		groupIndexingSettings.setLayout(new GridLayout(1, false));
 
@@ -138,50 +175,28 @@ public class ConfigurationDialog extends Dialog {
 		btnIndexingEP.setText("Index traces on event ID");
 		btnIndexingEP.setToolTipText("Imported traces are indexed on event ID");
 
-		final SashForm sashFormDatabase = new SashForm(sashFormDatabaseParameters, SWT.VERTICAL);
-
-		final Group groupDatabaseSettings = new Group(sashFormDatabase, SWT.NONE);
-		groupDatabaseSettings.setText("Database Settings");
-		groupDatabaseSettings.setLayout(new GridLayout(1, true));
-
-		Composite databaseComposite2 = new Composite(groupDatabaseSettings, SWT.NONE);
-		databaseComposite2.setLayout(new GridLayout(3, true));
-
-		final Label lblSqlCurrentDBMS = new Label(databaseComposite2, SWT.NONE);
-		lblSqlCurrentDBMS.setText("Current DBMS:");
-		lblSqlCurrentDBMS.setToolTipText("Current DataBase Management System");
-
-		final Label lblCurrentDBMSName = new Label(databaseComposite2, SWT.NONE);
-		lblCurrentDBMSName.setText(config.getDefault(SoCTraceProperty.soctrace_dbms));
-
-		btnLaunchDBWizard = new Button(groupDatabaseSettings, SWT.PUSH);
-		btnLaunchDBWizard.setText("Launch DBMS Configuration");
-		btnLaunchDBWizard.setToolTipText("Launch the DBMS configuration wizard");
-		btnLaunchDBWizard.addSelectionListener(new LaunchDMBSWizard());
-
-		databaseComposite = new Composite(groupDatabaseSettings, SWT.NONE);
-		databaseComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		changeDBSettings();
-
-		sashFormDatabaseParameters.setWeights(new int[] { 1, 3 });
-
 		// GUI settings
+
+		// tab item + corresponding composite
 		final TabItem tbtmGUIParameters = new TabItem(tabFolder, 0);
 		tbtmGUIParameters.setText("GUI");
+		final Composite compositeGUIParameters = new Composite(tabFolder, SWT.NONE);
+		tbtmGUIParameters.setControl(compositeGUIParameters);
+		compositeGUIParameters.setLayout(new GridLayout(1, false));
 
-		final SashForm sashFormGUIParameters = new SashForm(tabFolder, SWT.VERTICAL);
-		tbtmGUIParameters.setControl(sashFormGUIParameters);
-
-		final SashForm sashFormViewsParameters = new SashForm(sashFormGUIParameters, SWT.VERTICAL);
-
-		final Group groupGUISettings = new Group(sashFormViewsParameters, SWT.NONE);
+		final Group groupGUISettings = new Group(compositeGUIParameters, SWT.NONE);
+		groupGUISettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		groupGUISettings.setText("GUI Settings");
-		groupGUISettings.setLayout(new GridLayout(2, false));
+		groupGUISettings.setLayout(new GridLayout(1, false));
+		
+		Composite instances = new Composite(groupGUISettings, SWT.NONE);
+		instances.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		instances.setLayout(new GridLayout(2, false));
 
-		Label lblMaxViewInstance = new Label(groupGUISettings, SWT.NONE);
+		Label lblMaxViewInstance = new Label(instances, SWT.NONE);
 		lblMaxViewInstance.setText("Maximum number of view instances: ");
 
-		maxViewInstance = new Spinner(groupGUISettings, SWT.BORDER);
+		maxViewInstance = new Spinner(instances, SWT.BORDER);
 		maxViewInstance.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		maxViewInstance.setIncrement(INCREMENT_VIEW_INSTANCES);
 		maxViewInstance.setMaximum(MAX_VIEW_INSTANCES);
@@ -199,15 +214,15 @@ public class ConfigurationDialog extends Dialog {
 				.setToolTipText("Enable to open several instances of the same view on the same trace");
 
 		// Colors
+		
+		// tab item + corresponding composite
 		final TabItem tbtmColorsParameters = new TabItem(tabFolder, 0);
 		tbtmColorsParameters.setText("Colors");
-
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
 		layout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
 		layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
 		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-
 		manageColorComposite = new ManageColorsComposite(tabFolder, this);
 		manageColorComposite.setLayout(layout);
 		manageColorComposite.setBackground(tabFolder.getBackground());
@@ -215,15 +230,15 @@ public class ConfigurationDialog extends Dialog {
 		tbtmColorsParameters.setControl(manageColorComposite);
 
 		// Tools
+
+		// tab item + corresponding composite
 		final TabItem tbtmToolsParameters = new TabItem(tabFolder, 0);
 		tbtmToolsParameters.setText("Tools");
-
 		GridLayout layoutTools = new GridLayout();
 		layoutTools.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
 		layoutTools.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
 		layoutTools.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
 		layoutTools.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-
 		manageToolsComposite = new ManageToolsComposite(tabFolder, oldTools);
 		manageToolsComposite.setLayout(layoutTools);
 		manageColorComposite.setBackground(tabFolder.getBackground());
@@ -335,7 +350,7 @@ public class ConfigurationDialog extends Dialog {
 	/**
 	 * Update the displayed settings for the current DMBS
 	 */
-	public void changeDBSettings() {
+	public void loadDBSettings() {
 		// Remove the currently displayed interface
 		disposeChildren(databaseComposite);
 
@@ -348,17 +363,16 @@ public class ConfigurationDialog extends Dialog {
 		}
 
 		// Update the DB view
-		databaseComposite.layout();
-		databaseComposite.update();
+		compositeDatabaseParameters.layout();
+		compositeDatabaseParameters.update();
 	}
 
 	private class LaunchDMBSWizard extends SelectionAdapter {
-
 		@Override
 		public void widgetSelected(final SelectionEvent e) {
 			if (Initializer.INSTANCE.initializeSystem(getShell(), false)) {
 				Initializer.INSTANCE.manageTools(getShell());
-				changeDBSettings();
+				loadDBSettings();
 			}
 		}
 	}
@@ -374,5 +388,4 @@ public class ConfigurationDialog extends Dialog {
 			control.dispose();
 		}
 	}
-
 }
