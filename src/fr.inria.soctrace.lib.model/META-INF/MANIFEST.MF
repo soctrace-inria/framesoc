@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Model
 Bundle-SymbolicName: fr.inria.soctrace.lib.model
-Bundle-Version: 1.0.6.qualifier
+Bundle-Version: 1.0.7.qualifier
 Bundle-Activator: fr.inria.soctrace.lib.model.Activator
 Bundle-Vendor: INRIA
 Require-Bundle: org.eclipse.core.runtime
