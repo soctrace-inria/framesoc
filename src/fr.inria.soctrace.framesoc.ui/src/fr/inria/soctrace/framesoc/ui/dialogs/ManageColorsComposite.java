@@ -100,6 +100,11 @@ public class ManageColorsComposite extends Composite {
 	 * Color images
 	 */
 	protected Map<String, Image> images;
+	
+	/**
+	 * Collection to save the temporary color changes
+	 */
+	protected Map<ModelEntity ,Map<String, FramesocColor>> modifiedColors;
 
 	protected class Entity {
 		String name;
@@ -129,6 +134,7 @@ public class ManageColorsComposite extends Composite {
 		this.entities = new TreeMap<Integer, Entity>();
 		this.entities.put(0, new Entity(EP_NAME, ModelEntity.EVENT_PRODUCER));
 		this.entities.put(1, new Entity(ET_NAME, ModelEntity.EVENT_TYPE));
+		modifiedColors = new HashMap<ModelEntity, Map<String, FramesocColor>>();
 	}
 
 	protected void createPartControl() {
@@ -143,6 +149,7 @@ public class ManageColorsComposite extends Composite {
 			comboModelEntity.add(e.getValue().name, e.getKey());
 			comboModelEntity.select(e.getKey()); // select the last
 			entity = e.getValue().entity;
+			modifiedColors.put(entity, new HashMap<String, FramesocColor>());
 		}
 
 		comboModelEntity.addSelectionListener(new SelectionAdapter() {
@@ -234,17 +241,28 @@ public class ManageColorsComposite extends Composite {
 				IStructuredSelection selection = (IStructuredSelection) tableViewer
 						.getSelection();
 				Iterator<?> it = selection.iterator();
+				// Should be only one name in the selection (multiple selection
+				// not allowed)
 				while (it.hasNext()) {
 					String name = (String) it.next();
 					ColorDialog dialog = new ColorDialog(parentDialog
 							.getShell());
-					FramesocColor c = getColor(name);
+					FramesocColor c;
+					
+					// If color was already modified
+					if (modifiedColors.get(entity).containsKey(name))
+						c = modifiedColors.get(entity).get(name);
+					else
+						c = getColor(name);
+					
 					dialog.setRGB(new RGB(c.red, c.green, c.blue));
 					RGB rgb = dialog.open();
 					if (rgb == null)
 						continue;
-					setColor(name, new FramesocColor(rgb.red, rgb.green,
-							rgb.blue));
+					
+					modifiedColors.get(entity).put(name,
+							new FramesocColor(rgb.red, rgb.green, rgb.blue));
+						
 					disposeImages();
 					btnReset.setEnabled(true);
 					tableViewer.refresh(true);
@@ -260,7 +278,7 @@ public class ManageColorsComposite extends Composite {
 		btnReset.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				loadColors();
+				modifiedColors.get(entity).clear();
 				disposeImages();
 				btnReset.setEnabled(false);
 				tableViewer.refresh(true);
@@ -283,26 +301,43 @@ public class ManageColorsComposite extends Composite {
 					name);
 	}
 
-	private void setColor(String name, FramesocColor color) {
-		if (entity.equals(ModelEntity.EVENT_TYPE))
+	private void setColor(String name, FramesocColor color, ModelEntity anEntity) {
+		if (anEntity.equals(ModelEntity.EVENT_TYPE))
 			FramesocColorManager.getInstance().setEventTypeColor(name, color);
 		else
 			FramesocColorManager.getInstance().setEventProducerColor(name,
 					color);
 	}
 
-	public void saveColors() {
-		if (entity.equals(ModelEntity.EVENT_TYPE))
+	/**
+	 * Save the colors in the external color configuration file
+	 * 
+	 * @return true if there was at least one modification, false otherwise
+	 */
+	public boolean saveColors() {
+		boolean hasChanged = saveModifiedColors();
+		if (hasChanged) {
 			FramesocColorManager.getInstance().saveEventTypeColors();
-		else
 			FramesocColorManager.getInstance().saveEventProducerColors();
+		}
+		return hasChanged;
 	}
 
-	public void loadColors() {
-		if (entity.equals(ModelEntity.EVENT_TYPE))
-			FramesocColorManager.getInstance().loadEventTypeColors();
-		else
-			FramesocColorManager.getInstance().loadEventProducerColors();
+	/**
+	 * Save the modifications in memory
+	 * 
+	 * @return true if there was at least one modification, false otherwise
+	 */
+	private boolean saveModifiedColors() {
+		boolean hasChanged = false;
+		for (ModelEntity modelEntity : modifiedColors.keySet()) {
+			for(String name: modifiedColors.get(modelEntity).keySet()){
+				setColor(name, modifiedColors.get(modelEntity).get(name), modelEntity);
+				hasChanged = true;
+			}
+		}
+
+		return hasChanged;
 	}
 
 	protected Collection<String> getNames() {
@@ -357,7 +392,15 @@ public class ManageColorsComposite extends Composite {
 				Color border = new Color(event.display, 0, 0, 0);
 				gc.setBackground(border);
 				gc.fillRectangle(0, 0, bounds.height / 2, bounds.height / 2);
-				gc.setBackground(getColor(name).getSwtColor());
+				// If the color was previously modified
+				if (modifiedColors.get(entity).containsKey(name)) {
+					// Use the modified color
+					gc.setBackground(modifiedColors.get(entity)
+							.get(name).getSwtColor());
+				} else {
+					gc.setBackground(getColor(name).getSwtColor());
+				}
+				
 				gc.fillRectangle(1, 1, bounds.height / 2 - 2,
 						bounds.height / 2 - 2);
 				gc.dispose();

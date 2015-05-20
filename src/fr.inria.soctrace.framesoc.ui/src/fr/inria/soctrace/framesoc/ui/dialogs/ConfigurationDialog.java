@@ -268,11 +268,14 @@ public class ConfigurationDialog extends Dialog {
 		config.saveOnFile();
 
 		// Colors
-		manageColorComposite.saveColors();
-		ColorsChangeDescriptor des = new ColorsChangeDescriptor();
-		des.setEntity(manageColorComposite.getEntity());
-		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
-
+		boolean hasChanged = manageColorComposite.saveColors();
+		if (hasChanged) {
+			ColorsChangeDescriptor des = new ColorsChangeDescriptor();
+			des.setEntity(manageColorComposite.getEntity());
+			FramesocBus.getInstance().send(
+					FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
+		}
+		
 		FramesocPartManager.getInstance().updateMaxInstances();
 
 		super.okPressed();
@@ -280,11 +283,6 @@ public class ConfigurationDialog extends Dialog {
 
 	@Override
 	protected void cancelPressed() {
-		// Colors
-		manageColorComposite.loadColors();
-		ColorsChangeDescriptor des = new ColorsChangeDescriptor();
-		des.setEntity(manageColorComposite.getEntity());
-		FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_COLORS_CHANGED, des);
 		super.cancelPressed();
 	}
 
