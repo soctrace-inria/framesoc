@@ -212,6 +212,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		 * producer selection and type selection.
 		 */
 		public boolean isAllOk() {
+			System.out.println("int " + intervalOk());
+			System.out.println("prod " + producersOk());
+			System.out.println("type " + typesOk());
 			return intervalOk() && producersOk() && typesOk();
 		}
 
@@ -979,6 +982,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		// reset the loaded interval in the descriptor
 		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
 		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
+		
+		// set the filters
+		currentDescriptor.checkedProducers = globalFilters.get(FilterDimension.PRODUCERS).getChecked();
+		currentDescriptor.checkedTypes = globalFilters.get(FilterDimension.TYPE).getChecked();
 
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
