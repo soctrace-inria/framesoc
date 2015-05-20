@@ -67,6 +67,7 @@ public class MySqlPage extends InitPage {
 		
 		password = new Text(container, SWT.BORDER | SWT.PASSWORD);
 		password.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		password.setText(properties.getMysqlPassword());
 		password.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {

@@ -15,13 +15,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * Show Parameters for SQLite DMBS
  * 
- * @author youenn
- *
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
 public class SQLiteDialog extends DBMSDialog {
 
@@ -29,7 +29,6 @@ public class SQLiteDialog extends DBMSDialog {
 
 	public SQLiteDialog(Composite parent, ConfigurationDialog parentDialog) {
 		super(parentDialog);
-
 		createPartControl(parent);
 	}
 
@@ -41,14 +40,11 @@ public class SQLiteDialog extends DBMSDialog {
 		final Label lblSqlDirectory = new Label(compositeDB, SWT.NONE);
 		lblSqlDirectory.setText("SQLite database directory:");
 
-		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true,
-				false, 1, 1);
+		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_MiscDir.widthHint = 100;
 
 		final Label sqlDBDirectory = new Label(compositeDB, SWT.NONE);
-		sqlDBDirectory
-				.setText(config.get(SoCTraceProperty.sqlite_db_directory));
-		sqlDBDirectory.setToolTipText(config
-				.get(SoCTraceProperty.sqlite_db_directory));
+		sqlDBDirectory.setText(config.get(SoCTraceProperty.sqlite_db_directory));
+		sqlDBDirectory.setToolTipText(config.get(SoCTraceProperty.sqlite_db_directory));
 	}
 }

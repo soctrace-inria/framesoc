@@ -15,8 +15,7 @@ import fr.inria.soctrace.lib.utils.Configuration;
 /**
  * Class for showing different parameters of the DBMS
  * 
- * @author youenn
- *
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
 public abstract class DBMSDialog {
 

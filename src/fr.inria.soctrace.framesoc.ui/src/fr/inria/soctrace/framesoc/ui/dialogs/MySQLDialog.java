@@ -20,8 +20,8 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * Show Parameters for MySQL DMBS
- * @author youenn
- *
+ * 
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
 public class MySQLDialog extends DBMSDialog {
 
@@ -29,7 +29,6 @@ public class MySQLDialog extends DBMSDialog {
 
 	public MySQLDialog(Composite parent, ConfigurationDialog parentDialog) {
 		super(parentDialog);
-
 		createPartControl(parent);
 	}
 
@@ -38,8 +37,7 @@ public class MySQLDialog extends DBMSDialog {
 		GridLayout gl_compositeTable = new GridLayout(2, false);
 		compositeDB.setLayout(gl_compositeTable);
 
-		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true,
-				false, 1, 1);
+		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_MiscDir.widthHint = 100;
 
 		final Label lblMySqlUser = new Label(compositeDB, SWT.NONE);
@@ -54,8 +52,7 @@ public class MySQLDialog extends DBMSDialog {
 
 		final Label mySqlURL = new Label(compositeDB, SWT.NONE);
 		mySqlURL.setText(config.get(SoCTraceProperty.mysql_base_db_jdbc_url));
-		mySqlURL.setToolTipText(config
-				.get(SoCTraceProperty.mysql_base_db_jdbc_url));
+		mySqlURL.setToolTipText(config.get(SoCTraceProperty.mysql_base_db_jdbc_url));
 	}
 
 }

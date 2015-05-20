@@ -143,6 +143,14 @@ public abstract class DBManager {
 	public abstract boolean isDBExisting() throws SoCTraceException;
 
 	/**
+	 * Check if the DB settings are correct
+	 * 
+	 * @return true if they are correct
+	 * @throws SoCTraceException
+	 */
+	public abstract boolean checkSettings() throws SoCTraceException;
+	
+	/**
 	 * Create the DB.
 	 * 
 	 * @return the connection

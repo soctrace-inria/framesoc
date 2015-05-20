@@ -58,17 +58,9 @@ public class SQLitePage extends InitPage {
 		label.setText("Select DBs directory");
 
 		dbDirectory = new Text(container, SWT.BORDER | SWT.SINGLE);
-		dbDirectory.setText("");
-		dbDirectory.addModifyListener( new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				properties.setSqliteDirectory(dbDirectory.getText());
-    			if (new File(dbDirectory.getText()).exists())
-    				setPageComplete(true);
-    			else
-    				setPageComplete(false);
-			}				
-		});
+		dbDirectory.setText(properties.getSqliteDirectory());
+		dbDirectory.addModifyListener(new TraceDBDirectory()); 
+	
 		GridData gd_text1 = new GridData(GridData.FILL_HORIZONTAL);
 		gd_text1.widthHint = 331;
 		dbDirectory.setLayoutData(gd_text1);
@@ -92,9 +84,25 @@ public class SQLitePage extends InitPage {
 			}
 		});
 		btnBrowse.setText("Browse");
-		setPageComplete(false);
+		updatePageComplete();
 	}
-
+	
+	private void updatePageComplete() {
+		File currentDBDir = new File(dbDirectory.getText());
+		if (currentDBDir.exists() && currentDBDir.isDirectory())
+			setPageComplete(true);
+		else
+			setPageComplete(false);		
+	}
+	
+	private class TraceDBDirectory implements ModifyListener {
+		@Override
+		public void modifyText(ModifyEvent e) {
+			updatePageComplete();
+			properties.setSqliteDirectory(dbDirectory.getText());
+		}
+	}
+	
 	public String getText() {
 		return dbDirectory.getText();
 	}

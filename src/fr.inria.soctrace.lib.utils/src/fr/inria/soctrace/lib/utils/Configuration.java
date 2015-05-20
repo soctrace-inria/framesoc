@@ -15,17 +15,23 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Singleton for managing the configuration variables of Framesoc Infrastructure.
+ * Singleton for managing the configuration variables of Framesoc
+ * Infrastructure.
  * 
  * <p>
- * Properties are accessed via the {@link #get(SoCTraceProperty)} or {@link #get(String)} methods.
+ * Properties are accessed via the {@link #get(SoCTraceProperty)} or
+ * {@link #get(String)} methods.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -34,14 +40,17 @@ public class Configuration {
 	/**
 	 * Logger
 	 */
-	private final static Logger logger = LoggerFactory.getLogger(Configuration.class);
+	private final static Logger logger = LoggerFactory
+			.getLogger(Configuration.class);
 
 	/**
 	 * Constant corresponding to an infinite number of views for the
 	 * {@link SoCTraceProperty.max_view_instances} property.
 	 */
 	public final static int INFINITE_VIEWS = -1;
-
+	
+	private static boolean configDirHome = false;
+	
 	/**
 	 * Enumeration for SoC-Trace configuration variables names.
 	 */
@@ -58,21 +67,27 @@ public class Configuration {
 		/** Max number of instances for a Framesoc view */
 		max_view_instances,
 
-		/** Flag stating if automatic timestamp indexing is done after import: true, false */
+		/**
+		 * Flag stating if automatic timestamp indexing is done after import:
+		 * true, false
+		 */
 		trace_db_ts_indexing,
 
-		/** Flag stating if automatic event id indexing is done after import: true, false */
+		/**
+		 * Flag stating if automatic event id indexing is done after import:
+		 * true, false
+		 */
 		trace_db_eid_indexing,
 
 		/**
-		 * Flag stating if tools and their results are automatically removed if not found in
-		 * runtime: true, false
+		 * Flag stating if tools and their results are automatically removed if
+		 * not found in runtime: true, false
 		 */
 		ask_for_tool_removal,
 
 		/**
-		 * Flag allowing the existence of multiple views of a given type for the same trace: true,
-		 * false.
+		 * Flag allowing the existence of multiple views of a given type for the
+		 * same trace: true, false.
 		 */
 		allow_view_replication,
 
@@ -102,13 +117,14 @@ public class Configuration {
 	/**
 	 * Configuration directory, relative to eclipse installation directory.
 	 */
-	private final static String CONF_DIR = "configuration" + File.separator + Activator.PLUGIN_ID
-			+ File.separator;
+	private final static String CONF_DIR = "configuration" + File.separator
+			+ Activator.PLUGIN_ID + File.separator;
 
 	/**
 	 * Configuration file full path. Statically initialized.
 	 */
-	private final static String CONF_FILE_PATH = Platform.getInstallLocation().getURL().getPath()
+	private static String ConfFilePath = Platform.getInstallLocation()
+			.getURL().getPath()
 			+ CONF_DIR + CONF_FILE_NAME;
 
 	/**
@@ -141,8 +157,8 @@ public class Configuration {
 	}
 
 	/**
-	 * Return the value of the configuration variable corresponding to the given key, or null if not
-	 * found.
+	 * Return the value of the configuration variable corresponding to the given
+	 * key, or null if not found.
 	 * 
 	 * @param key
 	 *            variable name
@@ -153,8 +169,8 @@ public class Configuration {
 	}
 
 	/**
-	 * Return the default value of the configuration variable corresponding to the given key, or
-	 * null if not found.
+	 * Return the default value of the configuration variable corresponding to
+	 * the given key, or null if not found.
 	 * 
 	 * @param key
 	 *            variable name
@@ -165,8 +181,8 @@ public class Configuration {
 	}
 
 	/**
-	 * Return the value of the configuration variable corresponding to the given key, or null if not
-	 * found.
+	 * Return the value of the configuration variable corresponding to the given
+	 * key, or null if not found.
 	 * 
 	 * @param key
 	 *            variable name
@@ -177,8 +193,8 @@ public class Configuration {
 	}
 
 	/**
-	 * Return the default value of the configuration variable corresponding to the given key, or
-	 * null if not found.
+	 * Return the default value of the configuration variable corresponding to
+	 * the given key, or null if not found.
 	 * 
 	 * @param key
 	 *            variable name
@@ -189,7 +205,8 @@ public class Configuration {
 	}
 
 	/**
-	 * Set the given property. This method is to be used when initializing the system.
+	 * Set the given property. This method is to be used when initializing the
+	 * system.
 	 * 
 	 * @param key
 	 *            variable name
@@ -204,10 +221,27 @@ public class Configuration {
 	 * Save current values onto the configuration file.
 	 */
 	public void saveOnFile() {
-		File dir = new File(Platform.getInstallLocation().getURL().getPath() + CONF_DIR);
-		if (!dir.exists())
-			dir.mkdir();
-		File file = new File(CONF_FILE_PATH);
+		File dir = new File(Platform.getInstallLocation().getURL().getPath()
+				+ CONF_DIR);
+		
+		if (!dir.exists()) {
+			if (dir.canWrite()) {
+				dir.mkdir();
+			}
+		}
+		
+		if (!dir.canWrite()) {
+			// Set as default in the home directory
+			dir = new File(System.getProperty("user.home") + File.separator + CONF_DIR);
+
+			configDirHome = true;
+			if (!dir.exists())
+				dir.mkdirs();
+		}
+		
+		ConfFilePath = dir + File.separator + CONF_FILE_NAME;
+		File file = new File(ConfFilePath);
+		
 		checkPaths();
 		try {
 			config.store(new FileOutputStream(file), HEADING);
@@ -217,16 +251,15 @@ public class Configuration {
 	}
 
 	/**
-	 * Private constructor. Load the map with default values, then read the configuration file:
-	 * soctrace.conf. Such a file MUST be in the user's home.
+	 * Private constructor. Load the map with default values, then read the
+	 * configuration file: soctrace.conf. Such a file MUST be in the user's
+	 * home.
 	 */
 	private Configuration() {
-
 		defaults = new Properties();
 		config = new Properties();
 
 		loadDefaults();
-
 		loadConfFile();
 	}
 
@@ -236,23 +269,33 @@ public class Configuration {
 	private void loadDefaults() {
 
 		// General
-		defaults.setProperty(SoCTraceProperty.soctrace_dbms.toString(), DBMS.SQLITE.toString());
-		defaults.setProperty(SoCTraceProperty.soctrace_db_name.toString(), "SOCTRACE_SYSTEM_DB");
-		defaults.setProperty(SoCTraceProperty.max_view_instances.toString(), "5");
-		defaults.setProperty(SoCTraceProperty.trace_db_ts_indexing.toString(), "true");
-		defaults.setProperty(SoCTraceProperty.trace_db_eid_indexing.toString(), "false");
-		defaults.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(), "false");
-		defaults.setProperty(SoCTraceProperty.allow_view_replication.toString(), "true");
+		defaults.setProperty(SoCTraceProperty.soctrace_dbms.toString(),
+				DBMS.SQLITE.toString());
+		defaults.setProperty(SoCTraceProperty.soctrace_db_name.toString(),
+				"SOCTRACE_SYSTEM_DB");
+		defaults.setProperty(SoCTraceProperty.max_view_instances.toString(),
+				"5");
+		defaults.setProperty(SoCTraceProperty.trace_db_ts_indexing.toString(),
+				"true");
+		defaults.setProperty(SoCTraceProperty.trace_db_eid_indexing.toString(),
+				"false");
+		defaults.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(),
+				"false");
+		defaults.setProperty(
+				SoCTraceProperty.allow_view_replication.toString(), "true");
 
 		// MySQL
-		defaults.setProperty(SoCTraceProperty.mysql_base_db_jdbc_url.toString(),
+		defaults.setProperty(
+				SoCTraceProperty.mysql_base_db_jdbc_url.toString(),
 				"jdbc:mysql://localhost");
 		defaults.setProperty(SoCTraceProperty.mysql_db_user.toString(), "root");
 		defaults.setProperty(SoCTraceProperty.mysql_db_password.toString(), "");
 
 		// SQLite
-		String defaultSQLiteDir = Portability.normalize(Portability.getUserHome());
-		defaults.setProperty(SoCTraceProperty.sqlite_db_directory.toString(), defaultSQLiteDir);
+		String defaultSQLiteDir = Portability.normalize(Portability
+				.getUserHome());
+		defaults.setProperty(SoCTraceProperty.sqlite_db_directory.toString(),
+				defaultSQLiteDir);
 
 		for (Object key : defaults.keySet()) {
 			config.setProperty((String) key, defaults.getProperty((String) key));
@@ -264,23 +307,33 @@ public class Configuration {
 	 */
 	private void loadConfFile() {
 		try {
-			File file = new File(CONF_FILE_PATH);
+			File file = new File(getConfFile());
 			if (!file.exists()) {
-
 				logger.debug("");
 				logger.debug("##########################################################################");
-				logger.debug("Configuration file not found at: " + CONF_FILE_PATH);
+				logger.debug("Configuration file not found at: "
+						+ ConfFilePath);
 				logger.debug("It will be automatically created with default values.");
 
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				config.store(baos, HEADING);
-				logger.debug(">>> PLEASE CHECK THESE VALUES! <<< \n\n" + baos.toString());
+				logger.debug(">>> PLEASE CHECK THESE VALUES! <<< \n\n"
+						+ baos.toString());
 				logger.debug("##########################################################################");
 
 				saveOnFile();
-
+				
+				// If the configuration was located inside the home directory
+				if (configDirHome)
+					// Display a warning
+					MessageDialog
+							.openError(
+									Display.getCurrent().getActiveShell(),
+									"Configuration File Location",
+									"Warning: Configuration file will not in default location since the eclipse directory does not the write permission. The configuration file will be placed in "
+											+ ConfFilePath);
 			} else {
-				logger.debug("Configuration file: " + CONF_FILE_PATH);
+				logger.debug("Configuration file: " + ConfFilePath);
 				config.load(new FileInputStream(file));
 				checkPaths();
 			}
@@ -298,8 +351,17 @@ public class Configuration {
 
 		s = Portability.normalize(get(SoCTraceProperty.sqlite_db_directory));
 		if (!s.endsWith(end)) {
-			config.setProperty(SoCTraceProperty.sqlite_db_directory.toString(), s + end);
+			config.setProperty(SoCTraceProperty.sqlite_db_directory.toString(),
+					s + end);
 		}
+	}
+	
+	private String getConfFile() {
+		if (fileExists())
+			return ConfFilePath;
+
+		// Set ConfFilePath in the home directory
+		return System.getProperty("user.home") + File.separator + CONF_DIR + File.separator + CONF_FILE_NAME;
 	}
 
 	/**
@@ -322,8 +384,46 @@ public class Configuration {
 	}
 
 	public boolean fileExists() {
-		File file = new File(CONF_FILE_PATH);
-		return file.exists();
+		// Check default directory
+		File file = new File(ConfFilePath);
+		if (file.exists())
+			return true;
+
+		// Check in home directory
+		file = new File(System.getProperty("user.home") + File.separator + CONF_DIR
+				+ File.separator + CONF_FILE_NAME);
+		if (file.exists()) {
+			ConfFilePath = System.getProperty("user.home") + File.separator + CONF_DIR
+					+ File.separator + CONF_FILE_NAME;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Save the properties as a Map
+	 * 
+	 * @return the saved properties
+	 */
+	public Map<String, String> saveProperties() {
+		Map<String, String> propertyValues = new HashMap<String, String>();
+		for (Object key : config.keySet()) {
+			propertyValues.put((String) key, config.getProperty((String) key));
+		}
+
+		return propertyValues;
+	}
+
+	/**
+	 * Set the properties to the values in the map given as parameters
+	 * 
+	 * @param propertyValues
+	 *            a map containing the values to the properties
+	 */
+	public void setProperties(Map<String, String> propertyValues) {
+		for (String key : propertyValues.keySet()) {
+			config.setProperty(key, propertyValues.get(key));
+		}
 	}
 
 }

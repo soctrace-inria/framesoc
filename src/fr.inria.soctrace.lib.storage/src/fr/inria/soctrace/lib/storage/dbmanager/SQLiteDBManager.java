@@ -38,6 +38,7 @@ public class SQLiteDBManager extends DBManager {
 	 */
 	private final static boolean CONNECTION_TUNING = false;
 	
+
 	public SQLiteDBManager(String dbName) throws SoCTraceException {
 		super(dbName);
 	}
@@ -79,10 +80,22 @@ public class SQLiteDBManager extends DBManager {
 	@Override
 	public boolean isDBExisting() throws SoCTraceException {
 		File f = new File(getDBPath());
-		if ( f.exists() ) { 
+		if (f.exists()) {
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	public boolean checkSettings() throws SoCTraceException {
+		File f = new File(Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory));
+		if (f.canWrite()) {
+			return true;
+		} else {
+			throw new SoCTraceException(
+					"The current directory does not have the write permission.");
+		}
 	}
 
 	@Override
@@ -100,11 +113,12 @@ public class SQLiteDBManager extends DBManager {
 
 	@Override
 	public void dropDB() throws SoCTraceException {
-	    closeConnection();
+		closeConnection();
 		File f = new File(getDBPath());
-		if ( f.exists() )
-			if ( !f.delete() )
-				throw new SoCTraceException("Error deleting DB file: " + getDBPath());    
+		if (f.exists())
+			if (!f.delete())
+				throw new SoCTraceException("Error deleting DB file: "
+						+ getDBPath());
 	}
 	
 	@Override
@@ -136,7 +150,8 @@ public class SQLiteDBManager extends DBManager {
 	 * @throws SoCTraceException 
 	 */
 	private String getDBPath() throws SoCTraceException {
-		String sqlitePath = Configuration.getInstance().get(SoCTraceProperty.sqlite_db_directory);  
+		String sqlitePath = Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory); 
 		File dir = new File(sqlitePath);
 		if (!dir.exists())
 			throw new SoCTraceException(
@@ -167,7 +182,6 @@ public class SQLiteDBManager extends DBManager {
 			throw new SoCTraceException(e);
 		}
 	}
-
 	/*
 	 * Default table creators are OK.
 	 */
