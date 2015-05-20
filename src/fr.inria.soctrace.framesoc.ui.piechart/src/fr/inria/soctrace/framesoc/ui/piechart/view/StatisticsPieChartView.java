@@ -212,9 +212,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		 * producer selection and type selection.
 		 */
 		public boolean isAllOk() {
-			System.out.println("int " + intervalOk());
-			System.out.println("prod " + producersOk());
-			System.out.println("type " + typesOk());
 			return intervalOk() && producersOk() && typesOk();
 		}
 
