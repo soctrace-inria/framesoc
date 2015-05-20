@@ -282,11 +282,6 @@ public class ConfigurationDialog extends Dialog {
 	}
 
 	@Override
-	protected void cancelPressed() {
-		super.cancelPressed();
-	}
-
-	@Override
 	public boolean close() {
 		manageColorComposite.disposeImages();
 		return super.close();

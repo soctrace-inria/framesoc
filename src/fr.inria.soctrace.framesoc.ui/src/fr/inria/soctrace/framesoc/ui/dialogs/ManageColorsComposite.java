@@ -100,11 +100,11 @@ public class ManageColorsComposite extends Composite {
 	 * Color images
 	 */
 	protected Map<String, Image> images;
-	
+
 	/**
 	 * Collection to save the temporary color changes
 	 */
-	protected Map<ModelEntity ,Map<String, FramesocColor>> modifiedColors;
+	protected Map<ModelEntity, Map<String, FramesocColor>> modifiedColors;
 
 	protected class Entity {
 		String name;
@@ -248,21 +248,21 @@ public class ManageColorsComposite extends Composite {
 					ColorDialog dialog = new ColorDialog(parentDialog
 							.getShell());
 					FramesocColor c;
-					
+
 					// If color was already modified
 					if (modifiedColors.get(entity).containsKey(name))
 						c = modifiedColors.get(entity).get(name);
 					else
 						c = getColor(name);
-					
+
 					dialog.setRGB(new RGB(c.red, c.green, c.blue));
 					RGB rgb = dialog.open();
 					if (rgb == null)
 						continue;
-					
+
 					modifiedColors.get(entity).put(name,
 							new FramesocColor(rgb.red, rgb.green, rgb.blue));
-						
+
 					disposeImages();
 					btnReset.setEnabled(true);
 					tableViewer.refresh(true);
@@ -331,8 +331,9 @@ public class ManageColorsComposite extends Composite {
 	private boolean saveModifiedColors() {
 		boolean hasChanged = false;
 		for (ModelEntity modelEntity : modifiedColors.keySet()) {
-			for(String name: modifiedColors.get(modelEntity).keySet()){
-				setColor(name, modifiedColors.get(modelEntity).get(name), modelEntity);
+			for (String name : modifiedColors.get(modelEntity).keySet()) {
+				setColor(name, modifiedColors.get(modelEntity).get(name),
+						modelEntity);
 				hasChanged = true;
 			}
 		}
@@ -395,12 +396,12 @@ public class ManageColorsComposite extends Composite {
 				// If the color was previously modified
 				if (modifiedColors.get(entity).containsKey(name)) {
 					// Use the modified color
-					gc.setBackground(modifiedColors.get(entity)
-							.get(name).getSwtColor());
+					gc.setBackground(modifiedColors.get(entity).get(name)
+							.getSwtColor());
 				} else {
 					gc.setBackground(getColor(name).getSwtColor());
 				}
-				
+
 				gc.fillRectangle(1, 1, bounds.height / 2 - 2,
 						bounds.height / 2 - 2);
 				gc.dispose();
