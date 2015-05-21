@@ -1,11 +1,11 @@
 * System Setup
 ** Reinitialize the system
-	- Delete the configuration file
-	- Relaunch framesoc
-	- Follow the wizard
-** Import a trace (which one(s)?)
-	- Select a trace to import with one of the installed importers
-	- Check that the trace was successfully imported
+- Delete the Framesoc configuration file (=<eclipse_dir>/configuration/fr.inria.soctrace.lib.utils/soctrace.conf=)
+- Relaunch Framesoc
+- Follow the wizard
+** Import a trace 
+- Import the traces available on the Framesoc website (http://soctrace-inria.github.io/framesoc/)
+- Check that the traces were successfully imported
 * Tests
 ** Release 1.0.7 (SET 1.5) 20/05/2015
 *** Configuration settings
