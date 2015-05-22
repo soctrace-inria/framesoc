@@ -23,6 +23,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.ui.dialogs.ConfigurationDialog;
+import fr.inria.soctrace.framesoc.ui.init.Initializer;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.DBObject;
@@ -42,55 +43,68 @@ public class ConfigurationHandler extends AbstractHandler {
 		IWorkbenchWindow window = HandlerUtil
 				.getActiveWorkbenchWindowChecked(event);
 
+		boolean systemDBOK = true;
 		if (!HandlerCommons.checkSystemDB(event))
-			return null;
+			systemDBOK = false;
 
-		ConfigurationDialog dialog = new ConfigurationDialog(window.getShell());
-		SystemDBObject sysDB = null;
+		if (systemDBOK) {
+			ConfigurationDialog dialog = new ConfigurationDialog(
+					window.getShell());
+			SystemDBObject sysDB = null;
 
-		if (dialog.open() != Window.OK)
-			return null;
+			if (dialog.open() != Window.OK)
+				return null;
 
-		// update TOOL table
-		try {
-			sysDB = SystemDBObject.openNewIstance();
+			// update TOOL table
+			try {
+				sysDB = SystemDBObject.openNewIstance();
 
-			Map<Integer, Tool> newTools = dialog.getManageToolsComposite().getNewTools();
-			Map<Integer, Tool> oldTools = dialog.getOldTools();
-			for (Integer id : oldTools.keySet()) {
-				if (newTools.containsKey(id)) {
-					// updated
-					sysDB.update(newTools.get(id));
-					newTools.remove(id);
-				} else {
-					// deleted
-					FramesocManager.getInstance().removeTool(oldTools.get(id));
+				Map<Integer, Tool> newTools = dialog.getManageToolsComposite()
+						.getNewTools();
+				Map<Integer, Tool> oldTools = dialog.getOldTools();
+				for (Integer id : oldTools.keySet()) {
+					if (newTools.containsKey(id)) {
+						// updated
+						sysDB.update(newTools.get(id));
+						newTools.remove(id);
+					} else {
+						// deleted
+						FramesocManager.getInstance().removeTool(
+								oldTools.get(id));
+					}
 				}
-			}
 
-			// commit to avoid conflicts on UNIQUE name when removing, then
-			// adding a tool with a given name
-			sysDB.commit();
+				// commit to avoid conflicts on UNIQUE name when removing, then
+				// adding a tool with a given name
+				sysDB.commit();
 
-			// in newTools there are only added tools
-			int baseNewId = sysDB.getMaxId(FramesocTable.TOOL.toString(), "ID");
-			Iterator<Entry<Integer, Tool>> iterator = newTools.entrySet()
-					.iterator();
-			while (iterator.hasNext()) {
-				Tool tmp = iterator.next().getValue();
-				Tool newTool = new Tool(++baseNewId);
-				newTool.setCommand(tmp.getCommand());
-				newTool.setName(tmp.getName());
-				newTool.setType(tmp.getType());
-				newTool.setPlugin(tmp.isPlugin());
-				newTool.setDoc(tmp.getDoc());
-				sysDB.save(newTool);
+				// in newTools there are only added tools
+				int baseNewId = sysDB.getMaxId(FramesocTable.TOOL.toString(),
+						"ID");
+				Iterator<Entry<Integer, Tool>> iterator = newTools.entrySet()
+						.iterator();
+				while (iterator.hasNext()) {
+					Tool tmp = iterator.next().getValue();
+					Tool newTool = new Tool(++baseNewId);
+					newTool.setCommand(tmp.getCommand());
+					newTool.setName(tmp.getName());
+					newTool.setType(tmp.getType());
+					newTool.setPlugin(tmp.isPlugin());
+					newTool.setDoc(tmp.getDoc());
+					sysDB.save(newTool);
+				}
+			} catch (SoCTraceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(sysDB);
 			}
-		} catch (SoCTraceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			DBObject.finalClose(sysDB);
+		} else // If the system db is not set
+		{
+			// Launch the DBMS wizard 
+			if (Initializer.INSTANCE.initializeSystem(window.getShell(), false)) {
+				Initializer.INSTANCE.manageTools(window.getShell());
+			}
 		}
 		return null;
 	}

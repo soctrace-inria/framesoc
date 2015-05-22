@@ -307,7 +307,9 @@ public class Configuration {
 	 */
 	private void loadConfFile() {
 		try {
-			File file = new File(getConfFile());
+			// Set the conf file path
+			fileExists();
+			File file = new File(ConfFilePath);
 			if (!file.exists()) {
 				logger.debug("");
 				logger.debug("##########################################################################");
@@ -355,14 +357,6 @@ public class Configuration {
 					s + end);
 		}
 	}
-	
-	private String getConfFile() {
-		if (fileExists())
-			return ConfFilePath;
-
-		// Set ConfFilePath in the home directory
-		return System.getProperty("user.home") + File.separator + CONF_DIR + File.separator + CONF_FILE_NAME;
-	}
 
 	/**
 	 * Print the configuration variables.
@@ -389,13 +383,20 @@ public class Configuration {
 		if (file.exists())
 			return true;
 
-		// Check in home directory
-		file = new File(System.getProperty("user.home") + File.separator + CONF_DIR
-				+ File.separator + CONF_FILE_NAME);
-		if (file.exists()) {
-			ConfFilePath = System.getProperty("user.home") + File.separator + CONF_DIR
-					+ File.separator + CONF_FILE_NAME;
-			return true;
+		// Get the default path
+		File dir = new File(Platform.getInstallLocation().getURL().getPath()
+				+ CONF_DIR);
+		
+		// If cannot write in default path
+		if (!dir.canWrite()) {
+			// Check in home directory
+			file = new File(System.getProperty("user.home") + File.separator
+					+ CONF_DIR + File.separator + CONF_FILE_NAME);
+			if (file.exists()) {
+				ConfFilePath = System.getProperty("user.home") + File.separator
+						+ CONF_DIR + File.separator + CONF_FILE_NAME;
+				return true;
+			}
 		}
 		return false;
 	}
