@@ -48,9 +48,9 @@ public class Configuration {
 	 * {@link SoCTraceProperty.max_view_instances} property.
 	 */
 	public final static int INFINITE_VIEWS = -1;
-	
-	private static boolean configDirHome = false;
-	
+
+	private static boolean ConfigDirHome = false;
+
 	/**
 	 * Enumeration for SoC-Trace configuration variables names.
 	 */
@@ -123,8 +123,8 @@ public class Configuration {
 	/**
 	 * Configuration file full path. Statically initialized.
 	 */
-	private static String ConfFilePath = Platform.getInstallLocation()
-			.getURL().getPath()
+	private static String ConfFilePath = Platform.getInstallLocation().getURL()
+			.getPath()
 			+ CONF_DIR + CONF_FILE_NAME;
 
 	/**
@@ -223,25 +223,26 @@ public class Configuration {
 	public void saveOnFile() {
 		File dir = new File(Platform.getInstallLocation().getURL().getPath()
 				+ CONF_DIR);
-		
+
 		if (!dir.exists()) {
 			if (dir.canWrite()) {
 				dir.mkdir();
 			}
 		}
-		
+
 		if (!dir.canWrite()) {
 			// Set as default in the home directory
-			dir = new File(System.getProperty("user.home") + File.separator + CONF_DIR);
+			dir = new File(System.getProperty("user.home") + File.separator
+					+ CONF_DIR);
 
-			configDirHome = true;
+			ConfigDirHome = true;
 			if (!dir.exists())
 				dir.mkdirs();
 		}
-		
+
 		ConfFilePath = dir + File.separator + CONF_FILE_NAME;
 		File file = new File(ConfFilePath);
-		
+
 		checkPaths();
 		try {
 			config.store(new FileOutputStream(file), HEADING);
@@ -307,14 +308,11 @@ public class Configuration {
 	 */
 	private void loadConfFile() {
 		try {
-			// Set the conf file path
-			fileExists();
-			File file = new File(ConfFilePath);
+			File file = new File(getConfFile());
 			if (!file.exists()) {
 				logger.debug("");
 				logger.debug("##########################################################################");
-				logger.debug("Configuration file not found at: "
-						+ ConfFilePath);
+				logger.debug("Configuration file not found at: " + ConfFilePath);
 				logger.debug("It will be automatically created with default values.");
 
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -324,9 +322,9 @@ public class Configuration {
 				logger.debug("##########################################################################");
 
 				saveOnFile();
-				
+
 				// If the configuration was located inside the home directory
-				if (configDirHome)
+				if (ConfigDirHome)
 					// Display a warning
 					MessageDialog
 							.openError(
@@ -358,6 +356,13 @@ public class Configuration {
 		}
 	}
 
+	private String getConfFile() {
+		// Set ConfFilePath
+		fileExists();
+
+		return ConfFilePath;
+	}
+
 	/**
 	 * Print the configuration variables.
 	 */
@@ -377,19 +382,22 @@ public class Configuration {
 				.println("--------------------------------------------------------------------------------");
 	}
 
+	/**
+	 * Check whether the configuration file exists
+	 * 
+	 * @return true if the configuration file exists, false otherwise
+	 * 
+	 */
 	public boolean fileExists() {
 		// Check default directory
 		File file = new File(ConfFilePath);
 		if (file.exists())
 			return true;
 
-		// Get the default path
+		// Check in home directory only if we do not have the write permission
 		File dir = new File(Platform.getInstallLocation().getURL().getPath()
 				+ CONF_DIR);
-		
-		// If cannot write in default path
 		if (!dir.canWrite()) {
-			// Check in home directory
 			file = new File(System.getProperty("user.home") + File.separator
 					+ CONF_DIR + File.separator + CONF_FILE_NAME);
 			if (file.exists()) {
