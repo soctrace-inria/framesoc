@@ -1075,7 +1075,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 				tableTreeViewer.collapseAll();
 				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-				if (currentDescriptor.dataLoaded()) {
+				if (!currentDescriptor.dataLoaded()) {
 					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 							currentDescriptor.interval.endTimestamp);
 				} else {
