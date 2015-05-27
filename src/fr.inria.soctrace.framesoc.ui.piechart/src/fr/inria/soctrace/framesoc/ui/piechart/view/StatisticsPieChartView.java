@@ -1074,14 +1074,10 @@ public class StatisticsPieChartView extends FramesocPart {
 					tableTreeViewer.setInput(roots);
 				}
 				tableTreeViewer.collapseAll();
-				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-				if (!currentDescriptor.dataLoaded()) {
-					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
-							currentDescriptor.interval.endTimestamp);
-				} else {
-					timeBar.setSelection(currentShownTrace.getMinTimestamp(),
-							currentShownTrace.getMaxTimestamp());
-				}
+				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace
+						.getTimeUnit()));
+				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
+						currentDescriptor.interval.endTimestamp);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 				enableActions(currentDescriptor.dataLoaded());
 
