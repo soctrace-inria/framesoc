@@ -368,6 +368,8 @@ public class Trace implements IModelElement, Serializable {
 		this.dbName = t.getDbName();
 		this.alias = t.getAlias();
 		this.timeUnit = t.getTimeUnit();
+		this.minTimestamp = t.getMinTimestamp();
+		this.maxTimestamp = t.getMaxTimestamp();
 	}
 
 	/**
@@ -392,17 +394,26 @@ public class Trace implements IModelElement, Serializable {
 		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
 		result = prime * result + ((board == null) ? 0 : board.hashCode());
 		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
-		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
 		result = prime * result + id;
+		result = prime * result + (int) (maxTimestamp ^ (maxTimestamp >>> 32));
+		result = prime * result + (int) (minTimestamp ^ (minTimestamp >>> 32));
 		result = prime * result + numberOfCpus;
 		result = prime * result + numberOfEvents;
-		result = prime * result + ((operatingSystem == null) ? 0 : operatingSystem.hashCode());
-		result = prime * result + ((outputDevice == null) ? 0 : outputDevice.hashCode());
+		result = prime * result
+				+ ((operatingSystem == null) ? 0 : operatingSystem.hashCode());
+		result = prime * result
+				+ ((outputDevice == null) ? 0 : outputDevice.hashCode());
 		result = prime * result + ((params == null) ? 0 : params.hashCode());
 		result = prime * result + (processed ? 1231 : 1237);
 		result = prime * result + timeUnit;
-		result = prime * result + ((tracedApplication == null) ? 0 : tracedApplication.hashCode());
-		result = prime * result + ((tracingDate == null) ? 0 : tracingDate.hashCode());
+		result = prime
+				* result
+				+ ((tracedApplication == null) ? 0 : tracedApplication
+						.hashCode());
+		result = prime * result
+				+ ((tracingDate == null) ? 0 : tracingDate.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -440,6 +451,10 @@ public class Trace implements IModelElement, Serializable {
 		} else if (!description.equals(other.description))
 			return false;
 		if (id != other.id)
+			return false;
+		if (maxTimestamp != other.maxTimestamp)
+			return false;
+		if (minTimestamp != other.minTimestamp)
 			return false;
 		if (numberOfCpus != other.numberOfCpus)
 			return false;
