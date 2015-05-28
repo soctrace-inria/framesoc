@@ -121,6 +121,8 @@ public class SystemDBVisitorTest {
 			t.setDescription("please");
 			t.setNumberOfCpus(123);
 			t.setNumberOfEvents(123123);
+			t.setMinTimestamp(123456789);
+			t.setMaxTimestamp(987654321);
 			t.setOperatingSystem("please");
 			t.setOutputDevice("please");
 			t.setProcessed(true);

@@ -62,7 +62,7 @@ public class EventIteratorTest extends BaseTestClass {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		if (iteratorClass.equals(IntervalEventIterator.class))
 			iterator = new IntervalEventIterator(traceDB, 10000);
 		else if (iteratorClass.equals(PageEventIterator.class))

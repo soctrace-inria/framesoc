@@ -167,7 +167,7 @@ public final class FramesocManager {
 			for (Trace t : traces) {
 				TraceDBObject traceDB = null;
 				try {
-					traceDB = TraceDBObject.openNewIstance(t.getDbName());
+					traceDB = TraceDBObject.openNewInstance(t.getDbName());
 					AnalysisResultQuery arq = new AnalysisResultQuery(traceDB);
 					arq.setElementWhere(new SimpleCondition("TOOL_ID", ComparisonOperation.EQ,
 							String.valueOf(tool.getId())));
@@ -250,7 +250,7 @@ public final class FramesocManager {
 			sysDB.close();
 
 			// delete the trace db
-			TraceDBObject traceDB = TraceDBObject.openNewIstance(trace.getDbName());
+			TraceDBObject traceDB = TraceDBObject.openNewInstance(trace.getDbName());
 			traceDB.dropDatabase();
 
 			// notify the bus

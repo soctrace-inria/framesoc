@@ -30,6 +30,7 @@ import fr.inria.soctrace.lib.query.TraceQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
@@ -149,7 +150,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (t.getMinTimestamp() == Trace.UNKNOWN_INT) {
 					t.setMinTimestamp(traceDB.getMinTimestamp());
 					sysDB.update(t);
@@ -185,8 +186,8 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
-				t.setNumberOfEvents(traceDB.getNumberOfEvents());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfEvents(traceDB.getNumberOf(FramesocTable.EVENT));
 				sysDB.update(t);
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
@@ -215,8 +216,8 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
-				t.setNumberOfEvents(traceDB.getNumberOfProducers());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfProducers(traceDB.getNumberOf(FramesocTable.EVENT_PRODUCER));
 				sysDB.update(t);
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
@@ -255,7 +256,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (tsEnabled) {
 					monitor.subTask("Creating timestamp index on trace: " + t.getAlias());
 					traceDB.createTimestampIndex();

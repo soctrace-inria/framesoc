@@ -1288,7 +1288,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void initTypesAndProducers(Trace t) {
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(t.getDbName());
+			traceDB = TraceDBObject.openNewInstance(t.getDbName());
 			// types
 			EventTypeQuery tq = new EventTypeQuery(traceDB);
 			List<EventType> types = tq.getList();

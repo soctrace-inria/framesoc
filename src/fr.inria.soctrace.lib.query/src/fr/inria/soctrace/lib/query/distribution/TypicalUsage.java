@@ -51,7 +51,7 @@ public class TypicalUsage {
 		// -----------------------------------------------------------------------------------
 		
 		// 1. open the trace DB
-		TraceDBObject traceDB = TraceDBObject.openNewIstance(dbname);
+		TraceDBObject traceDB = TraceDBObject.openNewInstance(dbname);
 
 		// 2. prepare the type (or the types) you are interested in
 		List<EventType> etl = getEventTypesOfInterest(traceDB);
