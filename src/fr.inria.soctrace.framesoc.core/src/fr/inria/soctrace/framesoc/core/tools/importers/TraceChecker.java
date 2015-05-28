@@ -62,6 +62,7 @@ public class TraceChecker {
 		checkers.add(new IndexChecker());
 		checkers.add(new MinMaxChecker());
 		checkers.add(new EventNumberChecker());
+		checkers.add(new ProducerNumberChecker());
 
 		// load the traces, if a SystemDB exists
 		traces = new HashSet<Trace>();
@@ -167,7 +168,7 @@ public class TraceChecker {
 	}
 
 	/**
-	 * Trace checker for min/max trace metadata.
+	 * Trace checker for number of events trace metadata.
 	 */
 	private class EventNumberChecker implements IChecker {
 
@@ -186,6 +187,36 @@ public class TraceChecker {
 			try {
 				traceDB = TraceDBObject.openNewIstance(t.getDbName());
 				t.setNumberOfEvents(traceDB.getNumberOfEvents());
+				sysDB.update(t);
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(traceDB);
+			}
+		}
+
+	}
+
+	/**
+	 * Trace checker for number of producers trace metadata.
+	 */
+	private class ProducerNumberChecker implements IChecker {
+
+		@Override
+		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
+
+			monitor.subTask("Number of events check on trace:  " + t.getAlias());
+
+			if (t.getNumberOfProducers() != Trace.UNKNOWN_INT)
+				return;
+
+			if (!isDBExisting(t.getDbName()))
+				return;
+
+			TraceDBObject traceDB = null;
+			try {
+				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				t.setNumberOfEvents(traceDB.getNumberOfProducers());
 				sysDB.update(t);
 			} catch (SoCTraceException e) {
 				e.printStackTrace();

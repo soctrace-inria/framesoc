@@ -53,6 +53,7 @@ public class Trace implements IModelElement, Serializable {
 	private int timeUnit;
 	private long minTimestamp;
 	private long maxTimestamp;
+	private int numberOfProducers;
 	private List<TraceParam> params;
 	
 	/**
@@ -79,6 +80,7 @@ public class Trace implements IModelElement, Serializable {
 		this.minTimestamp = UNKNOWN_INT;
 		this.maxTimestamp = UNKNOWN_INT;
 		this.timeUnit = TimeUnit.UNKNOWN.getInt();
+		this.numberOfProducers = UNKNOWN_INT;
 	}
 		
 	/**
@@ -260,6 +262,22 @@ public class Trace implements IModelElement, Serializable {
 	}
 
 	/**
+	 * 
+	 * @return the number of producers
+	 */
+	public int getNumberOfProducers() {
+		return numberOfProducers;
+	}
+
+	/**
+	 * 
+	 * @param numberOfProducers number of producers to set
+	 */
+	public void setNumberOfProducers(int numberOfProducers) {
+		this.numberOfProducers = numberOfProducers;
+	}
+
+	/**
 	 * @return the number of events
 	 */
 	public int getNumberOfEvents() {
@@ -368,6 +386,9 @@ public class Trace implements IModelElement, Serializable {
 		this.dbName = t.getDbName();
 		this.alias = t.getAlias();
 		this.timeUnit = t.getTimeUnit();
+		this.numberOfProducers = t.getNumberOfProducers();
+		this.minTimestamp = t.getMinTimestamp();
+		this.maxTimestamp = t.getMaxTimestamp();
 	}
 
 	/**
@@ -394,8 +415,11 @@ public class Trace implements IModelElement, Serializable {
 		result = prime * result + ((dbName == null) ? 0 : dbName.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + id;
+		result = prime * result + (int) (maxTimestamp ^ (maxTimestamp >>> 32));
+		result = prime * result + (int) (minTimestamp ^ (minTimestamp >>> 32));
 		result = prime * result + numberOfCpus;
 		result = prime * result + numberOfEvents;
+		result = prime * result + numberOfProducers;
 		result = prime * result + ((operatingSystem == null) ? 0 : operatingSystem.hashCode());
 		result = prime * result + ((outputDevice == null) ? 0 : outputDevice.hashCode());
 		result = prime * result + ((params == null) ? 0 : params.hashCode());
@@ -416,7 +440,7 @@ public class Trace implements IModelElement, Serializable {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Trace))
+		if (getClass() != obj.getClass())
 			return false;
 		Trace other = (Trace) obj;
 		if (alias == null) {
@@ -441,9 +465,15 @@ public class Trace implements IModelElement, Serializable {
 			return false;
 		if (id != other.id)
 			return false;
+		if (maxTimestamp != other.maxTimestamp)
+			return false;
+		if (minTimestamp != other.minTimestamp)
+			return false;
 		if (numberOfCpus != other.numberOfCpus)
 			return false;
 		if (numberOfEvents != other.numberOfEvents)
+			return false;
+		if (numberOfProducers != other.numberOfProducers)
 			return false;
 		if (operatingSystem == null) {
 			if (other.operatingSystem != null)

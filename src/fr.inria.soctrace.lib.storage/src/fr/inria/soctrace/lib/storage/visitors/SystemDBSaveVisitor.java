@@ -100,6 +100,7 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 			psd.statement.setLong(14, trace.getMinTimestamp());
 			psd.statement.setLong(15, trace.getMaxTimestamp());
 			psd.statement.setInt(16, trace.getTimeUnit());
+			psd.statement.setInt(17, trace.getNumberOfProducers());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

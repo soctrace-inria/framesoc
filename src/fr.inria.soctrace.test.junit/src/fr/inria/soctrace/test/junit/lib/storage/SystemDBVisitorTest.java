@@ -126,6 +126,7 @@ public class SystemDBVisitorTest {
 			t.setProcessed(true);
 			t.setTracedApplication("please");
 			t.setTracingDate(new Timestamp(new Date().getTime()));
+			t.setNumberOfProducers(123);
 			sysDB.update(t);
 			for (TraceParam tp: t.getParams()) {
 				tp.setValue("please");

@@ -254,7 +254,8 @@ public class MySqlDBManager extends DBManager {
 					"ALIAS TEXT COLLATE latin1_general_cs, " +
 					"MIN_TIMESTAMP BIGINT, " +
 					"MAX_TIMESTAMP BIGINT, " +
-					"TIMEUNIT INTEGER)");
+					"TIMEUNIT INTEGER, " +
+					"NUMBER_OF_PRODUCERS INTEGER)");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}

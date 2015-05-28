@@ -292,6 +292,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 		t.setMinTimestamp(rs.getLong(14));
 		t.setMaxTimestamp(rs.getLong(15));
 		t.setTimeUnit(rs.getInt(16));
+		t.setNumberOfProducers(rs.getInt(17));
 		return t;
 	}
 	

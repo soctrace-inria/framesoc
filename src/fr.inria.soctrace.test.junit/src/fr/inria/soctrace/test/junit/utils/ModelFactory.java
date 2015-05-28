@@ -507,6 +507,7 @@ class ModelFactory implements IModelFactory {
 		t.setTracedApplication("app");
 		t.setTracingDate(new Timestamp(new Date().getTime()));
 		t.setType(type);
+		t.setNumberOfProducers(10);
 		for (TraceParamType tpt: type.getTraceParamTypes()) {
 			TraceParam tp = new TraceParam(tpId.getNextId());
 			tp.setTraceParamType(tpt);

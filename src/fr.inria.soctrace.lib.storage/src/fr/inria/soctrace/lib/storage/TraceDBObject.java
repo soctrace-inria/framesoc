@@ -184,6 +184,31 @@ public class TraceDBObject extends DBObject {
 			throw new SoCTraceException(e);
 		}
 	}
+	
+	/**
+	 * Get the number of producers in the trace.
+	 * 
+	 *  TODO factorize implem: private int getNumberOf(table)
+	 *  
+	 * @return the number of producers in the trace
+	 * @throws SoCTraceException
+	 */
+	public int getNumberOfProducers() throws SoCTraceException {
+		Statement stm;
+		ResultSet rs;
+		int value = 0;
+		try {
+			stm = dbManager.getConnection().createStatement();
+			rs = stm.executeQuery("SELECT COUNT(*) FROM " + FramesocTable.EVENT_PRODUCER);
+			while (rs.next()) {
+				value = rs.getInt(1);
+			}
+			stm.close();
+			return value;
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
 
 	public long getMinPage() throws SoCTraceException {
 		return getValue("MIN", "PAGE", FramesocTable.EVENT);
