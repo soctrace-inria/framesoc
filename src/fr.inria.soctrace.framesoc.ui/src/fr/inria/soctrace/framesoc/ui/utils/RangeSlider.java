@@ -21,6 +21,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -281,10 +282,12 @@ public class RangeSlider extends Canvas {
 		// value
 		if (lowerDist < upperDist) {
 			lowerValue = newValue;
+			checkLowerValue();
 		} else {
 			upperValue = newValue;
+			checkUpperValue();
 		}
-		
+
 		redraw();
 		
 		this.dragInProgress = false;
@@ -513,6 +516,7 @@ public class RangeSlider extends Canvas {
 		}
 		gc.drawRoundRectangle(9, ybar, clientArea.width - 20, BARHEIGHT, 3, 3);
 
+		// Draw selection rectangle
 		final double pixelSize = computePixelSizeForHorizonalSlider();
 		final int startX = (int) (pixelSize * (this.lowerValue - this.minimum));
 		final int endX = (int) (pixelSize * (this.upperValue - this.minimum));
@@ -522,6 +526,21 @@ public class RangeSlider extends Canvas {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
 		gc.fillRectangle(12 + startX, ybar, endX - startX - 6, BARHEIGHT);
+
+
+		// TODO Draw display rectangle
+		final int startDisplayX = (int) (pixelSize * (this.lowerValue - this.minimum));
+		final int endDisplayX = (int) (pixelSize * (this.upperValue - this.minimum));
+		if (isEnabled()) {
+			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_RED));
+		} else {
+			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
+		}
+		gc.setAlpha(125);
+		
+		gc.fillRectangle(12 + startDisplayX, ybar + 4, endDisplayX - startDisplayX - 6, BARHEIGHT-6);
+		
+		gc.setAlpha(255);
 	}
 
 	/**
@@ -1325,7 +1344,8 @@ public class RangeSlider extends Canvas {
 	 */
 	public void setUpperValue(final long value) {
 		checkWidget();
-		if (this.minimum <= value && value <= this.maximum && value >= this.lowerValue) {
+		if (this.minimum <= value && value <= this.maximum
+				&& value >= this.lowerValue) {
 			logger.debug("upper value before {}", this.upperValue);
 			this.upperValue = value;
 			logger.debug("upper value after {}", this.upperValue);
