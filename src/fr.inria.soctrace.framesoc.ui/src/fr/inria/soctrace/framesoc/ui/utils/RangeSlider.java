@@ -267,7 +267,26 @@ public class RangeSlider extends Canvas {
 			this.previousLowerValue = this.lowerValue;
 			return;
 		}
+		
+		int x = e.x;
+		// compute distances to both knobs
+		int lowerDist = Math.abs(x - coordLower.x);
+		int upperDist = Math.abs(x - coordUpper.x);
 
+		// compute new value
+		long newValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
+				+ this.minimum;
+
+		// select minimal distance and update position of the corresponding
+		// value
+		if (lowerDist < upperDist) {
+			lowerValue = newValue;
+		} else {
+			upperValue = newValue;
+		}
+		
+		redraw();
+		
 		this.dragInProgress = false;
 		this.lastSelected = SELECTED_KNOB.NONE;
 	}
