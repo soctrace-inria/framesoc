@@ -963,6 +963,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
+		timeBar.setDisplayInterval(loadInterval);
 
 		// reset the global interval
 		globalLoadInterval.copy(loadInterval);
@@ -1238,6 +1239,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		} else {
 			combo.select(0);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
+			timeBar.setDisplayInterval(timeBar.getSelection());
 			txtDescription.setVisible(true);
 			globalLoadInterval.startTimestamp = trace.getMinTimestamp();
 			globalLoadInterval.endTimestamp = trace.getMaxTimestamp();
@@ -1288,7 +1290,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	private void initTypesAndProducers(Trace t) {
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(t.getDbName());
+			traceDB = TraceDBObject.openNewInstance(t.getDbName());
 			// types
 			EventTypeQuery tq = new EventTypeQuery(traceDB);
 			List<EventType> types = tq.getList();

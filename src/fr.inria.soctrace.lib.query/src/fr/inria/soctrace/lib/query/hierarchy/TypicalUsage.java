@@ -47,7 +47,7 @@ public class TypicalUsage {
 		// -----------------------------------------------------------------------------------
 		
 		// 1. open the trace DB
-		TraceDBObject traceDB = TraceDBObject.openNewIstance(dbname);
+		TraceDBObject traceDB = TraceDBObject.openNewInstance(dbname);
 		
 		// 2. create the map
 		EPHierarchyDescMap hmap = new EPHierarchyDescMap();

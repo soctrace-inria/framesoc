@@ -148,7 +148,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (t.getMinTimestamp() == Trace.UNKNOWN_INT) {
 					t.setMinTimestamp(traceDB.getMinTimestamp());
 					sysDB.update(t);
@@ -184,7 +184,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				t.setNumberOfEvents(traceDB.getNumberOfEvents());
 				sysDB.update(t);
 			} catch (SoCTraceException e) {
@@ -224,7 +224,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (tsEnabled) {
 					monitor.subTask("Creating timestamp index on trace: " + t.getAlias());
 					traceDB.createTimestampIndex();

@@ -28,7 +28,7 @@ public class BaseTraceDBTest extends BaseTestClass {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BaseTestClass.setUpBeforeClass();
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 	}
 
 	@AfterClass

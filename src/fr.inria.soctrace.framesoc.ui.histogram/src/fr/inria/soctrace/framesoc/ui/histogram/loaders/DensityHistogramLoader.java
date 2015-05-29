@@ -200,7 +200,7 @@ public class DensityHistogramLoader {
 		List<EventProducerNode> roots = new LinkedList<>();
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(trace.getDbName());
+			traceDB = TraceDBObject.openNewInstance(trace.getDbName());
 			EventProducerQuery epq = new EventProducerQuery(traceDB);
 			List<EventProducer> producers = epq.getList();
 			Map<Integer, EventProducer> prodMap = new HashMap<>();
@@ -232,7 +232,7 @@ public class DensityHistogramLoader {
 		Map<Integer, CategoryNode> categories = new HashMap<>();
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(trace.getDbName());
+			traceDB = TraceDBObject.openNewInstance(trace.getDbName());
 			EventTypeQuery etq = new EventTypeQuery(traceDB);
 			List<EventType> types = etq.getList();
 			for (EventType et : types) {

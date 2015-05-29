@@ -66,7 +66,7 @@ public class TimeSliceEntityLoader {
 
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(trace.getDbName());
+			traceDB = TraceDBObject.openNewInstance(trace.getDbName());
 
 			EventProducerQuery epq = new EventProducerQuery(traceDB);
 			List<EventProducer> epl = epq.getList();

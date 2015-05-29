@@ -139,7 +139,7 @@ public class FramesocColorService implements IFramesocBusListener {
 
 		TraceDBObject traceDB = null;
 		try {
-			traceDB = TraceDBObject.openNewIstance(t.getDbName());
+			traceDB = TraceDBObject.openNewInstance(t.getDbName());
 
 			EventTypeQuery etq = new EventTypeQuery(traceDB);
 			List<EventType> types = etq.getList();

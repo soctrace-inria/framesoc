@@ -273,7 +273,8 @@ public class GanttView extends AbstractGanttView {
 
 		// compute the actual time interval to load
 		TimeInterval interval = new TimeInterval(start, end);
-
+		
+		
 		// check for unchanged interval
 		if (checkReuse(trace, interval)) {
 			loader.release();

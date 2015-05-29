@@ -389,9 +389,10 @@ public class HistogramView extends FramesocPart {
 	public void loadHistogram(final Trace trace, final TimeInterval interval) {
 
 		currentShownTrace = trace;
-		// set time unit and extrema
+		// set time unit, extrema and displayed range
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
+		timeBar.setDisplayInterval(interval);
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
