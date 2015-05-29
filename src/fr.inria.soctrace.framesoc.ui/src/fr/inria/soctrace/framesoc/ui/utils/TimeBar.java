@@ -337,6 +337,32 @@ public class TimeBar {
 	public void setSelection(TimeInterval timeInterval) {
 		setSelection(timeInterval.startTimestamp, timeInterval.endTimestamp);
 	}
+	
+	
+	/**
+	 * Set the display selection by copying the time interval start and end
+	 * timestamps
+	 * 
+	 * @param timeInterval
+	 *            the time interval to select
+	 */
+	public void setDisplayInterval(TimeInterval timeInterval) {
+		setDisplayInterval(timeInterval.startTimestamp,
+				timeInterval.endTimestamp);
+	}
+
+	/**
+	 * Set the display selection
+	 * 
+	 * @param startTimestamp
+	 *            start timestamp
+	 * @param endTimestamp
+	 *            end timestamp
+	 */
+	public void setDisplayInterval(long startTimestamp, long endTimestamp) {
+		range.setDisplayInterval(startTimestamp, endTimestamp);
+	}
+
 
 	/**
 	 * Explicitly dispose the parent, since this class does not extend

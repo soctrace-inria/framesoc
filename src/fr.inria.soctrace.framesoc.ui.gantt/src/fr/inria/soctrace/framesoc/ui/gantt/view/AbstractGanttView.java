@@ -1072,7 +1072,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fTimeGraphWrapper.getTimeGraphViewer().setSelectionRange(0, 0);
 					fTimeBar.setSelection(fStartTime, fEndTime);
 				}
-
+				fTimeBar.setDisplayInterval(fStartTime, fEndTime);
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
 					for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
 							.getTreeViewer().getTree().getColumns()) {

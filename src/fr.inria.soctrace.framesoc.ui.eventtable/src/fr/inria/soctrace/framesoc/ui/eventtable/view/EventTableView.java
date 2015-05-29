@@ -626,7 +626,8 @@ public final class EventTableView extends FramesocPart {
 		interval.startTimestamp = Math.max(trace.getMinTimestamp(), interval.startTimestamp);
 		interval.endTimestamp = Math.min(trace.getMaxTimestamp(), interval.endTimestamp);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-
+		timeBar.setDisplayInterval(interval);
+		
 		// clear the filters
 		clearFilters();
 
