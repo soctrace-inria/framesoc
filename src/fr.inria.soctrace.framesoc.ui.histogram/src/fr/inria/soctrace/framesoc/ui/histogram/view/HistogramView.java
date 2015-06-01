@@ -393,6 +393,7 @@ public class HistogramView extends FramesocPart {
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		timeBar.setDisplayInterval(interval);
+		
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
@@ -620,8 +621,10 @@ public class HistogramView extends FramesocPart {
 							selectedTs1 = v;
 							long min = Math.min(selectedTs0, selectedTs1);
 							long max = Math.max(selectedTs0, selectedTs1);
-							marker.setStartValue(min);
-							marker.setEndValue(max);
+							if (marker != null) {
+								marker.setStartValue(min);
+								marker.setEndValue(max);
+							}
 							timeBar.setSelection(min, max);
 						}
 
@@ -764,6 +767,7 @@ public class HistogramView extends FramesocPart {
 				plot.getDomainAxis().setUpperBound(displayed.endTimestamp);
 				// timebar
 				timeBar.setSelection(loadedInterval);
+				timeBar.setDisplayInterval(loadedInterval);
 			}
 		});
 

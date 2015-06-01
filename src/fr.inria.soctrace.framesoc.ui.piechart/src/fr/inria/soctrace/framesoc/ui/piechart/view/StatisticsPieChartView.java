@@ -1079,6 +1079,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						.getTimeUnit()));
 				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 						currentDescriptor.interval.endTimestamp);
+				timeBar.setDisplayInterval(currentDescriptor.interval);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 				enableActions(currentDescriptor.dataLoaded());
 

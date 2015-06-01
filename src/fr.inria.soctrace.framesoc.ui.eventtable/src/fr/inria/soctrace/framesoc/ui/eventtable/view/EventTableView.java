@@ -799,6 +799,7 @@ public final class EventTableView extends FramesocPart {
 					table.refresh();
 					timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 					timeBar.setSelection(startTimestamp, endTimestamp);
+					timeBar.setDisplayInterval(startTimestamp, endTimestamp);
 					statusText.setText(getStatus(events, events));
 					synchronized (syncObj) {
 						refreshBusy = false;
