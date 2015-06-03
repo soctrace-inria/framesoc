@@ -226,7 +226,7 @@ public class Configuration {
 
 		if (!dir.exists()) {
 			if (dir.canWrite()) {
-				dir.mkdir();
+				dir.mkdirs();
 			}
 		}
 
@@ -330,7 +330,8 @@ public class Configuration {
 							.openError(
 									Display.getCurrent().getActiveShell(),
 									"Configuration File Location",
-									"Warning: Configuration file will not in default location since the eclipse directory does not the write permission. The configuration file will be placed in "
+									"Warning: Configuration file will not be set in default location (" + Platform.getInstallLocation().getURL().getPath()
+				+ CONF_DIR + ") since the eclipse directory does not have the write permission. Instead the configuration file will be placed in the folowing directory "
 											+ ConfFilePath);
 			} else {
 				logger.debug("Configuration file: " + ConfFilePath);
@@ -397,6 +398,11 @@ public class Configuration {
 		// Check in home directory only if we do not have the write permission
 		File dir = new File(Platform.getInstallLocation().getURL().getPath()
 				+ CONF_DIR);
+		
+		// If the dir does not exist creates it otherwise dir.canWrite() fails
+		if (!dir.exists())
+			dir.mkdirs();
+		
 		if (!dir.canWrite()) {
 			file = new File(System.getProperty("user.home") + File.separator
 					+ CONF_DIR + File.separator + CONF_FILE_NAME);
