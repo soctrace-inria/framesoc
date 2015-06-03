@@ -28,6 +28,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.DialogSettings;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.ResourceManager;
@@ -58,6 +59,7 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
+import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -550,6 +552,15 @@ public class GanttView extends AbstractGanttView {
 
 		// Filters
 		producerFilterAction = getTimeGraphCombo().getShowFilterAction();
+		getTimeGraphCombo().getFilterDialog().setLabelProvider(
+				new EventProducerTreeLabelProvider());
+		getTimeGraphCombo().getFilterDialog().setComparator(
+				new ViewerComparator(new Comparator<String>() {
+					@Override
+					public int compare(String o1, String o2) {
+						return AlphanumComparator.compare(o1, o2);
+					}
+				}));
 		manager.add(producerFilterAction);
 		typeFilterAction = createShowTypeFilterAction();
 		manager.add(typeFilterAction);
@@ -598,7 +609,7 @@ public class GanttView extends AbstractGanttView {
 		des.setEndTimestamp(getEndTime());
 		return des;
 	}
-
+	
 	private IAction createShowTypeFilterAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
@@ -713,7 +724,6 @@ public class GanttView extends AbstractGanttView {
 	 * Callback for the show type filter action
 	 */
 	private void showTypeFilterAction() {
-
 		TimeGraphFilterDialog typeFilterDialog = getTypeFilterDialog();
 
 		if (typeHierarchy.length > 0) {
@@ -724,6 +734,14 @@ public class GanttView extends AbstractGanttView {
 			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleTypeNodes);
+			// Sort in alphabetical order
+			typeFilterDialog.setComparator(new ViewerComparator(
+					new Comparator<String>() {
+						@Override
+						public int compare(String o1, String o2) {
+							return AlphanumComparator.compare(o1, o2);
+						}
+					}));
 			typeFilterDialog.create();
 
 			// reset checked status, managed manually
@@ -752,7 +770,6 @@ public class GanttView extends AbstractGanttView {
 			}
 			refresh();
 		}
-
 	}
 
 	private void checkTypeFilter(boolean check) {

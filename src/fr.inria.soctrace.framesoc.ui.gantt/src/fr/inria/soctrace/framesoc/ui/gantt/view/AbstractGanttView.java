@@ -721,7 +721,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		arrowPercentageLabel = new Label(parent, SWT.NONE);
 		setArrowPercentage(0.0);
-
+		
 		// -------------------------------
 		// TYPE FILTER DIALOG
 		// -------------------------------
@@ -729,6 +729,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fTypeFilterDialog.setColumnNames(new String[] { "Event Type" });
 		fTypeFilterDialog.setContentProvider(new TreeContentProvider());
 		fTypeFilterDialog.setLabelProvider(new EventTypeTreeLabelProvider());
+
 
 		// -------------------------------
 		// COMBO VIEWER

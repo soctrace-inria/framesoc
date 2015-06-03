@@ -2,6 +2,8 @@ package fr.inria.soctrace.framesoc.ui.treefilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
+import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 
@@ -30,7 +33,7 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 	public TreeFilterDialog(Shell parent) {
 		super(parent);
 	}
-
+	
 	@Override
 	public void setContentProvider(ITreeContentProvider contentProvider) {
 		super.setContentProvider(contentProvider);
@@ -75,6 +78,16 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 	 */
 	public static CategoryNode[] getTypeHierarchy(Collection<EventType> types) {
 		Map<Integer, CategoryNode> categories = new HashMap<>();
+		List<EventType> eTypes = (List<EventType>) types;
+		
+		// Sort the types alphabetically
+		Collections.sort(eTypes, new Comparator<EventType>() {
+			@Override
+			public int compare(EventType o1, EventType o2) {
+				return AlphanumComparator.compare(o1.getName(), o2.getName());
+			}
+		});
+		
 		for (EventType et : types) {
 			EventTypeNode etn = new EventTypeNode(et);
 			if (!categories.containsKey(et.getCategory())) {
@@ -98,7 +111,18 @@ public class TreeFilterDialog extends TimeGraphFilterDialog {
 			prodMap.put(ep.getId(), new EventProducerNode(ep));
 		}
 		List<EventProducerNode> roots = new ArrayList<>();
-		for (EventProducer ep : producers) {
+		
+		List<EventProducer> lProducers = (List<EventProducer>) producers;
+		
+		// Sort the producers alphabetically
+		Collections.sort(lProducers, new Comparator<EventProducer>() {
+			@Override
+			public int compare(EventProducer o1, EventProducer o2) {
+				return AlphanumComparator.compare(o1.getName(), o2.getName());
+			}
+		});
+		
+		for (EventProducer ep : lProducers) {
 			EventProducerNode node = prodMap.get(ep.getId());
 			int parentId = ep.getParentId();
 			if (parentId == EventProducer.NO_PARENT_ID) {

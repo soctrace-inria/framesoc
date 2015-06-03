@@ -13,6 +13,8 @@ package fr.inria.soctrace.framesoc.ui.histogram.loaders;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -33,6 +35,7 @@ import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
+import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -208,6 +211,15 @@ public class DensityHistogramLoader {
 			for (EventProducer ep : producers) {
 				prodMap.put(ep.getId(), ep);
 			}
+			
+			// Sort the producers alphabetically
+			Collections.sort((List<EventProducer>) producers, new Comparator<EventProducer>() {
+				@Override
+				public int compare(EventProducer o1, EventProducer o2) {
+					return AlphanumComparator.compare(o1.getName(), o2.getName());
+				}
+			});
+			
 			for (EventProducer ep : producers) {
 				EventProducerNode node = getProducerNode(ep, prodMap, nodeMap);
 				if (ep.getParentId() == EventProducer.NO_PARENT_ID) {
@@ -235,6 +247,15 @@ public class DensityHistogramLoader {
 			traceDB = TraceDBObject.openNewInstance(trace.getDbName());
 			EventTypeQuery etq = new EventTypeQuery(traceDB);
 			List<EventType> types = etq.getList();
+			
+			// Sort the types alphabetically
+			Collections.sort((List<EventType>)types, new Comparator<EventType>() {
+				@Override
+				public int compare(EventType o1, EventType o2) {
+					return AlphanumComparator.compare(o1.getName(), o2.getName());
+				}
+			});
+			
 			for (EventType et : types) {
 				EventTypeNode etn = new EventTypeNode(et);
 				if (!categories.containsKey(et.getCategory())) {

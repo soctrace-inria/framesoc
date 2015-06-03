@@ -12,6 +12,7 @@ package fr.inria.soctrace.framesoc.ui.providers;
 
 import org.eclipse.swt.graphics.Color;
 
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
 import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
@@ -26,6 +27,11 @@ public class EventProducerTreeLabelProvider extends SquareIconLabelProvider {
 
 	@Override
 	public String getText(Object element) {
+		if(element instanceof TimeGraphEntry)
+		{
+			TimeGraphEntry ganttEntry = (TimeGraphEntry) element;
+			return ganttEntry.getName();
+		}
 		return ((ITreeNode) element).getName();
 	}
 
@@ -34,6 +40,11 @@ public class EventProducerTreeLabelProvider extends SquareIconLabelProvider {
 		if (element instanceof EventProducerNode) {
 			EventProducerNode node = (EventProducerNode) element;
 			return FramesocColorManager.getInstance().getEventProducerColor(node.getName())
+					.getSwtColor();
+		}
+		if (element instanceof TimeGraphEntry) {
+			TimeGraphEntry ganttEntry = (TimeGraphEntry) element;
+			return FramesocColorManager.getInstance().getEventProducerColor(ganttEntry.getName())
 					.getSwtColor();
 		}
 		return null;
