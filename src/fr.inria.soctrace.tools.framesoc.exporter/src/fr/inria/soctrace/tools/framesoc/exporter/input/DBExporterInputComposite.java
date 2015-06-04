@@ -18,16 +18,16 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.framesoc.ui.input.AbstractToolInputComposite;
-import fr.inria.soctrace.tools.framesoc.exporter.dbexporter.TraceComboManager;
+import fr.inria.soctrace.tools.framesoc.exporter.dbexporter.TraceTableManager;
 
 /**
  * DB exporter input composite
@@ -37,7 +37,7 @@ import fr.inria.soctrace.tools.framesoc.exporter.dbexporter.TraceComboManager;
 public class DBExporterInputComposite extends AbstractToolInputComposite {
 
 	private Text textDirectory;
-	private TraceComboManager traceComboManager;
+	private TraceTableManager traceTableManager;
 	protected ExporterInput input = new ExporterInput();
 
 	public DBExporterInputComposite(Composite parent, int style) {
@@ -53,17 +53,18 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 		Composite compositeTrace = new Composite(grpExportSettings, SWT.NONE);
 		compositeTrace.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		compositeTrace.setSize(584, 41);
-		compositeTrace.setLayout(new GridLayout(2, false));
+		compositeTrace.setLayout(new GridLayout(1, false));
 
 		Label lblTrace = new Label(compositeTrace, SWT.NONE);
-		lblTrace.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblTrace.setText("Trace");
-
-		Combo comboTraces = new Combo(compositeTrace, SWT.READ_ONLY);
-		comboTraces.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		traceComboManager = new TraceComboManager(comboTraces, true);
-		traceComboManager.loadAll();
-		comboTraces.addSelectionListener(new SelectionAdapter() {
+		lblTrace.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		lblTrace.setText("Traces:");
+		
+		Table tableTraces = new Table(compositeTrace, SWT.CHECK| SWT.V_SCROLL | SWT.H_SCROLL);
+		tableTraces.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		traceTableManager = new TraceTableManager(tableTraces);
+		traceTableManager.loadAll();
+		tableTraces.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				updateExporterInput();
@@ -99,7 +100,7 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 		});
 		btnBrowse.setText("Browse");
 		
-		input.trace = traceComboManager.getSelectedTrace();
+		input.traces = traceTableManager.getSelectedTraces();
 		input.directory = "";
 
 	}
@@ -111,7 +112,7 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 
 	private void updateExporterInput() {
 		// trace
-		input.trace = traceComboManager.getSelectedTrace();
+		input.traces = traceTableManager.getSelectedTraces();
 		// Directory
 		input.directory = textDirectory.getText();
 		// update ok in argument dialog

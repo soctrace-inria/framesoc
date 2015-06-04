@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.ToolQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
@@ -46,8 +47,11 @@ import fr.inria.soctrace.tools.framesoc.exporter.utils.Serializer;
  */
 public class ExporterJob extends Job {
 
+	Trace currentTrace;
 	private final static Logger logger = LoggerFactory.getLogger(ExporterJob.class);
-
+	private final static String METADATA_EXPORT_FILE_SUFFIX = ".meta";
+	private final static String TRACEDB_EXPORT_FILE_SUFFIX = ".db";
+	
 	/**
 	 * Input
 	 */
@@ -59,13 +63,12 @@ public class ExporterJob extends Job {
 	}
 
 	@Override
-	protected IStatus run(IProgressMonitor monitor) {
+	protected IStatus run(final IProgressMonitor monitor) {
 
 		monitor.setTaskName(getName());
 		monitor.beginTask(getName(), IProgressMonitor.UNKNOWN);
-
+		
 		try {
-
 			Thread th = new Thread() {
 				@Override
 				public void run() {
@@ -83,7 +86,7 @@ public class ExporterJob extends Job {
 			};
 
 			th.start();
-
+			
 			while (th.isAlive()) {
 				try {
 					Thread.sleep(1000);
@@ -93,6 +96,9 @@ public class ExporterJob extends Job {
 					throw new SoCTraceException(ie);
 				}
 				if (monitor.isCanceled()) {
+					if (currentTrace != null)
+						monitor.subTask(currentTrace.getAlias());
+					
 					logger.debug("user pressed cancel");
 					logger.debug("interrupting thread");
 					th.interrupt();
@@ -109,27 +115,54 @@ public class ExporterJob extends Job {
 	}
 
 	private void export() throws SoCTraceException {
-		// export metadata
-		Serializer serializer = new Serializer();
-		ExportMetadata metadata = new ExportMetadata();
-		metadata.dbms = DBMS.toDbms(Configuration.getInstance().get(
-				SoCTraceProperty.soctrace_dbms.toString()));
-		metadata.trace = input.trace;
+		for (Trace trace : input.traces) {
+			currentTrace = trace;
+			// export metadata
+			Serializer serializer = new Serializer();
+			ExportMetadata metadata = new ExportMetadata();
+			metadata.dbms = DBMS.toDbms(Configuration.getInstance().get(
+					SoCTraceProperty.soctrace_dbms.toString()));
+			metadata.trace = trace;
 
-		SystemDBObject sysDB = null;
-		try {
-			sysDB = SystemDBObject.openNewIstance();
-			ToolQuery tq = new ToolQuery(sysDB);
-			metadata.tools = tq.getList();
-		} finally {
-			DBObject.finalClose(sysDB);
+			SystemDBObject sysDB = null;
+			try {
+				sysDB = SystemDBObject.openNewIstance();
+				ToolQuery tq = new ToolQuery(sysDB);
+				metadata.tools = tq.getList();
+			} finally {
+				DBObject.finalClose(sysDB);
+			}
+			String metaExportFileName = getExportName(METADATA_EXPORT_FILE_SUFFIX);
+			serializer.serialize(metadata, metaExportFileName);
+
+			// export db
+			DBManager dbm = DBManager.getDBManager(trace.getDbName());
+			String dbExportFileName = getExportName(TRACEDB_EXPORT_FILE_SUFFIX);
+			dbm.exportDB(dbExportFileName);
 		}
-		serializer.serialize(metadata, getDumpPath() + ".meta");
+	}
 
-		// export db
-		DBManager dbm = DBManager.getDBManager(input.trace.getDbName());
-		dbm.exportDB(getDumpPath() + ".db");
+	/**
+	 * Get file name for export, generate a file name by adding a number if a
+	 * file with this name already exists
+	 * 
+	 * @param suffix
+	 *            the suffix of the generated trace file
+	 * @return a non-existing file name
+	 */
+	private String getExportName(String suffix) {
+		String fileName = getDumpPath() + suffix;
+		File testFile = new File(fileName);
+		int i = 1;
+		while (testFile.exists()) {
+			fileName = getDumpPath() + "_" + i + suffix;
+			testFile = new File(fileName);
+			i++;
+			if (i <= 0)
+				break;
+		}
 
+		return fileName;
 	}
 
 	private void feedback(final boolean ok, final String s) {
@@ -148,7 +181,7 @@ public class ExporterJob extends Job {
 	}
 
 	private String getDumpPath() {
-		return Portability.normalize(input.directory + "/" + input.trace.getDbName());
+		return Portability.normalize(input.directory + "/" + currentTrace.getDbName());
 	}
 
 	private void delete(String file) {

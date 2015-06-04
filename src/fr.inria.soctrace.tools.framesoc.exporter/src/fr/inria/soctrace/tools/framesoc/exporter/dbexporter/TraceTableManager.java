@@ -1,5 +1,6 @@
-/*******************************************************************************
- * Copyright (c) 2012-2015 INRIA.
+package fr.inria.soctrace.tools.framesoc.exporter.dbexporter;
+
+/* Copyright (c) 2012-2015 INRIA.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,17 +9,12 @@
  * Contributors:
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
-/**
- * 
- */
-package fr.inria.soctrace.tools.framesoc.exporter.dbexporter;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -26,38 +22,35 @@ import fr.inria.soctrace.lib.search.ITraceSearch;
 import fr.inria.soctrace.lib.search.TraceSearch;
 
 /**
- * @author "Generoso Pagano <generoso.pagano@inria.fr>"
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
-public class TraceComboManager {
+public class TraceTableManager {
 
-	private Combo combo;
-	private boolean autoSelect;
-	private Map<Integer, Trace>  pos2trace 	= new HashMap<Integer, Trace>();
+	private Table table;
 
-	public TraceComboManager(Combo combo, boolean autoSelect) {
-		this.combo = combo;
-		this.autoSelect = autoSelect;
+	public TraceTableManager(Table table) {
+		this.table = table;
 	}
 
-	public Trace getSelectedTrace() {
-		if (pos2trace.containsKey(combo.getSelectionIndex()))
-			return pos2trace.get(combo.getSelectionIndex());
-		else 
-			return null;
+	public List<Trace> getSelectedTraces() {
+		List<Trace> traces = new ArrayList<Trace>();
+		for (TableItem aTableItem : table.getItems()) {
+			if(aTableItem.getChecked())
+				traces.add((Trace) aTableItem.getData());
+		}
+
+		return traces;
 	}
 
 	public void load(List<Trace> traces) {
-		combo.removeAll();
-		pos2trace.clear();
+		table.removeAll();
 
-		int pos = 0;
-		for (Trace t: traces) {
-			pos2trace.put(pos, t);
-			combo.add(t.getAlias(), pos);
-			pos++;		
+		for (Trace t : traces) {
+			TableItem item = new TableItem(table, SWT.NONE);
+			// Associate the trace with the item
+			item.setData(t);
+			item.setText(t.getAlias());
 		}
-		if (autoSelect && pos>0)
-			combo.select(0);
 	}
 
 	public void loadAll() {
@@ -79,10 +72,6 @@ public class TraceComboManager {
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public Collection<Trace> getTraces() {
-		return pos2trace.values();
 	}
 
 }

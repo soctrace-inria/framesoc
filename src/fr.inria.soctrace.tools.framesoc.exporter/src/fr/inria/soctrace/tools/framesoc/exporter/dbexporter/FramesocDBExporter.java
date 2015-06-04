@@ -46,7 +46,8 @@ public class FramesocDBExporter extends FramesocTool {
 		if (exporterInput.directory == null) {
 			status.valid = false;
 			status.message = "Specify a directory";
-		} else if (exporterInput.trace == null) {
+		} else if (exporterInput.traces == null
+				|| exporterInput.traces.isEmpty()) {
 			status.valid = false;
 			status.message = "Select a trace";
 		} else {
