@@ -76,7 +76,7 @@ public abstract class FilterDataManager {
 		filterAction.setToolTipText(dimensionData.getActionToolTipMessage());
 		return filterAction;
 	}
-
+	
 	/**
 	 * Initialize the filter dialog
 	 * 

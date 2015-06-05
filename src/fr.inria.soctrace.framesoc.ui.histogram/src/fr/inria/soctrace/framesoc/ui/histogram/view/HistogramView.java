@@ -27,6 +27,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -44,6 +46,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -67,6 +70,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
+import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
@@ -278,7 +282,6 @@ public class HistogramView extends FramesocPart {
 		// filters and actions
 		initFilterDialogs();
 		createActions();
-
 	}
 
 	private void initFilterData(Trace t) {
@@ -303,7 +306,8 @@ public class HistogramView extends FramesocPart {
 		// Filters actions
 		manager.add(filterMap.get(FilterDimension.PRODUCERS).initFilterAction());
 		manager.add(filterMap.get(FilterDimension.TYPE).initFilterAction());
-
+		manager.add(createSnapshotAction());
+		
 		// Separator
 		manager.add(new Separator());
 
@@ -790,7 +794,11 @@ public class HistogramView extends FramesocPart {
 		plot.addDomainMarker(marker);
 		activeSelection = true;
 	}
-
+	
+	public ChartComposite getChartFrame() {
+		return chartFrame;
+	}
+	
 	/**
 	 * Prepare the plot
 	 * 
@@ -928,4 +936,31 @@ public class HistogramView extends FramesocPart {
 		statusLineManager.setMessage(message.toString());
 	}
 
+	/**
+	 * Initialize the snapshot action
+	 * 
+	 * @return the action
+	 */
+	public IAction createSnapshotAction() {
+		SnapshotAction snapshotAction = new SnapshotAction("", IAction.AS_PUSH_BUTTON);
+		snapshotAction.histoView = this;
+		snapshotAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/snapshot.png"));
+		snapshotAction.setToolTipText("Take a snapshot");
+		return snapshotAction;
+	}
+	
+	private class SnapshotAction extends Action {
+		public HistogramView histoView;
+
+		public SnapshotAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			new HistogramSnapshotDialog(getSite().getShell(), histoView).open();
+		}
+	}
+	
 }

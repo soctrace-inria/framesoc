@@ -1049,10 +1049,12 @@ public final class EventTableView extends FramesocPart {
 				protected IStatus run(final IProgressMonitor monitor) {
 					PrintWriter writer = null;
 					int countEvents = 0;
-					
-					monitor.beginTask(title, cache.getIndexedRowCount()/monitorCheck + 1);
+
+					monitor.beginTask(title, cache.getIndexedRowCount()
+							/ monitorCheck + 1);
 					try {
-						writer = new PrintWriter(filePath, System.getProperty("file.encoding"));
+						writer = new PrintWriter(filePath,
+								System.getProperty("file.encoding"));
 
 						csvHeader.append(EventTableColumn.TIMESTAMP.toString()
 								+ CSV_SEPARATOR);
@@ -1063,12 +1065,11 @@ public final class EventTableView extends FramesocPart {
 						csvHeader.append(EventTableColumn.CATEGORY.toString()
 								+ CSV_SEPARATOR);
 						csvHeader.append(EventTableColumn.TYPE_NAME.toString());
-						String newLine = System
-						.getProperty("line.separator");
+						String newLine = System.getProperty("line.separator");
 
 						for (int i = 0; i < cache.getIndexedRowCount(); i++) {
 							EventTableRow currentRow = cache.get(i);
-							
+
 							csvExport.append(currentRow
 									.get(EventTableColumn.TIMESTAMP)
 									+ CSV_SEPARATOR);
@@ -1084,10 +1085,10 @@ public final class EventTableView extends FramesocPart {
 									.get(EventTableColumn.TYPE_NAME));
 
 							handleParameters(currentRow);
-							
+
 							// New line
 							csvExport.append(newLine);
-					
+
 							countEvents++;
 							if (countEvents % monitorCheck == 0) {
 								monitor.worked(1);
@@ -1140,19 +1141,20 @@ public final class EventTableView extends FramesocPart {
 			job.schedule();
 		}
 
-		private void handleParameters(EventTableRow currentRow) throws SoCTraceException {
+		private void handleParameters(EventTableRow currentRow)
+				throws SoCTraceException {
 			String tmpParameters = currentRow.get(EventTableColumn.PARAMS);
 			// Keep the parameter value
 			Map<Integer, String> currentParameterValue = new HashMap<Integer, String>();
 
 			String[] parameters = tmpParameters
 					.split(EventTableRow.PARAMETER_SEPARATOR);
-			
+
 			// Parse parameter
 			for (int i = 0; i < parameters.length; i++) {
 				String[] aParameter = parameters[i]
 						.split(EventTableRow.PARAMETER_VALUE_SEPARATOR);
-				
+
 				if (aParameter.length < 2) {
 					logger.error("Incorrect element encountered during the parsing of parameters: "
 							+ parameters[i]);
@@ -1177,7 +1179,8 @@ public final class EventTableView extends FramesocPart {
 					paramValue = paramValue.substring(1,
 							paramValue.length() - 1);
 				else {
-					// The param value contained at least one PARAMETER_SEPARATOR
+					// The param value contained at least one
+					// PARAMETER_SEPARATOR
 					paramValue = paramValue.substring(1, paramValue.length());
 					while (true) {
 						if (i + 1 < parameters.length) {
@@ -1212,7 +1215,7 @@ public final class EventTableView extends FramesocPart {
 				}
 			}
 		}
-		
+
 		/**
 		 * Cancel the export.
 		 */
@@ -1220,7 +1223,7 @@ public final class EventTableView extends FramesocPart {
 			stop = true;
 		}
 	}
-	
+
 	/**
 	 * Start the export
 	 */
