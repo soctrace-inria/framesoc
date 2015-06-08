@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2012-2015 INRIA.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Youenn Corre - initial API and implementation
+ ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.histogram.view;
 
 import java.io.File;
@@ -22,6 +32,12 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.ResourceManager;
 
+/**
+ * This class implements the dialog window to configure the export of the
+ * density chart into an image
+ * 
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
+ */
 public class HistogramSnapshotDialog extends Dialog {
 
 	private HistogramView histoView;
@@ -132,6 +148,7 @@ public class HistogramSnapshotDialog extends Dialog {
 			return false;
 		}
 	}
+	
 	private class ModifySnapshotDirectory extends SelectionAdapter {
 
 		@Override

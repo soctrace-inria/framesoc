@@ -942,11 +942,14 @@ public class HistogramView extends FramesocPart {
 	 * @return the action
 	 */
 	public IAction createSnapshotAction() {
-		SnapshotAction snapshotAction = new SnapshotAction("", IAction.AS_PUSH_BUTTON);
+		SnapshotAction snapshotAction = new SnapshotAction("",
+				IAction.AS_PUSH_BUTTON);
 		snapshotAction.histoView = this;
-		snapshotAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
-				Activator.PLUGIN_ID, "icons/snapshot.png"));
+		snapshotAction.setImageDescriptor(ResourceManager
+				.getPluginImageDescriptor(Activator.PLUGIN_ID,
+						"icons/snapshot.png"));
 		snapshotAction.setToolTipText("Take a snapshot");
+
 		return snapshotAction;
 	}
 	

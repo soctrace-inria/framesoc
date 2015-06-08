@@ -13,9 +13,6 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +50,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -110,11 +106,6 @@ public final class EventTableView extends FramesocPart {
 	 * Hint for filter row
 	 */
 	private static final String FILTER_HINT = "<filter>";
-	
-	/**
-	 * CSV Separator
-	 */
-	private static final String CSV_SEPARATOR = ",";
 
 	/**
 	 * Cache of event table rows
@@ -172,6 +163,8 @@ public final class EventTableView extends FramesocPart {
 	// Export
 	private CSVExport csvExport;
 	private final Object exportSyncObj = new Object();
+	private Map<EventTableColumn, Boolean> columnSelection;
+	private String exportFileName;
 
 	/**
 	 * Keys for table data
@@ -570,30 +563,51 @@ public final class EventTableView extends FramesocPart {
 	}
 	
 	private IAction createCSVExportAction() {
-		IAction csvAction = new Action("Export to CSV", Action.AS_PUSH_BUTTON) {
+		CSVExportAction csvAction = new CSVExportAction("Export to CSV", Action.AS_PUSH_BUTTON);/* {
 			@Override
 			public void run() {
-				FileDialog dialog = new FileDialog(getSite().getShell(),
-						SWT.SAVE);
-
-				// Display a warning if the selected file already exists
-				dialog.setOverwrite(true);
-
+				columnSelection = new HashMap<EventTableColumn, Boolean>();
+				
 				// Set a default file name
-				String fileName = currentShownTrace.getAlias() + "_"
+				exportFileName = currentShownTrace.getAlias() + "_"
 						+ currentShownTrace.getId() + ".csv";
-				dialog.setFileName(fileName);
 
-				String csvFilename = dialog.open();
-				if (csvFilename != null) {
-					startExport(csvFilename);
+				CSVExportDialog csvExportDialog = new CSVExportDialog(getSite()
+						.getShell(), exportFileName, columnSelection);
+
+				if (csvExportDialog.open() == Status.OK) {
+					startExport(exportFileName, columnSelection);
 				}
 			}
-		};
+		};*/
+		csvAction.tableView = this;
 		csvAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/export.png"));
 		csvAction.setToolTipText("Export currerntly display events to CSV");
 		return csvAction;
+	}
+	
+	private class CSVExportAction extends Action {
+		public EventTableView tableView;
+
+		public CSVExportAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			columnSelection = new HashMap<EventTableColumn, Boolean>();
+			
+			// Set a default file name
+			exportFileName = currentShownTrace.getAlias() + "_"
+					+ currentShownTrace.getId() + ".csv";
+			
+			CSVExportDialog csvExportDialog = new CSVExportDialog(getSite().getShell(), tableView);
+			
+			if (csvExportDialog.open() == Status.OK) {
+				startExport(exportFileName, columnSelection);
+			}
+		}
 	}
 
 	@Override
@@ -625,6 +639,23 @@ public final class EventTableView extends FramesocPart {
 		return ID;
 	}
 
+	public Map<EventTableColumn, Boolean> getColumnSelection() {
+		return columnSelection;
+	}
+
+	public void setColumnSelection(Map<EventTableColumn, Boolean> columnSelection) {
+		this.columnSelection = columnSelection;
+	}
+
+	public String getExportFileName() {
+		return exportFileName;
+	}
+
+	public void setExportFileName(String exportFileName) {
+		this.exportFileName = exportFileName;
+	}
+
+	
 	/**
 	 * Show the trace.
 	 * 
@@ -650,7 +681,6 @@ public final class EventTableView extends FramesocPart {
 	/*
 	 * Loading
 	 */
-
 	private void showWindow(Trace trace, long start, long end) {
 
 		if (trace == null) {
@@ -1019,221 +1049,18 @@ public final class EventTableView extends FramesocPart {
 		statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
 	}
 	
-
-	private class CSVExport {
-		
-		private StringBuilder csvExport = new StringBuilder();
-		private StringBuilder csvHeader = new StringBuilder();
-		private int currentMaxNumberOfParameter = 0;
-		private Map<String, Integer> parameterTypes = new HashMap<String, Integer>();
-		private String filePath;
-		private boolean stop = false;
-		private int monitorCheck = 20000;
-		
-		public CSVExport(String filePath) {
-			this.filePath = filePath;
-		}
-		
-		/**
-		 * Export the events currently displayed in the table to csv format
-		 * 
-		 * @param filePath
-		 *            name of the file in which the csv export will be written
-		 * @throws SoCTraceException
-		 */
-		public void exportToCSV() {
-			final String title = "Exporting to CSV";
-			final Job job = new Job(title) {
-
-				@Override
-				protected IStatus run(final IProgressMonitor monitor) {
-					PrintWriter writer = null;
-					int countEvents = 0;
-
-					monitor.beginTask(title, cache.getIndexedRowCount()
-							/ monitorCheck + 1);
-					try {
-						writer = new PrintWriter(filePath,
-								System.getProperty("file.encoding"));
-
-						csvHeader.append(EventTableColumn.TIMESTAMP.toString()
-								+ CSV_SEPARATOR);
-						csvHeader.append(EventTableColumn.CPU.toString()
-								+ CSV_SEPARATOR);
-						csvHeader.append(EventTableColumn.PRODUCER_NAME
-								.toString() + CSV_SEPARATOR);
-						csvHeader.append(EventTableColumn.CATEGORY.toString()
-								+ CSV_SEPARATOR);
-						csvHeader.append(EventTableColumn.TYPE_NAME.toString());
-						String newLine = System.getProperty("line.separator");
-
-						for (int i = 0; i < cache.getIndexedRowCount(); i++) {
-							EventTableRow currentRow = cache.get(i);
-
-							csvExport.append(currentRow
-									.get(EventTableColumn.TIMESTAMP)
-									+ CSV_SEPARATOR);
-							csvExport.append(currentRow
-									.get(EventTableColumn.CPU) + CSV_SEPARATOR);
-							csvExport.append(currentRow
-									.get(EventTableColumn.PRODUCER_NAME)
-									+ CSV_SEPARATOR);
-							csvExport.append(currentRow
-									.get(EventTableColumn.CATEGORY)
-									+ CSV_SEPARATOR);
-							csvExport.append(currentRow
-									.get(EventTableColumn.TYPE_NAME));
-
-							handleParameters(currentRow);
-
-							// New line
-							csvExport.append(newLine);
-
-							countEvents++;
-							if (countEvents % monitorCheck == 0) {
-								monitor.worked(1);
-								if (monitor.isCanceled() || stop) {
-									writer.flush();
-									writer.close();
-									return Status.CANCEL_STATUS;
-								}
-							}
-						}
-						csvHeader.append(newLine);
-
-						// Write data into the file
-						writer.write(csvHeader.toString());
-						writer.write(csvExport.toString());
-						monitor.worked(1);
-						monitor.done();
-						return Status.OK_STATUS;
-					} catch (FileNotFoundException e) {
-						MessageDialog.openError(Display.getDefault()
-								.getActiveShell(), "Exception",
-								"File " + filePath + " could not be created ("
-										+ e.getMessage() + ")");
-					} catch (UnsupportedEncodingException e) {
-						MessageDialog.openError(
-								Display.getDefault().getActiveShell(),
-								"Exception",
-								"Unsupported encoding "
-										+ System.getProperty("file.encoding")
-										+ " (" + e.getMessage() + ")");
-					} catch (SoCTraceException e) {
-						MessageDialog.openError(Display.getDefault()
-								.getActiveShell(), "Exception", e.getMessage());
-					} finally {
-						if (writer != null) {
-							// Close the fd
-							writer.flush();
-							writer.close();
-						}
-
-						synchronized (exportSyncObj) {
-							csvExport = null;
-						}
-					}
-					return Status.CANCEL_STATUS;
-				}
-			};
-
-			job.setUser(true);
-			job.schedule();
-		}
-
-		private void handleParameters(EventTableRow currentRow)
-				throws SoCTraceException {
-			String tmpParameters = currentRow.get(EventTableColumn.PARAMS);
-			// Keep the parameter value
-			Map<Integer, String> currentParameterValue = new HashMap<Integer, String>();
-
-			String[] parameters = tmpParameters
-					.split(EventTableRow.PARAMETER_SEPARATOR);
-
-			// Parse parameter
-			for (int i = 0; i < parameters.length; i++) {
-				String[] aParameter = parameters[i]
-						.split(EventTableRow.PARAMETER_VALUE_SEPARATOR);
-
-				if (aParameter.length < 2) {
-					logger.error("Incorrect element encountered during the parsing of parameters: "
-							+ parameters[i]);
-					continue;
-				}
-
-				// Remove white space
-				String paramType = aParameter[0].trim();
-
-				// If we have not yet met this type of parameter
-				if (!parameterTypes.containsKey(paramType)) {
-					parameterTypes.put(paramType, currentMaxNumberOfParameter);
-					currentMaxNumberOfParameter++;
-					// Extend the header with it
-					csvHeader.append(CSV_SEPARATOR + paramType);
-				}
-
-				// Remove white space and quote
-				String paramValue = aParameter[1].trim();
-				// Check that the parameter ends with a quote
-				if (paramValue.endsWith(EventTableRow.PARAMETER_VALUE_ESCAPE))
-					paramValue = paramValue.substring(1,
-							paramValue.length() - 1);
-				else {
-					// The param value contained at least one
-					// PARAMETER_SEPARATOR
-					paramValue = paramValue.substring(1, paramValue.length());
-					while (true) {
-						if (i + 1 < parameters.length) {
-							String nextValue = parameters[i + 1].trim();
-							// Are we at the end of the parameter
-							if (nextValue
-									.endsWith(EventTableRow.PARAMETER_VALUE_ESCAPE)) {
-								paramValue = paramValue
-										+ nextValue.substring(0,
-												nextValue.length() - 1);
-								i++;
-								break;
-							} else {
-								paramValue = paramValue + parameters[i + 1];
-							}
-							i++;
-						} else {
-							break;
-						}
-					}
-				}
-
-				currentParameterValue.put(parameterTypes.get(paramType),
-						paramValue);
-			}
-
-			// Complete csv with existing parameter values or blank otherwise
-			for (int i = 0; i < currentMaxNumberOfParameter; i++) {
-				csvExport.append(CSV_SEPARATOR);
-				if (currentParameterValue.containsKey(i)) {
-					csvExport.append(currentParameterValue.get(i));
-				}
-			}
-		}
-
-		/**
-		 * Cancel the export.
-		 */
-		public void cancel() {
-			stop = true;
-		}
-	}
-
 	/**
 	 * Start the export
 	 */
-	private void startExport(String fileName) {
+	private void startExport(String fileName,
+			Map<EventTableColumn, Boolean> exportColumn) {
 		synchronized (exportSyncObj) {
 			if (csvExport != null) {
 				csvExport.cancel();
 				csvExport = null;
 			}
-			csvExport = new CSVExport(fileName);
+
+			csvExport = new CSVExport(fileName, exportColumn, this.cache);
 			csvExport.exportToCSV();
 		}
 	}
