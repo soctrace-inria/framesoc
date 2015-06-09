@@ -427,6 +427,8 @@ public class TraceDetailsLoader {
 			argError = true;
 		}
 
+		if (fixed.containsKey(TraceField.TIMEUNIT.toString()))
+			trace.setTimeUnit(TimeUnit.getInt(fixed.get(TraceField.TIMEUNIT.toString())));
 		if (fixed.containsKey(TraceField.TRACED_APPLICATION.toString()))
 			trace.setTracedApplication(fixed.get(TraceField.TRACED_APPLICATION.toString()));
 		if (fixed.containsKey(TraceField.BOARD.toString()))
