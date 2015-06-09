@@ -135,8 +135,19 @@ public class TraceDetailsLoader {
 
 		Trace first = traces.iterator().next();
 
+		// Alias
+		boolean	show = true;
+		for (Trace t : traces) {
+			if (!first.getAlias().equals(t.getAlias())) {
+				show = false;
+				break;
+			}
+		}
+		if (show)
+			properties.add(new DetailsTableRow(TraceField.ALIAS.toString(), first.getAlias()));
+
 		// Tracing date
-		boolean show = true;
+		show = true;
 		for (Trace t : traces) {
 			if (!first.getTracingDate().equals(t.getTracingDate())) {
 				show = false;
@@ -251,8 +262,9 @@ public class TraceDetailsLoader {
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP.toString(), String
-					.valueOf(first.getMinTimestamp())));
+			properties.add(new DetailsTableRow(TraceField.MIN_TIMESTAMP
+					.toString(), String.valueOf(first.getMinTimestamp()),
+					false, true));
 
 		// Max Timestamp
 		show = true;
@@ -263,20 +275,22 @@ public class TraceDetailsLoader {
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP.toString(), String
-					.valueOf(first.getMaxTimestamp())));
+			properties.add(new DetailsTableRow(TraceField.MAX_TIMESTAMP
+					.toString(), String.valueOf(first.getMaxTimestamp()),
+					false, true));
 
-		// Alias
+		// Time unit
 		show = true;
 		for (Trace t : traces) {
-			if (!first.getAlias().equals(t.getAlias())) {
+			if (first.getTimeUnit() != t.getTimeUnit()) {
 				show = false;
 				break;
 			}
 		}
 		if (show)
-			properties.add(new DetailsTableRow(TraceField.ALIAS.toString(), first.getAlias()));
-
+			properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit
+					.getLabel(first.getTimeUnit()), false, false));
+		
 		// Trace DB name
 		show = true;
 		for (Trace t : traces) {
@@ -288,18 +302,6 @@ public class TraceDetailsLoader {
 		if (show)
 			properties.add(new DetailsTableRow(TraceField.DBNAME.toString(), first.getDbName(),
 					false, true));
-
-		// Traced application
-		show = true;
-		for (Trace t : traces) {
-			if (first.getTimeUnit() != t.getTimeUnit()) {
-				show = false;
-				break;
-			}
-		}
-		if (show)
-			properties.add(new DetailsTableRow(TraceField.TIMEUNIT.toString(), TimeUnit
-					.getLabel(first.getTimeUnit()), false, true));
 
 		// Show a row for each parameter having the same name and the same value
 		List<Map<String, TraceParam>> plist = new LinkedList<Map<String, TraceParam>>();
@@ -418,8 +420,7 @@ public class TraceDetailsLoader {
 						.toString())));
 			if (fixed.containsKey(TraceField.NUMBER_OF_EVENTS.toString()))
 				trace.setNumberOfEvents(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_EVENTS
-						.toString())));
-			
+						.toString())));	
 			if (fixed.containsKey(TraceField.NUMBER_OF_PRODUCERS.toString()))
 				trace.setNumberOfProducers(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_PRODUCERS
 						.toString())));

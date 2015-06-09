@@ -459,6 +459,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 			this.modified = false;
 			this.viewer = viewer;
 			this.textEditor = new TextCellEditor(viewer.getTable());
+		
 			// time unit
 			TimeUnit[] units = TimeUnit.values();
 			UNITS = new String[units.length];
