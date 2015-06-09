@@ -27,6 +27,9 @@ import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 public class EventTableRow extends TableRow {
 
 	private long timestamp;
+	public final static String PARAMETER_SEPARATOR = ",";
+	public final static String PARAMETER_VALUE_SEPARATOR = "=";
+	public final static String PARAMETER_VALUE_ESCAPE = "'";
 
 	/**
 	 * Constructor used to create a table row related to a given event.
@@ -36,10 +39,13 @@ public class EventTableRow extends TableRow {
 	 */
 	public EventTableRow(Event event) {
 		timestamp = event.getTimestamp();
-		fields.put(EventTableColumn.TIMESTAMP, String.valueOf(event.getTimestamp()));
+		fields.put(EventTableColumn.TIMESTAMP,
+				String.valueOf(event.getTimestamp()));
 		fields.put(EventTableColumn.CPU, String.valueOf(event.getCpu()));
-		fields.put(EventTableColumn.PRODUCER_NAME, event.getEventProducer().getName());
-		fields.put(EventTableColumn.CATEGORY, EventCategory.categoryToString(event.getCategory()));
+		fields.put(EventTableColumn.PRODUCER_NAME, event.getEventProducer()
+				.getName());
+		fields.put(EventTableColumn.CATEGORY,
+				EventCategory.categoryToString(event.getCategory()));
 		fields.put(EventTableColumn.TYPE_NAME, event.getType().getName());
 		StringBuilder tmp = new StringBuilder();
 		boolean first = true;
@@ -50,23 +56,35 @@ public class EventTableRow extends TableRow {
 		case EventCategory.STATE:
 			first = false;
 			State state = (State) event;
-			tmp.append("END_TIMESTAMP='" + state.getEndTimestamp() + "'");
-			tmp.append(", ");
-			tmp.append("IMBRICATION='" + state.getImbricationLevel() + "'");
+			tmp.append("END_TIMESTAMP" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + state.getEndTimestamp()
+					+ PARAMETER_VALUE_ESCAPE);
+			tmp.append(PARAMETER_SEPARATOR + " ");
+			tmp.append("IMBRICATION" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + state.getImbricationLevel()
+					+ PARAMETER_VALUE_ESCAPE);
 			break;
 		case EventCategory.LINK:
 			first = false;
 			Link link = (Link) event;
-			tmp.append("END_TIMESTAMP='" + link.getEndTimestamp() + "'");
-			tmp.append(", ");
-			tmp.append("END_PRODUCER='" + link.getEndProducer().getName() + "'");
+			tmp.append("END_TIMESTAMP" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + link.getEndTimestamp()
+					+ PARAMETER_VALUE_ESCAPE);
+			tmp.append(PARAMETER_SEPARATOR + " ");
+			tmp.append("END_PRODUCER" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + link.getEndProducer().getName()
+					+ PARAMETER_VALUE_ESCAPE);
 			break;
 		case EventCategory.VARIABLE:
 			first = false;
 			Variable var = (Variable) event;
-			tmp.append("ID='" + var.getId() + "'");
-			tmp.append(", ");
-			tmp.append("VALUE='" + var.getValue() + "'");
+			tmp.append("ID" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + var.getId()
+					+ PARAMETER_VALUE_ESCAPE);
+			tmp.append(PARAMETER_SEPARATOR + " ");
+			tmp.append("VALUE" + PARAMETER_VALUE_SEPARATOR
+					+ PARAMETER_VALUE_ESCAPE + var.getValue()
+					+ PARAMETER_VALUE_ESCAPE);
 			break;
 		}
 
@@ -74,9 +92,11 @@ public class EventTableRow extends TableRow {
 			if (first) {
 				first = false;
 			} else {
-				tmp.append(", ");
+				tmp.append(PARAMETER_SEPARATOR + " ");
 			}
-			tmp.append(ep.getEventParamType().getName() + "='" + ep.getValue() + "'");
+			tmp.append(ep.getEventParamType().getName()
+					+ PARAMETER_VALUE_SEPARATOR + PARAMETER_VALUE_ESCAPE
+					+ ep.getValue() + PARAMETER_VALUE_ESCAPE);
 		}
 		fields.put(EventTableColumn.PARAMS, tmp.toString());
 	}
@@ -108,5 +128,5 @@ public class EventTableRow extends TableRow {
 	public void setTimestamp(long timestamp) {
 		this.timestamp = timestamp;
 	}
-	
+
 }

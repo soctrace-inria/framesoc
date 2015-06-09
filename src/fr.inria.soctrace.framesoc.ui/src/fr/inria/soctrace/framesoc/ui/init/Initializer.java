@@ -52,12 +52,16 @@ public enum Initializer {
 
 	public boolean initializeSystem(Shell shell, boolean firstime) {
 
+		boolean done = false;
+
 		try {
 
 			InitWizard wizard = new InitWizard(firstime);
 			WizardDialog dialog = new WizardDialog(shell, wizard);
-			if (dialog.open() == Window.CANCEL)
+			if (dialog.open() != Window.OK)
 				return false;
+
+			done = true;
 
 			InitProperties properties = wizard.getInitProperties();
 
@@ -96,12 +100,14 @@ public enum Initializer {
 			MessageDialog.openError(shell, "Error creating the system DB", e.getMessage());
 			return false;
 		} finally {
-			// refresh Traces view and Trace Details
-			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
-					null);
-			FramesocBus.getInstance().setVariable(
-					FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
-			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			if (done) {
+				// refresh Traces view and Trace Details
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE, null);
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
+				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			}
 		}
 	}
 

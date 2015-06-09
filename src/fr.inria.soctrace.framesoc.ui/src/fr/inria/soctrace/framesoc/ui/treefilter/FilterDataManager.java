@@ -76,7 +76,7 @@ public abstract class FilterDataManager {
 		filterAction.setToolTipText(dimensionData.getActionToolTipMessage());
 		return filterAction;
 	}
-
+	
 	/**
 	 * Initialize the filter dialog
 	 * 
@@ -119,6 +119,22 @@ public abstract class FilterDataManager {
 		return toLoad;
 	}
 
+	/**
+	 * Return a copy of the list of checked items.
+	 * 
+	 * @return a copy of the list containing the checked items.
+	 */
+	public List<Object> getChecked() {
+		return new ArrayList<Object>(checked);
+	}
+
+	/**
+	 * Check if the passed list is equals to the checked items.
+	 * 
+	 * @param c
+	 *            list of items
+	 * @return true if the passed list contains the same items as the list of checked items.
+	 */
 	public boolean areCheckedEqual(List<Object> c) {
 		return areListsEqual(c, checked);
 	}

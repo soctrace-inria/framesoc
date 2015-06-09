@@ -298,7 +298,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(metadata.trace.getDbName());
+				traceDB = TraceDBObject.openNewInstance(metadata.trace.getDbName());
 				AnalysisResultQuery arq = new AnalysisResultQuery(traceDB);
 				List<AnalysisResult> arl = arq.getList();
 				if (arl.size() > 0) {

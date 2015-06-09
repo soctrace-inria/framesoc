@@ -50,6 +50,7 @@ public class TraceDetailsLoader {
 		OPERATING_SYSTEM("Operating System"), 
 		NUMBER_OF_CPUS("Number of CPUs"), 
 		NUMBER_OF_EVENTS("Number of events"),
+		NUMBER_OF_PRODUCERS("Number of producers"),
 		OUTPUT_DEVICE("Output device"),
 		DESCRIPTION("Description"), 
 		MIN_TIMESTAMP("Min Timestamp"),
@@ -94,6 +95,8 @@ public class TraceDetailsLoader {
 				.valueOf(trace.getNumberOfCpus())));
 		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String
 				.valueOf(trace.getNumberOfEvents())));
+		properties.add(new DetailsTableRow(TraceField.NUMBER_OF_PRODUCERS.toString(), String
+				.valueOf(trace.getNumberOfProducers())));
 		properties.add(new DetailsTableRow(TraceField.OUTPUT_DEVICE.toString(), trace
 				.getOutputDevice()));
 		properties.add(new DetailsTableRow(TraceField.DESCRIPTION.toString(), trace
@@ -202,6 +205,18 @@ public class TraceDetailsLoader {
 		if (show)
 			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_EVENTS.toString(), String
 					.valueOf(first.getNumberOfEvents())));
+		
+		// Number of producers
+		show = true;
+		for (Trace t : traces) {
+			if (first.getNumberOfProducers() != t.getNumberOfProducers()) {
+				show = false;
+				break;
+			}
+		}
+		if (show)
+			properties.add(new DetailsTableRow(TraceField.NUMBER_OF_PRODUCERS.toString(), String
+					.valueOf(first.getNumberOfProducers())));
 
 		// Traced application
 		show = true;
@@ -403,6 +418,10 @@ public class TraceDetailsLoader {
 						.toString())));
 			if (fixed.containsKey(TraceField.NUMBER_OF_EVENTS.toString()))
 				trace.setNumberOfEvents(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_EVENTS
+						.toString())));
+			
+			if (fixed.containsKey(TraceField.NUMBER_OF_PRODUCERS.toString()))
+				trace.setNumberOfProducers(Integer.valueOf(fixed.get(TraceField.NUMBER_OF_PRODUCERS
 						.toString())));
 		} catch (NumberFormatException e) {
 			argError = true;

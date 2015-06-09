@@ -128,8 +128,8 @@ public class NoCpuEventDrawer implements IEventDrawer {
 		for (ReducedEvent ev : events) {
 			drawers.get(ev.category).draw(ev);
 			if (ev.timestamp < interval.startTimestamp)
-				interval.startTimestamp = ev.timestamp;		
-			if (ev.timestamp > interval.endTimestamp) 
+				interval.startTimestamp = ev.timestamp;
+			if (ev.timestamp > interval.endTimestamp)
 				interval.endTimestamp = ev.timestamp;
 		}
 		logger.debug(dm.endMessage("End preparing Gantt model"));

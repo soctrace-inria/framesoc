@@ -49,14 +49,9 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.InitializeSystem"
-            id="fr.inria.soctrace.framesoc.ui.commands.initSystem"
-            name="Initialize System">
-      </command>
-      <command
-            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ManageToolsHandler"
-            id="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
-            name="Manage Tools">
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ConfigurationHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.Configuration"
+            name="Configure Framesoc">
       </command>
       <command
             defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ImportTraceHandler"
@@ -104,11 +99,6 @@
          </commandParameter>
       </command>
       <command
-            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.ManageColorsHandler"
-            id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
-            name="Manage Colors">
-      </command>
-      <command
             defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.HighlightTraceHandler"
             id="fr.inria.soctrace.framesoc.ui.commands.switch_highlight"
             name="Switch highlight">
@@ -144,27 +134,12 @@
                      style="push">
                </command>
             </menu>
-            <menu
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.Configuration"
                   icon="icons/management.png"
-                  id="management"
-                  label="Management">
-               <command
-                     commandId="fr.inria.soctrace.framesoc.ui.commands.initSystem"
-                     icon="icons/init.png"
-                     style="push">
-               </command>
-               <command
-                     commandId="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
-                     icon="icons/manage_tools.png"
-                     style="push">
-               </command>
-               <command
-                     commandId="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
-                     icon="icons/colors.png"
-                     id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
-                     style="push">
-               </command>
-            </menu>
+                  label="Preferences"
+                  style="push">
+            </command>
             <visibleWhen
                   checkEnabled="false">
                <with
@@ -265,37 +240,8 @@
                </visibleWhen>
             </command>
             <command
-                  commandId="fr.inria.soctrace.framesoc.ui.commands.initSystem"
-                  icon="icons/init.png"
-                  style="push">
-               <visibleWhen
-                     checkEnabled="false">
-                  <with
-                        variable="activeWorkbenchWindow.activePerspective">
-                     <equals
-                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
-                     </equals>
-                  </with>
-               </visibleWhen>
-            </command>
-            <command
-                  commandId="fr.inria.soctrace.framesoc.ui.commands.ManageTools"
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.Configuration"
                   icon="icons/manage_tools.png"
-                  style="push">
-               <visibleWhen
-                     checkEnabled="false">
-                  <with
-                        variable="activeWorkbenchWindow.activePerspective">
-                     <equals
-                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
-                     </equals>
-                  </with>
-               </visibleWhen>
-            </command>
-            <command
-                  commandId="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
-                  icon="icons/colors.png"
-                  id="fr.inria.soctrace.framesoc.ui.commands.ManageColors"
                   style="push">
                <visibleWhen
                      checkEnabled="false">

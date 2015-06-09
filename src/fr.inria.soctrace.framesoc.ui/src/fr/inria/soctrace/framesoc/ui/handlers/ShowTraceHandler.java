@@ -52,19 +52,15 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(ShowTraceHandler.class);
 
-	private boolean allowViewReplication;
-
 	public ShowTraceHandler() {
 		super();
-		allowViewReplication = Configuration.getInstance()
-				.get(SoCTraceProperty.allow_view_replication).equals("true");
 	}
 
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
 		Trace t = (Trace) FramesocBus.getInstance().getVariable(
 				FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE);
-		if (!allowViewReplication) {
+		if (!getAllowViewReplication()) {
 			element.setText("Show " + getViewName());
 		} else {
 			if (!FramesocPartManager.getInstance().isAlreadyLoaded(getViewId(), t)) {
@@ -81,7 +77,7 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 		// get a view already showing this trace or an empty view
 		Trace trace = HandlerCommons.getSelectedTrace(event);
 		OpenFramesocPartStatus status = FramesocPartManager.getInstance().getPartInstance(
-				getViewId(), trace, allowViewReplication);
+				getViewId(), trace, getAllowViewReplication());
 		if (status.part == null) {
 			MessageDialog.openError(HandlerUtil.getActiveShell(event), "Error", status.message);
 			return null;
@@ -110,6 +106,11 @@ public abstract class ShowTraceHandler extends AbstractHandler implements IEleme
 	public abstract String getViewId();
 
 	public abstract String getViewName();
+	
+	public boolean getAllowViewReplication() {
+		return Configuration.getInstance()
+				.get(SoCTraceProperty.allow_view_replication).equals("true");
+	}
 
 	/**
 	 * Utility method to fix a focus issue.

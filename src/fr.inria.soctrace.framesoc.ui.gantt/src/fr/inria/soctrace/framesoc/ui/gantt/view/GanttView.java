@@ -28,6 +28,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.DialogSettings;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.ResourceManager;
@@ -58,6 +59,7 @@ import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
+import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
@@ -157,6 +159,19 @@ public class GanttView extends AbstractGanttView {
 	 * Number of event type nodes
 	 */
 	private int allTypeNodes;
+	
+	/**
+	 * Flag specifying if we use the CPU drawer? 
+	 */
+	private boolean forceCpuDrawer = false;
+	
+	public boolean isForceCpuDrawer() {
+		return forceCpuDrawer;
+	}
+
+	public void setForceCpuDrawer(boolean forceCpuDrawer) {
+		this.forceCpuDrawer = forceCpuDrawer;
+	}
 
 	/**
 	 * Constructor
@@ -260,7 +275,8 @@ public class GanttView extends AbstractGanttView {
 
 		// compute the actual time interval to load
 		TimeInterval interval = new TimeInterval(start, end);
-
+		
+		
 		// check for unchanged interval
 		if (checkReuse(trace, interval)) {
 			loader.release();
@@ -269,7 +285,13 @@ public class GanttView extends AbstractGanttView {
 		}
 
 		// create the event drawer
-		IEventDrawer drawer = GanttContributionManager.getEventDrawer(trace.getType().getId());
+		IEventDrawer drawer;
+		if (forceCpuDrawer) {
+			drawer = new CpuEventDrawer();
+		} else {
+			drawer = GanttContributionManager.getEventDrawer(trace.getType()
+					.getId());
+		}
 		drawer.setProducers(loader.getProducers());
 
 		// launch the job loading the queue
@@ -279,7 +301,7 @@ public class GanttView extends AbstractGanttView {
 		launchDrawerThread(drawer, interval, trace, queue);
 	}
 
-	private void reloadWindow(Trace trace, long start, long end, boolean forceCpuDrawer) {
+	private void reloadWindow(Trace trace, long start, long end) {
 
 		if (trace == null) {
 			return;
@@ -374,7 +396,7 @@ public class GanttView extends AbstractGanttView {
 				setMaxTime(max);
 				setStartTime(Long.MAX_VALUE);
 				setEndTime(Long.MIN_VALUE);
-
+				
 				long waited = 0;
 				TimeInterval partial = null;
 				while (!queue.done()) {
@@ -408,6 +430,8 @@ public class GanttView extends AbstractGanttView {
 
 						if (needRefresh) {
 							refresh();
+							// Do not resize the Gantt after the first display
+							setfUserChangedTimeRange(true);
 						} else {
 							redraw();
 						}
@@ -423,6 +447,10 @@ public class GanttView extends AbstractGanttView {
 					setStartTime(Math.max(requestedInterval.startTimestamp,
 							queueInterval.startTimestamp));
 					setEndTime(Math.min(requestedInterval.endTimestamp, queueInterval.endTimestamp));
+					
+					// Update loadedInterval values
+					loadedInterval.startTimestamp = getStartTime();
+					loadedInterval.endTimestamp = getEndTime();
 				} else {
 					// something has not been loaded
 					if (partial != null && queueInterval != null) {
@@ -524,6 +552,15 @@ public class GanttView extends AbstractGanttView {
 
 		// Filters
 		producerFilterAction = getTimeGraphCombo().getShowFilterAction();
+		getTimeGraphCombo().getFilterDialog().setLabelProvider(
+				new EventProducerTreeLabelProvider());
+		getTimeGraphCombo().getFilterDialog().setComparator(
+				new ViewerComparator(new Comparator<String>() {
+					@Override
+					public int compare(String o1, String o2) {
+						return AlphanumComparator.compare(o1, o2);
+					}
+				}));
 		manager.add(producerFilterAction);
 		typeFilterAction = createShowTypeFilterAction();
 		manager.add(typeFilterAction);
@@ -572,7 +609,7 @@ public class GanttView extends AbstractGanttView {
 		des.setEndTimestamp(getEndTime());
 		return des;
 	}
-
+	
 	private IAction createShowTypeFilterAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
@@ -612,9 +649,11 @@ public class GanttView extends AbstractGanttView {
 
 	private IAction createCpuDrawerAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
+			 
 			@Override
 			public void run() {
-				reloadWindow(currentShownTrace, getStartTime(), getEndTime(), isChecked());
+				setForceCpuDrawer(isChecked());
+				reloadWindow(currentShownTrace, getStartTime(), getEndTime());
 			}
 		};
 		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
@@ -685,7 +724,6 @@ public class GanttView extends AbstractGanttView {
 	 * Callback for the show type filter action
 	 */
 	private void showTypeFilterAction() {
-
 		TimeGraphFilterDialog typeFilterDialog = getTypeFilterDialog();
 
 		if (typeHierarchy.length > 0) {
@@ -696,6 +734,14 @@ public class GanttView extends AbstractGanttView {
 			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleTypeNodes);
+			// Sort in alphabetical order
+			typeFilterDialog.setComparator(new ViewerComparator(
+					new Comparator<String>() {
+						@Override
+						public int compare(String o1, String o2) {
+							return AlphanumComparator.compare(o1, o2);
+						}
+					}));
 			typeFilterDialog.create();
 
 			// reset checked status, managed manually
@@ -724,7 +770,6 @@ public class GanttView extends AbstractGanttView {
 			}
 			refresh();
 		}
-
 	}
 
 	private void checkTypeFilter(boolean check) {

@@ -13,7 +13,9 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -157,6 +159,12 @@ public final class EventTableView extends FramesocPart {
 	// Loading
 	private Job loaderJob;
 	private DrawerThread drawerThread;
+	
+	// Export
+	private CSVExport csvExport;
+	private final Object exportSyncObj = new Object();
+	private Map<EventTableColumn, Boolean> columnSelection;
+	private String exportFileName;
 
 	/**
 	 * Keys for table data
@@ -258,6 +266,7 @@ public final class EventTableView extends FramesocPart {
 
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		manager.add(createColumnAction());
+		manager.add(createCSVExportAction());
 		manager.add(new Separator());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
@@ -552,6 +561,54 @@ public final class EventTableView extends FramesocPart {
 		colAction.setToolTipText("Adjust column size to content");
 		return colAction;
 	}
+	
+	private IAction createCSVExportAction() {
+		CSVExportAction csvAction = new CSVExportAction("Export to CSV", Action.AS_PUSH_BUTTON);/* {
+			@Override
+			public void run() {
+				columnSelection = new HashMap<EventTableColumn, Boolean>();
+				
+				// Set a default file name
+				exportFileName = currentShownTrace.getAlias() + "_"
+						+ currentShownTrace.getId() + ".csv";
+
+				CSVExportDialog csvExportDialog = new CSVExportDialog(getSite()
+						.getShell(), exportFileName, columnSelection);
+
+				if (csvExportDialog.open() == Status.OK) {
+					startExport(exportFileName, columnSelection);
+				}
+			}
+		};*/
+		csvAction.tableView = this;
+		csvAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/export.png"));
+		csvAction.setToolTipText("Export currerntly display events to CSV");
+		return csvAction;
+	}
+	
+	private class CSVExportAction extends Action {
+		public EventTableView tableView;
+
+		public CSVExportAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			columnSelection = new HashMap<EventTableColumn, Boolean>();
+			
+			// Set a default file name
+			exportFileName = currentShownTrace.getAlias() + "_"
+					+ currentShownTrace.getId() + ".csv";
+			
+			CSVExportDialog csvExportDialog = new CSVExportDialog(getSite().getShell(), tableView);
+			
+			if (csvExportDialog.open() == Status.OK) {
+				startExport(exportFileName, columnSelection);
+			}
+		}
+	}
 
 	@Override
 	public void setFocus() {
@@ -564,6 +621,7 @@ public final class EventTableView extends FramesocPart {
 	public void dispose() {
 		stopFilterThread();
 		stopDrawerThread();
+		stopExport();
 		if (loaderJob != null)
 			loaderJob.cancel();
 		if (table != null)
@@ -581,6 +639,23 @@ public final class EventTableView extends FramesocPart {
 		return ID;
 	}
 
+	public Map<EventTableColumn, Boolean> getColumnSelection() {
+		return columnSelection;
+	}
+
+	public void setColumnSelection(Map<EventTableColumn, Boolean> columnSelection) {
+		this.columnSelection = columnSelection;
+	}
+
+	public String getExportFileName() {
+		return exportFileName;
+	}
+
+	public void setExportFileName(String exportFileName) {
+		this.exportFileName = exportFileName;
+	}
+
+	
 	/**
 	 * Show the trace.
 	 * 
@@ -606,7 +681,6 @@ public final class EventTableView extends FramesocPart {
 	/*
 	 * Loading
 	 */
-
 	private void showWindow(Trace trace, long start, long end) {
 
 		if (trace == null) {
@@ -626,7 +700,8 @@ public final class EventTableView extends FramesocPart {
 		interval.startTimestamp = Math.max(trace.getMinTimestamp(), interval.startTimestamp);
 		interval.endTimestamp = Math.min(trace.getMaxTimestamp(), interval.endTimestamp);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-
+		timeBar.setDisplayInterval(interval);
+		
 		// clear the filters
 		clearFilters();
 
@@ -798,6 +873,7 @@ public final class EventTableView extends FramesocPart {
 					table.refresh();
 					timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 					timeBar.setSelection(startTimestamp, endTimestamp);
+					timeBar.setDisplayInterval(startTimestamp, endTimestamp);
 					statusText.setText(getStatus(events, events));
 					synchronized (syncObj) {
 						refreshBusy = false;
@@ -971,6 +1047,34 @@ public final class EventTableView extends FramesocPart {
 		filterCheckCount = 0;
 		table.setSelection(0);
 		statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
+	}
+	
+	/**
+	 * Start the export
+	 */
+	private void startExport(String fileName,
+			Map<EventTableColumn, Boolean> exportColumn) {
+		synchronized (exportSyncObj) {
+			if (csvExport != null) {
+				csvExport.cancel();
+				csvExport = null;
+			}
+
+			csvExport = new CSVExport(fileName, exportColumn, this.cache);
+			csvExport.exportToCSV();
+		}
+	}
+
+	/**
+	 * Stop the export
+	 */
+	private void stopExport() {
+		synchronized (exportSyncObj) {
+			if (csvExport != null) {
+				csvExport.cancel();
+				csvExport = null;
+			}
+		}
 	}
 
 }

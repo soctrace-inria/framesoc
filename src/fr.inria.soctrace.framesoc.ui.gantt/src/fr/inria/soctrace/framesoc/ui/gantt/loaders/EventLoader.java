@@ -301,7 +301,7 @@ public class EventLoader implements IEventLoader {
 	private TraceDBObject getTraceDB() throws SoCTraceException {
 		if (fTraceDB == null) {
 			Assert.isNotNull(fTrace, "Null trace in event loader");
-			fTraceDB = TraceDBObject.openNewIstance(fTrace.getDbName());
+			fTraceDB = TraceDBObject.openNewInstance(fTrace.getDbName());
 		}
 		return fTraceDB;
 	}

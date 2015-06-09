@@ -27,14 +27,13 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
 
 /**
- * Abstract class providing the API for all the DBMS dependent functionalities
- * needed by the infrastructure.
+ * Abstract class providing the API for all the DBMS dependent functionalities needed by the
+ * infrastructure.
  * 
  * <p>
- * Furthermore, it provides the basic implementation for all the methods used to
- * define the different DB table schema. Concrete implementation of this class
- * can override the default implementation if needed (e.g., for different SQL
- * dialect issues).
+ * Furthermore, it provides the basic implementation for all the methods used to define the
+ * different DB table schema. Concrete implementation of this class can override the default
+ * implementation if needed (e.g., for different SQL dialect issues).
  * 
  * <p>
  * Each table creator method assume that the statement has been created.
@@ -143,6 +142,14 @@ public abstract class DBManager {
 	public abstract boolean isDBExisting() throws SoCTraceException;
 
 	/**
+	 * Check if the DB settings are correct
+	 * 
+	 * @return true if they are correct
+	 * @throws SoCTraceException
+	 */
+	public abstract boolean checkSettings() throws SoCTraceException;
+
+	/**
 	 * Create the DB.
 	 * 
 	 * @return the connection
@@ -174,9 +181,9 @@ public abstract class DBManager {
 	public abstract void exportDB(String path) throws SoCTraceException;
 
 	/**
-	 * Import the DB from the given file. The assumption is that the DB name is
-	 * not already present among SoC-Trace DBs. The database is correctly added
-	 * to SoC-Trace databases, but the SystemDB is not modified.
+	 * Import the DB from the given file. The assumption is that the DB name is not already present
+	 * among SoC-Trace DBs. The database is correctly added to SoC-Trace databases, but the SystemDB
+	 * is not modified.
 	 * 
 	 * @param path
 	 * @throws SoCTraceException
@@ -194,7 +201,8 @@ public abstract class DBManager {
 	 *            index name
 	 * @throws SoCTraceException
 	 */
-	public abstract void createIndex(String table, String column, String name) throws SoCTraceException;
+	public abstract void createIndex(String table, String column, String name)
+			throws SoCTraceException;
 
 	/**
 	 * Drop the given index.
@@ -212,8 +220,8 @@ public abstract class DBManager {
 	 */
 
 	/**
-	 * Static factory for the concrete DB manager. The DBMS used is read from
-	 * the configuration file.
+	 * Static factory for the concrete DB manager. The DBMS used is read from the configuration
+	 * file.
 	 * 
 	 * @param name
 	 *            db name
@@ -277,8 +285,8 @@ public abstract class DBManager {
 	}
 
 	/**
-	 * Create the statement used to initialize tables. This method must be
-	 * called before any of the table creator method.
+	 * Create the statement used to initialize tables. This method must be called before any of the
+	 * table creator method.
 	 * 
 	 * @throws SoCTraceException
 	 */
@@ -291,8 +299,8 @@ public abstract class DBManager {
 	}
 
 	/**
-	 * Close the table creation statement. This method should be called at the
-	 * end of tables creation.
+	 * Close the table creation statement. This method should be called at the end of tables
+	 * creation.
 	 * 
 	 * @throws SQLException
 	 */
@@ -309,8 +317,8 @@ public abstract class DBManager {
 	}
 
 	/*
-	 * Default table creators: override them if necessary, following the rules
-	 * explained in the documentation of this class.
+	 * Default table creators: override them if necessary, following the rules explained in the
+	 * documentation of this class.
 	 */
 
 	public void initTrace() throws SoCTraceException {
@@ -321,7 +329,8 @@ public abstract class DBManager {
 					+ "OPERATING_SYSTEM TEXT, " + "NUMBER_OF_CPUS INTEGER, "
 					+ "NUMBER_OF_EVENTS INTEGER, " + "OUTPUT_DEVICE TEXT," + "DESCRIPTION TEXT, "
 					+ "PROCESSED BOOLEAN, " + "TRACE_DB_NAME TEXT, " + "ALIAS TEXT, "
-					+ "MIN_TIMESTAMP BIGINT, " + "MAX_TIMESTAMP BIGINT, " + "TIMEUNIT INTEGER) ");
+					+ "MIN_TIMESTAMP BIGINT, " + "MAX_TIMESTAMP BIGINT, " + "TIMEUNIT INTEGER, "
+					+ "NUMBER_OF_PRODUCERS INTEGER) ");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -362,7 +371,8 @@ public abstract class DBManager {
 		try {
 			tableStatement.execute(SQLConstants.CREATE_TABLE_IF_NOT_EXISTS + FramesocTable.TOOL
 					+ "(ID INTEGER PRIMARY KEY, " + "NAME VARCHAR(128) UNIQUE, " + "TYPE TEXT, "
-					+ "COMMAND TEXT, " + "IS_PLUGIN BOOLEAN, " + "DOC TEXT, " + "EXTENSION_ID TEXT)");
+					+ "COMMAND TEXT, " + "IS_PLUGIN BOOLEAN, " + "DOC TEXT, "
+					+ "EXTENSION_ID TEXT)");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}

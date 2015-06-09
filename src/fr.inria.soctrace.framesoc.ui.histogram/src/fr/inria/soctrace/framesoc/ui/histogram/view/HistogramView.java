@@ -27,6 +27,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -44,6 +46,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.wb.swt.ResourceManager;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -67,8 +70,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
+import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
+import fr.inria.soctrace.framesoc.ui.histogram.snapshot.HistogramSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
@@ -278,7 +283,6 @@ public class HistogramView extends FramesocPart {
 		// filters and actions
 		initFilterDialogs();
 		createActions();
-
 	}
 
 	private void initFilterData(Trace t) {
@@ -303,7 +307,8 @@ public class HistogramView extends FramesocPart {
 		// Filters actions
 		manager.add(filterMap.get(FilterDimension.PRODUCERS).initFilterAction());
 		manager.add(filterMap.get(FilterDimension.TYPE).initFilterAction());
-
+		manager.add(createSnapshotAction());
+		
 		// Separator
 		manager.add(new Separator());
 
@@ -389,9 +394,11 @@ public class HistogramView extends FramesocPart {
 	public void loadHistogram(final Trace trace, final TimeInterval interval) {
 
 		currentShownTrace = trace;
-		// set time unit and extrema
+		// set time unit, extrema and displayed range
 		timeBar.setTimeUnit(TimeUnit.getTimeUnit(trace.getTimeUnit()));
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
+		timeBar.setDisplayInterval(interval);
+		
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
@@ -619,8 +626,10 @@ public class HistogramView extends FramesocPart {
 							selectedTs1 = v;
 							long min = Math.min(selectedTs0, selectedTs1);
 							long max = Math.max(selectedTs0, selectedTs1);
-							marker.setStartValue(min);
-							marker.setEndValue(max);
+							if (marker != null) {
+								marker.setStartValue(min);
+								marker.setEndValue(max);
+							}
 							timeBar.setSelection(min, max);
 						}
 
@@ -763,6 +772,7 @@ public class HistogramView extends FramesocPart {
 				plot.getDomainAxis().setUpperBound(displayed.endTimestamp);
 				// timebar
 				timeBar.setSelection(loadedInterval);
+				timeBar.setDisplayInterval(loadedInterval);
 			}
 		});
 
@@ -785,7 +795,11 @@ public class HistogramView extends FramesocPart {
 		plot.addDomainMarker(marker);
 		activeSelection = true;
 	}
-
+	
+	public ChartComposite getChartFrame() {
+		return chartFrame;
+	}
+	
 	/**
 	 * Prepare the plot
 	 * 
@@ -923,4 +937,34 @@ public class HistogramView extends FramesocPart {
 		statusLineManager.setMessage(message.toString());
 	}
 
+	/**
+	 * Initialize the snapshot action
+	 * 
+	 * @return the action
+	 */
+	public IAction createSnapshotAction() {
+		SnapshotAction snapshotAction = new SnapshotAction("",
+				IAction.AS_PUSH_BUTTON);
+		snapshotAction.histoView = this;
+		snapshotAction.setImageDescriptor(ResourceManager
+				.getPluginImageDescriptor(Activator.PLUGIN_ID,
+						"icons/snapshot.png"));
+		snapshotAction.setToolTipText("Take a snapshot");
+
+		return snapshotAction;
+	}
+	
+	private class SnapshotAction extends Action {
+		public HistogramView histoView;
+
+		public SnapshotAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			new HistogramSnapshotDialog(getSite().getShell(), histoView).open();
+		}
+	}
+	
 }

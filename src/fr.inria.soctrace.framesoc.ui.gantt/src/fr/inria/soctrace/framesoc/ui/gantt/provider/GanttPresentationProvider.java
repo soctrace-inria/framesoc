@@ -103,14 +103,14 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
         return TRANSPARENT;
     }
 
-    @Override
-    public String getEventName(ITimeEvent event) {
+	@Override
+	public String getEventName(ITimeEvent event) {
 
-    	int index = getStateTableIndex(event);
-    	if (index >=0 && index < stateTable.length) {
-    		return stateTable[index].getStateString();
-    	}
-        return "unknown";
-    }	
+		int index = getStateTableIndex(event);
+		if (index >= 0 && index < stateTable.length) {
+			return stateTable[index].getStateString();
+		}
+		return "unknown";
+	}
     
 }

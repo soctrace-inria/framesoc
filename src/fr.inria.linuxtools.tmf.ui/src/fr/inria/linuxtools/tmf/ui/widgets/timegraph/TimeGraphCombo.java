@@ -689,6 +689,14 @@ public class TimeGraphCombo extends Composite {
     }
 
     /**
+     * @Framesoc Returns this time graph producer filter dialog
+     * @return the time graph producer filter dialog
+     */
+    public TimeGraphFilterDialog getFilterDialog() {
+        return fFilterDialog;
+    }
+
+    /**
      * Callback for the show filter action
      *
      * @since 2.0

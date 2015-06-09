@@ -98,7 +98,8 @@ public class SystemDBUpdateVisitor extends ModelVisitor {
 			psd.statement.setLong(13, trace.getMinTimestamp());
 			psd.statement.setLong(14, trace.getMaxTimestamp());
 			psd.statement.setInt(15, trace.getTimeUnit());
-			psd.statement.setInt(16, trace.getId());
+			psd.statement.setInt(16, trace.getNumberOfProducers());
+			psd.statement.setInt(17, trace.getId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

@@ -4,14 +4,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.inria.soctrace.maven</groupId>
 	<artifactId>fr.inria.soctrace.maven.master</artifactId>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.0.7-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Framesoc Maven Master</name>
 	<description>Maven master project for Framesoc. It contains the parent pom.xml.	</description>
 
 	<properties>
-		<tycho-version>0.18.1</tycho-version>
-		<tycho-extras-version>0.18.0</tycho-extras-version>
+		<tycho-version>0.21.0</tycho-version>
+		<tycho-extras-version>0.21.0</tycho-extras-version>
 	</properties>
 
 	<build>
@@ -109,9 +109,9 @@
 
 	<repositories>
 		<repository>
-			<id>eclipse-kepler</id>
+			<id>eclipse-luna</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/kepler</url>
+			<url>http://download.eclipse.org/releases/luna</url>
 		</repository>
 	</repositories>
 

@@ -39,7 +39,8 @@ import fr.inria.soctrace.lib.model.utils.TimestampFormat.TickDescriptor;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
- * Instances of this class provide a slider with 2 buttons (min value, max value).
+ * Instances of this class provide a slider with 2 buttons (min value, max
+ * value).
  * <p>
  * <dl>
  * <dt><b>Styles:</b></dt>
@@ -53,7 +54,8 @@ import fr.inria.soctrace.lib.model.utils.TimestampFormat;
  */
 public class RangeSlider extends Canvas {
 
-	private final static Logger logger = LoggerFactory.getLogger(RangeSlider.class);
+	private final static Logger logger = LoggerFactory
+			.getLogger(RangeSlider.class);
 
 	private static final int MIN_WIDTH = 100;
 	private static final int MIN_HEIGHT = 32;
@@ -75,8 +77,8 @@ public class RangeSlider extends Canvas {
 
 	private long minimum;
 	private long maximum;
-	private long lowerValue;
-	private long upperValue;
+	private long selectionLowerValue;
+	private long selectionUpperValue;
 	private final List<SelectionListener> listeners;
 	private final Image slider, sliderHover, sliderDrag, sliderSelected;
 	private final Image vSlider, vSliderHover, vSliderDrag, vSliderSelected;
@@ -97,20 +99,24 @@ public class RangeSlider extends Canvas {
 	private IStatusLineManager statusLineManager;
 	private TimeUnit unit;
 	private TimestampFormat formatter = new TimestampFormat();
+	private long displayLowerValue;
+	private long displayUpperValue;
 
 	/**
-	 * Constructs a new instance of this class given its parent and a style value describing its
-	 * behavior and appearance.
+	 * Constructs a new instance of this class given its parent and a style
+	 * value describing its behavior and appearance.
 	 * <p>
-	 * The style value is either one of the style constants defined in class <code>SWT</code> which
-	 * is applicable to instances of this class, or must be built by <em>bitwise OR</em>'ing
-	 * together (that is, using the <code>int</code> "|" operator) two or more of those
-	 * <code>SWT</code> style constants. The class description lists the style constants that are
+	 * The style value is either one of the style constants defined in class
+	 * <code>SWT</code> which is applicable to instances of this class, or must
+	 * be built by <em>bitwise OR</em>'ing together (that is, using the
+	 * <code>int</code> "|" operator) two or more of those <code>SWT</code>
+	 * style constants. The class description lists the style constants that are
 	 * applicable to the class. Style bits are also inherited from superclasses.
 	 * </p>
 	 * 
 	 * @param parent
-	 *            a composite control which will be the parent of the new instance (cannot be null)
+	 *            a composite control which will be the parent of the new
+	 *            instance (cannot be null)
 	 * @param style
 	 *            the style of control to construct
 	 * 
@@ -120,8 +126,8 @@ public class RangeSlider extends Canvas {
 	 *                </ul>
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the parent</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the parent</li>
 	 *                </ul>
 	 * 
 	 */
@@ -131,28 +137,33 @@ public class RangeSlider extends Canvas {
 		this.unit = TimeUnit.UNKNOWN;
 		this.cursorValue = 0;
 		this.mayShowTooltip = false;
-		this.minimum = this.lowerValue = 0;
-		this.maximum = this.upperValue = 100;
+		this.minimum = this.selectionLowerValue = this.displayLowerValue = 0;
+		this.maximum = this.selectionUpperValue = this.displayUpperValue = 100;
 		this.listeners = new ArrayList<>();
 		this.increment = 1;
 		this.pageIncrement = 10;
 		this.lastSelected = SELECTED_KNOB.NONE;
 		this.slider = new Image(getDisplay(), this.getClass().getClassLoader()
 				.getResourceAsStream("images/slider-normal.png"));
-		this.sliderHover = new Image(getDisplay(), this.getClass().getClassLoader()
+		this.sliderHover = new Image(getDisplay(), this.getClass()
+				.getClassLoader()
 				.getResourceAsStream("images/slider-hover.png"));
-		this.sliderDrag = new Image(getDisplay(), this.getClass().getClassLoader()
-				.getResourceAsStream("images/slider-drag.png"));
-		this.sliderSelected = new Image(getDisplay(), this.getClass().getClassLoader()
+		this.sliderDrag = new Image(getDisplay(), this.getClass()
+				.getClassLoader().getResourceAsStream("images/slider-drag.png"));
+		this.sliderSelected = new Image(getDisplay(), this.getClass()
+				.getClassLoader()
 				.getResourceAsStream("images/slider-selected.png"));
 
 		this.vSlider = new Image(getDisplay(), this.getClass().getClassLoader()
 				.getResourceAsStream("images/h-slider-normal.png"));
-		this.vSliderHover = new Image(getDisplay(), this.getClass().getClassLoader()
+		this.vSliderHover = new Image(getDisplay(), this.getClass()
+				.getClassLoader()
 				.getResourceAsStream("images/h-slider-hover.png"));
-		this.vSliderDrag = new Image(getDisplay(), this.getClass().getClassLoader()
+		this.vSliderDrag = new Image(getDisplay(), this.getClass()
+				.getClassLoader()
 				.getResourceAsStream("images/h-slider-drag.png"));
-		this.vSliderSelected = new Image(getDisplay(), this.getClass().getClassLoader()
+		this.vSliderSelected = new Image(getDisplay(), this.getClass()
+				.getClassLoader()
 				.getResourceAsStream("images/h-slider-selected.png"));
 
 		if ((style & SWT.VERTICAL) == SWT.VERTICAL) {
@@ -253,20 +264,43 @@ public class RangeSlider extends Canvas {
 		logger.debug("mouse down {}", this);
 
 		if (this.upperHover) {
-			logger.debug("mouse down upper value {}", this.upperValue);
+			logger.debug("mouse down upper value {}", this.selectionUpperValue);
 			this.dragInProgress = true;
 			this.lastSelected = SELECTED_KNOB.UPPER;
-			this.previousUpperValue = this.upperValue;
+			this.previousUpperValue = this.selectionUpperValue;
 			return;
 		}
 
 		if (this.lowerHover) {
-			logger.debug("mouse down lower value {}", this.lowerValue);
+			logger.debug("mouse down lower value {}", this.selectionLowerValue);
 			this.dragInProgress = true;
 			this.lastSelected = SELECTED_KNOB.LOWER;
-			this.previousLowerValue = this.lowerValue;
+			this.previousLowerValue = this.selectionLowerValue;
 			return;
 		}
+
+		int x = e.x;
+		// compute distances to both knobs
+		int lowerDist = Math.abs(x - coordLower.x);
+		int upperDist = Math.abs(x - coordUpper.x);
+
+		// compute new value
+		long newValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
+				+ this.minimum;
+
+		// select minimal distance and update position of the corresponding
+		// value
+		if (lowerDist < upperDist) {
+			selectionLowerValue = newValue;
+			checkLowerValue();
+		} else {
+			selectionUpperValue = newValue;
+			checkUpperValue();
+		}
+
+		redraw();
+		// Notify views
+		fireSelectionListeners(e);
 
 		this.dragInProgress = false;
 		this.lastSelected = SELECTED_KNOB.NONE;
@@ -285,13 +319,17 @@ public class RangeSlider extends Canvas {
 		this.dragInProgress = false;
 		if (!fireSelectionListeners(e)) {
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				logger.debug("mouse up upper value before {}", this.upperValue);
-				this.upperValue = this.previousUpperValue;
-				logger.debug("mouse up upper value after {}", this.upperValue);
+				logger.debug("mouse up upper value before {}",
+						this.selectionUpperValue);
+				this.selectionUpperValue = this.previousUpperValue;
+				logger.debug("mouse up upper value after {}",
+						this.selectionUpperValue);
 			} else {
-				logger.debug("mouse up lower value before {}", this.lowerValue);
-				this.lowerValue = this.previousLowerValue;
-				logger.debug("mouse up lower value after {}", this.lowerValue);
+				logger.debug("mouse up lower value before {}",
+						this.selectionLowerValue);
+				this.selectionLowerValue = this.previousLowerValue;
+				logger.debug("mouse up lower value after {}",
+						this.selectionLowerValue);
 			}
 			redraw();
 		}
@@ -302,7 +340,8 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @param event
 	 *            selection event
-	 * @return <code>true</code> if no listener cancels the selection, <code>false</code> otherwise
+	 * @return <code>true</code> if no listener cancels the selection,
+	 *         <code>false</code> otherwise
 	 */
 	private boolean fireSelectionListeners(final Event event) {
 		for (final SelectionListener selectionListener : this.listeners) {
@@ -323,11 +362,16 @@ public class RangeSlider extends Canvas {
 	 */
 	private void handleMouseMove(final Event e) {
 		final int x = e.x, y = e.y;
-		final Image img = this.orientation == SWT.HORIZONTAL ? this.slider : this.vSlider;
-		this.upperHover = x >= this.coordUpper.x && x <= this.coordUpper.x + img.getBounds().width
-				&& y >= this.coordUpper.y && y <= this.coordUpper.y + img.getBounds().height;
-		this.lowerHover = x >= this.coordLower.x && x <= this.coordLower.x + img.getBounds().width
-				&& y >= this.coordLower.y && y <= this.coordLower.y + img.getBounds().height;
+		final Image img = this.orientation == SWT.HORIZONTAL ? this.slider
+				: this.vSlider;
+		this.upperHover = x >= this.coordUpper.x
+				&& x <= this.coordUpper.x + img.getBounds().width
+				&& y >= this.coordUpper.y
+				&& y <= this.coordUpper.y + img.getBounds().height;
+		this.lowerHover = x >= this.coordLower.x
+				&& x <= this.coordLower.x + img.getBounds().width
+				&& y >= this.coordLower.y
+				&& y <= this.coordLower.y + img.getBounds().height;
 
 		if (this.orientation == SWT.HORIZONTAL) {
 			this.cursorValue = (long) ((x - 9f) / computePixelSizeForHorizonalSlider())
@@ -346,14 +390,20 @@ public class RangeSlider extends Canvas {
 						+ this.minimum;
 				logger.debug("mouse value {}", mouseValue);
 				if (this.lastSelected == SELECTED_KNOB.UPPER) {
-					logger.debug("upper value before {}", this.upperValue);
-					this.upperValue = (long) (Math.ceil(mouseValue / this.increment) * this.increment);
-					logger.debug("upper value after {}", this.upperValue);
+					logger.debug("upper value before {}",
+							this.selectionUpperValue);
+					this.selectionUpperValue = (long) (Math.ceil(mouseValue
+							/ this.increment) * this.increment);
+					logger.debug("upper value after {}",
+							this.selectionUpperValue);
 					checkUpperValue();
 				} else {
-					logger.debug("lower value before {}", this.lowerValue);
-					this.lowerValue = (long) (Math.ceil(mouseValue / this.increment) * this.increment);
-					logger.debug("lower value after {}", this.lowerValue);
+					logger.debug("lower value before {}",
+							this.selectionLowerValue);
+					this.selectionLowerValue = (long) (Math.ceil(mouseValue
+							/ this.increment) * this.increment);
+					logger.debug("lower value after {}",
+							this.selectionLowerValue);
 					checkLowerValue();
 				}
 
@@ -361,14 +411,20 @@ public class RangeSlider extends Canvas {
 				final long mouseValue = (long) ((y - 9f) / computePixelSizeForVerticalSlider())
 						+ this.minimum;
 				if (this.lastSelected == SELECTED_KNOB.UPPER) {
-					logger.debug("upper value before {}", this.upperValue);
-					this.upperValue = (long) (Math.ceil(mouseValue / this.increment) * this.increment);
-					logger.debug("upper value after {}", this.upperValue);
+					logger.debug("upper value before {}",
+							this.selectionUpperValue);
+					this.selectionUpperValue = (long) (Math.ceil(mouseValue
+							/ this.increment) * this.increment);
+					logger.debug("upper value after {}",
+							this.selectionUpperValue);
 					checkUpperValue();
 				} else {
-					logger.debug("lower value before {}", this.lowerValue);
-					this.lowerValue = (long) (Math.ceil(mouseValue / this.increment) * this.increment);
-					logger.debug("lower value after {}", this.lowerValue);
+					logger.debug("lower value before {}",
+							this.selectionLowerValue);
+					this.selectionLowerValue = (long) (Math.ceil(mouseValue
+							/ this.increment) * this.increment);
+					logger.debug("lower value after {}",
+							this.selectionLowerValue);
 					checkLowerValue();
 				}
 
@@ -391,11 +447,11 @@ public class RangeSlider extends Canvas {
 			return;
 		}
 		if (this.lastSelected == SELECTED_KNOB.LOWER) {
-			this.lowerValue += e.count * this.increment;
+			this.selectionLowerValue += e.count * this.increment;
 			checkLowerValue();
 			redraw();
 		} else {
-			this.upperValue += e.count * this.increment;
+			this.selectionUpperValue += e.count * this.increment;
 			checkUpperValue();
 			redraw();
 		}
@@ -405,34 +461,34 @@ public class RangeSlider extends Canvas {
 	 * Check if the lower value is in ranges
 	 */
 	private void checkLowerValue() {
-		logger.debug("to check: " + this.lowerValue);
-		if (this.lowerValue < this.minimum) {
-			this.lowerValue = this.minimum;
+		logger.debug("to check: " + this.selectionLowerValue);
+		if (this.selectionLowerValue < this.minimum) {
+			this.selectionLowerValue = this.minimum;
 		}
-		if (this.lowerValue > this.maximum) {
-			this.lowerValue = this.maximum;
+		if (this.selectionLowerValue > this.maximum) {
+			this.selectionLowerValue = this.maximum;
 		}
-		if (this.lowerValue > this.upperValue) {
-			this.lowerValue = this.upperValue;
+		if (this.selectionLowerValue > this.selectionUpperValue) {
+			this.selectionLowerValue = this.selectionUpperValue;
 		}
-		logger.debug("checked: " + this.lowerValue);
+		logger.debug("checked: " + this.selectionLowerValue);
 	}
 
 	/**
 	 * Check if the upper value is in ranges
 	 */
 	private void checkUpperValue() {
-		logger.debug("to check: " + this.upperValue);
-		if (this.upperValue < this.minimum) {
-			this.upperValue = this.minimum;
+		logger.debug("to check: " + this.selectionUpperValue);
+		if (this.selectionUpperValue < this.minimum) {
+			this.selectionUpperValue = this.minimum;
 		}
-		if (this.upperValue > this.maximum) {
-			this.upperValue = this.maximum;
+		if (this.selectionUpperValue > this.maximum) {
+			this.selectionUpperValue = this.maximum;
 		}
-		if (this.upperValue < this.lowerValue) {
-			this.upperValue = this.lowerValue;
+		if (this.selectionUpperValue < this.selectionLowerValue) {
+			this.selectionUpperValue = this.selectionLowerValue;
 		}
-		logger.debug("checked: " + this.upperValue);
+		logger.debug("checked: " + this.selectionUpperValue);
 	}
 
 	/**
@@ -469,8 +525,10 @@ public class RangeSlider extends Canvas {
 	private void drawHorizontalRangeSlider(final GC gc) {
 		drawBackgroundHorizontal(gc);
 		drawBarsHorizontal(gc);
-		this.coordUpper = drawHorizontalKnob(gc, this.upperValue - this.minimum, true);
-		this.coordLower = drawHorizontalKnob(gc, this.lowerValue - this.minimum, false);
+		this.coordUpper = drawHorizontalKnob(gc, this.selectionUpperValue
+				- this.minimum, true);
+		this.coordLower = drawHorizontalKnob(gc, this.selectionLowerValue
+				- this.minimum, false);
 	}
 
 	/**
@@ -494,15 +552,35 @@ public class RangeSlider extends Canvas {
 		}
 		gc.drawRoundRectangle(9, ybar, clientArea.width - 20, BARHEIGHT, 3, 3);
 
+		// Draw selection rectangle
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		final int startX = (int) (pixelSize * (this.lowerValue - this.minimum));
-		final int endX = (int) (pixelSize * (this.upperValue - this.minimum));
+		final int startX = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
+		final int endX = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
 		if (isEnabled()) {
 			gc.setBackground(getForeground());
 		} else {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
 		gc.fillRectangle(12 + startX, ybar, endX - startX - 6, BARHEIGHT);
+
+		// Display only if different from actual selection
+		if (selectionLowerValue != displayLowerValue
+				|| selectionUpperValue != displayUpperValue) {
+			final int startDisplayX = (int) (pixelSize * (this.displayLowerValue - this.minimum));
+			final int endDisplayX = (int) (pixelSize * (this.displayUpperValue - this.minimum));
+			if (isEnabled()) {
+				gc.setBackground(getDisplay().getSystemColor(
+						SWT.COLOR_DARK_GRAY));
+			} else {
+				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
+			}
+			gc.setAlpha(255);
+
+			gc.fillRectangle(12 + startDisplayX, ybar + 4, endDisplayX
+					- startDisplayX - 6, BARHEIGHT - 6);
+
+			gc.setAlpha(255);
+		}
 	}
 
 	/**
@@ -533,21 +611,23 @@ public class RangeSlider extends Canvas {
 
 		// to have the same time unit
 		formatter.setContext(this.minimum, this.maximum);
-		final int numberOfTicksHint = Math.max(getSize().x / TIMESTAMP_MAX_SIZE, 1);
+		final int numberOfTicksHint = Math.max(
+				getSize().x / TIMESTAMP_MAX_SIZE, 1);
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		TickDescriptor des = formatter.getTickDescriptor(this.minimum, this.maximum, numberOfTicksHint);
+		TickDescriptor des = formatter.getTickDescriptor(this.minimum,
+				this.maximum, numberOfTicksHint);
 		long v = des.first;
 		while (v < this.maximum) {
 			final int x = (int) (9 + pixelSize * (v - this.minimum));
 			if (showGrads) {
 				String value = formatter.format(v);
-				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0].getName(), 8,
-						SWT.NONE));
+				gc.setFont(new Font(getDisplay(), gc.getFont().getFontData()[0]
+						.getName(), 8, SWT.NONE));
 				Point textSize = gc.textExtent(value);
 				gc.drawText(value, x - textSize.x / 2, -2);
 			}
-			gc.drawLine(x, getClientArea().height - BARHEIGHT - BARSIZE - BOTTOM, x,
-					getClientArea().height - BARHEIGHT - BOTTOM);
+			gc.drawLine(x, getClientArea().height - BARHEIGHT - BARSIZE
+					- BOTTOM, x, getClientArea().height - BARHEIGHT - BOTTOM);
 			v += des.delta;
 		}
 	}
@@ -560,17 +640,19 @@ public class RangeSlider extends Canvas {
 	 * @param value
 	 *            corresponding value
 	 * @param upper
-	 *            if <code>true</code>, draws the upper knob. If <code>false</code>, draws the lower
-	 *            knob
+	 *            if <code>true</code>, draws the upper knob. If
+	 *            <code>false</code>, draws the lower knob
 	 * @return the coordinate of the upper left corner of the knob
 	 */
-	private Point drawHorizontalKnob(final GC gc, final long value, final boolean upper) {
+	private Point drawHorizontalKnob(final GC gc, final long value,
+			final boolean upper) {
 		final double pixelSize = computePixelSizeForHorizonalSlider();
 		final int x = (int) (pixelSize * value);
 		Image image;
 		if (upper) {
 			if (this.upperHover) {
-				image = this.dragInProgress ? this.sliderDrag : this.sliderHover;
+				image = this.dragInProgress ? this.sliderDrag
+						: this.sliderHover;
 			} else if (this.lastSelected == SELECTED_KNOB.UPPER) {
 				image = this.sliderSelected;
 			} else {
@@ -578,7 +660,8 @@ public class RangeSlider extends Canvas {
 			}
 		} else {
 			if (this.lowerHover) {
-				image = this.dragInProgress ? this.sliderDrag : this.sliderHover;
+				image = this.dragInProgress ? this.sliderDrag
+						: this.sliderHover;
 			} else if (this.lastSelected == SELECTED_KNOB.LOWER) {
 				image = this.sliderSelected;
 			} else {
@@ -606,8 +689,10 @@ public class RangeSlider extends Canvas {
 	private void drawVerticalRangeSlider(final GC gc) {
 		drawBackgroundVertical(gc);
 		drawBarsVertical(gc);
-		this.coordUpper = drawVerticalKnob(gc, this.upperValue - this.minimum, true);
-		this.coordLower = drawVerticalKnob(gc, this.lowerValue - this.minimum, false);
+		this.coordUpper = drawVerticalKnob(gc, this.selectionUpperValue
+				- this.minimum, true);
+		this.coordLower = drawVerticalKnob(gc, this.selectionLowerValue
+				- this.minimum, false);
 	}
 
 	/**
@@ -626,18 +711,38 @@ public class RangeSlider extends Canvas {
 		} else {
 			gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
-		gc.drawRoundRectangle(9, 9, clientArea.width - 20, clientArea.height - 20, 3, 3);
+		gc.drawRoundRectangle(9, 9, clientArea.width - 20,
+				clientArea.height - 20, 3, 3);
 
 		final double pixelSize = computePixelSizeForVerticalSlider();
-		final int startY = (int) (pixelSize * (this.lowerValue - this.minimum));
-		final int endY = (int) (pixelSize * (this.upperValue - this.minimum));
+		final int startY = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
+		final int endY = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
 		if (isEnabled()) {
 			gc.setBackground(getForeground());
 		} else {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
-		gc.fillRectangle(9, 12 + startY, clientArea.width - 20, endY - startY - 6);
+		gc.fillRectangle(9, 12 + startY, clientArea.width - 20, endY - startY
+				- 6);
 
+		// Display only if different from actual selection
+		if (selectionLowerValue != displayLowerValue
+				|| selectionUpperValue != displayUpperValue) {
+			final int startDisplayY = (int) (pixelSize * (this.displayLowerValue - this.minimum));
+			final int endDisplayY = (int) (pixelSize * (this.displayUpperValue - this.minimum));
+			if (isEnabled()) {
+				gc.setBackground(getDisplay().getSystemColor(
+						SWT.COLOR_DARK_GRAY));
+			} else {
+				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
+			}
+			gc.setAlpha(255);
+
+			gc.fillRectangle(12 + startDisplayY, 12 + startDisplayY,
+					clientArea.width - 20, endDisplayY - startDisplayY - 6);
+
+			gc.setAlpha(255);
+		}
 	}
 
 	/**
@@ -663,7 +768,8 @@ public class RangeSlider extends Canvas {
 
 		final double pixelSize = computePixelSizeForVerticalSlider();
 		for (int i = 1; i < 10; i++) {
-			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum) / 10f * i);
+			final int y = (int) (9 + pixelSize * (this.maximum - this.minimum)
+					/ 10f * i);
 			gc.drawLine(4, y, 7, y);
 			gc.drawLine(clientArea.width - 6, y, clientArea.width - 9, y);
 
@@ -679,18 +785,20 @@ public class RangeSlider extends Canvas {
 	 * @param value
 	 *            corresponding value
 	 * @param upper
-	 *            if <code>true</code>, draws the upper knob. If <code>false</code>, draws the lower
-	 *            knob
+	 *            if <code>true</code>, draws the upper knob. If
+	 *            <code>false</code>, draws the lower knob
 	 * @return the coordinate of the upper left corner of the knob
 	 */
-	private Point drawVerticalKnob(final GC gc, final long value, final boolean upper) {
+	private Point drawVerticalKnob(final GC gc, final long value,
+			final boolean upper) {
 		final double pixelSize = computePixelSizeForVerticalSlider();
 		final int y = (int) (pixelSize * value); // XXX
 
 		Image image;
 		if (upper) {
 			if (this.upperHover) {
-				image = this.dragInProgress ? this.vSliderDrag : this.vSliderHover;
+				image = this.dragInProgress ? this.vSliderDrag
+						: this.vSliderHover;
 			} else if (this.lastSelected == SELECTED_KNOB.UPPER) {
 				image = this.vSliderSelected;
 			} else {
@@ -698,7 +806,8 @@ public class RangeSlider extends Canvas {
 			}
 		} else {
 			if (this.lowerHover) {
-				image = this.dragInProgress ? this.vSliderDrag : this.vSliderHover;
+				image = this.dragInProgress ? this.vSliderDrag
+						: this.vSliderHover;
 			} else if (this.lastSelected == SELECTED_KNOB.LOWER) {
 				image = this.vSliderSelected;
 			} else {
@@ -731,62 +840,62 @@ public class RangeSlider extends Canvas {
 			this.lastSelected = SELECTED_KNOB.LOWER;
 		}
 
-		logger.debug("upper value before {}", this.upperValue);
-		logger.debug("lower value before {}", this.lowerValue);
+		logger.debug("upper value before {}", this.selectionUpperValue);
+		logger.debug("lower value before {}", this.selectionLowerValue);
 		switch (event.keyCode) {
 		case SWT.HOME:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue = this.minimum;
+				this.selectionUpperValue = this.minimum;
 			} else {
-				this.lowerValue = this.minimum;
+				this.selectionLowerValue = this.minimum;
 			}
 			needRedraw = true;
 			break;
 		case SWT.END:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue = this.maximum;
+				this.selectionUpperValue = this.maximum;
 			} else {
-				this.lowerValue = this.maximum;
+				this.selectionLowerValue = this.maximum;
 			}
 			needRedraw = true;
 			break;
 		case SWT.PAGE_UP:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue += this.pageIncrement;
+				this.selectionUpperValue += this.pageIncrement;
 			} else {
-				this.lowerValue += this.pageIncrement;
+				this.selectionLowerValue += this.pageIncrement;
 			}
 			needRedraw = true;
 			break;
 		case SWT.PAGE_DOWN:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue -= this.pageIncrement;
+				this.selectionUpperValue -= this.pageIncrement;
 			} else {
-				this.lowerValue -= this.pageIncrement;
+				this.selectionLowerValue -= this.pageIncrement;
 			}
 			needRedraw = true;
 			break;
 		case SWT.ARROW_LEFT:
 		case SWT.ARROW_UP:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue -= this.increment;
+				this.selectionUpperValue -= this.increment;
 			} else {
-				this.lowerValue -= this.increment;
+				this.selectionLowerValue -= this.increment;
 			}
 			needRedraw = true;
 			break;
 		case SWT.ARROW_RIGHT:
 		case SWT.ARROW_DOWN:
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
-				this.upperValue += this.increment;
+				this.selectionUpperValue += this.increment;
 			} else {
-				this.lowerValue += this.increment;
+				this.selectionLowerValue += this.increment;
 			}
 			needRedraw = true;
 			break;
 		}
-		logger.debug("upper value after {}", this.upperValue);
-		logger.debug("lower value after {}", this.lowerValue);
+		logger.debug("upper value after {}", this.selectionUpperValue);
+		logger.debug("lower value after {}", this.selectionLowerValue);
 
 		if (needRedraw) {
 			if (this.lastSelected == SELECTED_KNOB.UPPER) {
@@ -819,12 +928,12 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Adds the listener to the collection of listeners who will be notified when the user changes
-	 * the receiver's value, by sending it one of the messages defined in the
-	 * <code>SelectionListener</code> interface.
+	 * Adds the listener to the collection of listeners who will be notified
+	 * when the user changes the receiver's value, by sending it one of the
+	 * messages defined in the <code>SelectionListener</code> interface.
 	 * <p>
-	 * <code>widgetSelected</code> is called when the user changes the receiver's value.
-	 * <code>widgetDefaultSelected</code> is not called.
+	 * <code>widgetSelected</code> is called when the user changes the
+	 * receiver's value. <code>widgetDefaultSelected</code> is not called.
 	 * </p>
 	 * 
 	 * @param listener
@@ -836,9 +945,10 @@ public class RangeSlider extends Canvas {
 	 *                </ul>
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 * 
 	 * @see SelectionListener
@@ -853,7 +963,8 @@ public class RangeSlider extends Canvas {
 	 * @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
 	 */
 	@Override
-	public Point computeSize(final int wHint, final int hHint, final boolean changed) { // XXX
+	public Point computeSize(final int wHint, final int hHint,
+			final boolean changed) { // XXX
 		final int width, height;
 		checkWidget();
 		if (this.orientation == SWT.HORIZONTAL) {
@@ -886,16 +997,17 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the amount that the selected receiver's value will be modified by when the up/down
-	 * (or right/left) arrows are pressed.
+	 * Returns the amount that the selected receiver's value will be modified by
+	 * when the up/down (or right/left) arrows are pressed.
 	 * 
 	 * @return the increment
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getIncrement() {
@@ -910,14 +1022,15 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getLowerValue() {
 		checkWidget();
-		return this.lowerValue;
+		return this.selectionLowerValue;
 	}
 
 	/**
@@ -927,9 +1040,10 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getMaximum() {
@@ -944,9 +1058,10 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getMinimum() {
@@ -955,16 +1070,17 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the amount that the selected receiver's value will be modified by when the page
-	 * increment/decrement areas are selected.
+	 * Returns the amount that the selected receiver's value will be modified by
+	 * when the page increment/decrement areas are selected.
 	 * 
 	 * @return the page increment
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getPageIncrement() {
@@ -973,23 +1089,24 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Returns the 'selection', which is an array where the first element is the lower selection,
-	 * and the second element is the upper selection
+	 * Returns the 'selection', which is an array where the first element is the
+	 * lower selection, and the second element is the upper selection
 	 * 
 	 * @return the selection
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long[] getSelection() {
 		checkWidget();
 		final long[] selection = new long[2];
-		selection[0] = this.lowerValue;
-		selection[1] = this.upperValue;
+		selection[0] = this.selectionLowerValue;
+		selection[1] = this.selectionUpperValue;
 		return selection;
 	}
 
@@ -1000,19 +1117,20 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public long getUpperValue() {
 		checkWidget();
-		return this.upperValue;
+		return this.selectionUpperValue;
 	}
 
 	/**
-	 * Removes the listener from the collection of listeners who will be notified when the user
-	 * changes the receiver's value.
+	 * Removes the listener from the collection of listeners who will be
+	 * notified when the user changes the receiver's value.
 	 * 
 	 * @param listener
 	 *            the listener which should no longer be notified
@@ -1023,9 +1141,10 @@ public class RangeSlider extends Canvas {
 	 *                </ul>
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 * 
 	 * @see SelectionListener
@@ -1037,17 +1156,19 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the amount that the selected receiver's value will be modified by when the up/down (or
-	 * right/left) arrows are pressed to the argument, which must be at least one.
+	 * Sets the amount that the selected receiver's value will be modified by
+	 * when the up/down (or right/left) arrows are pressed to the argument,
+	 * which must be at least one.
 	 * 
 	 * @param increment
 	 *            the new increment (must be greater than zero)
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setIncrement(final long increment) {
@@ -1057,112 +1178,124 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'lower selection', which is the receiver's lower value, to the argument which must
-	 * be greater than or equal to zero.
+	 * Sets the 'lower selection', which is the receiver's lower value, to the
+	 * argument which must be greater than or equal to zero.
 	 * 
 	 * @param value
 	 *            the new selection (must be zero or greater)
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setLowerValue(final long value) {
 		checkWidget();
-		if (this.minimum <= value && value <= this.maximum && value <= this.upperValue) {
-			logger.debug("lower value before {}", this.lowerValue);
-			this.lowerValue = value;
-			logger.debug("lower value after {}", this.lowerValue);
+		if (this.minimum <= value && value <= this.maximum
+				&& value <= this.selectionUpperValue) {
+			logger.debug("lower value before {}", this.selectionLowerValue);
+			this.selectionLowerValue = value;
+			logger.debug("lower value after {}", this.selectionLowerValue);
 		}
 		redraw();
 
 	}
 
 	/**
-	 * Sets the maximum value that the receiver will allow. This new value will be ignored if it is
-	 * not greater than the receiver's current minimum value. If the new maximum is applied then the
-	 * receiver's selection value will be adjusted if necessary to fall within its new range.
+	 * Sets the maximum value that the receiver will allow. This new value will
+	 * be ignored if it is not greater than the receiver's current minimum
+	 * value. If the new maximum is applied then the receiver's selection value
+	 * will be adjusted if necessary to fall within its new range.
 	 * 
 	 * @param value
-	 *            the new maximum, which must be greater than the current minimum
+	 *            the new maximum, which must be greater than the current
+	 *            minimum
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setMaximum(final long value) {
 		checkWidget();
 		if (this.minimum <= value) {
 			this.maximum = value;
-			if (this.lowerValue >= this.maximum) {
-				logger.debug("lower value before {}", this.lowerValue);
-				this.lowerValue = this.maximum;
-				logger.debug("lower value after {}", this.lowerValue);
+			if (this.selectionLowerValue >= this.maximum) {
+				logger.debug("lower value before {}", this.selectionLowerValue);
+				this.selectionLowerValue = this.maximum;
+				logger.debug("lower value after {}", this.selectionLowerValue);
 			}
-			if (this.upperValue >= this.maximum) {
-				logger.debug("upper value before {}", this.upperValue);
-				this.upperValue = this.maximum;
-				logger.debug("upper value after {}", this.upperValue);
+			if (this.selectionUpperValue >= this.maximum) {
+				logger.debug("upper value before {}", this.selectionUpperValue);
+				this.selectionUpperValue = this.maximum;
+				logger.debug("upper value after {}", this.selectionUpperValue);
 			}
 		}
 		redraw();
 	}
 
 	/**
-	 * Sets the minimum value that the receiver will allow. This new value will be ignored if it is
-	 * negative or is not less than the receiver's current maximum value. If the new minimum is
-	 * applied then the receiver's selection value will be adjusted if necessary to fall within its
-	 * new range.
+	 * Sets the minimum value that the receiver will allow. This new value will
+	 * be ignored if it is negative or is not less than the receiver's current
+	 * maximum value. If the new minimum is applied then the receiver's
+	 * selection value will be adjusted if necessary to fall within its new
+	 * range.
 	 * 
 	 * @param value
-	 *            the new minimum, which must be nonnegative and less than the current maximum
+	 *            the new minimum, which must be nonnegative and less than the
+	 *            current maximum
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setMinimum(final long value) {
 		checkWidget();
 		if (this.maximum >= value) {
 			this.minimum = value;
-			if (this.lowerValue <= this.minimum) {
-				logger.debug("lower value before {}", this.lowerValue);
-				this.lowerValue = this.minimum;
-				logger.debug("lower value after {}", this.lowerValue);
+			if (this.selectionLowerValue <= this.minimum) {
+				logger.debug("lower value before {}", this.selectionLowerValue);
+				this.selectionLowerValue = this.minimum;
+				logger.debug("lower value after {}", this.selectionLowerValue);
 			}
-			if (this.upperValue <= this.minimum) {
-				logger.debug("upper value before {}", this.upperValue);
-				this.upperValue = this.minimum;
-				logger.debug("upper value after {}", this.upperValue);
+			if (this.selectionUpperValue <= this.minimum) {
+				logger.debug("upper value before {}", this.selectionUpperValue);
+				this.selectionUpperValue = this.minimum;
+				logger.debug("upper value after {}", this.selectionUpperValue);
 			}
 		}
 		redraw();
 	}
 
 	/**
-	 * Sets the minimum and maximum values that the receiver will allow. This new values will be
-	 * ignored if the minimum is greater than the maximum. If the new values are applied then the
-	 * receiver's selection value will be adjusted if necessary to fall within its new range.
+	 * Sets the minimum and maximum values that the receiver will allow. This
+	 * new values will be ignored if the minimum is greater than the maximum. If
+	 * the new values are applied then the receiver's selection value will be
+	 * adjusted if necessary to fall within its new range.
 	 * 
 	 * @param min
-	 *            the new minimum, which must be nonnegative and less than the maximum
+	 *            the new minimum, which must be nonnegative and less than the
+	 *            maximum
 	 * @param max
-	 *            the new maximum, which must be nonnegative and greater than the minimum
+	 *            the new maximum, which must be nonnegative and greater than
+	 *            the minimum
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 
@@ -1175,42 +1308,44 @@ public class RangeSlider extends Canvas {
 		checkWidget();
 		this.minimum = min;
 		this.maximum = max;
-		if (this.lowerValue <= this.minimum) {
-			logger.debug("lower value before {}", this.lowerValue);
-			this.lowerValue = this.minimum;
-			logger.debug("lower value after {}", this.lowerValue);
+		if (this.selectionLowerValue <= this.minimum) {
+			logger.debug("lower value before {}", this.selectionLowerValue);
+			this.selectionLowerValue = this.minimum;
+			logger.debug("lower value after {}", this.selectionLowerValue);
 		}
-		if (this.upperValue <= this.minimum) {
-			logger.debug("upper value before {}", this.upperValue);
-			this.upperValue = this.minimum;
-			logger.debug("upper value after {}", this.upperValue);
+		if (this.selectionUpperValue <= this.minimum) {
+			logger.debug("upper value before {}", this.selectionUpperValue);
+			this.selectionUpperValue = this.minimum;
+			logger.debug("upper value after {}", this.selectionUpperValue);
 		}
-		if (this.lowerValue >= this.maximum) {
-			logger.debug("lower value before {}", this.lowerValue);
-			this.lowerValue = this.maximum;
-			logger.debug("lower value after {}", this.lowerValue);
+		if (this.selectionLowerValue >= this.maximum) {
+			logger.debug("lower value before {}", this.selectionLowerValue);
+			this.selectionLowerValue = this.maximum;
+			logger.debug("lower value after {}", this.selectionLowerValue);
 		}
-		if (this.upperValue >= this.maximum) {
-			logger.debug("upper value before {}", this.upperValue);
-			this.upperValue = this.maximum;
-			logger.debug("upper value after {}", this.upperValue);
+		if (this.selectionUpperValue >= this.maximum) {
+			logger.debug("upper value before {}", this.selectionUpperValue);
+			this.selectionUpperValue = this.maximum;
+			logger.debug("upper value after {}", this.selectionUpperValue);
 		}
 		logger.debug("set extrema after {}", this);
 		redraw();
 	}
 
 	/**
-	 * Sets the amount that the receiver's value will be modified by when the page
-	 * increment/decrement areas are selected to the argument, which must be at least one.
+	 * Sets the amount that the receiver's value will be modified by when the
+	 * page increment/decrement areas are selected to the argument, which must
+	 * be at least one.
 	 * 
 	 * @param pageIncrement
 	 *            the page increment (must be greater than zero)
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setPageIncrement(final long pageIncrement) {
@@ -1219,17 +1354,19 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'selection', which is the receiver's value, to the argument which must be greater
-	 * than or equal to zero.
+	 * Sets the 'selection', which is the receiver's value, to the argument
+	 * which must be greater than or equal to zero.
 	 * 
 	 * @param values
-	 *            the new selection (first value is lower value, second value is upper value)
+	 *            the new selection (first value is lower value, second value is
+	 *            upper value)
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setSelection(final long[] values) {
@@ -1242,8 +1379,8 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'selection', which is the receiver's value, argument which must be greater than or
-	 * equal to zero.
+	 * Sets the 'selection', which is the receiver's value, argument which must
+	 * be greater than or equal to zero.
 	 * 
 	 * @param lowerValue
 	 *            the new lower selection (must be zero or greater)
@@ -1254,29 +1391,33 @@ public class RangeSlider extends Canvas {
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
-	public void setSelection(final long lowerValue, final long upperValue, boolean notifyListeners) {
+	public void setSelection(final long lowerValue, final long upperValue,
+			boolean notifyListeners) {
 		checkWidget();
 
 		if (lowerValue >= upperValue) {
-			logger.error("Invalid selection. Lower: " + lowerValue + ", Upper: " + upperValue);
+			logger.error("Invalid selection. Lower: " + lowerValue
+					+ ", Upper: " + upperValue);
 			return;
 		}
 
-		if (this.minimum <= lowerValue && lowerValue <= this.maximum && this.minimum <= upperValue
-				&& upperValue <= this.maximum) {
-			logger.debug("upper value before {}", this.upperValue);
-			logger.debug("lower value before {}", this.lowerValue);
-			this.lowerValue = lowerValue;
-			this.upperValue = upperValue;
-			logger.debug("upper value after {}", this.upperValue);
-			logger.debug("lower value after {}", this.lowerValue);
+		if (this.minimum <= lowerValue && lowerValue <= this.maximum
+				&& this.minimum <= upperValue && upperValue <= this.maximum) {
+			logger.debug("upper value before {}", this.selectionUpperValue);
+			logger.debug("lower value before {}", this.selectionLowerValue);
+			this.selectionLowerValue = lowerValue;
+			this.selectionUpperValue = upperValue;
+			logger.debug("upper value after {}", this.selectionUpperValue);
+			logger.debug("lower value after {}", this.selectionLowerValue);
 		} else {
-			logger.error("Invalid selection. Lower: " + lowerValue + ", Upper: " + upperValue);
+			logger.error("Invalid selection. Lower: " + lowerValue
+					+ ", Upper: " + upperValue);
 			return;
 		}
 
@@ -1291,25 +1432,27 @@ public class RangeSlider extends Canvas {
 	}
 
 	/**
-	 * Sets the 'upper selection', which is the upper receiver's value, argument which must be
-	 * greater than or equal to zero.
+	 * Sets the 'upper selection', which is the upper receiver's value, argument
+	 * which must be greater than or equal to zero.
 	 * 
 	 * @param value
 	 *            the new selection (must be zero or greater)
 	 * 
 	 * @exception SWTException
 	 *                <ul>
-	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
-	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created
-	 *                the receiver</li>
+	 *                <li>ERROR_WIDGET_DISPOSED - if the receiver has been
+	 *                disposed</li>
+	 *                <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
+	 *                thread that created the receiver</li>
 	 *                </ul>
 	 */
 	public void setUpperValue(final long value) {
 		checkWidget();
-		if (this.minimum <= value && value <= this.maximum && value >= this.lowerValue) {
-			logger.debug("upper value before {}", this.upperValue);
-			this.upperValue = value;
-			logger.debug("upper value after {}", this.upperValue);
+		if (this.minimum <= value && value <= this.maximum
+				&& value >= this.selectionLowerValue) {
+			logger.debug("upper value before {}", this.selectionUpperValue);
+			this.selectionUpperValue = value;
+			logger.debug("upper value after {}", this.selectionUpperValue);
 		}
 		redraw();
 	}
@@ -1335,8 +1478,11 @@ public class RangeSlider extends Canvas {
 
 	@Override
 	public String toString() {
-		return "RangeSlider [minimum=" + minimum + ", maximum=" + maximum + ", lowerValue="
-				+ lowerValue + ", upperValue=" + upperValue + "]";
+		return "RangeSlider [minimum=" + minimum + ", maximum=" + maximum
+				+ ", lowerValue=" + selectionLowerValue + ", upperValue="
+				+ selectionUpperValue + ", displayLowerValue="
+				+ displayLowerValue + ", displayUpperValue="
+				+ displayUpperValue + "]";
 	}
 
 	public void setStatusLineManager(IStatusLineManager manager) {
@@ -1365,12 +1511,60 @@ public class RangeSlider extends Canvas {
 			message.append("     ");
 		}
 		message.append("T1: "); //$NON-NLS-1$
-		message.append(formatter.format(this.lowerValue));
+		message.append(formatter.format(this.selectionLowerValue));
 		message.append("     T2: "); //$NON-NLS-1$
-		message.append(formatter.format(this.upperValue));
+		message.append(formatter.format(this.selectionUpperValue));
 		message.append("     \u0394: "); //$NON-NLS-1$
-		message.append(formatter.format(Math.abs(this.upperValue - this.lowerValue)));
+		message.append(formatter.format(Math.abs(this.selectionUpperValue
+				- this.selectionLowerValue)));
 		statusLineManager.setMessage(message.toString());
+	}
+
+	/**
+	 * Set the display time interval, in order to display the currently display
+	 * interval. Display time bound are updated only if they are compliant with
+	 * condition set in their setter
+	 * 
+	 * @param startTimestamp
+	 *            the starting timestamp of what is the currently display in the
+	 *            view
+	 * @param endTimestamp
+	 *            the ending timestamps of what is currently display in the view
+	 */
+	public void setDisplayInterval(long startTimestamp, long endTimestamp) {
+		setDisplayLowerValue(startTimestamp);
+		setDisplayUpperValue(endTimestamp);
+		redraw();
+	}
+
+	public long getDisplayLowerValue() {
+		return displayLowerValue;
+	}
+
+	public void setDisplayLowerValue(long value) {
+		checkWidget();
+		if (this.minimum <= value && value <= this.maximum) {
+			logger.debug("display lower value before {}",
+					this.displayLowerValue);
+			this.displayLowerValue = value;
+			logger.debug("display lower value after {}", this.displayLowerValue);
+		}
+		redraw();
+	}
+
+	public long getDisplayUpperValue() {
+		return displayUpperValue;
+	}
+
+	public void setDisplayUpperValue(long value) {
+		checkWidget();
+		if (this.minimum <= value && value <= this.maximum) {
+			logger.debug("display upper value before {}",
+					this.displayUpperValue);
+			this.displayUpperValue = value;
+			logger.debug("display upper value after {}", this.displayUpperValue);
+		}
+		redraw();
 	}
 
 }

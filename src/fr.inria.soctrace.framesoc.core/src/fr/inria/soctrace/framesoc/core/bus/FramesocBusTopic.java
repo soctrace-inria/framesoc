@@ -24,7 +24,7 @@ public enum FramesocBusTopic {
 	 * currently focused view.
 	 * Note that, when the handle method is called in the bus listener after this event
 	 * is fired, the value of the bus variables containing the selected trace is NOT
-	 * valid, since is one of the handle (the TraceTreeView.handl()) that set it.
+	 * valid, since it is one of the handle (the TraceTreeView.handle()) that set it.
 	 */
 	TOPIC_UI_FOCUSED_TRACE,
 	

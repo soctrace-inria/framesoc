@@ -275,7 +275,7 @@ public class PrepareTestResources {
 	}
 
 	private static void modifyLast() throws SoCTraceException {
-		TraceDBObject traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		TraceDBObject traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		EventQuery query = new EventQuery(traceDB);
 		query.setOrderBy("TIMESTAMP", OrderBy.DESC);
 		Event last = query.getList().iterator().next();
@@ -297,7 +297,7 @@ public class PrepareTestResources {
 		ar.setDate(new Timestamp(new Date().getTime()));
 		ar.setType(data.getType().toString());
 		ar.setData(data);
-		TraceDBObject traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		TraceDBObject traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		traceDB.save(ar);
 		traceDB.close();
 	}

@@ -30,6 +30,7 @@ import fr.inria.soctrace.lib.query.TraceQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
@@ -62,6 +63,7 @@ public class TraceChecker {
 		checkers.add(new IndexChecker());
 		checkers.add(new MinMaxChecker());
 		checkers.add(new EventNumberChecker());
+		checkers.add(new ProducerNumberChecker());
 
 		// load the traces, if a SystemDB exists
 		traces = new HashSet<Trace>();
@@ -148,7 +150,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (t.getMinTimestamp() == Trace.UNKNOWN_INT) {
 					t.setMinTimestamp(traceDB.getMinTimestamp());
 					sysDB.update(t);
@@ -167,7 +169,7 @@ public class TraceChecker {
 	}
 
 	/**
-	 * Trace checker for min/max trace metadata.
+	 * Trace checker for number of events trace metadata.
 	 */
 	private class EventNumberChecker implements IChecker {
 
@@ -184,8 +186,38 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
-				t.setNumberOfEvents(traceDB.getNumberOfEvents());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfEvents(traceDB.getNumberOf(FramesocTable.EVENT));
+				sysDB.update(t);
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(traceDB);
+			}
+		}
+
+	}
+
+	/**
+	 * Trace checker for number of producers trace metadata.
+	 */
+	private class ProducerNumberChecker implements IChecker {
+
+		@Override
+		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
+
+			monitor.subTask("Number of events check on trace:  " + t.getAlias());
+
+			if (t.getNumberOfProducers() != Trace.UNKNOWN_INT)
+				return;
+
+			if (!isDBExisting(t.getDbName()))
+				return;
+
+			TraceDBObject traceDB = null;
+			try {
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfProducers(traceDB.getNumberOf(FramesocTable.EVENT_PRODUCER));
 				sysDB.update(t);
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
@@ -224,7 +256,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (tsEnabled) {
 					monitor.subTask("Creating timestamp index on trace: " + t.getAlias());
 					traceDB.createTimestampIndex();

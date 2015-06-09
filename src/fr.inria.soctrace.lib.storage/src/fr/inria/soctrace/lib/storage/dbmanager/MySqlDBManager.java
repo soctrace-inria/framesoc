@@ -52,7 +52,7 @@ public class MySqlDBManager extends DBManager {
 			String dbBaseUrl = Configuration.getInstance().get(SoCTraceProperty.mysql_base_db_jdbc_url);
 			String dbUser = Configuration.getInstance().get(SoCTraceProperty.mysql_db_user);
 			String dbPassword = Configuration.getInstance().get(SoCTraceProperty.mysql_db_password);
-	    	Class.forName("com.mysql.jdbc.Driver").newInstance();    	  
+	    	Class.forName("com.mysql.jdbc.Driver").newInstance();   	    	
 	    	connection = DriverManager.getConnection(dbBaseUrl, dbUser, dbPassword);
 			connection.setAutoCommit(false); // for efficiency	
 			
@@ -70,12 +70,18 @@ public class MySqlDBManager extends DBManager {
 			ResultSet rs = meta.getCatalogs();
 			while (rs.next()) {
 				String n = rs.getString("TABLE_CAT");
-				if( n.equals(dbName) ) return true;
+				if (n.equals(dbName))
+					return true;
 			}
 			return false;
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
+	}
+	
+	@Override
+	public boolean checkSettings() throws SoCTraceException {
+		return true;
 	}
 
 	@Override
@@ -248,7 +254,8 @@ public class MySqlDBManager extends DBManager {
 					"ALIAS TEXT COLLATE latin1_general_cs, " +
 					"MIN_TIMESTAMP BIGINT, " +
 					"MAX_TIMESTAMP BIGINT, " +
-					"TIMEUNIT INTEGER)");
+					"TIMEUNIT INTEGER, " +
+					"NUMBER_OF_PRODUCERS INTEGER)");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}

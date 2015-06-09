@@ -696,6 +696,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected String getPrevTooltip() {
 		return "Previous";
 	}
+	
+	public boolean isfUserChangedTimeRange() {
+		return fUserChangedTimeRange;
+	}
+
+	public void setfUserChangedTimeRange(boolean fUserChangedTimeRange) {
+		this.fUserChangedTimeRange = fUserChangedTimeRange;
+	}
 
 	// ------------------------------------------------------------------------
 	// ViewPart
@@ -713,7 +721,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		arrowPercentageLabel = new Label(parent, SWT.NONE);
 		setArrowPercentage(0.0);
-
+		
 		// -------------------------------
 		// TYPE FILTER DIALOG
 		// -------------------------------
@@ -721,6 +729,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fTypeFilterDialog.setColumnNames(new String[] { "Event Type" });
 		fTypeFilterDialog.setContentProvider(new TreeContentProvider());
 		fTypeFilterDialog.setLabelProvider(new EventTypeTreeLabelProvider());
+
 
 		// -------------------------------
 		// COMBO VIEWER
@@ -1064,7 +1073,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fTimeGraphWrapper.getTimeGraphViewer().setSelectionRange(0, 0);
 					fTimeBar.setSelection(fStartTime, fEndTime);
 				}
-
+				fTimeBar.setDisplayInterval(fStartTime, fEndTime);
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
 					for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
 							.getTreeViewer().getTree().getColumns()) {

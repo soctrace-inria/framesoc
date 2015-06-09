@@ -38,6 +38,8 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 	 * References to the images (cache).
 	 */
 	private Map<String, Image> images = new HashMap<>();
+	
+	private static final int SPACE_BEFORE_SQUARE = 2;
 
 	/**
 	 * Get the item bounds.
@@ -100,8 +102,8 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 			bounds.height = bounds.height / 2 - img.getBounds().height / 2;
 			int imgy = bounds.height > 0 ? bounds.y + bounds.height : bounds.y;
 			int texty = bounds.y + 3;
-			event.gc.drawText(text, bounds.x + img.getBounds().width + 5, texty, true);
-			event.gc.drawImage(img, bounds.x, imgy);
+			event.gc.drawText(text, bounds.x + img.getBounds().width + 5 + SPACE_BEFORE_SQUARE, texty, true);
+			event.gc.drawImage(img, bounds.x + SPACE_BEFORE_SQUARE, imgy);
 		} else {
 			event.gc.drawText(text, bounds.x + 2, bounds.y + 3, true);
 		}
