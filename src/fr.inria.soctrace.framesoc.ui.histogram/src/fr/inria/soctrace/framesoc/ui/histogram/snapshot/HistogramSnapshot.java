@@ -8,13 +8,14 @@
  * Contributors:
  *     Youenn Corre - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.histogram.view;
+package fr.inria.soctrace.framesoc.ui.histogram.snapshot;
 
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import fr.inria.soctrace.framesoc.ui.histogram.view.HistogramView;
 import fr.inria.soctrace.framesoc.ui.utils.Snapshot;
 
 /**

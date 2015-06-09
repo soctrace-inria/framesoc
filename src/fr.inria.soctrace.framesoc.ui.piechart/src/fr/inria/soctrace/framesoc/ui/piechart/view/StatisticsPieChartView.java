@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -77,6 +78,8 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -99,6 +102,7 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
+import fr.inria.soctrace.framesoc.ui.piechart.snapshot.StatisticsPieChartSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.treefilter.FilterDataManager;
@@ -313,6 +317,8 @@ public class StatisticsPieChartView extends FramesocPart {
 			JFaceResources.getResources());
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
+
+	protected ChartComposite chartFrame;
 
 	/**
 	 * Constructor
@@ -563,7 +569,8 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Filters actions
 		manager.add(globalFilters.get(FilterDimension.PRODUCERS).initFilterAction());
 		manager.add(globalFilters.get(FilterDimension.TYPE).initFilterAction());
-
+		manager.add(createSnapshotAction());
+		
 		// Separator
 		manager.add(new Separator());
 
@@ -622,6 +629,19 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 		return v;
 	}
+	
+	public ChartComposite getChartFrame() {
+		return chartFrame;
+	}
+	
+	public TreeViewer getTableTreeViewer() {
+		return tableTreeViewer;
+	}
+
+	public void setTableTreeViewer(TreeViewer tableTreeViewer) {
+		this.tableTreeViewer = tableTreeViewer;
+	}
+
 
 	// GUI creation
 
@@ -1055,7 +1075,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				// create new chart
 				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dataLoaded());
 				compositePie.setText(title);
-				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
+				chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
 						USE_BUFFER);
 
 				Point size = compositePie.getSize();
@@ -1279,7 +1299,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		public int getSelectionIndex() {
 			return selectionIndex;
 		}
-
 	}
 
 	private void createFilterDialogs() {
@@ -1307,6 +1326,36 @@ public class StatisticsPieChartView extends FramesocPart {
 			e.printStackTrace();
 		} finally {
 			DBObject.finalClose(traceDB);
+		}
+	}
+	
+	/**
+	 * Initialize the snapshot action
+	 * 
+	 * @return the action
+	 */
+	public IAction createSnapshotAction() {
+		SnapshotAction snapshotAction = new SnapshotAction("",
+				IAction.AS_PUSH_BUTTON);
+		snapshotAction.pieView = this;
+		snapshotAction.setImageDescriptor(ResourceManager
+				.getPluginImageDescriptor(Activator.PLUGIN_ID,
+						"icons/snapshot.png"));
+		snapshotAction.setToolTipText("Take a snapshot");
+
+		return snapshotAction;
+	}
+	
+	private class SnapshotAction extends Action {
+		public StatisticsPieChartView pieView;
+
+		public SnapshotAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			new StatisticsPieChartSnapshotDialog(getSite().getShell(), pieView).open();
 		}
 	}
 

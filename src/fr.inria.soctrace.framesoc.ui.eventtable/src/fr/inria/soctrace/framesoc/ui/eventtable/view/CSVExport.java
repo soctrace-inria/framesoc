@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.framesoc.core.FramesocConstants;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -46,11 +47,6 @@ public class CSVExport {
 	 * Logger
 	 */
 	private final static Logger logger = LoggerFactory.getLogger(CSVExport.class);
-
-	/**
-	 * CSV Separator
-	 */
-	private static final String CSV_SEPARATOR = ",";
 
 	private final Object exportSyncObj = new Object();
 	private StringBuilder csvExport = new StringBuilder();
@@ -103,12 +99,12 @@ public class CSVExport {
 							System.getProperty("file.encoding"));
 
 					for (EventTableColumn column : selectedColumns) {
-						csvHeader.append(column.toString() + CSV_SEPARATOR);
+						csvHeader.append(column.toString() + FramesocConstants.CSV_SEPARATOR);
 					}
 
 					// Delete last CSV_SEPARATOR
 					csvHeader.delete(
-							csvHeader.length() - CSV_SEPARATOR.length(),
+							csvHeader.length() - FramesocConstants.CSV_SEPARATOR.length(),
 							csvHeader.length());
 
 					String newLine = System.getProperty("line.separator");
@@ -118,7 +114,7 @@ public class CSVExport {
 
 						for (EventTableColumn column : selectedColumns) {
 							csvExport.append(currentRow.get(column)
-									+ CSV_SEPARATOR);
+									+ FramesocConstants.CSV_SEPARATOR);
 						}
 
 						if (exportParameters)
@@ -127,7 +123,7 @@ public class CSVExport {
 							// remove last CSV_SEPARATOR
 							csvExport
 									.delete(csvExport.length()
-											- CSV_SEPARATOR.length(),
+											- FramesocConstants.CSV_SEPARATOR.length(),
 											csvExport.length());
 
 						// New line
@@ -212,7 +208,7 @@ public class CSVExport {
 				parameterTypes.put(paramType, currentMaxNumberOfParameter);
 				currentMaxNumberOfParameter++;
 				// Extend the header with it
-				csvHeader.append(CSV_SEPARATOR + paramType);
+				csvHeader.append(FramesocConstants.CSV_SEPARATOR + paramType);
 			}
 
 			// Remove white space and quote
@@ -251,7 +247,7 @@ public class CSVExport {
 
 		// Complete csv with existing parameter values or blank otherwise
 		for (int i = 0; i < currentMaxNumberOfParameter; i++) {
-			csvExport.append(CSV_SEPARATOR);
+			csvExport.append(FramesocConstants.CSV_SEPARATOR);
 			if (currentParameterValue.containsKey(i)) {
 				csvExport.append(currentParameterValue.get(i));
 			}

@@ -8,7 +8,7 @@
  * Contributors:
  *     Youenn Corre - initial API and implementation
  ******************************************************************************/
-package fr.inria.soctrace.framesoc.ui.histogram.view;
+package fr.inria.soctrace.framesoc.ui.histogram.snapshot;
 
 import java.io.File;
 
@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.ResourceManager;
 
+import fr.inria.soctrace.framesoc.ui.histogram.view.HistogramView;
+
 /**
  * This class implements the dialog window to configure the export of the
  * density chart into an image
@@ -47,7 +49,7 @@ public class HistogramSnapshotDialog extends Dialog {
 	private Spinner snapshotWidth;
 	private Spinner snapshotHeight;
 
-	protected HistogramSnapshotDialog(Shell parentShell, HistogramView histoView) {
+	public HistogramSnapshotDialog(Shell parentShell, HistogramView histoView) {
 		super(parentShell);
 		this.histoView = histoView;
 	}
