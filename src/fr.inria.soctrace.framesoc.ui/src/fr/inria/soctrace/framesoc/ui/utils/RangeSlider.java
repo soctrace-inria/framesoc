@@ -554,33 +554,41 @@ public class RangeSlider extends Canvas {
 
 		// Draw selection rectangle
 		final double pixelSize = computePixelSizeForHorizonalSlider();
-		final int startX = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
-		final int endX = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
-		if (isEnabled()) {
-			gc.setBackground(getForeground());
-		} else {
-			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
-		}
-		gc.fillRectangle(12 + startX, ybar, endX - startX - 6, BARHEIGHT);
-
+		
 		// Display only if different from actual selection
 		if (selectionLowerValue != displayLowerValue
 				|| selectionUpperValue != displayUpperValue) {
-			final int startDisplayX = (int) (pixelSize * (this.displayLowerValue - this.minimum));
-			final int endDisplayX = (int) (pixelSize * (this.displayUpperValue - this.minimum));
+			final int startX = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
+			final int endX = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
 			if (isEnabled()) {
 				gc.setBackground(getDisplay().getSystemColor(
 						SWT.COLOR_DARK_GRAY));
 			} else {
 				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 			}
-			gc.setAlpha(255);
-
-			gc.fillRectangle(12 + startDisplayX, ybar + 4, endDisplayX
-					- startDisplayX - 6, BARHEIGHT - 6);
-
+			gc.setAlpha(100);
+			gc.fillRectangle(6 + startX, ybar, endX - startX - 6, BARHEIGHT);
 			gc.setAlpha(255);
 		}
+	
+	
+		final int startDisplayX = (int) (pixelSize * (this.displayLowerValue - this.minimum));
+		final int endDisplayX = (int) (pixelSize * (this.displayUpperValue - this.minimum));
+		if (isEnabled()) {
+			gc.setBackground(getForeground());
+		} else {
+			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
+		}
+
+		gc.fillRectangle(12 + startDisplayX, ybar, endDisplayX - startDisplayX
+				- 6, BARHEIGHT);
+
+		/*
+		 * gc.fillRectangle(12 + startDisplayX, ybar + 4, endDisplayX -
+		 * startDisplayX - 6, BARHEIGHT - 6);
+		 */
+
+	
 	}
 
 	/**
