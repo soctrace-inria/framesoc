@@ -531,7 +531,7 @@ public class RangeSlider extends Canvas {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
 
-		gc.fillRectangle(12 + startDisplayX, ybar, endDisplayX - startDisplayX - 6, BARHEIGHT);
+		gc.fillRectangle(10 + startDisplayX, ybar, endDisplayX - startDisplayX, BARHEIGHT);
 
 		// Display only if different from actual selection
 		if (selectionLowerValue != displayLowerValue || selectionUpperValue != displayUpperValue) {
@@ -543,7 +543,7 @@ public class RangeSlider extends Canvas {
 				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 			}
 			gc.setAlpha(150);
-			gc.fillRectangle(6 + startX, ybar, endX - startX - 6, BARHEIGHT);
+			gc.fillRectangle(6 + startX, ybar, endX - startX, BARHEIGHT);
 			gc.setAlpha(255);
 		}
 
@@ -674,29 +674,29 @@ public class RangeSlider extends Canvas {
 		gc.drawRoundRectangle(9, 9, clientArea.width - 20, clientArea.height - 20, 3, 3);
 
 		final double pixelSize = computePixelSizeForVerticalSlider();
-		final int startY = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
-		final int endY = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
+
+		final int startDisplayY = (int) (pixelSize * (this.displayLowerValue - this.minimum));
+		final int endDisplayY = (int) (pixelSize * (this.displayUpperValue - this.minimum));
 		if (isEnabled()) {
 			gc.setBackground(getForeground());
 		} else {
 			gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		}
-		gc.fillRectangle(9, 12 + startY, clientArea.width - 20, endY - startY - 6);
-
+		
+		gc.fillRectangle(12 + startDisplayY, 12 + startDisplayY, clientArea.width - 20,
+				endDisplayY - startDisplayY - 6);
+		
 		// Display only if different from actual selection
 		if (selectionLowerValue != displayLowerValue || selectionUpperValue != displayUpperValue) {
-			final int startDisplayY = (int) (pixelSize * (this.displayLowerValue - this.minimum));
-			final int endDisplayY = (int) (pixelSize * (this.displayUpperValue - this.minimum));
+			final int startY = (int) (pixelSize * (this.selectionLowerValue - this.minimum));
+			final int endY = (int) (pixelSize * (this.selectionUpperValue - this.minimum));
 			if (isEnabled()) {
 				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
 			} else {
 				gc.setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
 			}
-			gc.setAlpha(255);
-
-			gc.fillRectangle(12 + startDisplayY, 12 + startDisplayY, clientArea.width - 20,
-					endDisplayY - startDisplayY - 6);
-
+			gc.setAlpha(150);
+			gc.fillRectangle(9, 12 + startY, clientArea.width - 20, endY - startY - 6);
 			gc.setAlpha(255);
 		}
 	}

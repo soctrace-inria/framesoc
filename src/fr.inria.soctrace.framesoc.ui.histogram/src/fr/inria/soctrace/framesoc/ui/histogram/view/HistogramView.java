@@ -146,6 +146,7 @@ public class HistogramView extends FramesocPart {
 	private static final int NO_STATUS = -1;
 	private static final Cursor ARROW_CURSOR = new Cursor(Display.getDefault(), SWT.CURSOR_ARROW);
 	private static final Cursor IBEAM_CURSOR = new Cursor(Display.getDefault(), SWT.CURSOR_IBEAM);
+	private static final int NO_SELECTED_VALUE = -1;
 
 	private final Font TICK_LABEL_FONT = new Font("Tahoma", 0, 11);
 	private final Font LABEL_FONT = new Font("Tahoma", 0, 12);
@@ -184,8 +185,8 @@ public class HistogramView extends FramesocPart {
 	 */
 	private boolean activeSelection = false;
 	private boolean dragInProgress = false;
-	private long selectedTs0 = Long.MAX_VALUE;
-	private long selectedTs1 = Long.MIN_VALUE;
+	private long selectedTs0 = NO_SELECTED_VALUE;
+	private long selectedTs1 = NO_SELECTED_VALUE;
 
 	public HistogramView() {
 		super();
@@ -404,6 +405,9 @@ public class HistogramView extends FramesocPart {
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		timeBar.setDisplayInterval(interval);
 		
+		// reset selection
+		selectedTs0 = selectedTs1 = NO_SELECTED_VALUE;
+		
 		// nothing is loaded so far, so the interval is [start, start] (duration 0)
 		loadedInterval = new TimeInterval(interval.startTimestamp, interval.startTimestamp);
 		requestedInterval = new TimeInterval(interval);
@@ -550,7 +554,6 @@ public class HistogramView extends FramesocPart {
 		/*
 		 * Prepare data
 		 */
-
 		DeltaManager dm = new DeltaManager();
 		dm.start();
 		// get the last snapshot
@@ -571,7 +574,6 @@ public class HistogramView extends FramesocPart {
 		/*
 		 * Prepare chart
 		 */
-
 		final JFreeChart chart = ChartFactory.createHistogram(HISTOGRAM_TITLE, X_LABEL, Y_LABEL,
 				hdataset, PlotOrientation.VERTICAL, HAS_LEGEND, HAS_TOOLTIPS, HAS_URLS);
 
@@ -580,6 +582,13 @@ public class HistogramView extends FramesocPart {
 
 		// display chart in UI
 		displayChart(chart, histogramInterval, first);
+		
+		// Is there a selection ?
+		if (marker == null && selectedTs0 > 0 && selectedTs1 > 0) {
+			// Redraw selection
+			addNewMarker(selectedTs0, selectedTs1);
+			timeBar.setSelection(selectedTs0, selectedTs1);
+		}
 
 		logger.debug(dm.endMessage("Finished refreshing"));
 	}
