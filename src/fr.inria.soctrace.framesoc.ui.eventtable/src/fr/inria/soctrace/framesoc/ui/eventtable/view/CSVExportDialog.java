@@ -71,14 +71,12 @@ public class CSVExportDialog extends Dialog {
 		final Label lblExportDirectory = new Label(groupExportSettings, SWT.NONE);
 		lblExportDirectory.setText("Export Directory:");
 
-		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_MiscDir.widthHint = 100;
+		final GridData gdExportDir = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 
 		exportDirectory = new Text(groupExportSettings, SWT.BORDER);
-		exportDirectory.setLayoutData(gd_MiscDir);
+		exportDirectory.setLayoutData(gdExportDir);
 		exportDirectory.setText(System.getProperty("user.home") + "/"
 				+ exportFileName);
-		//exportDirectory.addModifyListener(new CheckDirectoryListener());
 
 		btnChangeExportDirectory = new Button(groupExportSettings, SWT.PUSH);
 		btnChangeExportDirectory.setLayoutData(new GridData(SWT.CENTER,

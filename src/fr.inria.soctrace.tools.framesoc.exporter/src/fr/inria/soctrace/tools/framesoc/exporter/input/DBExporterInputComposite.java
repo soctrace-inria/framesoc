@@ -78,7 +78,7 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 
 		Label lblDirectory = new Label(compositeDirectory, SWT.NONE);
 		lblDirectory.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblDirectory.setText("Export Directory");
+		lblDirectory.setText("Export Directory:");
 
 		textDirectory = new Text(compositeDirectory, SWT.BORDER);
 		textDirectory.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));

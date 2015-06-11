@@ -307,6 +307,11 @@ public class HistogramView extends FramesocPart {
 		// Filters actions
 		manager.add(filterMap.get(FilterDimension.PRODUCERS).initFilterAction());
 		manager.add(filterMap.get(FilterDimension.TYPE).initFilterAction());
+		
+		// Separator
+		manager.add(new Separator());
+		
+		// Snapshot
 		manager.add(createSnapshotAction());
 		
 		// Separator

@@ -71,11 +71,12 @@ public class HistogramSnapshotDialog extends Dialog {
 		lblSnapshotDirectory.setText("Snapshot Directory:");
 
 		final GridData gd_MiscDir = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_MiscDir.widthHint = 100;
+		gd_MiscDir.widthHint = 300;
 
 		snapshotDirectory = new Text(groupSnapshotSettings, SWT.BORDER);
 		snapshotDirectory.setLayoutData(gd_MiscDir);
 		snapshotDirectory.setText(System.getProperty("user.home"));
+		snapshotDirectory.setToolTipText(snapshotDirectory.getText());
 		snapshotDirectory.addModifyListener(new CheckDirectoryListener());
 
 		btnChangeSnapshotDirectory = new Button(groupSnapshotSettings, SWT.PUSH);
@@ -87,27 +88,29 @@ public class HistogramSnapshotDialog extends Dialog {
 				"icons/fldr_obj.gif"));
 
 		Label lblsnapshotWidth = new Label(groupSnapshotSettings, SWT.NONE);
-		lblsnapshotWidth.setText("Snapshot Width");
+		lblsnapshotWidth.setText("Snapshot Width:");
 
 		snapshotWidth = new Spinner(groupSnapshotSettings, SWT.BORDER);
-		snapshotWidth.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		final GridData  spinnerGridData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		spinnerGridData.widthHint = 75;
+		snapshotWidth.setLayoutData(spinnerGridData);
 		snapshotWidth.setIncrement(1);
 		snapshotWidth.setMaximum(100000);
 		snapshotWidth.setMinimum(10);
 		snapshotWidth.setSelection(histoView.getChartFrame().getBounds().width);
-		snapshotWidth.setToolTipText("Height of the generated image in pixels (10 - 100000)");
+		snapshotWidth.setToolTipText("Width of the generated image in pixels (10 - 100000)");
 		new Label(groupSnapshotSettings, SWT.NONE);
 		
 		Label lblsnapshotHeight = new Label(groupSnapshotSettings, SWT.NONE);
-		lblsnapshotHeight.setText("Snapshot Height");
+		lblsnapshotHeight.setText("Snapshot Height:");
 		
 		snapshotHeight = new Spinner(groupSnapshotSettings, SWT.BORDER);
-		snapshotHeight.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		snapshotHeight.setLayoutData(spinnerGridData);
 		snapshotHeight.setIncrement(1);
 		snapshotHeight.setMaximum(100000);
 		snapshotHeight.setMinimum(10);
 		snapshotHeight.setSelection(histoView.getChartFrame().getBounds().height);
-		snapshotHeight.setToolTipText("Width of the generated image in pixels  (10 - 100000)");
+		snapshotHeight.setToolTipText("Height of the generated image in pixels  (10 - 100000)");
 		new Label(groupSnapshotSettings, SWT.NONE);
 
 		btnChangeSnapshotDirectory.addSelectionListener(new ModifySnapshotDirectory());
@@ -142,6 +145,7 @@ public class HistogramSnapshotDialog extends Dialog {
 		}
 
 		private boolean okEnabled() {
+			snapshotDirectory.setToolTipText(snapshotDirectory.getText());
 			File dirPath = new File(snapshotDirectory.getText());
 
 			if (dirPath.exists() && dirPath.isDirectory() && dirPath.canWrite())

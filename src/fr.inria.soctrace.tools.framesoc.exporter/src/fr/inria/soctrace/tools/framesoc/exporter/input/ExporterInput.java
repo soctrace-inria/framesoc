@@ -43,7 +43,7 @@ public class ExporterInput implements IFramesocToolInput {
 		if (traces == null || traces.isEmpty())
 			return false;
 		File dir = new File(directory);
-		if (directory == null || !dir.isDirectory())
+		if (directory == null || !dir.isDirectory() || !dir.canWrite())
 			return false;
 		return true;
 	}

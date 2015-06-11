@@ -569,6 +569,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Filters actions
 		manager.add(globalFilters.get(FilterDimension.PRODUCERS).initFilterAction());
 		manager.add(globalFilters.get(FilterDimension.TYPE).initFilterAction());
+		
+		// Separator
+		manager.add(new Separator());
+		
+		// Snapshot
 		manager.add(createSnapshotAction());
 		
 		// Separator

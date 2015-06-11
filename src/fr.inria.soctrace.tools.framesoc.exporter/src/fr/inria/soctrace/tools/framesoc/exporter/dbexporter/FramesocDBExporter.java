@@ -58,6 +58,10 @@ public class FramesocDBExporter extends FramesocTool {
 			} else if (!dir.isDirectory()) {
 				status.valid = false;
 				status.message = exporterInput.directory + " is not a directory";
+			} else if (!dir.canWrite()) {
+				status.valid = false;
+				status.message = "Does not have write permission for "
+						+ exporterInput.directory + " directory";
 			}
 		}
 		return status;
