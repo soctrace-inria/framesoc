@@ -99,8 +99,19 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 			for (StatisticsTableRow row : data) {
 				for (StatisticsTableColumn column : StatisticsTableColumn
 						.values()) {
-					valueToCSV.append(row.get(column)
-							+ FramesocConstants.CSV_SEPARATOR);
+					if (column == StatisticsTableColumn.PERCENTAGE
+							|| column == StatisticsTableColumn.VALUE) {
+						// if the number have decimal value separated by a
+						// comma
+						String percentValue = row.get(column);
+						// Change to point
+						percentValue = percentValue.replace(",", ".");
+						valueToCSV.append(percentValue
+								+ FramesocConstants.CSV_SEPARATOR);
+					} else {
+						valueToCSV.append(row.get(column)
+								+ FramesocConstants.CSV_SEPARATOR);
+					}
 				}
 				// remove last CSV_SEPARATOR
 				valueToCSV.delete(valueToCSV.length()

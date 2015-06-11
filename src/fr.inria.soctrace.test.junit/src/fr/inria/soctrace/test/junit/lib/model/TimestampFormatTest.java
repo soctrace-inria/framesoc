@@ -47,8 +47,6 @@ public class TimestampFormatTest {
 	
 	@Test 
 	public void testFormatLongNs() {
-	
-		
 		TimeUnit ns = TimeUnit.NANOSECONDS;
 		List<FormattedNumber<Long>> list = new ArrayList<>();
 		list.add(new FormattedNumber<Long>(111L, "111 ns"));
