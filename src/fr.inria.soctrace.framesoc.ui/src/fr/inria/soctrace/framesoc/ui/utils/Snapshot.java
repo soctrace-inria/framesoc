@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.lib.utils.Portability;
 
 public abstract class Snapshot {
@@ -30,12 +31,42 @@ public abstract class Snapshot {
 
 	// Directory where the snapshots are saved
 	protected String snapshotDirectory;
+	
+	protected int width;
+
+	protected int height;
+	
+	protected FramesocPart view;
 
 	public Snapshot(String directory) {
 		snapshotDirectory = directory;
 	}
 
 	public abstract void takeSnapShot();
+	
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+	
+	public FramesocPart getView() {
+		return view;
+	}
+
+	public void setView(FramesocPart view) {
+		this.view = view;
+	}
 
 	/**
 	 * Create a unique directory for the current snapshot

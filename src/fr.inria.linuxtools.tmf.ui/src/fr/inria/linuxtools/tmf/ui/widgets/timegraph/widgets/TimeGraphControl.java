@@ -1373,6 +1373,29 @@ public class TimeGraphControl extends TimeGraphBaseControl
     }
 
     @Override
+    public void takeSnapshot(Rectangle bounds, PaintEvent e, boolean fullHeight)
+    {
+        int oldTopIndex = fTopIndex;
+
+        if (fullHeight) {
+            oldTopIndex = fTopIndex;
+            fTopIndex = 0;
+            int ySum = 0;
+
+            for (int i = fTopIndex; i < fItemData.fExpandedItems.length; i++) {
+                ySum += fItemData.fExpandedItems[i].fItemHeight;
+            }
+
+            bounds.height = ySum;
+            e.height = ySum;
+        }
+
+        paint(bounds, e);
+
+        fTopIndex = oldTopIndex;
+    }
+
+    @Override
     void paint(Rectangle bounds, PaintEvent e) {
         GC gc = e.gc;
         gc.setBackground(getColorScheme().getColor(TimeGraphColorScheme.BACKGROUND));

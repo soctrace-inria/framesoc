@@ -30,7 +30,15 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +55,7 @@ import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
+import fr.inria.soctrace.framesoc.ui.gantt.snapshot.GanttSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
@@ -567,6 +576,10 @@ public class GanttView extends AbstractGanttView {
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
 		manager.add(new Separator());
+		
+		// snapshot
+		manager.add(createSnapshotAction());
+		manager.add(new Separator());
 
 		// zoom
 		manager.add(getTimeGraphViewer().getResetScaleAction());
@@ -782,5 +795,104 @@ public class GanttView extends AbstractGanttView {
 			typeFilterAction.setToolTipText("Show Event Type Filter");
 		}
 	}
+	
+	/**
+	 * Initialize the snapshot action
+	 * 
+	 * @return the action
+	 */
+	public IAction createSnapshotAction() {
+		SnapshotAction snapshotAction = new SnapshotAction("",
+				IAction.AS_PUSH_BUTTON);
+		snapshotAction.ganttView = this;
+		snapshotAction.setImageDescriptor(ResourceManager
+				.getPluginImageDescriptor(Activator.PLUGIN_ID,
+						"icons/snapshot.png"));
+		snapshotAction.setToolTipText("Take a snapshot");
 
+		return snapshotAction;
+	}
+	
+	private class SnapshotAction extends Action {
+		public GanttView ganttView;
+
+		public SnapshotAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			Rectangle bound = getTimeGraphViewer().getTimeGraphControl().getClientArea();
+			new GanttSnapshotDialog(getSite().getShell(), ganttView, bound.width, bound.height).open();
+		}
+	}
+
+	/**
+	 * Take a snaphsot of the Gantt Chart
+	 * 
+	 * @param width
+	 *            width of the snapshot
+	 * @param height
+	 *            height of the snapshot. Is ignored if full height is selected.
+	 * @param fullHeight
+	 *            should we take the whole hierarchy
+	 * @param includeHeader
+	 *            Should we take the time scale
+	 * @param fileName
+	 *            name of the file where to save the snapshot
+	 * 
+	 */
+	public void takeSnapshot(int width, int height, boolean fullHeight, boolean includeHeader, String fileName) {
+		int totalHeight = 0;
+		int headerHeight = getTimeGraphViewer().getHeaderHeight();
+		
+		// If we are taking the whole hieght
+		if (fullHeight) {
+			int itemHeight = getTimeGraphViewer().getTimeGraphControl()
+					.getItemHeight() + 2;
+
+			// If we are including the time scale
+			if (includeHeader)
+				// Add its height
+				totalHeight += headerHeight;
+
+			totalHeight += itemHeight
+					* (getTimeGraphViewer().getTimeGraphControl()
+							.getExpandedElementCount());
+		} else {
+			totalHeight = height;
+		}
+		
+	    Image image = new Image(Display.getCurrent(), width, totalHeight);
+	    GC gc = new GC(image);
+
+		// Create a paint event to pain on the image graphic context
+	    Event newEvent = new Event();
+	    newEvent.display = Display.getCurrent();
+	    newEvent.widget = getTimeGraphViewer().getTimeGraphControl();
+	    
+		PaintEvent paintEvent = new PaintEvent(newEvent);
+		paintEvent.gc = gc;
+		paintEvent.width = width;
+		paintEvent.height = totalHeight;
+
+		// Paint the graph
+		getTimeGraphViewer().getTimeGraphControl().takeSnapshot(paintEvent, fullHeight);	
+		
+		// Paint the header
+		if (includeHeader) {
+			paintEvent.y = totalHeight - headerHeight;
+			getTimeGraphViewer().getTimeGraphScale().takeSnapshot(paintEvent,
+					false);
+		}
+		
+		// Save the file
+	    ImageLoader loader = new ImageLoader();
+	    loader.data = new ImageData[] {image.getImageData()};
+	    loader.save(fileName, SWT.IMAGE_PNG);
+
+	    image.dispose();
+
+	}
+	
 }

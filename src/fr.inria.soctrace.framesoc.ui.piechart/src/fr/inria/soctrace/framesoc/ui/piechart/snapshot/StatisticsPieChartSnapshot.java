@@ -16,8 +16,6 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 public class StatisticsPieChartSnapshot extends Snapshot {
 	private static final String SUFFIX_SNAPSHOT = "_pie";
 	private StatisticsPieChartView pieView;
-	private int width;
-	private int height;
 
 	public StatisticsPieChartSnapshot(String directory, StatisticsPieChartView pieView) {
 		super(directory);
@@ -60,22 +58,6 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 				writer.close();
 			}
 		}
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public void setWidth(int width) {
-		this.width = width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
-	public void setHeight(int height) {
-		this.height = height;
 	}
 
 	public String getTableInfo() {

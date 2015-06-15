@@ -29,8 +29,6 @@ public class HistogramSnapshot extends Snapshot {
 
 	private static final String SUFFIX_SNAPSHOT = "_histo.png";
 	private HistogramView histoView;
-	private int width;
-	private int height;
 
 	public HistogramSnapshot(String directory, HistogramView histoView) {
 		super(directory);
@@ -55,19 +53,4 @@ public class HistogramSnapshot extends Snapshot {
 		}
 	}
 
-	public int getWidth() {
-		return width;
-	}
-
-	public void setWidth(int width) {
-		this.width = width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
-	public void setHeight(int height) {
-		this.height = height;
-	}
 }
