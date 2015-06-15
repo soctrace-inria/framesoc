@@ -81,7 +81,7 @@ public class FramesocColorService implements IFramesocBusListener {
 		try {
 			if (!FramesocManager.getInstance().isSystemDBExisting())
 				return;
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> tmp = tq.getList();
 			for (Trace t: tmp) {
@@ -116,7 +116,7 @@ public class FramesocColorService implements IFramesocBusListener {
 
 		SystemDBObject sysDB= null;
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> tmp = tq.getList();
 			sysDB.close();

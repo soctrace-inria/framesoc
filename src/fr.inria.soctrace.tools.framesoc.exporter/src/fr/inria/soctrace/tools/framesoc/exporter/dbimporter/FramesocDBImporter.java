@@ -164,7 +164,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 			try {
 				// Open the System DB
-				sysDB = SystemDBObject.openNewIstance();
+				sysDB = SystemDBObject.openNewInstance();
 				IdManager idManager = new IdManager();
 				idManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE.toString(), "ID") + 1);
 

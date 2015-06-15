@@ -119,7 +119,7 @@ public enum Initializer {
 
 		SystemDBObject sysDB = null;
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			ToolQuery tq = new ToolQuery(sysDB);
 			List<Tool> registeredTools = tq.getList();
 			List<Tool> runtimeTools = ToolContributionManager.getPluginTools(new IdManager());
@@ -180,7 +180,7 @@ public enum Initializer {
 		SystemDBObject sysDB = null;
 
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 

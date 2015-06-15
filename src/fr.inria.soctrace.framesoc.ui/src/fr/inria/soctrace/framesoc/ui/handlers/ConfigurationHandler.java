@@ -53,7 +53,7 @@ public class ConfigurationHandler extends AbstractHandler {
 
 		// update TOOL table
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 
 			Map<Integer, Tool> newTools = dialog.getManageToolsComposite().getNewTools();
 			Map<Integer, Tool> oldTools = dialog.getOldTools();

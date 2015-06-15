@@ -52,7 +52,7 @@ public class SystemDBObject extends DBObject {
 	 * @return a new system db object  
 	 * @throws SoCTraceException
 	 */
-	public static SystemDBObject openNewIstance() throws SoCTraceException { // TODO: check this name
+	public static SystemDBObject openNewInstance() throws SoCTraceException { // TODO: check this name
 		return new SystemDBObject(Configuration.getInstance().get(SoCTraceProperty.soctrace_db_name), 
 				DBMode.DB_OPEN);
 	}

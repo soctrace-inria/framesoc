@@ -258,7 +258,7 @@ public class PrepareTestResources {
 	}
 
 	private static void saveProcessedTrace() throws SoCTraceException {
-		SystemDBObject sysDB = SystemDBObject.openNewIstance();
+		SystemDBObject sysDB = SystemDBObject.openNewInstance();
 
 		Trace dest = new Trace(TestConstants.PROCESSED_TRACE_ID);
 		dest.setProcessed(true);

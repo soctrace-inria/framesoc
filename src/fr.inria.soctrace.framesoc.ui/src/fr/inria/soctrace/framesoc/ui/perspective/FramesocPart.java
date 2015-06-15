@@ -279,7 +279,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			SystemDBObject sysDB = null;
 			boolean hide = false;
 			try {
-				sysDB = SystemDBObject.openNewIstance();
+				sysDB = SystemDBObject.openNewInstance();
 				TraceQuery tq = new TraceQuery(sysDB);
 				tq.setElementWhere(new SimpleCondition("ID", ComparisonOperation.EQ, String
 						.valueOf(t.getId())));

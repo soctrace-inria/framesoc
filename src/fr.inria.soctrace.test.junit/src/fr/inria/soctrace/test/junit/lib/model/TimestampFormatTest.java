@@ -70,10 +70,6 @@ public class TimestampFormatTest {
 	
 	@Test 
 	public void testFormatLongUs() {
-		DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance();
-		DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
-		char decimalSeparator = symbols.getDecimalSeparator();
-		
 		TimeUnit us = TimeUnit.MICROSECONDS;
 		List<FormattedNumber<Long>> list = new ArrayList<>();
 		list.add(new FormattedNumber<Long>(111L, "111 us"));

@@ -357,7 +357,7 @@ public class TraceDetailsLoader {
 		SystemDBObject sysDB = null;
 
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 
 			for (Trace trace : currentTraces) {
 				argError |= updateTraceObject(trace);

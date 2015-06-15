@@ -126,7 +126,7 @@ public class ExporterJob extends Job {
 
 			SystemDBObject sysDB = null;
 			try {
-				sysDB = SystemDBObject.openNewIstance();
+				sysDB = SystemDBObject.openNewInstance();
 				ToolQuery tq = new ToolQuery(sysDB);
 				metadata.tools = tq.getList();
 			} finally {
