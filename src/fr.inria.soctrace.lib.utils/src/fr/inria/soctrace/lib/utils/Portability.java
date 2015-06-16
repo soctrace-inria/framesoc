@@ -97,6 +97,8 @@ public class Portability {
             return OSTYPE.UNIX;
         if (osName.indexOf("win") >= 0)
             return OSTYPE.WIN;
+        if (osName.indexOf("mac") >= 0)
+            return OSTYPE.UNIX;
 		return OSTYPE.UNKNOWN;                    
 	}
 }

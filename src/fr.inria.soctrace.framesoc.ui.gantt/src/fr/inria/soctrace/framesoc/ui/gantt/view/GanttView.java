@@ -846,7 +846,7 @@ public class GanttView extends AbstractGanttView {
 		int totalHeight = 0;
 		int headerHeight = getTimeGraphViewer().getHeaderHeight();
 		
-		// If we are taking the whole hieght
+		// If we are taking the full height of the gantt
 		if (fullHeight) {
 			int itemHeight = getTimeGraphViewer().getTimeGraphControl()
 					.getItemHeight() + 2;
@@ -892,6 +892,7 @@ public class GanttView extends AbstractGanttView {
 	    loader.save(fileName, SWT.IMAGE_PNG);
 
 	    image.dispose();
+	    gc.dispose();
 
 	}
 	
