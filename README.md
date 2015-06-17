@@ -72,8 +72,11 @@ You can import traces using the following procedure:
   trace importers for several trace formats.
 
 ## Support and Contact
+There is a dedicated mailing-list for Framesoc users and developers:
 
-You can contact us by email (replace -at- with @):
+- soctrace-users@lists.gforge.inria.fr ([Register here](https://lists.gforge.inria.fr/cgi-bin/mailman/listinfo/soctrace-users))
+
+Alternatively, you can contact us directly by email (replace -at- with @):
 
 - generoso.pagano -at- inria.fr
 - damien.dosimont -at- imag.fr
