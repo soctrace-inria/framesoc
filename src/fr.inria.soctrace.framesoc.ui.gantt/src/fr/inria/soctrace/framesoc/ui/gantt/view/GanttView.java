@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -822,7 +823,7 @@ public class GanttView extends AbstractGanttView {
 
 		@Override
 		public void run() {
-			Rectangle bound = getTimeGraphViewer().getTimeGraphControl().getClientArea();
+			Rectangle bound = getTimeGraphCombo().getClientArea();
 			new GanttSnapshotDialog(getSite().getShell(), ganttView, bound.width, bound.height).open();
 		}
 	}
@@ -836,64 +837,153 @@ public class GanttView extends AbstractGanttView {
 	 *            height of the snapshot. Is ignored if full height is selected.
 	 * @param fullHeight
 	 *            should we take the whole hierarchy
-	 * @param includeHeader
+	 * @param includeTimeScale
 	 *            Should we take the time scale
 	 * @param fileName
 	 *            name of the file where to save the snapshot
-	 * 
 	 */
-	public void takeSnapshot(int width, int height, boolean fullHeight, boolean includeHeader, String fileName) {
+	public void takeSnapshot(int width, int height, boolean fullHeight,
+			boolean includeTimeScale, String fileName) {
 		int totalHeight = 0;
-		int headerHeight = getTimeGraphViewer().getHeaderHeight();
-		
-		// If we are taking the full height of the gantt
-		if (fullHeight) {
-			int itemHeight = getTimeGraphViewer().getTimeGraphControl()
-					.getItemHeight() + 2;
+		int hierarchyWidth = getTimeGraphCombo().getTreeViewer().getTree()
+				.getBounds().width;
+		int headerHeight = 0;
 
-			// If we are including the time scale
-			if (includeHeader)
-				// Add its height
-				totalHeight += headerHeight;
+		if (includeTimeScale)
+			headerHeight = getTimeGraphViewer().getHeaderHeight();
 
-			totalHeight += itemHeight
-					* (getTimeGraphViewer().getTimeGraphControl()
-							.getExpandedElementCount());
-		} else {
-			totalHeight = height;
-		}
-		
-	    Image image = new Image(Display.getCurrent(), width, totalHeight);
-	    GC gc = new GC(image);
+		totalHeight = computeHeight(fullHeight, headerHeight, height);
 
-		// Create a paint event to pain on the image graphic context
-	    Event newEvent = new Event();
-	    newEvent.display = Display.getCurrent();
-	    newEvent.widget = getTimeGraphViewer().getTimeGraphControl();
-	    
+		Image image = new Image(Display.getCurrent(), width, totalHeight);
+		GC gc = new GC(image);
+
+		// Draw hierarchy and adjust the height
+		drawHierarchy(gc, fullHeight);
+
+		// Create a paint event to paint on the image graphic context
+		Event newEvent = new Event();
+		newEvent.display = Display.getCurrent();
+		newEvent.widget = getTimeGraphViewer().getTimeGraphControl();
+
 		PaintEvent paintEvent = new PaintEvent(newEvent);
 		paintEvent.gc = gc;
 		paintEvent.width = width;
 		paintEvent.height = totalHeight;
+		paintEvent.x = hierarchyWidth;
 
 		// Paint the graph
-		getTimeGraphViewer().getTimeGraphControl().takeSnapshot(paintEvent, fullHeight);	
-		
-		// Paint the header
-		if (includeHeader) {
+		getTimeGraphViewer().getTimeGraphControl().takeSnapshot(paintEvent,
+				fullHeight);
+
+		// Paint the time scale
+		if (includeTimeScale) {
+			// Mask the extra hierarchy in the corner
+			gc.setBackground(Display.getCurrent().getSystemColor(
+					SWT.COLOR_WIDGET_BACKGROUND));
+			gc.fillRectangle(0, totalHeight - headerHeight, hierarchyWidth,
+					headerHeight);
+
+			// Make the drawing starts at the bottom of the graph
 			paintEvent.y = totalHeight - headerHeight;
 			getTimeGraphViewer().getTimeGraphScale().takeSnapshot(paintEvent,
 					false);
 		}
-		
+
 		// Save the file
-	    ImageLoader loader = new ImageLoader();
-	    loader.data = new ImageData[] {image.getImageData()};
-	    loader.save(fileName, SWT.IMAGE_PNG);
+		ImageLoader loader = new ImageLoader();
+		loader.data = new ImageData[] { image.getImageData() };
+		loader.save(fileName, SWT.IMAGE_PNG);
 
-	    image.dispose();
-	    gc.dispose();
+		// Clean stuff
+		image.dispose();
+		gc.dispose();
+	}
 
+	/**
+	 * Draw the hierarchy
+	 * 
+	 * @param gc
+	 *            the graphics context on which to draw
+	 * @return the total height of the drawing
+	 */
+	private void drawHierarchy(GC gc, boolean fullHeight) {
+		ITimeGraphEntry[] graphEntries = getTimeGraphViewer().getExpandedElements();
+		int entryHeight = 0;
+		int currentHeight = 0;
+		int entryLevel = 0;
+		// Shift to apply when getting down one hierarchy level
+		int entryShifting = 20;
+		// Shift to center the name of the producer
+		int verticalShift = 5;
+		int width = getTimeGraphCombo().getTreeViewer().getTree().getBounds().width;
+		
+		// Set colors
+		Color rectangleBgColor1 = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+		Color rectangleBgColor2 = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		Color fgColor = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		gc.setBackground(rectangleBgColor2);
+		gc.setForeground(fgColor);
+
+		int topIndex = getTimeGraphViewer().getTimeGraphControl().getTopIndex();
+		if (fullHeight)
+			// Draw all
+			topIndex = 0;
+		
+		for (int i = topIndex; i < graphEntries.length; i++) { 
+			entryHeight = getTimeGraphViewer().getTimeGraphControl()
+					.getItemHeight(graphEntries[i]);
+			entryLevel = getTimeGraphViewer().getTimeGraphControl()
+					.getItemLevel(graphEntries[i]) + 1;
+
+			// Alternate background colors for better visibility
+			if (i % 2 == 0) {
+				gc.setBackground(rectangleBgColor1);
+			} else {
+				gc.setBackground(rectangleBgColor2);
+			}
+
+			// Draw the entry
+			gc.fillRectangle(0, currentHeight, width, entryHeight);
+			gc.drawText(graphEntries[i].getName(), entryLevel * entryShifting,
+					currentHeight + verticalShift);
+			
+			// Update total height
+			currentHeight += entryHeight;
+		}
 	}
 	
+	/**
+	 * Compute the height of the final image according to the given constraints
+	 * 
+	 * @param fullHeight
+	 *            do we capture the whole height of the gantt
+	 * @param timeScaleHeight
+	 *            do we capture the time scale
+	 * @param askedHeight
+	 *            the height required by the user
+	 * @return the computed height
+	 */
+	private int computeHeight(boolean fullHeight, int timeScaleHeight, int askedHeight) {
+		ITimeGraphEntry[] graphEntries = getTimeGraphViewer()
+				.getExpandedElements();
+		int computedHeight = timeScaleHeight;
+		// Index of the top element currently displayed on the gantt
+		int topIndex = 0;
+
+		if (!fullHeight)
+			topIndex = getTimeGraphViewer().getTimeGraphControl().getTopIndex();
+
+		for (int i = topIndex; i < graphEntries.length; i++) {
+			// Update total height
+			computedHeight += getTimeGraphViewer().getTimeGraphControl()
+					.getItemHeight(graphEntries[i]);
+		}
+
+		// If the computed is larger than what was asked
+		if (!fullHeight && computedHeight > askedHeight)
+			computedHeight = askedHeight;
+
+		return computedHeight;
+	}
+
 }

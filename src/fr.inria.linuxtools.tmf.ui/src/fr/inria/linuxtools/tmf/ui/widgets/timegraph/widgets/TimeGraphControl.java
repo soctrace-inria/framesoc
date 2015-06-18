@@ -2527,6 +2527,28 @@ public class TimeGraphControl extends TimeGraphBaseControl
         return fGlobalItemHeight;
     }
 
+
+    /**
+     * @Framesoc
+     *
+     * @param timeGraphEntry
+     *            the time graph entry for which we want the height
+     * @return The height of specific a item entry
+     */
+    public int getItemHeight(ITimeGraphEntry timeGraphEntry) {
+        return fItemData.findItem(timeGraphEntry).fItemHeight;
+    }
+
+    /**
+     * @Framesoc
+     * @param timeGraphEntry
+     *            the time graph entry for which we want the level
+     * @return The hierarchy level of specific a item entry
+     */
+    public int getItemLevel(ITimeGraphEntry timeGraphEntry) {
+        return fItemData.findItem(timeGraphEntry).fLevel;
+    }
+
     /**
      * Set the default height of regular item rows.
      *
