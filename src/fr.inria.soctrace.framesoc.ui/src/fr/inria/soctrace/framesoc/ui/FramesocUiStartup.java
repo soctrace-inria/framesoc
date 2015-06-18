@@ -67,7 +67,7 @@ public class FramesocUiStartup implements IStartup {
 		}
 
 		if (!validateConfFile(false)) {
-			message("The configuration file still contains non valid parameters.\nPlease initialize the system with correct values, using the menu Framesoc > Management > Initialize System.",
+			message("The configuration file still contains non valid parameters.\nPlease initialize the system with correct values, using the menu Framesoc > Preferences.",
 					true);
 			logger.error("Configuration file still not valid.");
 			return; // the second time, if still not valid, we terminate
