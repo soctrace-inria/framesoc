@@ -135,13 +135,13 @@ public class GanttSnapshotDialog extends Dialog {
 		fullHeigtSelection.setSelection(false);
 		fullHeigtSelection.setText("Snapshot full height");
 		fullHeigtSelection
-				.setToolTipText("Snapshot the full height of the Gannt.");
+				.setToolTipText("Snapshot the full height of the Gantt.");
 		fullHeigtSelection.addSelectionListener(new FullHeightistener());
 
 		includeHeader = new Button(optionComposite, SWT.CHECK);
 		includeHeader.setSelection(false);
 		includeHeader.setText("Include time scale");
-		includeHeader.setToolTipText("Snapshot the time scale.");
+		includeHeader.setToolTipText("Include the time scale at the bottom of the snapshot.");
 		includeHeader.addSelectionListener(new FullHeightistener());
 
 		return composite;

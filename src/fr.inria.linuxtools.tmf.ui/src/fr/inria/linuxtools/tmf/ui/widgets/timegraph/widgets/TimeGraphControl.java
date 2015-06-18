@@ -173,6 +173,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
     // @Framesoc
     private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
     private TimestampFormat fFormatter = new TimestampFormat();
+    private boolean snapshot = false;
+    private Rectangle snapBounds;
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -1211,9 +1213,19 @@ public class TimeGraphControl extends TimeGraphBaseControl
         long time0 = fTimeProvider.getTime0();
         long time1 = fTimeProvider.getTime1();
         int width = getCtrlSize().x;
+        // @Framesoc
+        if (snapshot) {
+            width = snapBounds.width - snapBounds.x;
+        }
+
         int nameSpace = fTimeProvider.getNameSpace();
         double pixelsPerNanoSec = (width - nameSpace <= RIGHT_MARGIN) ? 0 : (double) (width - nameSpace - RIGHT_MARGIN) / (time1 - time0);
-        int x = getBounds().x + nameSpace + (int) ((time - time0) * pixelsPerNanoSec);
+        int xBound = getBounds().x;
+        // @Framesoc
+        if (snapshot) {
+            xBound = snapBounds.x;
+        }
+        int x = xBound + nameSpace + (int) ((time - time0) * pixelsPerNanoSec);
         return x;
     }
 
@@ -1376,8 +1388,11 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void takeSnapshot(Rectangle bounds, PaintEvent e, boolean fullHeight)
     {
         int oldTopIndex = fTopIndex;
+        snapshot = true;
+        snapBounds = bounds;
 
         if (fullHeight) {
+            // Change top index in order to get the whole hierarchy
             oldTopIndex = fTopIndex;
             fTopIndex = 0;
             int ySum = 0;
@@ -1391,8 +1406,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
 
         paint(bounds, e);
-
         fTopIndex = oldTopIndex;
+        snapshot = false;
     }
 
     @Override
