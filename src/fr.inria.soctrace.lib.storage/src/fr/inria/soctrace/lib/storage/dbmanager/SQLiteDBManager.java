@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.Portability;
@@ -185,4 +186,9 @@ public class SQLiteDBManager extends DBManager {
 	/*
 	 * Default table creators are OK.
 	 */
+	
+	@Override
+	public String getTableInfoQuery(FramesocTable framesocTable) {
+		return "PRAGMA table_info(" + framesocTable.name() + ");";
+	}
 }

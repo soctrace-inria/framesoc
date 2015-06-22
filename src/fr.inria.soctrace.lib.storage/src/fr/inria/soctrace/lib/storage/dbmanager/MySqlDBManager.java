@@ -528,6 +528,11 @@ public class MySqlDBManager extends DBManager {
 		}
 	}
 
+	@Override
+	public String getTableInfoQuery(FramesocTable framesocTable) {
+		return "DESC " + framesocTable.name();
+	}
+
 	// Default is OK
 	// public void initSearchMapping() throws SoCTraceException { }
 

@@ -21,6 +21,7 @@ import fr.inria.soctrace.lib.model.TraceType;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.SoctraceUtils;
 
@@ -83,24 +84,24 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE);
 			psd.visited = true;
-			psd.statement.setInt(1, trace.getId());
-			psd.statement.setInt(2, trace.getType().getId());
+			psd.statement.setInt(TraceTableModel.ID.getPos(), trace.getId());
+			psd.statement.setInt(TraceTableModel.TRACE_TYPE_ID.getPos(), trace.getType().getId());
 			// XXX see note at the bottom of ModelVisitor.java
-			psd.statement.setString(3, SoctraceUtils.timestampToString(trace.getTracingDate()));
-			psd.statement.setString(4, trace.getTracedApplication());
-			psd.statement.setString(5, trace.getBoard());
-			psd.statement.setString(6, trace.getOperatingSystem());
-			psd.statement.setInt(7, trace.getNumberOfCpus());
-			psd.statement.setInt(8, trace.getNumberOfEvents());
-			psd.statement.setString(9, trace.getOutputDevice());
-			psd.statement.setString(10, trace.getDescription());
-			psd.statement.setBoolean(11, trace.isProcessed());
-			psd.statement.setString(12, trace.getDbName());
-			psd.statement.setString(13, trace.getAlias());
-			psd.statement.setLong(14, trace.getMinTimestamp());
-			psd.statement.setLong(15, trace.getMaxTimestamp());
-			psd.statement.setInt(16, trace.getTimeUnit());
-			psd.statement.setInt(17, trace.getNumberOfProducers());
+			psd.statement.setString(TraceTableModel.TRACING_DATE.getPos(), SoctraceUtils.timestampToString(trace.getTracingDate()));
+			psd.statement.setString(TraceTableModel.TRACED_APPLICATION.getPos(), trace.getTracedApplication());
+			psd.statement.setString(TraceTableModel.BOARD.getPos(), trace.getBoard());
+			psd.statement.setString(TraceTableModel.OPERATING_SYSTEM.getPos(), trace.getOperatingSystem());
+			psd.statement.setInt(TraceTableModel.NUMBER_OF_CPUS.getPos(), trace.getNumberOfCpus());
+			psd.statement.setInt(TraceTableModel.NUMBER_OF_EVENTS.getPos(), trace.getNumberOfEvents());
+			psd.statement.setString(TraceTableModel.OUTPUT_DEVICE.getPos(), trace.getOutputDevice());
+			psd.statement.setString(TraceTableModel.DESCRIPTION.getPos(), trace.getDescription());
+			psd.statement.setBoolean(TraceTableModel.PROCESSED.getPos(), trace.isProcessed());
+			psd.statement.setString(TraceTableModel.TRACE_DB_NAME.getPos(), trace.getDbName());
+			psd.statement.setString(TraceTableModel.ALIAS.getPos(), trace.getAlias());
+			psd.statement.setLong(TraceTableModel.MIN_TIMESTAMP.getPos(), trace.getMinTimestamp());
+			psd.statement.setLong(TraceTableModel.MAX_TIMESTAMP.getPos(), trace.getMaxTimestamp());
+			psd.statement.setInt(TraceTableModel.TIMEUNIT.getPos(), trace.getTimeUnit());
+			psd.statement.setInt(TraceTableModel.NUMBER_OF_PRODUCERS.getPos(), trace.getNumberOfProducers());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

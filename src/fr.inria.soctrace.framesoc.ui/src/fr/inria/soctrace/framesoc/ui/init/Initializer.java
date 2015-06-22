@@ -36,6 +36,7 @@ import fr.inria.soctrace.lib.query.ToolQuery;
 import fr.inria.soctrace.lib.query.TraceQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelChecker;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
@@ -173,7 +174,8 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing, removing them if it is not the case.
+	 * Check if the existing system DB is similar and if all the registered
+	 * TraceDBs are still existing, removing them if it is not the case.
 	 */
 	public void manageDatabases() {
 
@@ -181,6 +183,11 @@ public enum Initializer {
 
 		try {
 			sysDB = SystemDBObject.openNewInstance();
+			
+			DBModelChecker checker = new DBModelChecker();
+			if (!checker.checkDB(sysDB))
+				return;
+			
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 

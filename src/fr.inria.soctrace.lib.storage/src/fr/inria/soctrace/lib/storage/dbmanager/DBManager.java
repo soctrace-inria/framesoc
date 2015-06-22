@@ -563,5 +563,14 @@ public abstract class DBManager {
 			throw new SoCTraceException(e);
 		}
 	}
+	
+	/**
+	 * Build the query to build in order to get the info
+	 * 
+	 * @param framesocTable
+	 *            the table from which we want the info
+	 * @return the query
+	 */
+	public abstract	String getTableInfoQuery(FramesocTable framesocTable);
 
 }

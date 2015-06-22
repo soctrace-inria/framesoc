@@ -60,9 +60,10 @@ public class SystemDBObject extends DBObject {
 	@Override
 	protected void createDB() throws SoCTraceException {	
 
-		if ( dbManager.isDBExisting() )
-			throw new SoCTraceException("Database "+dbManager.getDBName()+" already present");
-		
+		if (dbManager.isDBExisting())
+			throw new SoCTraceException("Database " + dbManager.getDBName()
+					+ " already present");
+
 		// create the DB and the tables
 		dbManager.createDB();
 		

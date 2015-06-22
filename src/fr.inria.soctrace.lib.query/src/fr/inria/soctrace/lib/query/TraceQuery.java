@@ -26,6 +26,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.conditions.ICondition;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.SoctraceUtils;
 
@@ -273,26 +274,26 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	 * @throws SoCTraceException
 	 */
 	private Trace rebuildTrace(ResultSet rs) throws SQLException, SoCTraceException {
-		Trace t = new Trace(rs.getInt(1));
+		Trace t = new Trace(rs.getInt(TraceTableModel.ID.getPos()));
 		SystemDBObject sysDB = (SystemDBObject)dbObj;
-		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getInt(2));
+		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getInt(TraceTableModel.TRACE_TYPE_ID.getPos()));
 		t.setType(tt);
 		// XXX see note at the bottom of ModelVisitor.java
-		t.setTracingDate(SoctraceUtils.stringToTimestamp(rs.getString(3)));
-		t.setTracedApplication(rs.getString(4));
-		t.setBoard(rs.getString(5));
-		t.setOperatingSystem(rs.getString(6));
-		t.setNumberOfCpus(rs.getInt(7));
-		t.setNumberOfEvents(rs.getInt(8));
-		t.setOutputDevice(rs.getString(9));
-		t.setDescription(rs.getString(10));
-		t.setProcessed(rs.getBoolean(11));
-		t.setDbName(rs.getString(12));
-		t.setAlias(rs.getString(13));
-		t.setMinTimestamp(rs.getLong(14));
-		t.setMaxTimestamp(rs.getLong(15));
-		t.setTimeUnit(rs.getInt(16));
-		t.setNumberOfProducers(rs.getInt(17));
+		t.setTracingDate(SoctraceUtils.stringToTimestamp(rs.getString(TraceTableModel.TRACING_DATE.getPos())));
+		t.setTracedApplication(rs.getString(TraceTableModel.TRACED_APPLICATION.getPos()));
+		t.setBoard(rs.getString(TraceTableModel.BOARD.getPos()));
+		t.setOperatingSystem(rs.getString(TraceTableModel.OPERATING_SYSTEM.getPos()));
+		t.setNumberOfCpus(rs.getInt(TraceTableModel.NUMBER_OF_CPUS.getPos()));
+		t.setNumberOfEvents(rs.getInt(TraceTableModel.NUMBER_OF_EVENTS.getPos()));
+		t.setOutputDevice(rs.getString(TraceTableModel.OUTPUT_DEVICE.getPos()));
+		t.setDescription(rs.getString(TraceTableModel.DESCRIPTION.getPos()));
+		t.setProcessed(rs.getBoolean(TraceTableModel.PROCESSED.getPos()));
+		t.setDbName(rs.getString(TraceTableModel.TRACE_DB_NAME.getPos()));
+		t.setAlias(rs.getString(TraceTableModel.ALIAS.getPos()));
+		t.setMinTimestamp(rs.getLong(TraceTableModel.MIN_TIMESTAMP.getPos()));
+		t.setMaxTimestamp(rs.getLong(TraceTableModel.MAX_TIMESTAMP.getPos()));
+		t.setTimeUnit(rs.getInt(TraceTableModel.TIMEUNIT.getPos()));
+		t.setNumberOfProducers(rs.getInt(TraceTableModel.NUMBER_OF_PRODUCERS.getPos()));
 		return t;
 	}
 	

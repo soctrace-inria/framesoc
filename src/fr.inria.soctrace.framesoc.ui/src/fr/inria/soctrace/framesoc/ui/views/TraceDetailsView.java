@@ -58,7 +58,6 @@ import fr.inria.soctrace.framesoc.core.bus.IFramesocBusListener;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.dialogs.NewParamDialog;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceDetailsLoader;
-import fr.inria.soctrace.framesoc.ui.loaders.TraceDetailsLoader.TraceField;
 import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
 import fr.inria.soctrace.framesoc.ui.model.DetailsTableRow;
 import fr.inria.soctrace.framesoc.ui.model.TraceNode;
@@ -67,6 +66,7 @@ import fr.inria.soctrace.framesoc.ui.utils.TraceSelection;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 
 /**
  * View displaying trace metadata.
@@ -566,7 +566,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 		private boolean isTimeUnit(Object element) {
 			DetailsTableRow row = (DetailsTableRow) element;
-			return row.getName().equals(TraceField.TIMEUNIT.toString());
+			return row.getName().equals(TraceTableModel.TIMEUNIT.getName());
 		}
 
 		public Action createSaveAction() {

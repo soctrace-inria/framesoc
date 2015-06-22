@@ -171,5 +171,4 @@ public abstract class SQLConstants {
 	public final static String PREPARED_STATEMENT_SEARCH_MAPPING_DELETE = "DELETE FROM " + FramesocTable.SEARCH_MAPPING + " WHERE ANALYSIS_RESULT_ID=?;";
 	
 	public final static String PREPARED_STATEMENT_PROCESSED_TRACE_DELETE = "DELETE FROM " + FramesocTable.PROCESSED_TRACE + " WHERE ANALYSIS_RESULT_ID=?;";
-
 }
