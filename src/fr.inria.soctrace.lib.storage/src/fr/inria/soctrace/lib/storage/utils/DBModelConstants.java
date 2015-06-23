@@ -6,17 +6,16 @@ import java.util.Map;
 
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
-@SuppressWarnings("rawtypes")
 public abstract class DBModelConstants {
 
-	public static final Map<FramesocTable, Class > TableModelDictionary;
+	public static final Map<FramesocTable, Class<?> > TableModelDictionary;
 	static {
-		Map<FramesocTable, Class> aMap = new HashMap<FramesocTable, Class>();
+		Map<FramesocTable, Class<?>> aMap = new HashMap<FramesocTable, Class<?>>();
 		aMap.put(FramesocTable.TRACE, TraceTableModel.class);
-	/*	aMap.put(FramesocTable.TRACE_TYPE, TraceTypeTableModel.class);
+		aMap.put(FramesocTable.TRACE_TYPE, TraceTypeTableModel.class);
 		aMap.put(FramesocTable.TRACE_PARAM, TraceParamTableModel.class);
 		aMap.put(FramesocTable.TRACE_PARAM_TYPE, TraceParamTypeTableModel.class);
-		aMap.put(FramesocTable.TOOL, ToolTableModel.class);*/
+		aMap.put(FramesocTable.TOOL, ToolTableModel.class);
 		TableModelDictionary = Collections.unmodifiableMap(aMap);
 	}
 	
@@ -84,6 +83,198 @@ public abstract class DBModelConstants {
 			
 			return null;
 		}
+
+		public static int numberOfColumns() {
+			return values().length;
+		}
+	}
+	
+	public static enum TraceTypeTableModel implements TableModel {		
+		ID("ID", 1),
+		NAME("Name", 2);
+
+		private String name;
+		private int pos;
+		
+		private TraceTypeTableModel(String name, int pos) {
+			this.name = name;
+			this.pos = pos;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getPos() {
+			return pos;
+		}
+
+		public void setPos(int pos) {
+			this.pos = pos;
+		}
+
+		public String getDbColumnName() {
+			return this.toString();
+		}
+		
+		public static TraceTypeTableModel getValueAt(Integer pos) {
+			for (TraceTypeTableModel traceTableModel : values())
+				if (traceTableModel.getPos() == pos)
+					return traceTableModel;
+			
+			return null;
+		}
+		
+		public static int numberOfColumns() {
+			return values().length;
+		}
+	}
+	
+	public static enum TraceParamTableModel implements TableModel {		
+		ID("ID", 1),
+		TRACE_ID("Trace ID", 2),
+		TRACE_PARAM_TYPE_ID("Trace parameter type id", 3),
+		VALUE("Value", 4);
+
+		private String name;
+		private int pos;
+		
+		private TraceParamTableModel(String name, int pos) {
+			this.name = name;
+			this.pos = pos;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getPos() {
+			return pos;
+		}
+
+		public void setPos(int pos) {
+			this.pos = pos;
+		}
+
+		public String getDbColumnName() {
+			return this.toString();
+		}
+		
+		public static TraceParamTableModel getValueAt(Integer pos) {
+			for (TraceParamTableModel traceTableModel : values())
+				if (traceTableModel.getPos() == pos)
+					return traceTableModel;
+			
+			return null;
+		}
+		
+		public static int numberOfColumns() {
+			return values().length;
+		}
 	}
 
+	public static enum TraceParamTypeTableModel implements TableModel {		
+		ID("ID", 1),
+		TRACE_TYPE_ID("Trace ID", 2),
+		NAME("Name", 3),
+		TYPE("Type", 4);
+
+		private String name;
+		private int pos;
+		
+		private TraceParamTypeTableModel(String name, int pos) {
+			this.name = name;
+			this.pos = pos;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getPos() {
+			return pos;
+		}
+
+		public void setPos(int pos) {
+			this.pos = pos;
+		}
+
+		public String getDbColumnName() {
+			return this.toString();
+		}
+		
+		public static TraceParamTypeTableModel getValueAt(Integer pos) {
+			for (TraceParamTypeTableModel traceTableModel : values())
+				if (traceTableModel.getPos() == pos)
+					return traceTableModel;
+			
+			return null;
+		}
+		
+		public static int numberOfColumns() {
+			return values().length;
+		}
+	}
+	
+	public static enum ToolTableModel implements TableModel {		
+		ID("ID", 1),
+		NAME("Name", 2),
+		TYPE("Type", 3),
+		COMMAND("Command", 4),
+		IS_PLUGIN("Is plugin", 5),
+		DOC("Doc", 6),
+		EXTENSION_ID("Extension", 7);
+
+		private String name;
+		private int pos;
+		
+		private ToolTableModel(String name, int pos) {
+			this.name = name;
+			this.pos = pos;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getPos() {
+			return pos;
+		}
+
+		public void setPos(int pos) {
+			this.pos = pos;
+		}
+
+		public String getDbColumnName() {
+			return this.toString();
+		}
+		
+		public static ToolTableModel getValueAt(Integer pos) {
+			for (ToolTableModel traceTableModel : values())
+				if (traceTableModel.getPos() == pos)
+					return traceTableModel;
+			
+			return null;
+		}
+		
+		public static int numberOfColumns() {
+			return values().length;
+		}
+	}
 }

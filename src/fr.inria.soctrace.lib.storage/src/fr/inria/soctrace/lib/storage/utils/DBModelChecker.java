@@ -9,14 +9,14 @@ import java.sql.Statement;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TableModel;
-import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
 public class DBModelChecker {
 
-	private final static FramesocTable[] checkedTableModel = { FramesocTable.TRACE};
-		//	FramesocTable.TRACE_TYPE, FramesocTable.TRACE_PARAM_TYPE,
-		//	FramesocTable.TRACE_PARAM, FramesocTable.TOOL };
+	private final static FramesocTable[] checkedTableModel = {
+			FramesocTable.TRACE, FramesocTable.TRACE_TYPE,
+			FramesocTable.TRACE_PARAM_TYPE, FramesocTable.TRACE_PARAM,
+			FramesocTable.TOOL };
 	
 	// Iterate on Framesoc table
 	public static final int NAME_COLUMN_INDEX = 2;
@@ -31,11 +31,12 @@ public class DBModelChecker {
 			try {
 				stm = systemDB.getConnection().createStatement();
 				String query = systemDB.getTraceInfoQuery(framesocTable);
-				
+				cpt = 1;
+
 				// Get the class method corresponding to the current model
-				@SuppressWarnings("unchecked")
-				Method m = DBModelConstants.TableModelDictionary.get(framesocTable).getMethod("getValueAt", Integer.class);
-				
+				Method m = DBModelConstants.TableModelDictionary.get(
+						framesocTable).getMethod("getValueAt", Integer.class);
+
 				// Get info
 				rs = stm.executeQuery(query);
 				while (rs.next()) {
@@ -50,8 +51,12 @@ public class DBModelChecker {
 					cpt++;
 				}
 
+				m = DBModelConstants.TableModelDictionary.get(framesocTable)
+						.getMethod("numberOfColumns");
+				int length = (int) m.invoke(null);
+
 				// If size is different return false (missing field)
-				if (cpt - 1 != TraceTableModel.values().length) {
+				if (cpt - 1 != length) {
 					stm.close();
 					return false;
 				}

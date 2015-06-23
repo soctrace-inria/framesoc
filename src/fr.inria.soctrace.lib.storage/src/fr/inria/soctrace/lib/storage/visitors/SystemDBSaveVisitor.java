@@ -20,6 +20,10 @@ import fr.inria.soctrace.lib.model.TraceParamType;
 import fr.inria.soctrace.lib.model.TraceType;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.ToolTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceParamTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceParamTypeTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTypeTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants;
 import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
@@ -113,8 +117,8 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceType.getId());
-			psd.statement.setString(2, traceType.getName());
+			psd.statement.setInt(TraceTypeTableModel.ID.getPos(), traceType.getId());
+			psd.statement.setString(TraceTypeTableModel.NAME.getPos(), traceType.getName());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().put(traceType);
 		} catch (SQLException e) {
@@ -127,10 +131,10 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParam.getId());
-			psd.statement.setInt(2, traceParam.getTrace().getId());
-			psd.statement.setInt(3, traceParam.getTraceParamType().getId());
-			psd.statement.setString(4, traceParam.getValue());
+			psd.statement.setInt(TraceParamTableModel.ID.getPos(), traceParam.getId());
+			psd.statement.setInt(TraceParamTableModel.TRACE_ID.getPos(), traceParam.getTrace().getId());
+			psd.statement.setInt(TraceParamTableModel.TRACE_PARAM_TYPE_ID.getPos(), traceParam.getTraceParamType().getId());
+			psd.statement.setString(TraceParamTableModel.VALUE.getPos(), traceParam.getValue());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -142,10 +146,10 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setInt(1, traceParamType.getId());
-			psd.statement.setInt(2, traceParamType.getTraceType().getId());
-			psd.statement.setString(3, traceParamType.getName());
-			psd.statement.setString(4, traceParamType.getType());
+			psd.statement.setInt(TraceParamTypeTableModel.ID.getPos(), traceParamType.getId());
+			psd.statement.setInt(TraceParamTypeTableModel.TRACE_TYPE_ID.getPos(), traceParamType.getTraceType().getId());
+			psd.statement.setString(TraceParamTypeTableModel.NAME.getPos(), traceParamType.getName());
+			psd.statement.setString(TraceParamTypeTableModel.TYPE.getPos(), traceParamType.getType());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().put(traceParamType);
 		} catch (SQLException e) {
@@ -158,13 +162,13 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TOOL);
 			psd.visited = true;
-			psd.statement.setInt(1, tool.getId());
-			psd.statement.setString(2, tool.getName());
-			psd.statement.setString(3, tool.getType());
-			psd.statement.setString(4, tool.getCommand());
-			psd.statement.setBoolean(5, tool.isPlugin());
-			psd.statement.setString(6, tool.getDoc());
-			psd.statement.setString(7, tool.getExtensionId());
+			psd.statement.setInt(ToolTableModel.ID.getPos(), tool.getId());
+			psd.statement.setString(ToolTableModel.NAME.getPos(), tool.getName());
+			psd.statement.setString(ToolTableModel.TYPE.getPos(), tool.getType());
+			psd.statement.setString(ToolTableModel.COMMAND.getPos(), tool.getCommand());
+			psd.statement.setBoolean(ToolTableModel.IS_PLUGIN.getPos(), tool.isPlugin());
+			psd.statement.setString(ToolTableModel.DOC.getPos(), tool.getDoc());
+			psd.statement.setString(ToolTableModel.EXTENSION_ID.getPos(), tool.getExtensionId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
