@@ -566,7 +566,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 		private boolean isTimeUnit(Object element) {
 			DetailsTableRow row = (DetailsTableRow) element;
-			return row.getName().equals(TraceTableModel.TIMEUNIT.getName());
+			return row.getName().equals(TraceTableModel.TIMEUNIT.getDescription());
 		}
 
 		public Action createSaveAction() {

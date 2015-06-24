@@ -185,9 +185,10 @@ public enum Initializer {
 			sysDB = SystemDBObject.openNewInstance();
 			
 			DBModelChecker checker = new DBModelChecker();
-			if (!checker.checkDB(sysDB))
-				return;
-			
+			if (!checker.checkDB(sysDB)) {
+				checker.updateDB();
+			}
+				
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 

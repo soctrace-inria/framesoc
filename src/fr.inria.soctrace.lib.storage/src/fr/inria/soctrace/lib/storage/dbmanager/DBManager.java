@@ -573,4 +573,10 @@ public abstract class DBManager {
 	 */
 	public abstract	String getTableInfoQuery(FramesocTable framesocTable);
 
+	/**
+	 * Replace a database by another. Used only for the import form updater
+	 * mechanism
+	 */
+	public abstract void replaceDB();
+	
 }

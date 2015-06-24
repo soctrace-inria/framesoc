@@ -1,11 +1,36 @@
+/*******************************************************************************
+ * Copyright (c) 2012-2015 INRIA.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Youenn Corre - initial API and implementation
+ ******************************************************************************/
 package fr.inria.soctrace.lib.storage.utils;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
+/**
+ * Provide series of enum and constants for the description 
+ * of the tables in the system database
+ * 
+ * For a table model, each column is represented by a value of an
+ * enum where:
+ * 	-the name of the enum is the name of the column in DB
+ * 	-the field name is a description of the column
+ * 	-the field position is the column index of the column
+ * 	-the field type is the type of the data stored in the column
+ * 
+ * @author "Youenn Corre <youenn.corre@inria.fr>"
+ */
 public abstract class DBModelConstants {
 
 	public static final Map<FramesocTable, Class<?> > TableModelDictionary;
@@ -20,56 +45,63 @@ public abstract class DBModelConstants {
 	}
 	
 	public interface TableModel {
-		public void setName(String name) ;
-		public int getPos() ;
-		public void setPos(int pos);
+		public void setDescription(String name) ;
+		public int getPosition() ;
+		public void setPosition(int pos);
 		public String getDbColumnName();
+		public Object getDefaultValue();
+		public String getType();
 	}
 	
 	/**
 	 * SoC-Trace Database trace model
 	 */
 	public static enum TraceTableModel implements TableModel {		
-		ID("ID", 1),
-		TRACE_TYPE_ID("Trace type", 2),
-		TRACING_DATE("Tracing date", 3),
-		TRACED_APPLICATION("Traced application", 4),
-		BOARD("Board", 5),
-		OPERATING_SYSTEM("Operating system", 6),
-		NUMBER_OF_CPUS("Number of CPUs", 7),
-		NUMBER_OF_EVENTS("Number of events", 8),
-		OUTPUT_DEVICE("Output device", 9),
-		DESCRIPTION("Description", 10),
-		PROCESSED("Porcessed", 11),
-		TRACE_DB_NAME("DB name", 12),
-		ALIAS("Alias", 13),
-		MIN_TIMESTAMP("Min timestamp", 14),
-		MAX_TIMESTAMP("Max timestamp", 15),
-		TIMEUNIT("Time-unit", 16),
-		NUMBER_OF_PRODUCERS("Number of producers", 17);
+		ID("ID", 1, Integer.class.getSimpleName(), null),
+		TRACE_TYPE_ID("Trace type", 2, Integer.class.getSimpleName(), Trace.UNKNOWN_INT),
+		TRACING_DATE("Tracing date", 3, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		TRACED_APPLICATION("Traced application", 4, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		BOARD("Board", 5, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		OPERATING_SYSTEM("Operating system", 6, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		NUMBER_OF_CPUS("Number of CPUs", 7, Integer.class.getSimpleName(), Trace.UNKNOWN_INT),
+		NUMBER_OF_EVENTS("Number of events", 8, Integer.class.getSimpleName(), Trace.UNKNOWN_INT),
+		OUTPUT_DEVICE("Output device", 9, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		DESCRIPTION("Description", 10, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		PROCESSED("Porcessed", 11, Boolean.class.getSimpleName(), false),
+		TRACE_DB_NAME("DB name", 12, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		ALIAS("Alias", 13, String.class.getSimpleName(), Trace.UNKNOWN_STRING),
+		MIN_TIMESTAMP("Min timestamp", 14, Long.class.getSimpleName(), Trace.UNKNOWN_INT),
+		MAX_TIMESTAMP("Max timestamp", 15, Long.class.getSimpleName(), Trace.UNKNOWN_INT),
+		TIMEUNIT("Time-unit", 16, Integer.class.getSimpleName(), TimeUnit.UNKNOWN.getInt()),
+		NUMBER_OF_PRODUCERS("Number of producers", 17, Integer.class.getSimpleName(), Trace.UNKNOWN_INT);
 		
-		private String name;
-		private int pos;
+		private String description;
+		private int position;
+		private String type;
+		private Object defaultValue;
 		
-		private TraceTableModel(String name, int pos) {
-			this.name = name;
-			this.pos = pos;
+		private TraceTableModel(String name, int pos, String type,
+				Object defaultValue) {
+			this.description = name;
+			this.position = pos;
+			this.type = type;
+			this.defaultValue = defaultValue;
 		}
 
-		public String getName() {
-			return name;
+		public String getDescription() {
+			return description;
 		}
 
-		public void setName(String name) {
-			this.name = name;
+		public void setDescription(String description) {
+			this.description = description;
 		}
 
-		public int getPos() {
-			return pos;
+		public int getPosition() {
+			return position;
 		}
 
-		public void setPos(int pos) {
-			this.pos = pos;
+		public void setPosition(int pos) {
+			this.position = pos;
 		}
 
 		public String getDbColumnName() {
@@ -78,7 +110,7 @@ public abstract class DBModelConstants {
 		
 		public static TraceTableModel getValueAt(Integer pos) {
 			for (TraceTableModel traceTableModel : values())
-				if (traceTableModel.getPos() == pos)
+				if (traceTableModel.getPosition() == pos)
 					return traceTableModel;
 			
 			return null;
@@ -87,33 +119,48 @@ public abstract class DBModelConstants {
 		public static int numberOfColumns() {
 			return values().length;
 		}
+
+		@Override
+		public String getType() {
+			return type;
+		}
+
+		@Override
+		public Object getDefaultValue() {
+			return defaultValue;
+		}
 	}
 	
 	public static enum TraceTypeTableModel implements TableModel {		
-		ID("ID", 1),
-		NAME("Name", 2);
+		ID("ID", 1, Integer.class.getSimpleName(), null),
+		NAME("Name", 2, String.class.getSimpleName(), null);
 
 		private String name;
 		private int pos;
+		private String type;
+		private Object defaultValue;
 		
-		private TraceTypeTableModel(String name, int pos) {
+		private TraceTypeTableModel(String name, int pos, String type,
+				Object defaultValue) {
 			this.name = name;
 			this.pos = pos;
+			this.type = type;
+			this.defaultValue = defaultValue;
 		}
 
-		public String getName() {
+		public String getDescription() {
 			return name;
 		}
 
-		public void setName(String name) {
+		public void setDescription(String name) {
 			this.name = name;
 		}
 
-		public int getPos() {
+		public int getPosition() {
 			return pos;
 		}
 
-		public void setPos(int pos) {
+		public void setPosition(int pos) {
 			this.pos = pos;
 		}
 
@@ -123,7 +170,7 @@ public abstract class DBModelConstants {
 		
 		public static TraceTypeTableModel getValueAt(Integer pos) {
 			for (TraceTypeTableModel traceTableModel : values())
-				if (traceTableModel.getPos() == pos)
+				if (traceTableModel.getPosition() == pos)
 					return traceTableModel;
 			
 			return null;
@@ -132,35 +179,50 @@ public abstract class DBModelConstants {
 		public static int numberOfColumns() {
 			return values().length;
 		}
+
+		@Override
+		public String getType() {
+			return type;
+		}
+		
+		@Override
+		public Object getDefaultValue() {
+			return defaultValue;
+		}
 	}
 	
 	public static enum TraceParamTableModel implements TableModel {		
-		ID("ID", 1),
-		TRACE_ID("Trace ID", 2),
-		TRACE_PARAM_TYPE_ID("Trace parameter type id", 3),
-		VALUE("Value", 4);
+		ID("ID", 1, Integer.class.getSimpleName(), null),
+		TRACE_ID("Trace ID", 2, Integer.class.getSimpleName(), null),
+		TRACE_PARAM_TYPE_ID("Trace parameter type id", 3, Integer.class.getSimpleName(), null),
+		VALUE("Value", 4, String.class.getSimpleName(), null);
 
-		private String name;
+		private String description;
 		private int pos;
+		private String type;
+		private Object defaultValue;
 		
-		private TraceParamTableModel(String name, int pos) {
-			this.name = name;
+		private TraceParamTableModel(String name, int pos, String type,
+				Object defaultValue) {
+			this.description = name;
 			this.pos = pos;
+			this.type = type;
+			this.defaultValue = defaultValue;
 		}
 
-		public String getName() {
-			return name;
+		public String getDescription() {
+			return description;
 		}
 
-		public void setName(String name) {
-			this.name = name;
+		public void setDescription(String name) {
+			this.description = name;
 		}
 
-		public int getPos() {
+		public int getPosition() {
 			return pos;
 		}
 
-		public void setPos(int pos) {
+		public void setPosition(int pos) {
 			this.pos = pos;
 		}
 
@@ -170,7 +232,7 @@ public abstract class DBModelConstants {
 		
 		public static TraceParamTableModel getValueAt(Integer pos) {
 			for (TraceParamTableModel traceTableModel : values())
-				if (traceTableModel.getPos() == pos)
+				if (traceTableModel.getPosition() == pos)
 					return traceTableModel;
 			
 			return null;
@@ -179,35 +241,50 @@ public abstract class DBModelConstants {
 		public static int numberOfColumns() {
 			return values().length;
 		}
+
+		@Override
+		public String getType() {
+			return type;
+		}
+		
+		@Override
+		public Object getDefaultValue() {
+			return defaultValue;
+		}
 	}
 
 	public static enum TraceParamTypeTableModel implements TableModel {		
-		ID("ID", 1),
-		TRACE_TYPE_ID("Trace ID", 2),
-		NAME("Name", 3),
-		TYPE("Type", 4);
+		ID("ID", 1, Integer.class.getSimpleName(), null),
+		TRACE_TYPE_ID("Trace ID", 2, Integer.class.getSimpleName(), null),
+		NAME("Name", 3, String.class.getSimpleName(), null),
+		TYPE("Type", 4, String.class.getSimpleName(), null);
 
-		private String name;
+		private String description;
 		private int pos;
+		private String type;
+		private Object defaultValue;
 		
-		private TraceParamTypeTableModel(String name, int pos) {
-			this.name = name;
+		private TraceParamTypeTableModel(String name, int pos, String type,
+				Object defaultValue) {
+			this.description = name;
 			this.pos = pos;
+			this.type = type;
+			this.defaultValue = defaultValue;
 		}
 
-		public String getName() {
-			return name;
+		public String getDescription() {
+			return description;
 		}
 
-		public void setName(String name) {
-			this.name = name;
+		public void setDescription(String name) {
+			this.description = name;
 		}
 
-		public int getPos() {
+		public int getPosition() {
 			return pos;
 		}
 
-		public void setPos(int pos) {
+		public void setPosition(int pos) {
 			this.pos = pos;
 		}
 
@@ -217,7 +294,7 @@ public abstract class DBModelConstants {
 		
 		public static TraceParamTypeTableModel getValueAt(Integer pos) {
 			for (TraceParamTypeTableModel traceTableModel : values())
-				if (traceTableModel.getPos() == pos)
+				if (traceTableModel.getPosition() == pos)
 					return traceTableModel;
 			
 			return null;
@@ -226,38 +303,53 @@ public abstract class DBModelConstants {
 		public static int numberOfColumns() {
 			return values().length;
 		}
+
+		@Override
+		public String getType() {
+			return type;
+		}
+		
+		@Override
+		public Object getDefaultValue() {
+			return defaultValue;
+		}
 	}
 	
 	public static enum ToolTableModel implements TableModel {		
-		ID("ID", 1),
-		NAME("Name", 2),
-		TYPE("Type", 3),
-		COMMAND("Command", 4),
-		IS_PLUGIN("Is plugin", 5),
-		DOC("Doc", 6),
-		EXTENSION_ID("Extension", 7);
+		ID("ID", 1, Integer.class.getSimpleName(), null),
+		NAME("Name", 2, String.class.getSimpleName(), ""),
+		TYPE("Type", 3, String.class.getSimpleName(), ""),
+		COMMAND("Command", 4, String.class.getSimpleName(), ""),
+		IS_PLUGIN("Is plugin", 5, Boolean.class.getSimpleName(), null),
+		DOC("Doc", 6, String.class.getSimpleName(), ""),
+		EXTENSION_ID("Extension", 7, String.class.getSimpleName(), "");
 
-		private String name;
+		private String description;
 		private int pos;
+		private String type;
+		private Object defaultValue;
 		
-		private ToolTableModel(String name, int pos) {
-			this.name = name;
+		private ToolTableModel(String name, int pos, String type,
+				Object defaultValue) {
+			this.description = name;
 			this.pos = pos;
+			this.type = type;
+			this.defaultValue = defaultValue;
 		}
 
 		public String getName() {
-			return name;
+			return description;
 		}
 
-		public void setName(String name) {
-			this.name = name;
+		public void setDescription(String name) {
+			this.description = name;
 		}
 
-		public int getPos() {
+		public int getPosition() {
 			return pos;
 		}
 
-		public void setPos(int pos) {
+		public void setPosition(int pos) {
 			this.pos = pos;
 		}
 
@@ -267,7 +359,7 @@ public abstract class DBModelConstants {
 		
 		public static ToolTableModel getValueAt(Integer pos) {
 			for (ToolTableModel traceTableModel : values())
-				if (traceTableModel.getPos() == pos)
+				if (traceTableModel.getPosition() == pos)
 					return traceTableModel;
 			
 			return null;
@@ -275,6 +367,16 @@ public abstract class DBModelConstants {
 		
 		public static int numberOfColumns() {
 			return values().length;
+		}
+
+		@Override
+		public String getType() {
+			return type;
+		}
+		
+		@Override
+		public Object getDefaultValue() {
+			return defaultValue;
 		}
 	}
 }

@@ -18,8 +18,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.utils.DBModelChecker;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
@@ -190,5 +192,34 @@ public class SQLiteDBManager extends DBManager {
 	@Override
 	public String getTableInfoQuery(FramesocTable framesocTable) {
 		return "PRAGMA table_info(" + framesocTable.name() + ");";
+	}
+
+	@Override
+	public void replaceDB() {
+		// Old DB
+		File oldDBFile = new File(Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory)
+				+ Configuration.getInstance().get(
+						SoCTraceProperty.soctrace_db_name));
+
+		// New DB
+		File newDBFile = new File(Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory)
+				+ Configuration.getInstance().get(
+						SoCTraceProperty.soctrace_db_name
+								+ DBModelChecker.NEW_SYSTEM_DB_SUFFIX));
+
+		// Backing file for the old DB
+		File bakDBFile = new File(Configuration.getInstance().get(
+				SoCTraceProperty.sqlite_db_directory)
+				+ Configuration.getInstance().get(
+						SoCTraceProperty.soctrace_db_name)
+				+ ".bak_"
+				+ new Date().getTime());
+
+		// Back up the old DB
+		oldDBFile.renameTo(bakDBFile);
+		// Switch DB
+		newDBFile.renameTo(oldDBFile);
 	}
 }
