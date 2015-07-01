@@ -49,6 +49,7 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.soctrace.framesoc.core.FramesocStartup;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopicList;
@@ -67,6 +68,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.TraceSelection;
+import fr.inria.soctrace.framesoc.ui.utils.UpdateAssistant;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -151,7 +153,9 @@ public class TraceTreeView extends ViewPart implements IFramesocBusListener {
 
 	@Override
 	public void createPartControl(Composite parent) {
-
+		if(!FramesocStartup.Started)
+			UpdateAssistant.checkDB();
+		
 		checked = new HashSet<>();
 		tracesLoader = new TraceLoader();
 		viewer = new TreeViewer(parent, SWT.MULTI);

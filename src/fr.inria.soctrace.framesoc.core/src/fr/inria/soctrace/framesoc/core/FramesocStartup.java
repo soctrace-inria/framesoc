@@ -24,12 +24,16 @@ public class FramesocStartup implements IStartup {
 	/**
 	 * Logger
 	 */
-	private static Logger logger = LoggerFactory.getLogger(FramesocStartup.class);
+	private static Logger logger = LoggerFactory
+			.getLogger(FramesocStartup.class);
+
+	public static boolean Started = false;
 
 	@Override
 	public void earlyStartup() {
 
 		logger.debug("Framesoc Startup");
+		Started = true;
 
 		// nothing at the moment
 	}

@@ -11,6 +11,8 @@
 package fr.inria.soctrace.tools.framesoc.exporter.input;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -36,32 +38,46 @@ import fr.inria.soctrace.tools.framesoc.exporter.dbexporter.TraceTableManager;
  */
 public class DBExporterInputComposite extends AbstractToolInputComposite {
 
+	private static final int TABLE_MAX_HEIGHT = 350;
+	
 	private Text textDirectory;
 	private TraceTableManager traceTableManager;
 	protected ExporterInput input = new ExporterInput();
+	private Table tableTraces;
 
 	public DBExporterInputComposite(Composite parent, int style) {
 		super(parent, style);
 		setLayout(new GridLayout(1, false));
 
+		// Resize table, in order to limit its maximum size
+		addControlListener(new ControlAdapter() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				Composite composite = (Composite) e.widget;
+				tableTraces.setSize(composite.getBounds().width - 15,
+						TABLE_MAX_HEIGHT);
+			}
+		});
+
 		Group grpExportSettings = new Group(parent, SWT.NONE);
 		grpExportSettings.setLayout(new GridLayout(1, false));
-		grpExportSettings.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		grpExportSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		grpExportSettings.setText("Export Settings");
 
 		// Trace
-		Composite compositeTrace = new Composite(grpExportSettings, SWT.NONE);
-		compositeTrace.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		compositeTrace.setSize(584, 41);
-		compositeTrace.setLayout(new GridLayout(1, false));
-
-		Label lblTrace = new Label(compositeTrace, SWT.NONE);
+		Label lblTrace = new Label(grpExportSettings, SWT.NONE);
 		lblTrace.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblTrace.setText("Traces:");
 		
-		Table tableTraces = new Table(compositeTrace, SWT.CHECK| SWT.V_SCROLL | SWT.H_SCROLL);
-		tableTraces.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Composite compositeTrace = new Composite(grpExportSettings, SWT.NONE);
+		compositeTrace.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
+		tableTraces = new Table(compositeTrace, SWT.CHECK| SWT.V_SCROLL | SWT.H_SCROLL);
+		tableTraces.setLinesVisible(true);
+		tableTraces.setSize(300, TABLE_MAX_HEIGHT);
+		tableTraces.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		tableTraces.setLayout(new GridLayout(1, false));
+
 		traceTableManager = new TraceTableManager(tableTraces);
 		traceTableManager.loadAll();
 		tableTraces.addSelectionListener(new SelectionAdapter() {
@@ -70,6 +86,7 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 				updateExporterInput();
 			}
 		});
+		
 
 		// Directory
 		Composite compositeDirectory = new Composite(grpExportSettings, SWT.NONE);
@@ -102,7 +119,6 @@ public class DBExporterInputComposite extends AbstractToolInputComposite {
 		
 		input.traces = traceTableManager.getSelectedTraces();
 		input.directory = "";
-
 	}
 
 	@Override

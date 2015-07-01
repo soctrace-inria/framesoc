@@ -74,7 +74,6 @@ public class FramesocUiStartup implements IStartup {
 		}
 
 		// Manage tools if a System DB exists (it should be the case...)
-
 		try {
 			if (!FramesocManager.getInstance().isSystemDBExisting()) {
 				logger.error("System DB still not existing. An error occurred.");

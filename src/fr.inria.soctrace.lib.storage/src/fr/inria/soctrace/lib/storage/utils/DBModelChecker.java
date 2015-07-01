@@ -10,9 +10,6 @@
  ******************************************************************************/
 package fr.inria.soctrace.lib.storage.utils;
 
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,7 +23,6 @@ import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.dbmanager.DBManager;
 import fr.inria.soctrace.lib.storage.updater.DBModelRebuilder;
-import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
@@ -51,118 +47,109 @@ public class DBModelChecker {
 	private List<DBModelRebuilder> dbModelRebuilders = new ArrayList<DBModelRebuilder>();
 	
 	/**
+	 * Find and store all the differences between the systemdbObject and the
+	 * current DB model in Framesoc
 	 * 
 	 * @param systemDB
+	 *            the tested systemDb object
+	 * @param modelBuilder
+	 *            a model builder for a given table of the systemDB
 	 * @return true if they are similar, false otherwise
 	 * @throws SoCTraceException
 	 */
-	public boolean checkDB(SystemDBObject systemDB) throws SoCTraceException {
-		dbModelRebuilders = new ArrayList<DBModelRebuilder>();
-		boolean hasDifference = false;
-		boolean	tableHasDifference = false;
-		
+	public void getDatabaseModelDifferences(SystemDBObject systemDB,
+			DBModelRebuilder modelBuilder) throws SoCTraceException {
+		boolean tableHasDifference = false;
 		int cpt = 1;
-		for (FramesocTable framesocTable : checkedTableModel) {
-			try {
-				Statement stm = systemDB.getConnection().createStatement();
-				String query = systemDB.getTraceInfoQuery(framesocTable);
-				Map<String, Integer> oldModel = new HashMap<String, Integer>();
-				tableHasDifference = false;
-				cpt = 1;
+		FramesocTable framesocTable = modelBuilder.getTable();
+		dbModelRebuilders.add(modelBuilder);
+		
+		try {
+			Statement stm = systemDB.getConnection().createStatement();
+			String query = systemDB.getTraceInfoQuery(framesocTable);
+			Map<String, Integer> oldModel = new HashMap<String, Integer>();
+			tableHasDifference = false;
+			cpt = 1;
 
-				DBModelRebuilder modelBuilder = DBModelRebuilder
-						.DBModelRebuilderFactory(DBModelConstants.TableModelDictionary
-								.get(framesocTable).getSimpleName());
-				dbModelRebuilders.add(modelBuilder);
-				
-				// Get the class method corresponding to the current model
-				Method m = DBModelConstants.TableModelDictionary.get(
-						framesocTable).getMethod("getValueAt", Integer.class);
-
-				// Get info
-				ResultSet rs = stm.executeQuery(query);
-				while (rs.next()) {
-					String columnName = rs.getString(NAME_COLUMN_INDEX);
-					oldModel.put(columnName, cpt);
-					// Check that column names are similar
-					if (!columnName.equals(((TableModel) m.invoke(null, cpt))
-							.getDbColumnName())) {
-						// save the diff column name and its position in the old
-						// model
-						modelBuilder.getOldModelMapDiff().put(columnName, cpt);
-						tableHasDifference = true;
-					}
-
-					cpt++;
-				}
-
-				m = DBModelConstants.TableModelDictionary.get(framesocTable)
-						.getMethod("numberOfColumns");
-				int currentModelLength = (int) m.invoke(null);
-
-				// If size is different return false (missing field)
-				if (cpt - 1 != currentModelLength) 
+			// Get info
+			ResultSet rs = stm.executeQuery(query);
+			while (rs.next()) {
+				String columnName = rs.getString(NAME_COLUMN_INDEX);
+				oldModel.put(columnName, cpt);
+				// Check that column names are similar
+				if (!columnName.equals(modelBuilder.getValueAt(cpt))) {
+					// Save the diff column name and its position in the old
+					// model
+					modelBuilder.getOldModelMapDiff().put(columnName, cpt);
 					tableHasDifference = true;
-
-				// If a diff was found
-				if (tableHasDifference) {
-					hasDifference = true;
-					// Also check in reverse for potential missing parameter
-					m = DBModelConstants.TableModelDictionary
-							.get(framesocTable).getMethod("getValueAt",
-									Integer.class);
-
-					for (int i = 1; i <= currentModelLength; i++) {
-						String currentModelColName = ((TableModel) m.invoke(
-								null, i)).getDbColumnName();
-						if (!oldModel.containsKey(currentModelColName))
-							modelBuilder.getOldModelMapDiff().put(
-									currentModelColName,
-									DBModelRebuilder.MISSING_PARAMETER_VALUE);
-					}
 				}
-				
-				stm.close();
-			} catch (SQLException | SoCTraceException | NoSuchMethodException
-					| SecurityException | IllegalAccessException
-					| IllegalArgumentException | InvocationTargetException e) {
-				throw new SoCTraceException(e);
-			}
-		}
 
-		return !hasDifference;
+				cpt++;
+			}
+
+			int currentModelLength = modelBuilder.getColumnNumber();
+
+			// If size is different return false (missing field)
+			if (cpt - 1 != currentModelLength)
+				tableHasDifference = true;
+
+			// If a diff was found
+			if (tableHasDifference) {
+				// Also check in reverse for potential missing parameter
+				for (int i = 1; i <= currentModelLength; i++) {
+					String currentModelColName = modelBuilder.getValueAt(cpt);
+					if (!oldModel.containsKey(currentModelColName))
+						modelBuilder.getOldModelMapDiff().put(
+								currentModelColName,
+								DBModelRebuilder.MISSING_PARAMETER_VALUE);
+				}
+			}
+
+			stm.close();
+		} catch (SQLException | SoCTraceException | SecurityException
+				| IllegalArgumentException e) {
+			throw new SoCTraceException(e);
+		}
 	}
 
-	public void updateDB() {
+	/**
+	 * Try to update the database from one model to the current one
+	 */
+	public void updateDB() throws SoCTraceException {
+		String tmpDbName = Configuration.getInstance().get(
+				SoCTraceProperty.soctrace_db_name)
+				+ NEW_SYSTEM_DB_SUFFIX;
+
+		// Create a new DB with the current model
 		try {
-			String tmpDbName = Configuration.getInstance().get(
-					SoCTraceProperty.soctrace_db_name)
-					+ NEW_SYSTEM_DB_SUFFIX;
-			
-			// Create a new DB with the current model
-			new SystemDBObject(tmpDbName, DBMode.DB_CREATE).close();
-			
+			SystemDBObject newSysDB = new SystemDBObject(tmpDbName,
+					DBMode.DB_CREATE);
+
+			SystemDBObject oldsysDB = new SystemDBObject(Configuration
+					.getInstance().get(SoCTraceProperty.soctrace_db_name),
+					DBMode.DB_OPEN);
+
+			for (FramesocTable framesocTable : checkedTableModel) {
+				getDatabaseModelDifferences(oldsysDB,
+						DBModelRebuilder.DBModelRebuilderFactory(framesocTable));
+			}
+
 			// Copy similar things and import the rest
 			for (DBModelRebuilder dbModelrebuider : dbModelRebuilders) {
-				dbModelrebuider.setDBs(new SystemDBObject(Configuration
-						.getInstance().get(SoCTraceProperty.soctrace_db_name),
-						DBMode.DB_OPEN), new SystemDBObject(tmpDbName,
-						DBMode.DB_OPEN));
+				dbModelrebuider.setDBs(oldsysDB, newSysDB);
 				dbModelrebuider.copyTable();
 			}
 
-			SystemDBObject.openNewInstance().close();
-			
+			oldsysDB.close();
+			newSysDB.close();
+
 			// Erase the old one and replace with the new one
-			DBManager.getDBManager(Configuration.getInstance().get(
+			DBManager.getDBManager(
+					Configuration.getInstance().get(
 							SoCTraceProperty.soctrace_db_name)).replaceDB();
-			
-			// Check the traces
-			/*TraceChecker traceChecker = new TraceChecker();
-			traceChecker.checkTraces();*/
 		} catch (SoCTraceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// TODO Clean up potential mess
+			throw new SoCTraceException(e);
 		}
 	}
 

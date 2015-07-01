@@ -33,6 +33,9 @@ import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
  */
 public abstract class DBModelConstants {
 
+	/**
+	 * Dictionary associating a table of the DB with its model
+	 */
 	public static final Map<FramesocTable, Class<?> > TableModelDictionary;
 	static {
 		Map<FramesocTable, Class<?>> aMap = new HashMap<FramesocTable, Class<?>>();
@@ -54,8 +57,19 @@ public abstract class DBModelConstants {
 	}
 	
 	/**
-	 * SoC-Trace Database trace model
+	 * SoC-Trace Database table models
+	 * 
+	 * They are built in the form of triplet. The name of the model is the name
+	 * of the column in the database. The values are :
+	 *  - A description of the field (e.g. to use in the GUI)
+	 *  - The column index in the database 
+	 *  - The type of the value stored at that position 
+	 *  - A default value, that will be used if the column does not exist. 
+	 *  If a default value cannot be given then it is set to null, meaning t
+	 *  that the update will fail if this field is absent in the database
 	 */
+	
+	
 	public static enum TraceTableModel implements TableModel {		
 		ID("ID", 1, Integer.class.getSimpleName(), null),
 		TRACE_TYPE_ID("Trace type", 2, Integer.class.getSimpleName(), Trace.UNKNOWN_INT),
@@ -108,6 +122,14 @@ public abstract class DBModelConstants {
 			return this.toString();
 		}
 		
+		/**
+		 * Return the value of at column index pos
+		 * 
+		 * @param pos
+		 *            the index of the column
+		 * @return the name of the column at the index pos, or null if there no
+		 *         column at this index
+		 */
 		public static TraceTableModel getValueAt(Integer pos) {
 			for (TraceTableModel traceTableModel : values())
 				if (traceTableModel.getPosition() == pos)

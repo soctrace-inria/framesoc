@@ -56,5 +56,15 @@ public class ToolModelRebuilder extends DBModelRebuilder {
 				logger.info("  *" + columnName);
 		}
 	}
+	
+	@Override
+	public String getValueAt(int pos) {
+		return ToolTableModel.getValueAt(pos).getDbColumnName();
+	}
+	
+	@Override
+	public int getColumnNumber() {
+		return ToolTableModel.numberOfColumns();
+	}
 
 }

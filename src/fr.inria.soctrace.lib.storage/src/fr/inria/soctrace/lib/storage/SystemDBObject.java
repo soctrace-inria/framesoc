@@ -33,6 +33,11 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 public class SystemDBObject extends DBObject {
 	
 	/**
+	 * Current version number of the system database model. Must be an integer.
+	 */
+	public final static int SYSTEM_DB_OBJECT_VERSION = 1;
+
+	/**
 	 * Trace format (type and param types) cache
 	 */
 	private ModelElementCache traceTypeCache = null;
@@ -68,6 +73,7 @@ public class SystemDBObject extends DBObject {
 		dbManager.createDB();
 		
 		dbManager.createTableStatement();
+		dbManager.setDBVersion(SYSTEM_DB_OBJECT_VERSION);
 		dbManager.initTrace();
 		dbManager.initTraceType();
 		dbManager.initTraceParam();
@@ -197,4 +203,14 @@ public class SystemDBObject extends DBObject {
 		updateVisitor = new SystemDBUpdateVisitor(this);
 	}
 		
+	/**
+	 * Check that the database has the same version number as the current model
+	 * version
+	 * 
+	 * @return true if they are the same, false otherwise
+	 * @throws SoCTraceException
+	 */
+	public boolean checkDBVersion() throws SoCTraceException {
+		return dbManager.getDBVersion() == SYSTEM_DB_OBJECT_VERSION;
+	}
 }

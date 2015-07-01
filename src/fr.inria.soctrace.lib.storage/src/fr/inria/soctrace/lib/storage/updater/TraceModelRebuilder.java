@@ -2,6 +2,8 @@ package fr.inria.soctrace.lib.storage.updater;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants;
@@ -18,16 +20,15 @@ public class TraceModelRebuilder extends DBModelRebuilder {
 	@Override
 	public void copyValues(PreparedStatement statement, ResultSet rs)
 			throws SoCTraceException {
-	
-		
+		List<String> handledParameters = new ArrayList<String>();
+		// Use to check to see if there are any parameters that were not treated
+		// at the end of the export
+		for (String columnName : oldModelMapDiff.keySet())
+			handledParameters.add(columnName);
+
 		for (TraceTableModel traceTableModel : TraceTableModel.values()) {
-			System.out.println(traceTableModel.toString());
-			if(traceTableModel.toString().equals("NUMBER_OF_PRODUCERS"))
-				System.out.println(traceTableModel.toString());
-			
 			// If it is one of the difference
 			if (oldModelMapDiff.containsKey(traceTableModel.toString())) {
-				
 				int value = oldModelMapDiff.get(traceTableModel.toString());
 				// If missing parameter
 				if (value == DBModelRebuilder.MISSING_PARAMETER_VALUE) {
@@ -44,7 +45,7 @@ public class TraceModelRebuilder extends DBModelRebuilder {
 							traceTableModel.getType());
 				}
 				// Remove parameter from table
-				oldModelMapDiff.remove(traceTableModel.toString());
+				handledParameters.remove(traceTableModel.toString());
 			} else {
 				// Just copy it
 				addToStatement(statement, rs, traceTableModel.getPosition(),
@@ -52,11 +53,19 @@ public class TraceModelRebuilder extends DBModelRebuilder {
 						traceTableModel.getType());
 			}
 		}
-		
-		
-		// TODO Add custom parameters
+		// TODO Add as custom parameters
 		//FramesocManager.getInstance().saveParam(traces, .getName(),
 		//		dlg.getType(), dlg.getValue());
+	}
+	
+	@Override
+	public String getValueAt(int pos) {
+		return TraceTableModel.getValueAt(pos).getDbColumnName();
+	}
+	
+	@Override
+	public int getColumnNumber() {
+		return TraceTableModel.numberOfColumns();
 	}
 
 }

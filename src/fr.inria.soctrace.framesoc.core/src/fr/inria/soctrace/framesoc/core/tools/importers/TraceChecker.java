@@ -120,6 +120,20 @@ public class TraceChecker {
 		}
 	}
 
+	/**
+	 * Force to launch the checker on all the present traces.
+	 * 
+	 * @param monitor
+	 *            Progress monitor. This method use it *only* to specify sub
+	 *            tasks. If it is null, a NullProgressMonitor is used.
+	 */
+	public void checkAllTraces(IProgressMonitor monitor) {
+		// Delete the currently known trace
+		traces.clear();
+		// Launch trace checker
+		checkTraces(monitor);
+	}
+
 	/*
 	 * Trace checkers
 	 */

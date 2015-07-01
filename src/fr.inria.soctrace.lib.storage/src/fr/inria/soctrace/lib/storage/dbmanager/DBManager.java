@@ -577,6 +577,27 @@ public abstract class DBManager {
 	 * Replace a database by another. Used only for the import form updater
 	 * mechanism
 	 */
-	public abstract void replaceDB();
+	public abstract void replaceDB() throws SoCTraceException;
+	
+	/**
+	 * Set the database model version which is a custom field used by Framesoc to
+	 * identify the model version of the database
+	 * 
+	 * @param databaseVersion
+	 *            the database version number
+	 * @throws SoCTraceException
+	 */
+	public abstract void setDBVersion(int databaseVersion) throws SoCTraceException;
+	
+	/**
+	 * Get the database version number. 
+	 * 
+	 * Default value set by SQLite is 0
+	 * 
+	 * @return the version number stored in DB
+	 * 
+	 * @throws SoCTraceException
+	 */
+	public abstract int getDBVersion() throws SoCTraceException;
 	
 }

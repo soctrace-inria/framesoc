@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
@@ -193,9 +194,29 @@ public class SQLiteDBManager extends DBManager {
 	public String getTableInfoQuery(FramesocTable framesocTable) {
 		return "PRAGMA table_info(" + framesocTable.name() + ");";
 	}
+	
+	@Override
+	public void setDBVersion(int userVersion) throws SoCTraceException {
+		try {
+			tableStatement.execute("PRAGMA user_version = " + userVersion + ";");
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
 
 	@Override
-	public void replaceDB() {
+	public int getDBVersion() throws SoCTraceException {
+		try {
+			Statement stm = getConnection().createStatement();
+			ResultSet rs = stm.executeQuery("PRAGMA user_version;");
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
+
+	@Override
+	public void replaceDB() throws SoCTraceException {
 		// Old DB
 		File oldDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
@@ -206,10 +227,10 @@ public class SQLiteDBManager extends DBManager {
 		File newDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
 				+ Configuration.getInstance().get(
-						SoCTraceProperty.soctrace_db_name
-								+ DBModelChecker.NEW_SYSTEM_DB_SUFFIX));
+						SoCTraceProperty.soctrace_db_name)
+				+ DBModelChecker.NEW_SYSTEM_DB_SUFFIX);
 
-		// Backing file for the old DB
+		// Back up file for the old DB
 		File bakDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
 				+ Configuration.getInstance().get(
@@ -217,9 +238,21 @@ public class SQLiteDBManager extends DBManager {
 				+ ".bak_"
 				+ new Date().getTime());
 
-		// Back up the old DB
-		oldDBFile.renameTo(bakDBFile);
-		// Switch DB
-		newDBFile.renameTo(oldDBFile);
+		// Check that both files exist
+		if (oldDBFile.exists() && newDBFile.exists()) {
+			// Back up the old DB
+			boolean success = oldDBFile.renameTo(bakDBFile);
+			if (!success)
+				throw new SoCTraceException("Failed to save SQLite DB from "
+						+ oldDBFile.getName() + " to" + bakDBFile.getName());
+
+			// Switch DB
+			newDBFile.renameTo(oldDBFile);
+			if (!success)
+				throw new SoCTraceException("Failed to replace SQLite DB from "
+						+ oldDBFile.getName() + " to" + newDBFile.getName());
+		}
 	}
+
+
 }

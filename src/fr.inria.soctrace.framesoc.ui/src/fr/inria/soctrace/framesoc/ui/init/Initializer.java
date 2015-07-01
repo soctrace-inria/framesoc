@@ -29,6 +29,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
+import fr.inria.soctrace.framesoc.ui.utils.UpdateAssistant;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -36,7 +37,6 @@ import fr.inria.soctrace.lib.query.ToolQuery;
 import fr.inria.soctrace.lib.query.TraceQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
-import fr.inria.soctrace.lib.storage.utils.DBModelChecker;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 import fr.inria.soctrace.lib.utils.DBMS;
@@ -96,7 +96,6 @@ public enum Initializer {
 			MessageDialog.openInformation(shell, "SoC-Trace Manager", sb.toString());
 
 			return true;
-
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(shell, "Error creating the system DB", e.getMessage());
 			return false;
@@ -180,14 +179,11 @@ public enum Initializer {
 	public void manageDatabases() {
 
 		SystemDBObject sysDB = null;
-
 		try {
 			sysDB = SystemDBObject.openNewInstance();
 			
-			DBModelChecker checker = new DBModelChecker();
-			if (!checker.checkDB(sysDB)) {
-				checker.updateDB();
-			}
+			// Check that the db version is correct
+			UpdateAssistant.checkDB();
 				
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();

@@ -25,7 +25,7 @@ import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
 /**
- * Abstract class that handles the update from an system DB model to another
+ * Abstract class that handles the update from a system DB model to another
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
@@ -36,12 +36,12 @@ public abstract class DBModelRebuilder {
 	public static final Integer MISSING_PARAMETER_VALUE = -1;
 	private static final String UNSUPPORTED_MISSING_VALUE = "Updater encountered a non-updatable missing value";
 	
-	
 	// Current table being updated
 	protected FramesocTable table;
+	
 	// Query to get the info on the table
 	protected String getTableQuery;
-	
+
 	/**
 	 * Contains the list of differences between current DB model and older one.
 	 * It should contain parameters that are no longer present in the table , or
@@ -71,7 +71,7 @@ public abstract class DBModelRebuilder {
 		oldSysDB = oldDB;
 		newSysDB = newDB;
 	}
-
+	
 	/**
 	 * Copy the value of a table
 	 * 
@@ -84,17 +84,41 @@ public abstract class DBModelRebuilder {
 	protected abstract void copyValues(PreparedStatement statement, ResultSet rs)
 			throws SoCTraceException;
 	
-	public static DBModelRebuilder DBModelRebuilderFactory(String modelName) {
-		switch (modelName) {
-		case "TraceTableModel":
+	/**
+	 * Get the name of the column at the position pos
+	 * 
+	 * @param pos
+	 *            the index of the column we want to get
+	 * @return the name of the column
+	 */
+	public abstract String getValueAt(int pos);
+	
+	/**
+	 * Get the number of columns in a given table
+	 * 
+	 * @return the number of columns
+	 */
+	public abstract int getColumnNumber();
+	
+	/**
+	 * Factory to instantiate DBModelRebuiltder for each table
+	 * 
+	 * @param modelName
+	 *            the name of the table
+	 * @return an instance of the a Model rebuilder corresponding to the given
+	 *         table name
+	 */
+	public static DBModelRebuilder DBModelRebuilderFactory(FramesocTable framesocTable) {
+		switch (framesocTable) {
+		case TRACE:
 			return new TraceModelRebuilder();
-		case "TraceTypeTableModel":
+		case TRACE_TYPE:
 			return new TraceTypeModelRebuilder();
-		case "TraceParamTableModel":
+		case TRACE_PARAM:
 			return new TraceParamModelRebuilder();
-		case "TraceParamTypeTableModel":
+		case TRACE_PARAM_TYPE:
 			return new TraceParamTypeModelRebuilder();
-		case "ToolTableModel":
+		case TOOL:
 			return new ToolModelRebuilder();
 		default:
 			return null;
@@ -121,10 +145,11 @@ public abstract class DBModelRebuilder {
 				// Save into new DB
 				statement.addBatch();
 				statement.executeBatch();
+				statement.close();
 			}
 			
+			stm.close();
 			newSysDB.commit();
-			newSysDB.close();
 		} catch (SoCTraceException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -237,5 +262,22 @@ public abstract class DBModelRebuilder {
 	public void setOldModelMapDiff(Map<String, Integer> oldModelMapDiff) {
 		this.oldModelMapDiff = oldModelMapDiff;
 	}
+	
+	public FramesocTable getTable() {
+		return table;
+	}
+
+	public void setTable(FramesocTable table) {
+		this.table = table;
+	}
+
+	public String getGetTableQuery() {
+		return getTableQuery;
+	}
+
+	public void setGetTableQuery(String getTableQuery) {
+		this.getTableQuery = getTableQuery;
+	}
+
 
 }

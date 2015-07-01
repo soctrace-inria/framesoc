@@ -58,4 +58,13 @@ public class TraceParamModelRebuilder extends DBModelRebuilder {
 		}
 	}
 	
+	@Override
+	public String getValueAt(int pos) {
+		return TraceParamTableModel.getValueAt(pos).getDbColumnName();
+	}
+	
+	@Override
+	public int getColumnNumber() {
+		return TraceParamTableModel.numberOfColumns();
+	}
 }

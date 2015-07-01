@@ -57,5 +57,15 @@ public class TraceTypeModelRebuilder extends DBModelRebuilder {
 				logger.info("  *" + columnName);
 		}
 	}
+	
+	@Override
+	public String getValueAt(int pos) {
+		return TraceTypeTableModel.getValueAt(pos).getDbColumnName();
+	}
+	
+	@Override
+	public int getColumnNumber() {
+		return TraceTypeTableModel.numberOfColumns();
+	}
 
 }

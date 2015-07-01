@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="fr.inria.soctrace.framesoc.ui.FramesocUiStartup">
+      </startup>
+   </extension>
+   
    <extension-point id="fr.inria.soctrace.framesoc.ui.perspective.part" name="Framesoc Part" schema="schema/fr.inria.soctrace.framesoc.ui.perspective.part.exsd"/>
    <extension-point id="fr.inria.soctrace.framesoc.ui.input.toolInput" name="Tool Input" schema="schema/fr.inria.soctrace.framesoc.ui.input.toolInput.exsd"/>
    <extension
@@ -276,16 +283,5 @@
       
    </extension>  
   <!-- END -->
-   
-   
-   
-   
-   <extension
-         point="org.eclipse.ui.startup">
-      <startup
-            class="fr.inria.soctrace.framesoc.ui.FramesocUiStartup">
-      </startup>
-   </extension>
-   
 
 </plugin>

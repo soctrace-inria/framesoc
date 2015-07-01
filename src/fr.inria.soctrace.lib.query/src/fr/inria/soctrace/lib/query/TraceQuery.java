@@ -43,7 +43,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * The constructor.
-	 * @param sysDB System DB object where the query is performed.
+	 * 
+	 * @param sysDB
+	 *            System DB object where the query is performed.
 	 */
 	public TraceQuery(SystemDBObject sysDB) {
 		super(sysDB);
@@ -78,7 +80,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * Set the condition to be put in the WHERE clause of TRACE_TYPE table.
-	 * @param typeCondition condition to be applied to the trace type table
+	 * 
+	 * @param typeCondition
+	 *            condition to be applied to the trace type table
 	 */
 	public void setTypeWhere(ICondition typeCondition) {
 		where = true;
@@ -86,11 +90,11 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	}
 	
 	/**
-	 * Builds a list of Trace respecting the condition specified by
-	 * elementWhere AND typeWhere AND parametersConditions.
-	 * The different parameter conditions are evaluated in OR,
-	 * since they refer to different trace types so it makes no sense
-	 * having an AND.
+	 * Builds a list of Trace respecting the condition specified by elementWhere
+	 * AND typeWhere AND parametersConditions. The different parameter
+	 * conditions are evaluated in OR, since they refer to different trace types
+	 * so it makes no sense having an AND.
+	 * 
 	 * @return the Trace list.
 	 * @throws SoCTraceException
 	 */
@@ -153,7 +157,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 
 	/**
 	 * Return the list of Trace having the specified IDs.
-	 * @param ids list of trace IDs
+	 * 
+	 * @param ids
+	 *            list of trace IDs
 	 * @return the list of Trace
 	 * @throws SoCTraceException
 	 */
@@ -163,7 +169,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 			for (Integer i: ids) {
 				vls.addValue(i.toString());
 			}			
-			if (vls.size()==0)
+			if (vls.size() == 0)
 				return new LinkedList<Trace>();
 			
 			Statement stm = dbObj.getConnection().createStatement();
@@ -184,12 +190,13 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * Rebuilds the traces corresponding to the result set.
-	 * @param rs Result set corresponding to a SELECT * FROM TRACE ...
+	 * 
+	 * @param rs
+	 *            Result set corresponding to a SELECT * FROM TRACE ...
 	 * @return a list of Trace
 	 * @throws SoCTraceException
 	 */
 	private List<Trace> getTraces(ResultSet rs) throws SoCTraceException {
-		
 		ValueListString vls = new ValueListString();
 		List<Trace> list = new LinkedList<Trace>();
 		Map<Integer, Trace> tmp = new HashMap<Integer, Trace>();
@@ -203,7 +210,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 				vls.addValue(String.valueOf(t.getId()));
 			}
 
-			if (vls.size()==0)
+			if (vls.size() == 0)
 				return list;
 			
 			Statement stm = dbObj.getConnection().createStatement();
@@ -221,7 +228,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 
 	/**
 	 * Get the trace type ID given the trace type name.
-	 * @param name trace type name
+	 * 
+	 * @param name
+	 *            trace type name
 	 * @return the corresponding trace type ID or -1 if not found
 	 * @throws SoCTraceException
 	 */
@@ -240,12 +249,15 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	}
 	
 	/**
-	 * Get the trace param type with the given name, for the trace type 
-	 * whose ID is passed.
+	 * Get the trace param type with the given name, for the trace type whose ID
+	 * is passed.
 	 * 
 	 * TODO: this can be optimized with the type cache
-	 * @param name the trace param type name
-	 * @param traceTypeId the trace type ID 
+	 * 
+	 * @param name
+	 *            the trace param type name
+	 * @param traceTypeId
+	 *            the trace type ID
 	 * @return the corresponding trace param type or null if not found
 	 * @throws SoCTraceException
 	 */
@@ -268,7 +280,8 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	/**
 	 * Rebuild a Trace, given the corresponding TRACE table row.
 	 * 
-	 * @param rs TRACE table row
+	 * @param rs
+	 *            TRACE table row
 	 * @return the Trace
 	 * @throws SQLException
 	 * @throws SoCTraceException
@@ -300,11 +313,13 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	/**
 	 * Rebuild a TraceParam, given the corresponding TRACE_PARAM table row.
 	 * 
-	 * @param prs TRACE_PARAM table row
-	 * @param tmp map containing the Traces returned by the query
+	 * @param prs
+	 *            TRACE_PARAM table row
+	 * @param tmp
+	 *            map containing the Traces returned by the query
 	 * @return the TraceParam
 	 * @throws SQLException
-	 * @throws SoCTraceException 
+	 * @throws SoCTraceException
 	 */
 	private TraceParam rebuildTraceParam(ResultSet prs, Map<Integer, Trace> tmp) 
 			throws SQLException, SoCTraceException {
