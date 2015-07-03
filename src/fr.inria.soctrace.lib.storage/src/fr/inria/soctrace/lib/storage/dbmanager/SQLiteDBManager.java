@@ -22,7 +22,6 @@ import java.sql.Statement;
 import java.util.Date;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
-import fr.inria.soctrace.lib.storage.utils.DBModelChecker;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
@@ -41,6 +40,12 @@ public class SQLiteDBManager extends DBManager {
 	 * Enable/disable connection tuning through PRAGMAs
 	 */
 	private final static boolean CONNECTION_TUNING = false;
+	
+	/**
+	 * Index of the column containing the names of column of table when returning
+	 * from a query of type "PRAGMA table_info(TABLE)"
+	 */
+	private static final int NAME_COLUMN_INDEX = 2;
 	
 
 	public SQLiteDBManager(String dbName) throws SoCTraceException {
@@ -216,27 +221,22 @@ public class SQLiteDBManager extends DBManager {
 	}
 
 	@Override
-	public void replaceDB() throws SoCTraceException {
+	public void replaceDB(String oldBDName, String newDBName)
+			throws SoCTraceException {
 		// Old DB
 		File oldDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
-				+ Configuration.getInstance().get(
-						SoCTraceProperty.soctrace_db_name));
+				+ oldBDName);
 
 		// New DB
 		File newDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
-				+ Configuration.getInstance().get(
-						SoCTraceProperty.soctrace_db_name)
-				+ DBModelChecker.NEW_SYSTEM_DB_SUFFIX);
+				+ newDBName);
 
 		// Back up file for the old DB
 		File bakDBFile = new File(Configuration.getInstance().get(
 				SoCTraceProperty.sqlite_db_directory)
-				+ Configuration.getInstance().get(
-						SoCTraceProperty.soctrace_db_name)
-				+ ".bak_"
-				+ new Date().getTime());
+				+ oldBDName + ".bak_" + new Date().getTime());
 
 		// Check that both files exist
 		if (oldDBFile.exists() && newDBFile.exists()) {
@@ -252,6 +252,11 @@ public class SQLiteDBManager extends DBManager {
 				throw new SoCTraceException("Failed to replace SQLite DB from "
 						+ oldDBFile.getName() + " to" + newDBFile.getName());
 		}
+	}
+
+	@Override
+	public int getColumnNameIndex() {
+		return NAME_COLUMN_INDEX;
 	}
 
 

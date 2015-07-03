@@ -25,9 +25,9 @@ public class ToolModelRebuilder extends DBModelRebuilder {
 			throws SoCTraceException {
 		for (ToolTableModel toolTableModel : ToolTableModel.values()) {
 			// If it is one of the difference
-			if (oldModelMapDiff.containsKey(toolTableModel.toString())) {
+			if (oldModelDiff.containsKey(toolTableModel.toString())) {
 				// If missing parameter
-				if (oldModelMapDiff.get(toolTableModel.toString()) == MISSING_PARAMETER_VALUE) {
+				if (oldModelDiff.get(toolTableModel.toString()) == MISSING_PARAMETER_VALUE) {
 					// Put default value
 					addToStatement(statement,
 							toolTableModel.getDefaultValue(),
@@ -37,11 +37,11 @@ public class ToolModelRebuilder extends DBModelRebuilder {
 					// Put the value at the correct place
 					addToStatement(statement, rs,
 							toolTableModel.getPosition(),
-							oldModelMapDiff.get(toolTableModel.toString()),
+							oldModelDiff.get(toolTableModel.toString()),
 							toolTableModel.getType());
 				}
 				// Remove parameter from table
-				oldModelMapDiff.remove(toolTableModel.toString());
+				oldModelDiff.remove(toolTableModel.toString());
 			} else {
 				// Just copy it
 				addToStatement(statement, rs, toolTableModel.getPosition(),
@@ -50,9 +50,9 @@ public class ToolModelRebuilder extends DBModelRebuilder {
 			}
 		}
 
-		if (!oldModelMapDiff.keySet().isEmpty()) {
+		if (!oldModelDiff.keySet().isEmpty()) {
 			logger.info("Tools: the following parameters were not imported in the new model:");
-			for (String columnName : oldModelMapDiff.keySet())
+			for (String columnName : oldModelDiff.keySet())
 				logger.info("  *" + columnName);
 		}
 	}

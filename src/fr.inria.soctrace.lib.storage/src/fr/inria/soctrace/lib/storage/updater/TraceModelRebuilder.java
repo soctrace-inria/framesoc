@@ -23,13 +23,13 @@ public class TraceModelRebuilder extends DBModelRebuilder {
 		List<String> handledParameters = new ArrayList<String>();
 		// Use to check to see if there are any parameters that were not treated
 		// at the end of the export
-		for (String columnName : oldModelMapDiff.keySet())
+		for (String columnName : oldModelDiff.keySet())
 			handledParameters.add(columnName);
 
 		for (TraceTableModel traceTableModel : TraceTableModel.values()) {
 			// If it is one of the difference
-			if (oldModelMapDiff.containsKey(traceTableModel.toString())) {
-				int value = oldModelMapDiff.get(traceTableModel.toString());
+			if (oldModelDiff.containsKey(traceTableModel.toString())) {
+				int value = oldModelDiff.get(traceTableModel.toString());
 				// If missing parameter
 				if (value == DBModelRebuilder.MISSING_PARAMETER_VALUE) {
 					// Put default value
@@ -41,7 +41,7 @@ public class TraceModelRebuilder extends DBModelRebuilder {
 					// Put the value at the correct place
 					addToStatement(statement, rs,
 							traceTableModel.getPosition(),
-							oldModelMapDiff.get(traceTableModel.toString()),
+							oldModelDiff.get(traceTableModel.toString()),
 							traceTableModel.getType());
 				}
 				// Remove parameter from table

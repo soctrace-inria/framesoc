@@ -26,9 +26,9 @@ public class TraceParamModelRebuilder extends DBModelRebuilder {
 		for (TraceParamTableModel traceParamTableModel : TraceParamTableModel
 				.values()) {
 			// If it is one of the difference
-			if (oldModelMapDiff.containsKey(traceParamTableModel.toString())) {
+			if (oldModelDiff.containsKey(traceParamTableModel.toString())) {
 				// If missing parameter
-				if (oldModelMapDiff.get(traceParamTableModel.toString()) == MISSING_PARAMETER_VALUE) {
+				if (oldModelDiff.get(traceParamTableModel.toString()) == MISSING_PARAMETER_VALUE) {
 					// Put default value
 					addToStatement(statement,
 							traceParamTableModel.getDefaultValue(),
@@ -38,11 +38,11 @@ public class TraceParamModelRebuilder extends DBModelRebuilder {
 					// Put the value at the correct place
 					addToStatement(statement, rs,
 							traceParamTableModel.getPosition(),
-							oldModelMapDiff.get(traceParamTableModel.toString()),
+							oldModelDiff.get(traceParamTableModel.toString()),
 							traceParamTableModel.getType());
 				}
 				// Remove parameter from table
-				oldModelMapDiff.remove(traceParamTableModel.toString());
+				oldModelDiff.remove(traceParamTableModel.toString());
 			} else {
 				// Just copy it
 				addToStatement(statement, rs, traceParamTableModel.getPosition(),
@@ -51,9 +51,9 @@ public class TraceParamModelRebuilder extends DBModelRebuilder {
 			}
 		}
 		
-		if (!oldModelMapDiff.keySet().isEmpty()) {
+		if (!oldModelDiff.keySet().isEmpty()) {
 			logger.info("Trace Parameters: the following parameters were not imported in the new model:");
-			for (String columnName : oldModelMapDiff.keySet())
+			for (String columnName : oldModelDiff.keySet())
 				logger.info("  *" + columnName);
 		}
 	}

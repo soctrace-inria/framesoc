@@ -177,14 +177,19 @@ public enum Initializer {
 	 * TraceDBs are still existing, removing them if it is not the case.
 	 */
 	public void manageDatabases() {
-
 		SystemDBObject sysDB = null;
+		
 		try {
 			sysDB = SystemDBObject.openNewInstance();
 			
 			// Check that the db version is correct
-			UpdateAssistant.checkDB();
-				
+			if (!UpdateAssistant.checkDB()) {
+				// If db was updated, close the current connection
+				sysDB.close();
+				// Open a new connection on the updated DB
+				sysDB = SystemDBObject.openNewInstance();
+			}
+						
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 

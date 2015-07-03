@@ -71,7 +71,6 @@ public class SystemDBObject extends DBObject {
 
 		// create the DB and the tables
 		dbManager.createDB();
-		
 		dbManager.createTableStatement();
 		dbManager.setDBVersion(SYSTEM_DB_OBJECT_VERSION);
 		dbManager.initTrace();
@@ -80,7 +79,7 @@ public class SystemDBObject extends DBObject {
 		dbManager.initTraceParamType();
 		dbManager.initTool();
 		dbManager.closeTableStatement();
-		
+
 		// commit
 		commit();
 	}
@@ -213,4 +212,15 @@ public class SystemDBObject extends DBObject {
 	public boolean checkDBVersion() throws SoCTraceException {
 		return dbManager.getDBVersion() == SYSTEM_DB_OBJECT_VERSION;
 	}
+	
+	/**
+	 * Get the the index of the column giving the name of the column in table in
+	 * the table description
+	 * 
+	 * @return the index of the column
+	 */
+	public int getColumnNameIndex() {
+		return dbManager.getColumnNameIndex();
+	}
+	
 }

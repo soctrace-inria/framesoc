@@ -42,20 +42,23 @@ public class UpdateAssistant {
 	/**
 	 * Check if the system database has the same version that the current model
 	 */
-	public static void checkDB() {
+	public static boolean checkDB() {
 		SystemDBObject sysDB = null;
 		try {
 			if (!FramesocManager.getInstance().isSystemDBExisting())
-				return;
+				return true;
 
 			sysDB = SystemDBObject.openNewInstance();
 
 			// If getting sysdb failed
 			if (sysDB == null)
-				return;
+				return true;
 
 			// If the model version does not match
 			if (!sysDB.checkDBVersion()) {
+				// We no longer need the connection: close it to prevent bug
+				sysDB.close();
+				
 				// Update the DB
 				UpdateAssistant updateAssistant = new UpdateAssistant();
 				updateAssistant.updateDBModel();
@@ -66,9 +69,11 @@ public class UpdateAssistant {
 					"Checking database version",
 					"Database version checking failed with the following error: "
 							+ e.getMessage());
+			return true;
 		} finally {
 			DBObject.finalClose(sysDB);
 		}
+		return false;
 	}
 	
 	/**
@@ -92,17 +97,17 @@ public class UpdateAssistant {
 							InterruptedException {
 						monitor.beginTask("Updating database", 2);
 						try {
+							// Update DB
 							runUpdate(monitor);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							MessageDialog.openError(shell,
+									"Error Updating Database",
+									"Database updating failed with the folllowing error: "
+											+ e.getMessage());
 						}
 						monitor.done();
 					}
 				});
-				MessageDialog.openInformation(shell, "Updating Database",
-						"Update successful!");
-
 			} catch (InvocationTargetException | InterruptedException e) {
 				MessageDialog.openError(shell, "Error Updating Database",
 						"Database updating failed with the folllowing error: "
@@ -119,11 +124,22 @@ public class UpdateAssistant {
 	 */
 	private void runUpdate(IProgressMonitor monitor) {
 		monitor.beginTask("Updating Database", 2);
-		
 		monitor.subTask("Copying Database");
+		
 		dbModelChecker = new DBModelChecker();
 		try {
 			dbModelChecker.updateDB();
+			monitor.worked(1);
+
+			// Run a check on all traces in order to fix some potential errors
+			monitor.subTask("Checking Traces");
+			TraceChecker traceChecker = new TraceChecker();
+			traceChecker.checkAllTraces(monitor);
+			monitor.worked(1);
+
+			MessageDialog.openInformation(
+					Display.getCurrent().getActiveShell(), "Updating Database",
+					"Update successful!");
 		} catch (final SoCTraceException e) {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
@@ -135,12 +151,6 @@ public class UpdateAssistant {
 				}
 			});
 		}
-		monitor.worked(1);
-
-		monitor.subTask("Checking Traces");
-		TraceChecker traceChecker = new TraceChecker();
-		traceChecker.checkAllTraces(monitor);
-		monitor.worked(1);
 	}
 
 }

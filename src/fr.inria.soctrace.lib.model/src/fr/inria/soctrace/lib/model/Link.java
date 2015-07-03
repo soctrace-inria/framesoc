@@ -20,8 +20,8 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class Link extends Event {
 
-	private EventProducer endEventProducer = null; 
-	
+	private EventProducer endEventProducer = null;
+
 	public Link(int id) {
 		super(id);
 		try {
@@ -30,7 +30,7 @@ public class Link extends Event {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * @return the end timestamp
 	 */
@@ -39,7 +39,8 @@ public class Link extends Event {
 	}
 
 	/**
-	 * @param endTimestamp the end timestamp to set
+	 * @param endTimestamp
+	 *            the end timestamp to set
 	 */
 	public void setEndTimestamp(long endTimestamp) {
 		setLongPar(endTimestamp);
@@ -53,17 +54,18 @@ public class Link extends Event {
 	}
 
 	/**
-	 * @param ep the end event producer to set
+	 * @param ep
+	 *            the end event producer to set
 	 */
 	public void setEndProducer(EventProducer ep) {
 		this.endEventProducer = ep;
-		setDoublePar(((Integer)ep.getId()).doubleValue());
+		setDoublePar(((Integer) ep.getId()).doubleValue());
 	}
-	
+
 	@Override
 	public void check() throws SoCTraceException {
 		super.check();
-		if(endEventProducer==null)
+		if (endEventProducer == null)
 			throw new SoCTraceException("null end event producer");
 	}
 

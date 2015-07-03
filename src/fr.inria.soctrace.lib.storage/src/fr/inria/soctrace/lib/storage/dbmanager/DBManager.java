@@ -574,10 +574,17 @@ public abstract class DBManager {
 	public abstract	String getTableInfoQuery(FramesocTable framesocTable);
 
 	/**
-	 * Replace a database by another. Used only for the import form updater
-	 * mechanism
+	 * Replace a database by another. The old DB will be replace by the old one,
+	 * but will still have the old DB name. Used only for the import form
+	 * updater mechanism
+	 * 
+	 * @param oldBDName
+	 *            the name of the old bd that will be replace
+	 * @param newDBName
+	 *            the name of the new DB that will replace the old one
+	 * @throws SoCTraceException
 	 */
-	public abstract void replaceDB() throws SoCTraceException;
+	public abstract void replaceDB(String oldBDName, String newDBName) throws SoCTraceException;
 	
 	/**
 	 * Set the database model version which is a custom field used by Framesoc to
@@ -590,7 +597,7 @@ public abstract class DBManager {
 	public abstract void setDBVersion(int databaseVersion) throws SoCTraceException;
 	
 	/**
-	 * Get the database version number. 
+	 * Get the database version number.
 	 * 
 	 * Default value set by SQLite is 0
 	 * 
@@ -599,5 +606,13 @@ public abstract class DBManager {
 	 * @throws SoCTraceException
 	 */
 	public abstract int getDBVersion() throws SoCTraceException;
-	
+
+	/**
+	 * Get the the index of the column giving the name of the column in table in
+	 * the table description
+	 * 
+	 * @return the index of the column
+	 */
+	public abstract int getColumnNameIndex();
+
 }

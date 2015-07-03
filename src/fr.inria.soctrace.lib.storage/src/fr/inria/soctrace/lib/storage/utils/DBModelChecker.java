@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.DBObject.DBMode;
 import fr.inria.soctrace.lib.storage.dbmanager.DBManager;
@@ -36,14 +37,17 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  */
 public class DBModelChecker {
 
+	// List of the tables that need to be updated
 	private final static FramesocTable[] checkedTableModel = {
 			FramesocTable.TRACE, FramesocTable.TRACE_TYPE,
 			FramesocTable.TRACE_PARAM_TYPE, FramesocTable.TRACE_PARAM,
 			FramesocTable.TOOL };
 	
-	public static final String NEW_SYSTEM_DB_SUFFIX = ".tmp";
-	public static final int NAME_COLUMN_INDEX = 2;
+	public static final String NEW_SYSTEM_DB_SUFFIX = "_tmp";
 
+	/**
+	 * List of the table model rebuilders
+	 */
 	private List<DBModelRebuilder> dbModelRebuilders = new ArrayList<DBModelRebuilder>();
 	
 	/**
@@ -74,7 +78,7 @@ public class DBModelChecker {
 			// Get info
 			ResultSet rs = stm.executeQuery(query);
 			while (rs.next()) {
-				String columnName = rs.getString(NAME_COLUMN_INDEX);
+				String columnName = rs.getString(systemDB.getColumnNameIndex());
 				oldModel.put(columnName, cpt);
 				// Check that column names are similar
 				if (!columnName.equals(modelBuilder.getValueAt(cpt))) {
@@ -83,7 +87,6 @@ public class DBModelChecker {
 					modelBuilder.getOldModelMapDiff().put(columnName, cpt);
 					tableHasDifference = true;
 				}
-
 				cpt++;
 			}
 
@@ -97,7 +100,7 @@ public class DBModelChecker {
 			if (tableHasDifference) {
 				// Also check in reverse for potential missing parameter
 				for (int i = 1; i <= currentModelLength; i++) {
-					String currentModelColName = modelBuilder.getValueAt(cpt);
+					String currentModelColName = modelBuilder.getValueAt(i);
 					if (!oldModel.containsKey(currentModelColName))
 						modelBuilder.getOldModelMapDiff().put(
 								currentModelColName,
@@ -119,16 +122,22 @@ public class DBModelChecker {
 		String tmpDbName = Configuration.getInstance().get(
 				SoCTraceProperty.soctrace_db_name)
 				+ NEW_SYSTEM_DB_SUFFIX;
-
+		SystemDBObject newSysDB = null;
+		SystemDBObject oldsysDB = null;
+		
 		// Create a new DB with the current model
 		try {
-			SystemDBObject newSysDB = new SystemDBObject(tmpDbName,
-					DBMode.DB_CREATE);
+			// If the temp DB already exists
+			if (DBObject.isDBExisting(tmpDbName))
+				// Delete it
+				new SystemDBObject(tmpDbName, DBMode.DB_OPEN)
+						.dropDatabase();
+			
+			newSysDB = new SystemDBObject(tmpDbName, DBMode.DB_CREATE);
+			oldsysDB = new SystemDBObject(Configuration.getInstance().get(
+					SoCTraceProperty.soctrace_db_name), DBMode.DB_OPEN);
 
-			SystemDBObject oldsysDB = new SystemDBObject(Configuration
-					.getInstance().get(SoCTraceProperty.soctrace_db_name),
-					DBMode.DB_OPEN);
-
+			// Fetch the difference between the old and the new model
 			for (FramesocTable framesocTable : checkedTableModel) {
 				getDatabaseModelDifferences(oldsysDB,
 						DBModelRebuilder.DBModelRebuilderFactory(framesocTable));
@@ -139,18 +148,33 @@ public class DBModelChecker {
 				dbModelrebuider.setDBs(oldsysDB, newSysDB);
 				dbModelrebuider.copyTable();
 			}
-
+			
 			oldsysDB.close();
 			newSysDB.close();
 
-			// Erase the old one and replace with the new one
+			// Erase the old one and replace with the new updated one
 			DBManager.getDBManager(
 					Configuration.getInstance().get(
-							SoCTraceProperty.soctrace_db_name)).replaceDB();
+							SoCTraceProperty.soctrace_db_name)).replaceDB(
+					Configuration.getInstance().get(
+							SoCTraceProperty.soctrace_db_name), tmpDbName);
 		} catch (SoCTraceException e) {
 			// TODO Clean up potential mess
+
 			throw new SoCTraceException(e);
+		} finally {
+			DBObject.finalClose(oldsysDB);
+
+			DBObject.finalClose(newSysDB);
+			if (newSysDB != null) {
+				// If the temp DB still exists
+				if (DBObject.isDBExisting(newSysDB.getDBName())) {
+					// Delete it
+					newSysDB.dropDatabase();
+				}
+			}
 		}
+
 	}
 
 }

@@ -29,7 +29,7 @@ public class State extends Event {
 		}
 		setImbricationLevel(0);
 	}
-	
+
 	/**
 	 * @return the end timestamp
 	 */
@@ -38,28 +38,29 @@ public class State extends Event {
 	}
 
 	/**
-	 * @param endTimestamp the end timestamp to set
+	 * @param endTimestamp
+	 *            the end timestamp to set
 	 */
 	public void setEndTimestamp(long endTimestamp) {
 		setLongPar(endTimestamp);
 	}
 
 	/**
-	 * @return the <i>imbrication</i> level, which is defined as the
-	 * nesting level for states containing other states (e.g., the root
-	 * state has imbrication 0, his direct sons have imbrication 1, etc.)
+	 * @return the <i>imbrication</i> level, which is defined as the nesting
+	 *         level for states containing other states (e.g., the root state
+	 *         has imbrication 0, his direct sons have imbrication 1, etc.)
 	 */
 	public int getImbricationLevel() {
-		return ((Double)getDoublePar()).intValue();
+		return ((Double) getDoublePar()).intValue();
 	}
 
 	/**
-	 * @param imbricationLevel the <i>imbrication</i> level to set.
-	 * The imbrication level is defined in {@link #getImbricationLevel()}
-	 * documentation.
+	 * @param imbricationLevel
+	 *            the <i>imbrication</i> level to set. The imbrication level is
+	 *            defined in {@link #getImbricationLevel()} documentation.
 	 */
 	public void setImbricationLevel(int imbricationLevel) {
-		setDoublePar(((Integer)imbricationLevel).doubleValue());
+		setDoublePar(((Integer) imbricationLevel).doubleValue());
 	}
 
 }

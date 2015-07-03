@@ -34,7 +34,7 @@ public abstract class DBModelRebuilder {
 	private static final Logger logger = LoggerFactory.getLogger(DBModelRebuilder.class);
 	
 	public static final Integer MISSING_PARAMETER_VALUE = -1;
-	private static final String UNSUPPORTED_MISSING_VALUE = "Updater encountered a non-updatable missing value";
+	private static final String UNSUPPORTED_MISSING_VALUE_MSG = "Updater encountered a non-updatable missing value";
 	
 	// Current table being updated
 	protected FramesocTable table;
@@ -44,11 +44,12 @@ public abstract class DBModelRebuilder {
 
 	/**
 	 * Contains the list of differences between current DB model and older one.
-	 * It should contain parameters that are no longer present in the table , or
-	 * that are at a different position. Parameters of the current DB model but that are not
-	 * in the ancient one, have their position set to MISSING_PARAMETER_VALUE
+	 * It should contain parameters that are no longer in the table, or that are
+	 * at a different position. Parameters of the current DB model but that are
+	 * not in the ancient one, have their position set to
+	 * MISSING_PARAMETER_VALUE
 	 */
-	protected Map<String, Integer> oldModelMapDiff;
+	protected Map<String, Integer> oldModelDiff;
 	
 	// The old updated system DB model
 	protected SystemDBObject oldSysDB;
@@ -56,7 +57,7 @@ public abstract class DBModelRebuilder {
 	protected SystemDBObject newSysDB;
 
 	public DBModelRebuilder() {
-		oldModelMapDiff = new HashMap<String, Integer>();
+		oldModelDiff = new HashMap<String, Integer>();
 	}
 	
 	/**
@@ -209,7 +210,7 @@ public abstract class DBModelRebuilder {
 	 * 
 	 * @param statement
 	 *            the built statement
-	 * @param obj
+	 * @param value
 	 *            Specific value to be added
 	 * @param destPos
 	 *            the column index of the destination DB
@@ -217,35 +218,35 @@ public abstract class DBModelRebuilder {
 	 *            the type of the value
 	 * @throws SoCTraceException
 	 */
-	protected void addToStatement(PreparedStatement statement, Object obj,
+	protected void addToStatement(PreparedStatement statement, Object value,
 			int destPos, String type) throws SoCTraceException {
 		
 		// Unsupported missing value 
-		if(obj == null)
-			throw new SoCTraceException(UNSUPPORTED_MISSING_VALUE);
+		if(value == null)
+			throw new SoCTraceException(UNSUPPORTED_MISSING_VALUE_MSG);
 		
 		try {
 			switch (type) {
 			case "String":
-				statement.setString(destPos, (String) obj);
+				statement.setString(destPos, (String) value);
 				break;
 			case "Integer":
-				statement.setInt(destPos, (Integer) obj);
+				statement.setInt(destPos, (Integer) value);
 				break;
 			case "Long":
-				statement.setLong(destPos, (Long) obj);
+				statement.setLong(destPos, (Long) value);
 				break;
 			case "Boolean":
-				statement.setBoolean(destPos, (Boolean) obj);
+				statement.setBoolean(destPos, (Boolean) value);
 				break;
 			case "Float":
-				statement.setFloat(destPos, (Float) obj);
+				statement.setFloat(destPos, (Float) value);
 				break;
 			case "Double":
-				statement.setDouble(destPos, (Double) obj);
+				statement.setDouble(destPos, (Double) value);
 				break;
 			case "Short":
-				statement.setShort(destPos, (Short) obj);
+				statement.setShort(destPos, (Short) value);
 				break;
 			default:
 				logger.error("Unsupported type {}", type);
@@ -256,11 +257,11 @@ public abstract class DBModelRebuilder {
 	}
 	
 	public Map<String, Integer> getOldModelMapDiff() {
-		return oldModelMapDiff;
+		return oldModelDiff;
 	}
 
 	public void setOldModelMapDiff(Map<String, Integer> oldModelMapDiff) {
-		this.oldModelMapDiff = oldModelMapDiff;
+		this.oldModelDiff = oldModelMapDiff;
 	}
 	
 	public FramesocTable getTable() {
