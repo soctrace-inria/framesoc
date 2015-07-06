@@ -16,7 +16,7 @@
   </build>
   <parent>
   	<relativePath>../fr.inria.soctrace.maven.master</relativePath>
-  	<version>1.0.7-SNAPSHOT</version>
+  	<version>1.0.8-SNAPSHOT</version>
   	<artifactId>fr.inria.soctrace.maven.master</artifactId>
   	<groupId>fr.inria.soctrace.maven</groupId>
   </parent>

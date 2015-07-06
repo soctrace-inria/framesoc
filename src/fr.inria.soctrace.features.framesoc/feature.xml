@@ -2,7 +2,7 @@
 <feature
       id="fr.inria.soctrace.features.framesoc"
       label="Framesoc"
-      version="1.0.7.qualifier"
+      version="1.0.8.qualifier"
       provider-name="INRIA"
       plugin="fr.inria.soctrace.framesoc.brand">
 
