@@ -28,6 +28,9 @@ import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
  * 	-the field name is a description of the column
  * 	-the field position is the column index of the column
  * 	-the field type is the type of the data stored in the column
+ *  -the field default value provide a value when the field is not initialized.
+ * a null value means that the field should not be blank, and should be handled 
+ * as an error.
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
@@ -47,12 +50,51 @@ public abstract class DBModelConstants {
 		TableModelDictionary = Collections.unmodifiableMap(aMap);
 	}
 	
+	/**
+	 * Provide API to get information about a table model
+	 * 
+	 * @author "Youenn Corre <youenn.corre@inria.fr>"
+	 */
 	public interface TableModel {
-		public void setDescription(String name) ;
+		/**
+		 * Set the description of a column db
+		 * 
+		 * @param description
+		 *            the new description
+		 */
+		public void setDescription(String description) ;
+
+		/**
+		 * @return the current column index of a column in DB
+		 */
 		public int getPosition() ;
+
+		/**
+		 * Set the position of a column in database
+		 * 
+		 * @param pos
+		 *            the new position
+		 */
 		public void setPosition(int pos);
+
+		/**
+		 * @return the name of the column in Database
+		 */
 		public String getDbColumnName();
+
+		/**
+		 * Get a default value for the column. Used when the value is missing.
+		 * When returning a null value, means that databse cannot be updated if
+		 * missing
+		 * 
+		 * @return the default value for the column
+		 */
 		public Object getDefaultValue();
+
+		/**
+		 * 
+		 * @return the type of the value stored in database
+		 */
 		public String getType();
 	}
 	
@@ -68,8 +110,6 @@ public abstract class DBModelConstants {
 	 *  If a default value cannot be given then it is set to null, meaning t
 	 *  that the update will fail if this field is absent in the database
 	 */
-	
-	
 	public static enum TraceTableModel implements TableModel {		
 		ID("ID", 1, Integer.class.getSimpleName(), null),
 		TRACE_TYPE_ID("Trace type", 2, Integer.class.getSimpleName(), Trace.UNKNOWN_INT),

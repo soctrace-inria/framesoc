@@ -2,8 +2,11 @@ package fr.inria.soctrace.framesoc.ui.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -67,7 +70,39 @@ public abstract class Snapshot {
 	public void setView(FramesocPart view) {
 		this.view = view;
 	}
+	
+	/**
+	 * Get the useful information from the current view
+	 * 
+	 * @return a String with the information
+	 */
+	public abstract String getTraceInfo();
 
+	/**
+	 * Sae the trace info as a text file
+	 * 
+	 * @param aDirPath
+	 *            path to where to save the info. Should be the snapshot
+	 *            directory
+	 */
+	public void saveTraceConfig(String aDirPath) {
+		String config = getTraceInfo();
+		PrintWriter writer;
+		
+		try {
+			writer = new PrintWriter(aDirPath + "/trace_info.txt", "UTF-8");
+
+			writer.print(config);
+
+			// Close the fd
+			writer.flush();
+			writer.close();
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Create a unique directory for the current snapshot
 	 */

@@ -14,6 +14,7 @@ import fr.inria.soctrace.framesoc.ui.utils.Snapshot;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
 public class StatisticsPieChartSnapshot extends Snapshot {
+	
 	private static final String SUFFIX_SNAPSHOT = "_pie";
 	private StatisticsPieChartView pieView;
 
@@ -30,6 +31,8 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 		snapshotDirectory = createDirectory(pieView.getCurrentShownTrace()
 				.getAlias());
 
+		saveTraceConfig(snapshotDirectory);
+		
 		// Set image output file name
 		File outputFile = new File(snapshotDirectory + "/"
 				+ pieView.getCurrentShownTrace().getAlias() + SUFFIX_SNAPSHOT
@@ -60,6 +63,11 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 		}
 	}
 
+	/**
+	 * Get the values of the statistics as CSV
+	 * 
+	 * @return a CSV version of the computed statistics
+	 */
 	public String getTableInfo() {
 		StringBuilder valueToCSV = new StringBuilder();
 		String newLine = System.getProperty("line.separator");
@@ -109,5 +117,15 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 		}
 		
 		return valueToCSV.toString();
+	}
+
+	@Override
+	public String getTraceInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("Trace name: ");
+		output.append(pieView.getCurrentShownTrace().getAlias());
+		output.append(pieView.getSnapshotInfo());
+
+		return output.toString();
 	}
 }

@@ -52,6 +52,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.gantt.Activator;
 import fr.inria.soctrace.framesoc.ui.gantt.GanttContributionManager;
 import fr.inria.soctrace.framesoc.ui.gantt.loaders.CpuEventDrawer;
+import fr.inria.soctrace.framesoc.ui.gantt.loaders.GanttEntry;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventDrawer;
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
@@ -986,4 +987,59 @@ public class GanttView extends AbstractGanttView {
 		return computedHeight;
 	}
 
+	public String getSnapshotInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("\nDisplayed start timestamp: ");
+		output.append(getTimeGraphViewer().getTime0());
+		output.append("\nDisplayed end timestamp: ");
+		output.append(getTimeGraphViewer().getTime1());
+		output.append("\nSelection start timestamp: ");
+		output.append(getTimeGraphViewer().getSelectionBegin());
+		output.append("\nSelection end timestamp: ");
+		output.append(getTimeGraphViewer().getSelectionEnd());
+		output.append("\nLoaded start timestamp: ");
+		output.append(getTimeGraphViewer().getBeginTime());
+		output.append("\nLoaded end timestamp: ");
+		output.append(getTimeGraphViewer().getEndTime());
+
+		// Filtered types
+		String filteredTypes = "";
+		List<Integer> filteredType = fPresentationProvider.getFilteredTypes();
+		for (Object typeObject : listAllInputs(Arrays.asList(typeHierarchy))) {
+			if (typeObject instanceof EventTypeNode) {
+			if (filteredType.contains(((EventTypeNode) typeObject).getEventType().getId()))
+
+				filteredTypes = filteredTypes
+						+ ((EventTypeNode) typeObject).getEventType().getName() + ", ";
+			}
+		}
+		
+		// If there was some filtered event producers
+		if (!filteredTypes.isEmpty()) {
+			// Remove last separator
+			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
+			output.append("\nFiltered event types: ");
+			output.append(filteredTypes);
+		}
+	
+		
+		// Filtered event producers
+		String filteredEP = "";
+		List<Object> filteredEntry = (List<Object>) (getTimeGraphCombo().getFilteredEntries());
+		for (Object objectEntry : filteredEntry) {
+			filteredEP = filteredEP + ((GanttEntry) objectEntry).getName()
+					+ ", ";
+		}
+		
+		// If there was some filtered event producers
+		if (!filteredEP.isEmpty()) {
+			// Remove last separator
+			filteredEP = filteredEP.substring(0, filteredEP.length() - 2);
+			output.append("\nFiltered event producers: ");
+			output.append(filteredEP);
+		}
+		
+		return output.toString();
+	}
+	
 }

@@ -35,7 +35,7 @@ public class SystemDBObjectTest extends BaseSystemDBTest {
 		assertTrue(sysDB.isTraceTypePresent(VirtualImporter.TRACE_TYPE_NAME));
 		assertFalse(sysDB.isTraceTypePresent("NOT_PRESENT"));
 	}
-
+	
 	@Test
 	public final void testGetTraceType() throws SoCTraceException {
 		TraceType tt = sysDB.getTraceType(VirtualImporter.TRACE_TYPE_NAME);
@@ -58,5 +58,11 @@ public class SystemDBObjectTest extends BaseSystemDBTest {
 		TraceType tt1 = sysDB.getTraceTypeCache().get(TraceType.class, 100);
 		assertNull(tt1);
 	}
+	
+	@Test
+	public final void testVersionNumber() throws SoCTraceException {
+		assertTrue(sysDB.checkDBVersion());
+	}
+
 
 }

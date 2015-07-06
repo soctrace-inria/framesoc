@@ -78,10 +78,15 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
@@ -1360,6 +1365,60 @@ public class StatisticsPieChartView extends FramesocPart {
 		public void run() {
 			new StatisticsPieChartSnapshotDialog(getSite().getShell(), pieView).open();
 		}
+	}
+	
+	public String getSnapshotInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("\nStatisitics operator: ");
+		output.append(getCurrentLoader().getStatName());
+		output.append("\nLoaded start timestamp: ");
+		output.append(globalLoadInterval.startTimestamp);
+		output.append("\nLoaded end timestamp: ");
+		output.append(globalLoadInterval.endTimestamp);
+
+		// Filtered types
+		String filteredTypes = "";
+		List<Object> filteredType = globalFilters.get(FilterDimension.TYPE).getChecked();
+		List<Object> allTypes = globalFilters.get(FilterDimension.TYPE).getAllElements();
+		for (Object typeObject : allTypes) {
+			if (!filteredType.contains(typeObject)) {
+				if (typeObject instanceof EventTypeNode) {
+					filteredTypes = filteredTypes
+							+ ((EventTypeNode) typeObject).getEventType().getName() + ", ";
+				}
+			}
+		}
+		
+		// If there was some filtered event producers
+		if (!filteredTypes.isEmpty()) {
+			// Remove last separator
+			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
+			output.append("\nFiltered event types: ");
+			output.append(filteredTypes);
+		}
+	
+		// Filtered event producers
+		String filteredEP = "";
+		List<Object> filteredProducers = globalFilters.get(FilterDimension.PRODUCERS).getChecked();
+		List<Object> allProducers = globalFilters.get(FilterDimension.PRODUCERS).getAllElements();
+		for (Object producer : allProducers) {
+			if (!filteredProducers.contains(producer)) {
+				if (producer instanceof EventProducerNode) {
+					filteredEP = filteredEP
+							+ ((EventProducerNode) producer).getName() + ", ";
+				}
+			}
+		}
+
+		// If there was some filtered event producers
+		if (!filteredEP.isEmpty()) {
+			// Remove last separator
+			filteredEP = filteredEP.substring(0, filteredEP.length() - 2);
+			output.append("\nFiltered event producers: ");
+			output.append(filteredEP);
+		}
+		
+		return output.toString();
 	}
 
 }

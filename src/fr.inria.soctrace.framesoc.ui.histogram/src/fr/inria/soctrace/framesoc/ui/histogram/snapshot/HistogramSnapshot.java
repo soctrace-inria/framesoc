@@ -40,6 +40,8 @@ public class HistogramSnapshot extends Snapshot {
 		// Create and set directory
 		snapshotDirectory = createDirectory(histoView.getCurrentShownTrace()
 				.getAlias());
+		
+		saveTraceConfig(snapshotDirectory);
 
 		// Set output file name
 		File outputFile = new File(snapshotDirectory + "/"
@@ -53,4 +55,14 @@ public class HistogramSnapshot extends Snapshot {
 		}
 	}
 
+	@Override
+	public String getTraceInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("Trace name: ");
+		output.append(histoView.getCurrentShownTrace().getAlias());
+		output.append(histoView.getSnapshotInfo());
+
+		return output.toString();
+	}
+	
 }

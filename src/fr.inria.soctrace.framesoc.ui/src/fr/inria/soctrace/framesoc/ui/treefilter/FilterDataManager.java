@@ -127,6 +127,10 @@ public abstract class FilterDataManager {
 	public List<Object> getChecked() {
 		return new ArrayList<Object>(checked);
 	}
+	
+	public List<Object> getAllElements() {
+		return allElements;
+	}
 
 	/**
 	 * Check if the passed list is equals to the checked items.

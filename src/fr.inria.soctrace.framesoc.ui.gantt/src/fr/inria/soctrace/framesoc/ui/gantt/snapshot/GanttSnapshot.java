@@ -35,8 +35,21 @@ public class GanttSnapshot extends Snapshot {
 				snapshotDirectory + "/"
 						+ ganttView.getCurrentShownTrace().getAlias()
 						+ SUFFIX_SNAPSHOT);
+		
+		saveTraceConfig(snapshotDirectory);
 	}
 
+	@Override
+	public String getTraceInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("Trace name: ");
+		output.append(ganttView.getCurrentShownTrace().getAlias());
+		output.append(ganttView.getSnapshotInfo());
+
+		return output.toString();
+	}
+
+	
 	public boolean isFullHeight() {
 		return fullHeight;
 	}

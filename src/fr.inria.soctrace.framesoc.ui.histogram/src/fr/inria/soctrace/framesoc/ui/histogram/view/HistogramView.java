@@ -75,6 +75,8 @@ import fr.inria.soctrace.framesoc.ui.histogram.loaders.DensityHistogramLoader;
 import fr.inria.soctrace.framesoc.ui.histogram.model.HistogramLoaderDataset;
 import fr.inria.soctrace.framesoc.ui.histogram.snapshot.HistogramSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
@@ -979,6 +981,64 @@ public class HistogramView extends FramesocPart {
 		public void run() {
 			new HistogramSnapshotDialog(getSite().getShell(), histoView).open();
 		}
+	}
+	
+	public String getSnapshotInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("\nLoaded start timestamp: ");
+		output.append(loadedInterval.startTimestamp);
+		output.append("\nLoaded end timestamp: ");
+		output.append(loadedInterval.endTimestamp);
+		output.append("\nSelected start timestamp: ");
+		output.append(Math.min(selectedTs0, selectedTs1));
+		output.append("\nSelected end timestamp: ");
+		output.append(Math.max(selectedTs0, selectedTs1));
+		
+		// Filtered types
+		String filteredTypes = "";
+		List<Object> filteredType = filterMap.get(FilterDimension.TYPE).getChecked();
+		List<Object> allTypes = filterMap.get(FilterDimension.TYPE).getAllElements();
+		for (Object typeObject : allTypes) {
+			if (!filteredType.contains(typeObject)) {
+				if (typeObject instanceof EventTypeNode) {
+					filteredTypes = filteredTypes
+							+ ((EventTypeNode) typeObject).getEventType().getName() + ", ";
+				}
+			}
+		}
+		
+		// If there was some filtered event producers
+		if (!filteredTypes.isEmpty()) {
+			// Remove last separator
+			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
+			output.append("\nFiltered event types: ");
+			output.append(filteredTypes);
+		}
+	
+		
+		// Filtered event producers
+		String filteredEP = "";
+		List<Object> filteredProducers = filterMap.get(FilterDimension.PRODUCERS).getChecked();
+		List<Object> allProducers = filterMap.get(FilterDimension.PRODUCERS).getAllElements();
+		for (Object producer : allProducers) {
+			if (!filteredProducers.contains(producer)) {
+				if (producer instanceof EventProducerNode) {
+					filteredEP = filteredEP
+							+ ((EventProducerNode) producer).getName() + ", ";
+				}
+			}
+		}
+
+		// If there was some filtered event producers
+		if (!filteredEP.isEmpty()) {
+			// Remove last separator
+			filteredEP = filteredEP.substring(0, filteredEP.length() - 2);
+			output.append("\nFiltered event producers: ");
+			output.append(filteredEP);
+		}
+		
+		return output.toString();
+	
 	}
 	
 }

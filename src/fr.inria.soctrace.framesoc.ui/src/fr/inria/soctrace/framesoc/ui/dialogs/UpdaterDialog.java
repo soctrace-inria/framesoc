@@ -21,9 +21,9 @@ import org.eclipse.swt.widgets.Shell;
 public class UpdaterDialog extends MessageDialog {
 
 	private static final String MESSAGE = "Framesoc has detected that the model of the trace database is different "
-			+ "from the current model. Framesoc can try to automatically import the database.\n \n "
-			+ "Would you like to try to update the database ?";
-	
+			+ "from the current model: that can lead to error while reading database. Framesoc can try to automatically "
+			+ "update the database. It is highly recommended to do so.\n \n Would you like to try to update the database ?";
+
 	// Customize button labels
 	private static final  String[] ButtonLabels = {"Yes", "No"};
 	
