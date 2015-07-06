@@ -91,7 +91,8 @@ public class CSVExport {
 				// they are displayed
 				List<EventTableColumn> selectedColumns = new ArrayList<EventTableColumn>();
 				for (EventTableColumn column : EventTableColumn.values())
-					if (exportColumn.get(column))
+					// Ignore Param column as it is a special case
+					if (exportColumn.get(column) && (column != EventTableColumn.PARAMS))
 						selectedColumns.add(column);
 
 				try {
@@ -99,13 +100,15 @@ public class CSVExport {
 							System.getProperty("file.encoding"));
 
 					for (EventTableColumn column : selectedColumns) {
-						csvHeader.append(column.toString() + FramesocConstants.CSV_SEPARATOR);
+							csvHeader.append(column.toString()
+									+ FramesocConstants.CSV_SEPARATOR);
 					}
 
 					// Delete last CSV_SEPARATOR
-					csvHeader.delete(
-							csvHeader.length() - FramesocConstants.CSV_SEPARATOR.length(),
-							csvHeader.length());
+					if (!exportParameters)
+						csvHeader.delete(csvHeader.length()
+								- FramesocConstants.CSV_SEPARATOR.length(),
+								csvHeader.length());
 
 					String newLine = System.getProperty("line.separator");
 
@@ -116,15 +119,19 @@ public class CSVExport {
 							csvExport.append(currentRow.get(column)
 									+ FramesocConstants.CSV_SEPARATOR);
 						}
-
+						
+					
 						if (exportParameters)
 							handleParameters(currentRow);
-						else
+						else {
 							// remove last CSV_SEPARATOR
-							csvExport
-									.delete(csvExport.length()
-											- FramesocConstants.CSV_SEPARATOR.length(),
-											csvExport.length());
+							if (!selectedColumns.isEmpty())
+								csvExport
+										.delete(csvExport.length()
+												- FramesocConstants.CSV_SEPARATOR
+														.length(),
+												csvExport.length());
+						}
 
 						// New line
 						csvExport.append(newLine);
@@ -206,9 +213,15 @@ public class CSVExport {
 			// If we have not yet met this type of parameter
 			if (!parameterTypes.containsKey(paramType)) {
 				parameterTypes.put(paramType, currentMaxNumberOfParameter);
+				if (currentMaxNumberOfParameter == 0)
+					// Extend the header with it
+					csvHeader.append(paramType);
+				else
+					// Extend the header with it
+					csvHeader.append(FramesocConstants.CSV_SEPARATOR
+							+ paramType);
+				
 				currentMaxNumberOfParameter++;
-				// Extend the header with it
-				csvHeader.append(FramesocConstants.CSV_SEPARATOR + paramType);
 			}
 
 			// Remove white space and quote
@@ -247,7 +260,8 @@ public class CSVExport {
 
 		// Complete csv with existing parameter values or blank otherwise
 		for (int i = 0; i < currentMaxNumberOfParameter; i++) {
-			csvExport.append(FramesocConstants.CSV_SEPARATOR);
+			if (i != 0)
+				csvExport.append(FramesocConstants.CSV_SEPARATOR);
 			if (currentParameterValue.containsKey(i)) {
 				csvExport.append(currentParameterValue.get(i));
 			}

@@ -61,7 +61,7 @@ public class TimeBarSettingsDialog extends Dialog {
 		interval.setText("Time Interval");
 		interval.setLayout(new GridLayout(2, false));
 		interval.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
+		
 		Label lblStartTimestamp = new Label(interval, SWT.NONE);
 		lblStartTimestamp.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblStartTimestamp.setText("Start timestamp");
