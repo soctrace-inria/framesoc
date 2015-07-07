@@ -563,27 +563,11 @@ public final class EventTableView extends FramesocPart {
 	}
 	
 	private IAction createCSVExportAction() {
-		CSVExportAction csvAction = new CSVExportAction("Export to CSV", Action.AS_PUSH_BUTTON);/* {
-			@Override
-			public void run() {
-				columnSelection = new HashMap<EventTableColumn, Boolean>();
-				
-				// Set a default file name
-				exportFileName = currentShownTrace.getAlias() + "_"
-						+ currentShownTrace.getId() + ".csv";
-
-				CSVExportDialog csvExportDialog = new CSVExportDialog(getSite()
-						.getShell(), exportFileName, columnSelection);
-
-				if (csvExportDialog.open() == Status.OK) {
-					startExport(exportFileName, columnSelection);
-				}
-			}
-		};*/
+		CSVExportAction csvAction = new CSVExportAction("Export to CSV", Action.AS_PUSH_BUTTON);
 		csvAction.tableView = this;
 		csvAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/export.png"));
-		csvAction.setToolTipText("Export currerntly display events to CSV");
+		csvAction.setToolTipText("Export currently displayed events to CSV");
 		return csvAction;
 	}
 	
