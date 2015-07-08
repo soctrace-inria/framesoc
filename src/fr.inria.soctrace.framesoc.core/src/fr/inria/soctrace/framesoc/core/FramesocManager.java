@@ -249,10 +249,14 @@ public final class FramesocManager {
 
 			sysDB.close();
 
-			// delete the trace db
-			TraceDBObject traceDB = TraceDBObject.openNewInstance(trace.getDbName());
-			traceDB.dropDatabase();
-
+			// Check if the trace was already deleted on disk or in the DB ?
+			if (DBObject.isDBExisting(trace.getDbName())) {
+				// delete the trace db
+				TraceDBObject traceDB = TraceDBObject.openNewInstance(trace
+						.getDbName());
+				traceDB.dropDatabase();
+			}
+			
 			// notify the bus
 			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED, true);
 

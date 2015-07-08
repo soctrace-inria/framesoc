@@ -30,6 +30,7 @@ import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.search.ITraceSearch;
 import fr.inria.soctrace.lib.search.TraceSearch;
+import fr.inria.soctrace.lib.storage.DBObject;
 
 /**
  * Load the data of the model for the Traces view.
@@ -153,7 +154,11 @@ public class TraceLoader {
 			// new trace map
 			Map<Integer, Trace> newTraces = new HashMap<>();
 			for (Trace t : traces) {
-				newTraces.put(t.getId(), t);
+				if(DBObject.isDBExisting(t.getDbName()))
+					newTraces.put(t.getId(), t);
+				else {
+					FramesocManager.getInstance().deleteTrace(t);
+				}
 			}
 
 			// linearize the old tree
