@@ -186,7 +186,7 @@ public enum Initializer {
 			if (!UpdateAssistant.checkDB()) {
 				// If db was updated, close the current connection
 				sysDB.close();
-				// Open a new connection on the updated DB
+				// and open a new connection on the updated DB
 				sysDB = SystemDBObject.openNewInstance();
 			}
 						

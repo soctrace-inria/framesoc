@@ -61,6 +61,7 @@ public class ConfigurationDialog extends Dialog {
 	private Spinner maxViewInstance;
 	private Button btnLaunchDBWizard;
 	private Button btnAllowViewReplication;
+	private Button btnDisplayToolWarningRemoval;
 	private Composite databaseComposite;
 
 	/**
@@ -243,6 +244,27 @@ public class ConfigurationDialog extends Dialog {
 		manageColorComposite.setBackground(tabFolder.getBackground());
 		manageToolsComposite.createPartControl();
 		tbtmToolsParameters.setControl(manageToolsComposite);
+		
+		// Other
+		
+		final TabItem tbtmOther = new TabItem(tabFolder, 0);
+		tbtmOther.setText("Other");
+		final Composite compositeOtherParameter = new Composite(tabFolder, SWT.NONE);
+		tbtmOther.setControl(compositeOtherParameter);
+		compositeOtherParameter.setLayout(new GridLayout(1, false));
+
+		final Group groupOtherSettings = new Group(compositeOtherParameter, SWT.NONE);
+		groupOtherSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		groupOtherSettings.setText("Other Settings");
+		groupOtherSettings.setLayout(new GridLayout(1, false));
+
+		btnDisplayToolWarningRemoval = new Button(groupOtherSettings, SWT.CHECK);
+		btnDisplayToolWarningRemoval.setSelection(Boolean.valueOf(config
+				.get(SoCTraceProperty.ask_for_tool_removal)));
+		btnDisplayToolWarningRemoval
+				.setText("Ask for tool removal confirmation when it is not detected.");
+		btnDisplayToolWarningRemoval
+				.setToolTipText("Display a message dialog when detecting that a previously registered tool is no longer in database.");
 
 		return composite;
 	}
@@ -263,6 +285,8 @@ public class ConfigurationDialog extends Dialog {
 				String.valueOf(btnIndexingEP.getSelection()));
 		config.set(SoCTraceProperty.allow_view_replication,
 				String.valueOf(btnAllowViewReplication.getSelection()));
+		config.set(SoCTraceProperty.ask_for_tool_removal,
+				String.valueOf(btnDisplayToolWarningRemoval.getSelection()));
 
 		// Regenerate the configuration file
 		config.saveOnFile();
