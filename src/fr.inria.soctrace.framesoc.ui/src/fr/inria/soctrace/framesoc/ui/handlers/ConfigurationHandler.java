@@ -64,8 +64,11 @@ public class ConfigurationHandler extends AbstractHandler {
 				Map<Integer, Tool> oldTools = dialog.getOldTools();
 				for (Integer id : oldTools.keySet()) {
 					if (newTools.containsKey(id)) {
-						// updated
-						sysDB.update(newTools.get(id));
+						// Ignore plugin tools since they can not be modified
+						if (!newTools.get(id).isPlugin())
+							// updated
+							sysDB.update(newTools.get(id));
+
 						newTools.remove(id);
 					} else {
 						// deleted
