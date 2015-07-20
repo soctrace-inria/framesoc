@@ -20,12 +20,15 @@ import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
@@ -160,7 +163,6 @@ public class ManageColorsComposite extends Composite {
 				tableViewer.setInput(getNames());
 				tableViewer.setSelection(null);
 				tableViewer.refresh(true);
-				textFilter.setText("");
 			}
 		});
 
@@ -183,14 +185,8 @@ public class ManageColorsComposite extends Composite {
 				1));
 
 		Composite names = new Composite(composite, SWT.NONE);
-		names.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false,
-				1, 1));
-		GridLayout gl_names = new GridLayout(1, false);
-		gl_names.horizontalSpacing = 0;
-		gl_names.marginHeight = 0;
-		gl_names.marginWidth = 0;
-		gl_names.verticalSpacing = 0;
-		names.setLayout(gl_names);
+		TableColumnLayout tableColumnLayout = new TableColumnLayout();
+		names.setLayout(tableColumnLayout);
 		names.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		// list
@@ -216,12 +212,16 @@ public class ManageColorsComposite extends Composite {
 					}
 				});
 
+		TableViewerColumn nameColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		nameColumn.setLabelProvider(new RowLabelProvider());
 		tableViewer.setContentProvider(ArrayContentProvider.getInstance());
-		tableViewer.setLabelProvider(new RowLabelProvider());
 		tableViewer.setSorter(new ViewerSorter());
 		tableViewer.addFilter(new RowFilter());
 		tableViewer.setInput(getNames());
 
+		// Windows fix: Set column width to the full width of the table
+		tableColumnLayout.setColumnData(nameColumn.getColumn(), new ColumnWeightData(100, false));
+		
 		// buttons
 		Composite compositeButtons = new Composite(composite, SWT.NONE);
 		compositeButtons.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER,
