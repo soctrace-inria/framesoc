@@ -27,10 +27,18 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class TraceTableRowFilter extends TableRowFilter {
+	
+	private TraceTableCache traceTableCache;
+
+	public TraceTableRowFilter(TraceTableCache traceTableCache) {
+		this.traceTableCache = traceTableCache;
+		// Reperform the clean after the cache has been initialized
+		clean();
+	}
 
 	public boolean matches(ITableRow row) {
 		boolean matched = true;
-		for (TraceTableColumn col : TraceTableColumn.values()) {
+		for (TraceTableColumn col : traceTableCache.getTableColumns().values()) {
 			String searchString = searchStrings.get(col);
 			if (searchString == null || searchString.length() == 0) {
 				continue;
@@ -59,8 +67,11 @@ public class TraceTableRowFilter extends TableRowFilter {
 	public void clean() {
 		searchStrings = null;
 		searchStrings = new HashMap<>();
-		for (TraceTableColumn col : TraceTableColumn.values()) {
-			searchStrings.put(col, "");
+		if (traceTableCache != null) {
+			for (TraceTableColumn col : traceTableCache.getTableColumns()
+					.values()) {
+				searchStrings.put(col, "");
+			}
 		}
 	}
 

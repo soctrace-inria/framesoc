@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 
+import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -26,6 +27,7 @@ public class TraceTableCache {
 	private List<TraceTableRow> fSortedRows;
 	private Map<Integer, TraceTableRow> fIndex;
 	private TraceTableRowFilter fFilter;
+	private Map<String, TraceTableColumn> tableColumns;
 
 	/**
 	 * Initialize the cache with existing traces.
@@ -34,12 +36,28 @@ public class TraceTableCache {
 	 *            traces
 	 */
 	public void init(List<Trace> traces) {
-		fFilter = new TraceTableRowFilter();
 		fSortedRows = new ArrayList<>();
-		for (Trace trace : traces) {
-			fSortedRows.add(new TraceTableRow(trace));
+		tableColumns = new HashMap<String, TraceTableColumn>();
+		
+		for (TraceTableColumnEnum traceTableColumnEnum : TraceTableColumnEnum
+				.values()) {
+			tableColumns.put(traceTableColumnEnum.getHeader(),
+					new TraceTableColumn(traceTableColumnEnum));
 		}
-		sort(TraceTableColumn.ALIAS, SWT.UP);
+		
+		for (Trace trace : traces) {
+			fSortedRows.add(new TraceTableRow(trace, this));
+		}
+		
+		// Initialize custom parameters in every row
+		for (TraceTableRow traceTablerow : fSortedRows) {
+			traceTablerow.initValues(this);
+		}
+
+		// Init filter only after filling the rows, in order to have all the
+		// column data
+		fFilter = new TraceTableRowFilter(this);
+		sort(tableColumns.get(TraceTableColumnEnum.ALIAS.getHeader()), SWT.UP);
 	}
 
 	/**
@@ -61,6 +79,10 @@ public class TraceTableCache {
 	public int getItemCount() {
 		return fIndex.size();
 	}
+	
+	public Map<String, TraceTableColumn> getTableColumns() {
+		return tableColumns;
+	}
 
 	/**
 	 * Set the filter text for the given column.
@@ -70,7 +92,7 @@ public class TraceTableCache {
 	 * @param string
 	 *            filter text
 	 */
-	public void setFilterText(TraceTableColumn col, String string) {
+	public void setFilterText(ITableColumn col, String string) {
 		fFilter.setFilterText(col, string);
 	}
 
@@ -102,7 +124,7 @@ public class TraceTableCache {
 	 * @param dir
 	 *            direction
 	 */
-	public void sort(final TraceTableColumn col, final int dir) {
+	public void sort(final ITableColumn col, final int dir) {
 
 		// sort rows
 		Collections.sort(fSortedRows, new Comparator<TraceTableRow>() {
@@ -116,28 +138,34 @@ public class TraceTableCache {
 					o2 = tmp;
 				}
 
-				switch (col) {
-				case MAX_TIMESTAMP:
-					return Long.compare(o1.getTrace().getMaxTimestamp(), o2.getTrace()
-							.getMaxTimestamp());
-				case MIN_TIMESTAMP:
-					return Long.compare(o1.getTrace().getMinTimestamp(), o2.getTrace()
-							.getMinTimestamp());
-				case NUMBER_OF_CPUS:
-					return Integer.compare(o1.getTrace().getNumberOfCpus(), o2.getTrace()
-							.getNumberOfCpus());
-				case NUMBER_OF_EVENTS:
-					return Integer.compare(o1.getTrace().getNumberOfEvents(), o2.getTrace()
-							.getNumberOfEvents());
-				case TRACING_DATE:
-					return o1.getTrace().getTracingDate().compareTo(o2.getTrace().getTracingDate());
-				default:
-					try {
-						return o1.get(col).compareTo(o2.get(col));
-					} catch (SoCTraceException e) {
-						e.printStackTrace();
-					}
+				if (col.getHeader().equals(
+						TraceTableColumnEnum.MAX_TIMESTAMP.getHeader()))
+					return Long.compare(o1.getTrace().getMaxTimestamp(), o2
+							.getTrace().getMaxTimestamp());
+				if (col.getHeader().equals(
+						TraceTableColumnEnum.MIN_TIMESTAMP.getHeader()))
+					return Long.compare(o1.getTrace().getMinTimestamp(), o2
+							.getTrace().getMinTimestamp());
+				if (col.getHeader().equals(
+						TraceTableColumnEnum.NUMBER_OF_CPUS.getHeader()))
+					return Integer.compare(o1.getTrace().getNumberOfCpus(), o2
+							.getTrace().getNumberOfCpus());
+				if (col.getHeader().equals(
+						TraceTableColumnEnum.NUMBER_OF_EVENTS.getHeader()))
+					return Integer.compare(o1.getTrace().getNumberOfEvents(),
+							o2.getTrace().getNumberOfEvents());
+				if (col.getHeader().equals(
+						TraceTableColumnEnum.TRACING_DATE.getHeader()))
+					return o1.getTrace().getTracingDate()
+							.compareTo(o2.getTrace().getTracingDate());
+
+				// Default:
+				try {
+					return o1.get(col).compareTo(o2.get(col));
+				} catch (SoCTraceException e) {
+					e.printStackTrace();
 				}
+
 				return 0;
 			}
 		});
