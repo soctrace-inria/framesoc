@@ -204,7 +204,7 @@ public class ConfigurationDialog extends Dialog {
 		maxViewInstance.setSelection(Integer.valueOf(config
 				.get(SoCTraceProperty.max_view_instances)));
 		maxViewInstance.setToolTipText("Maximum number of instances of the same view (["
-				+ MIN_VIEW_INSTANCES + ", " + MAX_VIEW_INSTANCES + "]; -1 = no limit).");
+				+ MIN_VIEW_INSTANCES + ", " + MAX_VIEW_INSTANCES + "]; -1 = no limit)");
 
 		btnAllowViewReplication = new Button(groupGUISettings, SWT.CHECK);
 		btnAllowViewReplication.setSelection(Boolean.valueOf(config
@@ -262,9 +262,9 @@ public class ConfigurationDialog extends Dialog {
 		btnDisplayToolWarningRemoval.setSelection(Boolean.valueOf(config
 				.get(SoCTraceProperty.ask_for_tool_removal)));
 		btnDisplayToolWarningRemoval
-				.setText("Ask for tool removal confirmation when it is not detected.");
+				.setText("Ask for tool removal confirmation");
 		btnDisplayToolWarningRemoval
-				.setToolTipText("Display a message dialog when detecting that a previously registered tool is no longer in database.");
+				.setToolTipText("Display a message dialog when detecting that a tool previously registered in database is no longer loaded");
 
 		return composite;
 	}
