@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
@@ -74,15 +75,20 @@ import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Event;
+import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.query.EventProducerQuery;
+import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -101,7 +107,13 @@ public final class EventTableView extends FramesocPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = FramesocViews.EVENT_TABLE_VIEW_ID;
-
+	
+	/**
+	 * The minimum amount of time unit to show around an event when focusing on
+	 * it in the Gantt chart
+	 */
+	public static final int MIN_TIME_UNIT_SHOWING = 200;
+	
 	/**
 	 * Hint for filter row
 	 */
@@ -255,6 +267,24 @@ public final class EventTableView extends FramesocPart {
 
 				// Else, fill the cache asynchronously (and off the UI thread)
 				event.doit = false;
+			}
+		});
+		
+		// Listener for double click
+		 table.addListener(SWT.MouseDoubleClick, new Listener() {
+			 
+			@Override
+			public void handleEvent(org.eclipse.swt.widgets.Event event) {
+				// Do not process if empty or multiple selection 
+				if(table.getSelection().length != 1)
+					return;
+
+				int index = table.getSelectionIndex() - 1; // -1 for the header row
+				// If header row, don't process
+				if(index < 0)
+					return;
+
+				switchToGantt(cache.get(index));
 			}
 		});
 
@@ -1061,4 +1091,108 @@ public final class EventTableView extends FramesocPart {
 		}
 	}
 
+	/**
+	 * From a selected row of the table, open the Gantt chart and center on the
+	 * event of the selected row by loading at least 1% of the trace around it
+	 * 
+	 * @param row
+	 *            the selected row
+	 */
+	private void switchToGantt(EventTableRow row) {
+		if (row == null)
+			return;
+
+		long startTimestamp = row.getTimestamp();
+		long endTimestamp = startTimestamp;
+		EventProducer ep = null;
+
+		try {
+			String eventProducer = row.get(EventTableColumn.PRODUCER_NAME);
+			String cpu = row.get(EventTableColumn.CPU);
+			ep = findEventProducer(eventProducer, cpu);
+
+			int eventCat = EventCategory.stringToCategory(row
+					.get(EventTableColumn.CATEGORY));
+
+			switch (eventCat) {
+			case EventCategory.STATE:
+			case EventCategory.LINK:
+				// Get the end timestamp
+				String info = row.get(EventTableColumn.PARAMS);
+				String[] params = info.split(EventTableRow.PARAMETER_SEPARATOR);
+				String[] endTimestamps = params[0]
+						.split(EventTableRow.PARAMETER_VALUE_SEPARATOR);
+				endTimestamp = Long.valueOf(endTimestamps[1]
+						.split(EventTableRow.PARAMETER_VALUE_ESCAPE)[1]);
+				break;
+
+			default:
+				break;
+			}
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		long duration = endTimestamp - startTimestamp;
+		// Punctual event
+		if (duration == 0)
+			// Show only the minimum between MIN_TIME_UNIT_SHOWING time units around or one
+			// percent of the trace
+			duration = Math.min(MIN_TIME_UNIT_SHOWING,
+					(currentShownTrace.getMaxTimestamp() - currentShownTrace
+							.getMinTimestamp()) / 100);
+
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(startTimestamp - duration / 2);
+		des.setEndTimestamp(endTimestamp + duration / 2);
+		des.setEventProducer(ep);
+
+		FramesocBus.getInstance().send(
+				FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
+	}
+
+	/**
+	 * Find an event producer based on its name. Very error-prone in case of
+	 * multiple event producers with the same name but the table does not
+	 * provide more information on the producer than the name. TODO Study the
+	 * possibility to make more accurate the research based on CPU
+	 * 
+	 * @param eventProducerName
+	 *            the name of the event producer to be found
+	 * @param cpu
+	 *            the cpu it should belong to
+	 * @return the found event producer, null otherwise
+	 */
+	private EventProducer findEventProducer(String eventProducerName, String cpu) {
+		TraceDBObject traceDB;
+
+		try {
+			// Open the trace database
+			traceDB = TraceDBObject.openNewInstance(currentShownTrace
+					.getDbName());
+
+			// Get the producers
+			EventProducerQuery pq = new EventProducerQuery(traceDB);
+			List<EventProducer> producers = pq.getList();
+
+			for (EventProducer anEP : producers) {
+				// If one producer is found with the same name
+				if (anEP.getName().equals(eventProducerName))
+					return anEP;
+			}
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		logger.debug("No event producer with the name " + eventProducerName
+				+ " was found.");
+		return null;
+	}
+	
 }

@@ -67,6 +67,7 @@ import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -110,7 +111,7 @@ public class GanttView extends AbstractGanttView {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = FramesocViews.GANTT_CHART_VIEW_ID;
-
+	
 	/**
 	 * Time graph presentation provider
 	 */
@@ -170,7 +171,17 @@ public class GanttView extends AbstractGanttView {
 	 * Number of event type nodes
 	 */
 	private int allTypeNodes;
-	
+
+	/**
+	 * Should the Gantt focus on a particular event ?
+	 */
+	private boolean focusOnEvent = false;
+
+	/**
+	 * Information about the event the Gantt should be focused on
+	 */
+	private TraceConfigurationDescriptor focusEventDescriptor = null;
+
 	/**
 	 * Flag specifying if we use the CPU drawer? 
 	 */
@@ -265,7 +276,22 @@ public class GanttView extends AbstractGanttView {
 				showWindow(des.getTrace(), des.getTrace().getMinTimestamp(), des.getTrace()
 						.getMaxTimestamp());
 			} else {
-				showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
+				long start = des.getStartTimestamp();
+				long end = des.getEndTimestamp();
+				
+				// Are we in the case where we should focus on an event
+				if (data instanceof TraceConfigurationDescriptor) {
+					focusOnEvent = true;
+					focusEventDescriptor = (TraceConfigurationDescriptor) data;
+					
+					// Change duration to load one percent of the trace around the event
+					long duration = (des.getTrace().getMaxTimestamp() - des
+							.getTrace().getMinTimestamp()) / 100;
+					start = Math.max(des.getTrace().getMinTimestamp(), des.getStartTimestamp() - duration / 2);
+					end = Math.min(des.getTrace().getMaxTimestamp(), des.getEndTimestamp() + duration / 2);
+				}
+				
+				showWindow(des.getTrace(), start, end);
 			}
 		}
 	}
@@ -287,11 +313,17 @@ public class GanttView extends AbstractGanttView {
 		// compute the actual time interval to load
 		TimeInterval interval = new TimeInterval(start, end);
 		
-		
 		// check for unchanged interval
 		if (checkReuse(trace, interval)) {
 			loader.release();
-			refresh(interval);
+			refresh(interval);	
+			
+			// Do we need to focus on a particular event ?
+			if (focusOnEvent) {
+				focusOnEvent = false;
+				focusViewOn(focusEventDescriptor);
+			}
+			
 			return;
 		}
 
@@ -475,10 +507,22 @@ public class GanttView extends AbstractGanttView {
 					}
 					handleCancel(closeIfCancelled);
 				}
+				
+				// Should we focus on an event ?
+				if (focusOnEvent) {
+					Display.getDefault().syncExec(new Runnable() {
+
+						@Override
+						public void run() {
+							focusOnEvent = false;
+							focusViewOn(focusEventDescriptor);
+						}
+					});
+				}
 
 				// refresh one last time
 				refresh();
-
+				
 				// release drawer
 				drawer.release();
 
@@ -799,6 +843,44 @@ public class GanttView extends AbstractGanttView {
 	}
 	
 	/**
+	 * Focus the Gantt chart on a specific event (time region), by selecting the corresponding
+	 * row and centering the view on the event.
+	 * 
+	 * @param des
+	 *            the parameters needed to focus on the event
+	 */
+	private void focusViewOn(TraceConfigurationDescriptor des)
+	{
+		if (des.getEventProducer() == null) {
+			logger.debug("No event producer was provided in the descriptor");
+			return;
+		}
+
+		// Look for the entry corresponding to the event producer
+		ITimeGraphEntry entry = null;
+		for (ITimeGraphEntry tge : getTimeGraphViewer().getExpandedElements()) {
+			if (tge.getName().equals(des.getEventProducer().getName())) {
+				entry = tge;
+				break;
+			}
+		}
+
+		if (entry == null) {
+			logger.debug("The event producer ("
+					+ des.getEventProducer().toString()
+					+ ") was not found in the Gantt Chart");
+			return;
+		}
+
+		// Select the corresponding entry
+		getTimeGraphCombo().setSelection(entry);
+		
+		// Zoom in on the desired part
+		getTimeGraphViewer().setStartFinishTimeNotify(des.getStartTimestamp(),
+				des.getEndTimestamp());
+	}
+
+	/**
 	 * Initialize the snapshot action
 	 * 
 	 * @return the action
@@ -1021,8 +1103,7 @@ public class GanttView extends AbstractGanttView {
 			output.append("\nFiltered event types: ");
 			output.append(filteredTypes);
 		}
-	
-		
+
 		// Filtered event producers
 		String filteredEP = "";
 		List<Object> filteredEntry = (List<Object>) (getTimeGraphCombo().getFilteredEntries());

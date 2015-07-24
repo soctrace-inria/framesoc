@@ -64,6 +64,21 @@ public class ModelConstants {
 				return "Unknown";
 			}
 		}
+		
+		public static int stringToCategory(String categoryName) {
+			switch (categoryName) {
+			case "Punctual Event":
+				return PUNCTUAL_EVENT;
+			case "State":
+				return STATE;
+			case "Link":
+				return LINK;
+			case "Variable":
+				return VARIABLE;
+			default:
+				return -1;
+			}
+		}
 	}
 	
 	public static enum TimeUnit {		

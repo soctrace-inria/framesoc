@@ -1090,7 +1090,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 					startZoomThread(fStartTime, fEndTime);
 				}
 			}
-
 		});
 	}
 

@@ -79,11 +79,11 @@ public class TraceTableRow extends TableRow {
 	
 	/**
 	 * Since the custom parameters of the trace are added dynamically, some
-	 * fields are not initialized. This method initialiazed them with empty
+	 * fields are not initialized. This method initialized them with empty
 	 * strings
 	 * 
 	 * @param cache
-	 *            the cache providing the comumns in the table
+	 *            the cache providing the columns in the table
 	 */
 	public void initValues(TraceTableCache cache) {
 		for (TraceTableColumn col : cache.getTableColumns().values())
