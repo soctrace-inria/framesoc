@@ -17,9 +17,9 @@ package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Color;
+import javafx.scene.paint.Color;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Canvas;
+import javafx.embed.swt.FXCanvas;
 import org.eclipse.swt.widgets.Composite;
 
 /**
@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Composite;
  * @author Alvaro Sanchez-Leon
  * @author Patrick Tasse
  */
-public abstract class TimeGraphBaseControl extends Canvas implements PaintListener {
+public abstract class TimeGraphBaseControl extends FXCanvas implements PaintListener {
 
     /** Default left margin size */
     public static final int MARGIN = 4;
@@ -44,7 +44,7 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
     public static final int SMALL_ICON_SIZE = 16;
 
     /** Color scheme */
-    private TimeGraphColorScheme fColorScheme;
+    protected TimeGraphColorFxScheme fColorScheme;
 
     /** Font size */
     private int fFontHeight = 0;
@@ -57,7 +57,7 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
      * @param colors
      *            The color scheme to use
      */
-    public TimeGraphBaseControl(Composite parent, TimeGraphColorScheme colors) {
+    public TimeGraphBaseControl(Composite parent, TimeGraphColorFxScheme colors) {
         this(parent, colors, SWT.NO_BACKGROUND | SWT.NO_FOCUS);
     }
 
@@ -71,7 +71,7 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
      * @param style
      *            The index of the style to use
      */
-    public TimeGraphBaseControl(Composite parent, TimeGraphColorScheme colorScheme, int style) {
+    public TimeGraphBaseControl(Composite parent, TimeGraphColorFxScheme colorScheme, int style) {
         super(parent, style);
         fColorScheme = colorScheme;
         addPaintListener(this);
@@ -85,7 +85,7 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
         fFontHeight = e.gc.getFontMetrics().getHeight();
         Rectangle bound = getClientArea();
         if (!bound.isEmpty()) {
-            Color colBackup = e.gc.getBackground();
+            org.eclipse.swt.graphics.Color colBackup = e.gc.getBackground();
             paint(bound, e);
             e.gc.setBackground(colBackup);
         }
@@ -98,8 +98,22 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
      *
      * @since 2.0
      */
-    public TimeGraphColorScheme getColorScheme() {
+    public TimeGraphColorFxScheme getColorScheme() {
         return fColorScheme;
+    }
+
+    /**
+     * Retrieve the color scheme
+     *
+     * @param idx the identity of the wanted color
+     *
+     * @return The java fx color
+     *
+     * @framesoc
+     */
+    public Color getColorScheme(int idx) {
+        org.eclipse.swt.graphics.Color swtColor = fColorScheme.getColor(idx);
+        return Color.rgb(swtColor.getRed(), swtColor.getGreen(), swtColor.getBlue());
     }
 
     /**

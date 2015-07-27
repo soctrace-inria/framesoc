@@ -55,11 +55,19 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.TypedEvent;
-import org.eclipse.swt.graphics.Color;
+
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.paint.Color;
+
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
+
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -121,9 +129,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     private static final int NO_STATUS = -1;
 
-    /** Resource manager */
-    private LocalResourceManager fResourceManager = new LocalResourceManager(JFaceResources.getResources());
-
     /** Color map for event types */
     private Color[] fEventColorMap = null;
 
@@ -176,6 +181,14 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private boolean snapshot = false;
     private Rectangle snapBounds;
 
+    private Group root;
+
+    private Scene scene;
+
+    private Canvas canvas;
+
+    private GraphicsContext graphicsContext = null;
+
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
         private static final long POLLING_INTERVAL = 10L;
@@ -219,9 +232,20 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param colors
      *            The color scheme to use
      */
-    public TimeGraphControl(Composite parent, TimeGraphColorScheme colors) {
+    public TimeGraphControl(Composite parent, TimeGraphColorFxScheme colors) {
 
         super(parent, colors, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
+
+        root = new Group();
+        org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+
+        scene = new Scene(root, Color.rgb(col.getRed(), col.getGreen(), col.getBlue()));
+        setScene(scene);
+
+        //Rectangle bounds = getClientArea();
+       // canvas = new Canvas(bounds.width, bounds.height);
+
+        //group.getChildren().add(canvas);
 
         fItemData = new ItemData();
 
@@ -244,7 +268,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
     @Override
     public void dispose() {
         super.dispose();
-        fResourceManager.dispose();
     }
 
     /**
@@ -1385,8 +1408,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     }
 
     @Override
-    public void takeSnapshot(Rectangle bounds, PaintEvent e, boolean fullHeight)
-    {
+    public void takeSnapshot(Rectangle bounds, PaintEvent e, boolean fullHeight) {
         int oldTopIndex = fTopIndex;
         snapshot = true;
         snapBounds = bounds;
@@ -1412,9 +1434,15 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     @Override
     void paint(Rectangle bounds, PaintEvent e) {
-        GC gc = e.gc;
-        gc.setBackground(getColorScheme().getColor(TimeGraphColorScheme.BACKGROUND));
-        drawBackground(gc, bounds.x, bounds.y, bounds.width, bounds.height);
+
+        if(graphicsContext == null) {
+            canvas = new Canvas(getClientArea().width, getClientArea().height);
+            root.getChildren().add(canvas);
+            graphicsContext = canvas.getGraphicsContext2D();
+        }
+      //e.gc;
+        //gc.setBackground(getColorScheme().getColor(TimeGraphColorScheme.BACKGROUND));
+        //drawBackground(gc, bounds.x, bounds.y, bounds.width, bounds.height);
 
         if (bounds.width < 2 || bounds.height < 2 || null == fTimeProvider) {
             return;
@@ -1424,16 +1452,16 @@ public class TimeGraphControl extends TimeGraphBaseControl
         int nameSpace = fTimeProvider.getNameSpace();
 
         // draw empty name space background
-        gc.setBackground(getColorScheme().getBkColor(false, false, true));
-        drawBackground(gc, bounds.x, bounds.y, nameSpace, bounds.height);
+        //gc.setBackground(getColorScheme().getBkFxColor(false, false, true));
+        //drawBackground(gc, bounds.x, bounds.y, nameSpace, bounds.height);
 
         // draw items
-        drawItems(bounds, fTimeProvider, fItemData.fExpandedItems, fTopIndex, nameSpace, gc);
-        drawLinks(bounds, fTimeProvider, fItemData.fLinks, nameSpace, gc);
-        fTimeGraphProvider.postDrawControl(bounds, gc);
+        drawItems(bounds, fTimeProvider, fItemData.fExpandedItems, fTopIndex, nameSpace, graphicsContext);
+        drawLinks(bounds, fTimeProvider, fItemData.fLinks, nameSpace, graphicsContext);
+        fTimeGraphProvider.postDrawControl(bounds, graphicsContext);
 
-        int alpha = gc.getAlpha();
-        gc.setAlpha(100);
+        double alpha = graphicsContext.getGlobalAlpha();
+        graphicsContext.setGlobalAlpha(0.40);
 
         long time0 = fTimeProvider.getTime0();
         long time1 = fTimeProvider.getTime1();
@@ -1445,13 +1473,14 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
         // draw selection lines
         if (fDragState != DRAG_SELECTION) {
-            gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.SELECTED_TIME));
+            graphicsContext.setFill(getColorScheme(TimeGraphColorScheme.SELECTED_TIME));
+            graphicsContext.setStroke(getColorScheme(TimeGraphColorScheme.SELECTED_TIME));
             if (x0 >= nameSpace && x0 < bounds.x + bounds.width) {
-                gc.drawLine(x0, bounds.y, x0, bounds.y + bounds.height);
+                graphicsContext.strokeLine(x0, bounds.y, x0, bounds.y + bounds.height);
             }
             if (x1 != x0) {
                 if (x1 >= nameSpace && x1 < bounds.x + bounds.width) {
-                    gc.drawLine(x1, bounds.y, x1, bounds.y + bounds.height);
+                    graphicsContext.strokeLine(x1, bounds.y, x1, bounds.y + bounds.height);
                 }
             }
         }
@@ -1460,46 +1489,46 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (selectionBegin != 0 && selectionEnd != 0 && fDragState != DRAG_SELECTION) {
             x0 = Math.max(nameSpace, Math.min(bounds.x + bounds.width, x0));
             x1 = Math.max(nameSpace, Math.min(bounds.x + bounds.width, x1));
-            gc.setBackground(getColorScheme().getBkColor(false, false, true));
+            graphicsContext.setFill(getColorScheme().getBkFxColor(false, false, true));
             if (x1 - x0 > 1) {
-                gc.fillRectangle(new Rectangle(x0 + 1, bounds.y, x1 - x0 - 1, bounds.height));
+                graphicsContext.fillRect(x0 + 1, bounds.y, x1 - x0 - 1, bounds.height);
             } else if (x0 - x1 > 1) {
-                gc.fillRectangle(new Rectangle(x1 + 1, bounds.y, x0 - x1 - 1, bounds.height));
+                graphicsContext.fillRect(x1 + 1, bounds.y, x0 - x1 - 1, bounds.height);
             }
         }
 
         // draw drag selection background
         if (fDragState == DRAG_ZOOM || fDragState == DRAG_SELECTION) {
-            gc.setBackground(getColorScheme().getBkColor(false, false, true));
+            graphicsContext.setFill(getColorScheme().getBkFxColor(false, false, true));
             if (fDragX0 < fDragX) {
-                gc.fillRectangle(new Rectangle(fDragX0, bounds.y, fDragX - fDragX0, bounds.height));
+                graphicsContext.fillRect(fDragX0, bounds.y, fDragX - fDragX0, bounds.height);
             } else if (fDragX0 > fDragX) {
-                gc.fillRectangle(new Rectangle(fDragX, bounds.y, fDragX0 - fDragX, bounds.height));
+                graphicsContext.fillRect(fDragX, bounds.y, fDragX0 - fDragX, bounds.height);
             }
         }
 
         // draw drag line
         if (DRAG_SPLIT_LINE == fDragState) {
-            gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.BLACK));
-            gc.drawLine(bounds.x + nameSpace, bounds.y, bounds.x + nameSpace, bounds.y + bounds.height - 1);
+            graphicsContext.setStroke(getColorScheme(TimeGraphColorScheme.BLACK));
+            graphicsContext.strokeLine(bounds.x + nameSpace, bounds.y, bounds.x + nameSpace, bounds.y + bounds.height - 1);
         } else if (DRAG_ZOOM == fDragState && Math.max(fDragX, fDragX0) > nameSpace) {
-            gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.TOOL_FOREGROUND));
-            gc.drawLine(fDragX0, bounds.y, fDragX0, bounds.y + bounds.height - 1);
+            graphicsContext.setStroke(getColorScheme(TimeGraphColorScheme.TOOL_FOREGROUND));
+            graphicsContext.strokeLine(fDragX0, bounds.y, fDragX0, bounds.y + bounds.height - 1);
             if (fDragX != fDragX0) {
-                gc.drawLine(fDragX, bounds.y, fDragX, bounds.y + bounds.height - 1);
+                graphicsContext.strokeLine(fDragX, bounds.y, fDragX, bounds.y + bounds.height - 1);
             }
         } else if (DRAG_SELECTION == fDragState && Math.max(fDragX, fDragX0) > nameSpace) {
-            gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.SELECTED_TIME));
-            gc.drawLine(fDragX0, bounds.y, fDragX0, bounds.y + bounds.height - 1);
+            graphicsContext.setStroke(getColorScheme(TimeGraphColorScheme.SELECTED_TIME));
+            graphicsContext.strokeLine(fDragX0, bounds.y, fDragX0, bounds.y + bounds.height - 1);
             if (fDragX != fDragX0) {
-                gc.drawLine(fDragX, bounds.y, fDragX, bounds.y + bounds.height - 1);
+                graphicsContext.strokeLine(fDragX, bounds.y, fDragX, bounds.y + bounds.height - 1);
             }
         } else if (DRAG_NONE == fDragState && fMouseOverSplitLine && fTimeProvider.getNameSpace() > 0) {
-            gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.RED));
-            gc.drawLine(bounds.x + nameSpace, bounds.y, bounds.x + nameSpace, bounds.y + bounds.height - 1);
+            graphicsContext.setStroke(getColorScheme(TimeGraphColorScheme.RED));
+            graphicsContext.strokeLine(bounds.x + nameSpace, bounds.y, bounds.x + nameSpace, bounds.y + bounds.height - 1);
         }
 
-        gc.setAlpha(alpha);
+        graphicsContext.setGlobalAlpha(alpha);
     }
 
     /**
@@ -1519,7 +1548,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *            Reference to the SWT GC object
      */
     public void drawItems(Rectangle bounds, ITimeDataProvider timeProvider,
-            Item[] items, int topIndex, int nameSpace, GC gc) {
+            Item[] items, int topIndex, int nameSpace, GraphicsContext gc) {
         for (int i = topIndex; i < items.length; i++) {
             Item item = items[i];
             drawItem(item, bounds, timeProvider, i, nameSpace, gc);
@@ -1542,7 +1571,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param gc
      *            Graphics context
      */
-    protected void drawItem(Item item, Rectangle bounds, ITimeDataProvider timeProvider, int i, int nameSpace, GC gc) {
+    protected void drawItem(Item item, Rectangle bounds, ITimeDataProvider timeProvider, int i, int nameSpace, GraphicsContext gc) {
         ITimeGraphEntry entry = item.fEntry;
         long time0 = timeProvider.getTime0();
         long time1 = timeProvider.getTime1();
@@ -1556,9 +1585,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (!item.fEntry.hasTimeEvents()) {
             Rectangle statesRect = getStatesRect(bounds, i, nameSpace);
             nameRect.width += statesRect.width;
-            drawName(item, nameRect, gc);
+         //   drawName(item, nameRect, gc);
         } else {
-            drawName(item, nameRect, gc);
+         //   drawName(item, nameRect, gc);
         }
         Rectangle rect = getStatesRect(bounds, i, nameSpace);
         if (rect.isEmpty()) {
@@ -1566,8 +1595,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
             return;
         }
         if (time1 <= time0) {
-            gc.setBackground(getColorScheme().getBkColor(false, false, false));
-            gc.fillRectangle(rect);
+            gc.setFill(getColorScheme().getBkFxColor(false, false, false));
+            gc.fillRect(rect.x, rect.y, rect.width, rect.height);
             fTimeGraphProvider.postDrawEntry(entry, rect, gc);
             return;
         }
@@ -1579,7 +1608,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         double pixelsPerNanoSec = (rect.width <= RIGHT_MARGIN) ? 0 : (double) (rect.width - RIGHT_MARGIN) / (time1 - time0);
 
         if (item.fEntry.hasTimeEvents()) {
-            gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
+            //gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
             fillSpace(rect, gc, selected);
             // Drawing rectangle is smaller than reserved space
             stateRect.y += 3;
@@ -1603,8 +1632,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 if (stateRect.x == lastX) {
                     stateRect.width -= 1;
                     if (stateRect.width > 0) {
-                        gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
-                        gc.drawPoint(stateRect.x, stateRect.y - 2);
+                        gc.setFill(Color.BLACK);
+                        gc.setStroke(Color.BLACK);
+                        gc.strokeLine(stateRect.x, stateRect.y - 2, stateRect.x, stateRect.y - 2);
                         stateRect.x += 1;
                     }
                 }
@@ -1613,7 +1643,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                     lastX = x;
                 }
             }
-            gc.setClipping((Rectangle) null);
+           // gc.setClipping((Rectangle) null);
         }
         fTimeGraphProvider.postDrawEntry(entry, rect, gc);
     }
@@ -1634,15 +1664,15 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @since 2.1
      */
     public void drawLinks(Rectangle bounds, ITimeDataProvider timeProvider,
-            List<ILinkEvent> links, int nameSpace, GC gc) {
+            List<ILinkEvent> links, int nameSpace, GraphicsContext gc) {
         if (fHideArrows) {
             return;
         }
-        gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
+       // gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
         for (ILinkEvent event : links) {
             drawLink(event, bounds, timeProvider, nameSpace, gc);
         }
-        gc.setClipping((Rectangle) null);
+       // gc.setClipping((Rectangle) null);
     }
 
     /**
@@ -1660,7 +1690,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *            Graphics context
      * @since 2.1
      */
-    protected void drawLink(ILinkEvent event, Rectangle bounds, ITimeDataProvider timeProvider, int nameSpace, GC gc) {
+    protected void drawLink(ILinkEvent event, Rectangle bounds, ITimeDataProvider timeProvider, int nameSpace, GraphicsContext gc) {
         drawArrow(getColorScheme(), event, getArrowRectangle(bounds, event), gc);
     }
 
@@ -1704,7 +1734,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @since 2.1
      */
     protected boolean drawArrow(TimeGraphColorScheme colors, ITimeEvent event,
-            Rectangle rect, GC gc) {
+            Rectangle rect, GraphicsContext gc) {
 
         if (rect == null) {
             return false;
@@ -1721,14 +1751,15 @@ public class TimeGraphControl extends TimeGraphBaseControl
             if (colorIdx < fEventColorMap.length) {
                 stateColor = fEventColorMap[colorIdx];
             } else {
-                stateColor = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
+                stateColor = Color.BLACK;
             }
 
-            gc.setForeground(stateColor);
-            gc.setBackground(stateColor);
+            gc.setFill(stateColor);
+            gc.setStroke(stateColor);
+           // gc.setBackground(stateColor);
 
             /* Draw the arrow */
-            gc.drawLine(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
+            gc.strokeLine(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
             drawArrowHead(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, gc);
 
         }
@@ -1744,7 +1775,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *
      * The algorithm was taken from this site, not the code itself
      */
-    private static void drawArrowHead(int x0, int y0, int x1, int y1, GC gc)
+    private static void drawArrowHead(int x0, int y0, int x1, int y1, GraphicsContext gc)
     {
         int factor = 10;
         double cos = 0.9510;
@@ -1759,8 +1790,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
         int end1Y = (int) Math.round((y1 - (dx * sin + dy * cos)));
         int end2X = (int) Math.round((x1 - (dx * cos + dy * sin)));
         int end2Y = (int) Math.round((y1 - (dx * -sin + dy * cos)));
-        int[] arrow = new int[] { x1, y1, end1X, end1Y, end2X, end2Y, x1, y1 };
-        gc.fillPolygon(arrow);
+        double[] arrowX = new double[] { x1, end1X, end2X, x1 };
+        double[] arrowY = new double[] { y1, end1Y, end2Y, y1 };
+        gc.fillPolygon(arrowX, arrowY, arrowX.length);
     }
 
     /**
@@ -1773,19 +1805,20 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param gc
      *            Graphics context
      */
-    protected void drawName(Item item, Rectangle bounds, GC gc) {
+    protected void drawName(Item item, Rectangle bounds, GraphicsContext gc) {
         boolean hasTimeEvents = item.fEntry.hasTimeEvents();
         if (!hasTimeEvents) {
-            gc.setBackground(getColorScheme().getBkColorGroup(item.fSelected, fIsInFocus));
-            gc.fillRectangle(bounds);
+            gc.setFill(getColorScheme().getFxBkColorGroup(item.fSelected, fIsInFocus));
+            gc.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
             if (item.fSelected && fIsInFocus) {
-                gc.setForeground(getColorScheme().getBkColor(item.fSelected, fIsInFocus, false));
-                gc.drawRectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
+                gc.setFill(getColorScheme().getBkFxColor(item.fSelected, fIsInFocus, false));
+                gc.strokeRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
+                //gc.drawRectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
             }
         } else {
-            gc.setBackground(getColorScheme().getBkColor(item.fSelected, fIsInFocus, true));
-            gc.setForeground(getColorScheme().getFgColor(item.fSelected, fIsInFocus));
-            gc.fillRectangle(bounds);
+            //gc.setBackground(getColorScheme().getBkColor(item.fSelected, fIsInFocus, true));
+            gc.setFill(getColorScheme().getFgFxColor(item.fSelected, fIsInFocus));
+            gc.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
         // No name to be drawn
@@ -1795,20 +1828,21 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
         int leftMargin = MARGIN + item.fLevel * EXPAND_SIZE;
         if (item.fHasChildren) {
-            gc.setForeground(getColorScheme().getFgColorGroup(false, false));
-            gc.setBackground(getColorScheme().getBkColor(false, false, false));
+            gc.setFill(getColorScheme().getFgFxColorGroup(false, false));
+            gc.setStroke(getColorScheme().getFgFxColorGroup(false, false));
+            // gc.setFill(getColorScheme().getBkColor(false, false, false));
             Rectangle rect = Utils.clone(bounds);
             rect.x += leftMargin;
             rect.y += (bounds.height - EXPAND_SIZE) / 2;
             rect.width = EXPAND_SIZE;
             rect.height = EXPAND_SIZE;
-            gc.fillRectangle(rect);
-            gc.drawRectangle(rect.x, rect.y, rect.width - 1, rect.height - 1);
+            gc.fillRect(rect.x, rect.y, rect.width, rect.height);
+            gc.strokeRect(rect.x, rect.y, rect.width - 1, rect.height - 1);
             int midy = rect.y + rect.height / 2;
-            gc.drawLine(rect.x + 2, midy, rect.x + rect.width - 3, midy);
+            gc.strokeLine(rect.x + 2, midy, rect.x + rect.width - 3, midy);
             if (!item.fExpanded) {
                 int midx = rect.x + rect.width / 2;
-                gc.drawLine(midx, rect.y + 2, midx, rect.y + rect.height - 3);
+                gc.strokeLine(midx, rect.y + 2, midx, rect.y + rect.height - 3);
             }
         }
         leftMargin += EXPAND_SIZE + MARGIN;
@@ -1816,15 +1850,15 @@ public class TimeGraphControl extends TimeGraphBaseControl
         Image img = fTimeGraphProvider.getItemImage(item.fEntry);
         if (img != null) {
             // draw icon
-            int imgHeight = img.getImageData().height;
-            int imgWidth = img.getImageData().width;
-            int x = leftMargin;
-            int y = bounds.y + (bounds.height - imgHeight) / 2;
+            double imgHeight = img.getHeight();
+            double imgWidth = img.getWidth();
+            double x = leftMargin;
+            double y = bounds.y + (bounds.height - imgHeight) / 2.0d;
             gc.drawImage(img, x, y);
             leftMargin += imgWidth + MARGIN;
         }
         String name = item.fName;
-        Point size = gc.stringExtent(name);
+        Point size = Utils.getTextSize(name);
         if (fIdealNameSpace < leftMargin + size.x + MARGIN) {
             fIdealNameSpace = leftMargin + size.x + MARGIN;
         }
@@ -1835,7 +1869,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             while (size.x > width && name.length() > 1) {
                 cuts++;
                 name = name.substring(0, name.length() - 1);
-                size = gc.stringExtent(name + "..."); //$NON-NLS-1$
+                size = Utils.getTextSize(name + "..."); //$NON-NLS-1$
             }
             if (cuts > 0) {
                 name += "..."; //$NON-NLS-1$
@@ -1846,9 +1880,10 @@ public class TimeGraphControl extends TimeGraphBaseControl
         rect.width -= leftMargin;
         // draw text
         if (rect.width > 0) {
-            rect.y += (bounds.height - gc.stringExtent(name).y) / 2;
-            gc.setForeground(getColorScheme().getFgColor(item.fSelected, fIsInFocus));
-            int textWidth = Utils.drawText(gc, name, rect, true);
+            rect.y += (bounds.height - Utils.getTextSize(name).y) / 2;
+            gc.setFill(getColorScheme().getFgFxColor(item.fSelected, fIsInFocus));
+            int textWidth = Utils.drawTextFx(gc, name, rect);
+            gc.strokeText(name, rect.x, rect.y);
             leftMargin += textWidth + MARGIN;
             rect.y -= 2;
 
@@ -1857,8 +1892,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 int x = bounds.x + leftMargin;
                 int width = bounds.width - x;
                 int midy = bounds.y + bounds.height / 2;
-                gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.MID_LINE));
-                gc.drawLine(x, midy, x + width, midy);
+                gc.setFill(getColorScheme(TimeGraphColorScheme.MID_LINE));
+                gc.strokeLine(x, midy, x + width, midy);
             }
         }
     }
@@ -1883,23 +1918,24 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @since 2.0
      */
     protected boolean drawState(TimeGraphColorScheme colors, ITimeEvent event,
-            Rectangle rect, GC gc, boolean selected, boolean timeSelected) {
+            Rectangle rect, GraphicsContext gc, boolean selected, boolean timeSelected) {
 
         int colorIdx = fTimeGraphProvider.getStateTableIndex(event);
         if (colorIdx < 0 && colorIdx != ITimeGraphPresentationProvider.TRANSPARENT) {
             return false;
         }
         boolean visible = rect.width == 0 ? false : true;
-        Color black = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-        gc.setForeground(black);
+        Color black = Color.BLACK;
+        gc.setFill(black);
+        gc.setStroke(black);
 
         if (visible) {
             if (colorIdx == ITimeGraphPresentationProvider.TRANSPARENT) {
                 // Only draw the top and bottom borders
-                gc.drawLine(rect.x, rect.y, rect.x + rect.width - 1, rect.y);
-                gc.drawLine(rect.x, rect.y + rect.height - 1, rect.x + rect.width - 1, rect.y + rect.height - 1);
+                gc.strokeLine(rect.x, rect.y, rect.x + rect.width - 1, rect.y);
+                gc.strokeLine(rect.x, rect.y + rect.height - 1, rect.x + rect.width - 1, rect.y + rect.height - 1);
                 if (rect.width == 1) {
-                    gc.drawPoint(rect.x, rect.y - 2);
+                    gc.strokeLine(rect.x, rect.y - 2, rect.x, rect.y - 2);
                 }
                 return false;
             }
@@ -1912,15 +1948,17 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
             boolean reallySelected = timeSelected && selected;
             // fill all rect area
-            gc.setBackground(stateColor);
-            gc.fillRectangle(rect);
+            gc.setFill(stateColor);
+
+            gc.fillRect(rect.x, rect.y, rect.width, rect.height);
 
             if (reallySelected) {
-                gc.drawLine(rect.x, rect.y - 1, rect.x + rect.width - 1, rect.y - 1);
-                gc.drawLine(rect.x, rect.y + rect.height, rect.x + rect.width - 1, rect.y + rect.height);
+                gc.setStroke(black);
+                gc.strokeLine(rect.x, rect.y - 1, rect.x + rect.width - 1, rect.y - 1);
+                gc.strokeLine(rect.x, rect.y + rect.height, rect.x + rect.width - 1, rect.y + rect.height);
             }
         } else {
-            gc.drawPoint(rect.x, rect.y - 2);
+            gc.strokeLine(rect.x, rect.y - 2, rect.x, rect.y - 2);
         }
         fTimeGraphProvider.postDrawEvent(event, rect, gc);
         return visible;
@@ -1936,21 +1974,22 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param selected
      *            Is this time event selected or not
      */
-    protected void fillSpace(Rectangle rect, GC gc, boolean selected) {
-        gc.setBackground(getColorScheme().getBkColor(selected, fIsInFocus, false));
-        gc.fillRectangle(rect);
+    protected void fillSpace(Rectangle rect, GraphicsContext gc, boolean selected) {
+        gc.setFill(getColorScheme().getBkFxColor(selected, fIsInFocus, false));
+        gc.fillRect(rect.x, rect.y, rect.width, rect.height);
         if (fDragState == DRAG_ZOOM) {
-            gc.setBackground(getColorScheme().getBkColor(selected, fIsInFocus, true));
+            gc.setFill(getColorScheme().getBkFxColor(selected, fIsInFocus, true));
             if (fDragX0 < fDragX) {
-                gc.fillRectangle(new Rectangle(fDragX0, rect.y, fDragX - fDragX0, rect.height));
+                gc.fillRect(fDragX0, rect.y, fDragX - fDragX0, rect.height);
             } else if (fDragX0 > fDragX) {
-                gc.fillRectangle(new Rectangle(fDragX, rect.y, fDragX0 - fDragX, rect.height));
+                gc.fillRect(fDragX, rect.y, fDragX0 - fDragX, rect.height);
             }
         }
         // draw middle line
-        gc.setForeground(getColorScheme().getColor(TimeGraphColorScheme.MID_LINE));
+        gc.setFill(getColorScheme(TimeGraphColorScheme.MID_LINE));
+        gc.setStroke(getColorScheme(TimeGraphColorScheme.MID_LINE));
         int midy = rect.y + rect.height / 2;
-        gc.drawLine(rect.x, midy, rect.x + rect.width, midy);
+        gc.strokeLine(rect.x, midy, rect.x + rect.width, midy);
     }
 
     @Override
@@ -2673,15 +2712,16 @@ public class TimeGraphControl extends TimeGraphBaseControl
     @Override
     public void colorSettingsChanged(StateItem[] stateItems) {
         /* Destroy previous colors from the resource manager */
-        if (fEventColorMap != null) {
+        /*if (fEventColorMap != null) {
             for (Color color : fEventColorMap) {
                 fResourceManager.destroyColor(color.getRGB());
             }
-        }
+        }*/
         if (stateItems != null) {
             fEventColorMap = new Color[stateItems.length];
             for (int i = 0; i < stateItems.length; i++) {
-                fEventColorMap[i] = fResourceManager.createColor(stateItems[i].getStateColor());
+                RGB rgbColor = stateItems[i].getStateColor();
+                fEventColorMap[i] = Color.rgb(rgbColor.red, rgbColor.green, rgbColor.blue);
             }
         } else {
             fEventColorMap = new Color[] {};

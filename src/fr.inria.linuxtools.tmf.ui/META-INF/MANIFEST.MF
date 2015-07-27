@@ -7,7 +7,7 @@ Bundle-Localization: plugin
 Bundle-SymbolicName: fr.inria.linuxtools.tmf.ui;singleton:=true
 Bundle-Activator: fr.inria.linuxtools.internal.tmf.ui.Activator
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.expressions,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
@@ -17,7 +17,8 @@ Require-Bundle: org.eclipse.core.expressions,
  org.eclipse.ui.navigator,
  org.eclipse.ui.navigator.resources,
  fr.inria.soctrace.lib.model,
- org.eclipse.jdt.annotation;bundle-version="[1.1.0,2.0.0)";resolution:=optional
+ org.eclipse.jdt.annotation;bundle-version="[1.1.0,2.0.0)";resolution:=optional,
+ org.eclipse.fx.javafx
 Export-Package: fr.inria.linuxtools.internal.tmf.ui;x-friends:="fr.inria.linuxtools.tmf.ui.tests,fr.inria.linuxtools.tmf.ctf.ui.tests",
  fr.inria.linuxtools.internal.tmf.ui.commands;x-internal:=true,
  fr.inria.linuxtools.internal.tmf.ui.dialogs;x-internal:=true,
@@ -81,6 +82,7 @@ Export-Package: fr.inria.linuxtools.internal.tmf.ui;x-friends:="fr.inria.linuxto
  org.swtchart.internal.series;x-internal:=true
 Import-Package: com.google.common.base,
  com.google.common.collect,
+ javafx.embed.swt;version="2.2.0",
  org.eclipse.emf.common.util,
  org.eclipse.emf.ecore
 Bundle-ClassPath: lib/org.swtchart_0.9.0.v20140219.jar,

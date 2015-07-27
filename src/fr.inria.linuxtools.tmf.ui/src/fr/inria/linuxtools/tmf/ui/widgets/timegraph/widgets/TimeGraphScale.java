@@ -108,7 +108,7 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
      * @param colors
      *            The color scheme to use
      */
-    public TimeGraphScale(Composite parent, TimeGraphColorScheme colors) {
+    public TimeGraphScale(Composite parent, TimeGraphColorFxScheme colors) {
         super(parent, colors, SWT.NO_BACKGROUND | SWT.NO_FOCUS | SWT.DOUBLE_BUFFERED);
         TmfSignalManager.register(this);
         addMouseListener(this);

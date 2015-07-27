@@ -52,13 +52,14 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.ITimeDataProvider;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphColorScheme;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphColorFxScheme;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphScale;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphTooltipHandler;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import javafx.embed.swt.*;
 
 /**
  * Generic time graph viewer implementation
@@ -96,7 +97,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private TimeGraphControl fTimeGraphCtrl;
     private TimeGraphScale fTimeScaleCtrl;
     private Slider fVerticalScrollBar;
-    private TimeGraphColorScheme fColorScheme;
+    private TimeGraphColorFxScheme fColorScheme;
     private Object fInputElement;
     private ITimeGraphContentProvider fTimeGraphContentProvider;
     private ITimeGraphPresentationProvider fTimeGraphProvider;
@@ -343,8 +344,8 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     protected Control createDataViewer(Composite parent, int style) {
         loadOptions();
-        fColorScheme = new TimeGraphColorScheme();
-        fDataViewer = new Composite(parent, style) {
+        fColorScheme = new TimeGraphColorFxScheme();
+        fDataViewer = new FXCanvas(parent, style) {
             @Override
             public void redraw() {
                 fTimeScaleCtrl.redraw();
@@ -437,7 +438,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      * @since 2.0
      */
     protected TimeGraphControl createTimeGraphControl(Composite parent,
-            TimeGraphColorScheme colors) {
+            TimeGraphColorFxScheme colors) {
         return new TimeGraphControl(parent, colors);
     }
 

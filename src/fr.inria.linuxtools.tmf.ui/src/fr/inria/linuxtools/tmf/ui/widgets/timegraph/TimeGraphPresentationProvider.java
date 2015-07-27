@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.graphics.GC;
+import javafx.scene.canvas.GraphicsContext;
+
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -112,17 +113,17 @@ public class TimeGraphPresentationProvider implements ITimeGraphPresentationProv
     }
 
     @Override
-    public void postDrawControl(Rectangle bounds, GC gc) {
+    public void postDrawControl(Rectangle bounds, GraphicsContext gc) {
         // Override to add own drawing code
     }
 
     @Override
-    public void postDrawEntry(ITimeGraphEntry entry, Rectangle bounds, GC gc) {
+    public void postDrawEntry(ITimeGraphEntry entry, Rectangle bounds, GraphicsContext gc) {
         // Override to add own drawing code
     }
 
     @Override
-    public void postDrawEvent(ITimeEvent event, Rectangle bounds, GC gc) {
+    public void postDrawEvent(ITimeEvent event, Rectangle bounds, GraphicsContext gc) {
         // Override to add own drawing code
     }
 

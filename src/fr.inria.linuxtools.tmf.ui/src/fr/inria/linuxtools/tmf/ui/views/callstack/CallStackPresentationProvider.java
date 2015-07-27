@@ -12,11 +12,11 @@
 
 package fr.inria.linuxtools.tmf.ui.views.callstack;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import fr.inria.linuxtools.internal.tmf.ui.Activator;
 import fr.inria.linuxtools.statesystem.core.ITmfStateSystem;
 import fr.inria.linuxtools.statesystem.core.exceptions.AttributeNotFoundException;
@@ -128,10 +128,10 @@ public class CallStackPresentationProvider extends TimeGraphPresentationProvider
     }
 
     @Override
-    public void postDrawEvent(ITimeEvent event, Rectangle bounds, GC gc) {
-        if (bounds.width <= gc.getFontMetrics().getAverageCharWidth()) {
-            return;
-        }
+    public void postDrawEvent(ITimeEvent event, Rectangle bounds, GraphicsContext gc) {
+        //if (bounds.width <= gc.getFontMetrics().getAverageCharWidth()) {
+        //    return;
+        //}
         if (!(event instanceof CallStackEvent)) {
             return;
         }
@@ -143,10 +143,10 @@ public class CallStackPresentationProvider extends TimeGraphPresentationProvider
         try {
             ITmfStateValue value = ss.querySingleState(event.getTime(), entry.getQuark()).getStateValue();
             if (!value.isNull()) {
-                String address = value.toString();
-                String name = fView.getFunctionName(address);
-                gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-                Utils.drawText(gc, name, bounds.x, bounds.y - 2, bounds.width, true, true);
+               // String address = value.toString();
+                //String name = fView.getFunctionName(address);
+                gc.setFill(Color.WHITE);
+                //Utils.drawTextFx(gc, name, bounds.x, bounds.y - 2, bounds.width, true);
             }
         } catch (AttributeNotFoundException e) {
             Activator.getDefault().logError("Error querying state system", e); //$NON-NLS-1$

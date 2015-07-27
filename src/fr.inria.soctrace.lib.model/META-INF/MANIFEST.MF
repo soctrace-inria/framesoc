@@ -6,7 +6,7 @@ Bundle-Version: 1.0.9.qualifier
 Bundle-Activator: fr.inria.soctrace.lib.model.Activator
 Bundle-Vendor: INRIA
 Require-Bundle: org.eclipse.core.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: fr.inria.soctrace.lib.model,
  fr.inria.soctrace.lib.model.utils

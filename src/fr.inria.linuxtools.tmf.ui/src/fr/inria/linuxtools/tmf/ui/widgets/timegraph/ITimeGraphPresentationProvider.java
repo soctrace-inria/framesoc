@@ -14,7 +14,8 @@ package fr.inria.linuxtools.tmf.ui.widgets.timegraph;
 
 import java.util.Map;
 
-import org.eclipse.swt.graphics.GC;
+import javafx.scene.canvas.GraphicsContext;
+
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -91,7 +92,7 @@ public interface ITimeGraphPresentationProvider {
      * @param gc
      *            The graphics context
      */
-    void postDrawControl(Rectangle bounds, GC gc);
+    void postDrawControl(Rectangle bounds, GraphicsContext gc);
 
     /**
      * Called after drawing an entry
@@ -103,7 +104,7 @@ public interface ITimeGraphPresentationProvider {
      * @param gc
      *            the graphics context
      */
-    void postDrawEntry(ITimeGraphEntry entry, Rectangle bounds, GC gc);
+    void postDrawEntry(ITimeGraphEntry entry, Rectangle bounds, GraphicsContext gc);
 
     /**
      * Called after drawing an event
@@ -115,7 +116,7 @@ public interface ITimeGraphPresentationProvider {
      * @param gc
      *            the graphics context
      */
-    void postDrawEvent(ITimeEvent event, Rectangle bounds, GC gc);
+    void postDrawEvent(ITimeEvent event, Rectangle bounds, GraphicsContext gc);
 
     /**
      * Returns the height of this item. This value is ignored if the time graph has a fixed item height.

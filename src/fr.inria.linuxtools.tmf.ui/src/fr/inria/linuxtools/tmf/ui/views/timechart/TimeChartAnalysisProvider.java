@@ -12,12 +12,10 @@
 
 package fr.inria.linuxtools.tmf.ui.views.timechart;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
+import javafx.scene.canvas.GraphicsContext;
 
+import javafx.scene.paint.Color;
+import org.eclipse.swt.graphics.Rectangle;
 import fr.inria.linuxtools.tmf.ui.views.colors.ColorSetting;
 import fr.inria.linuxtools.tmf.ui.views.colors.ColorSettingsManager;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
@@ -33,9 +31,9 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
  */
 public class TimeChartAnalysisProvider extends TimeGraphPresentationProvider {
 
-    private static final Color BOOKMARK_INNER_COLOR = new Color(Display.getDefault(), 115, 165, 224);
-    private static final Color BOOKMARK_OUTER_COLOR = new Color(Display.getDefault(), 2, 70, 140);
-    private static final Color SEARCH_MATCH_COLOR = new Color(Display.getDefault(), 177, 118, 14);
+    private static final Color BOOKMARK_INNER_COLOR = Color.rgb(115, 165, 224);
+    private static final Color BOOKMARK_OUTER_COLOR = Color.rgb(2, 70, 140);
+    private static final Color SEARCH_MATCH_COLOR = Color.rgb(177, 118, 14);
 
     private int lastX = Integer.MIN_VALUE;
     private int currX = Integer.MIN_VALUE;
@@ -67,7 +65,7 @@ public class TimeChartAnalysisProvider extends TimeGraphPresentationProvider {
     }
 
     @Override
-    public void postDrawEvent(ITimeEvent event, Rectangle rect, GC gc) {
+    public void postDrawEvent(ITimeEvent event, Rectangle rect, GraphicsContext gc) {
         if (! ((TimeChartEvent) event).isVisible()) {
             return;
         }
@@ -87,23 +85,23 @@ public class TimeChartAnalysisProvider extends TimeGraphPresentationProvider {
         }
     }
 
-    private static void drawBookmark(Rectangle r, GC gc) {
-        gc.setForeground(BOOKMARK_OUTER_COLOR);
-        gc.drawLine(r.x - 1, r.y - 2, r.x - 1, r.y + 2);
-        gc.drawLine(r.x + 1, r.y - 2, r.x + 1, r.y + 2);
-        gc.drawPoint(r.x, r.y - 2);
-        gc.setForeground(BOOKMARK_INNER_COLOR);
-        gc.drawLine(r.x, r.y - 1, r.x, r.y + 1);
-        gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-        gc.drawPoint(r.x - 1, r.y + 3);
-        gc.drawPoint(r.x, r.y + 2);
-        gc.drawPoint(r.x + 1, r.y + 3);
+    private static void drawBookmark(Rectangle r, GraphicsContext gc) {
+        gc.setFill(BOOKMARK_OUTER_COLOR);
+        gc.strokeLine(r.x - 1, r.y - 2, r.x - 1, r.y + 2);
+        gc.strokeLine(r.x + 1, r.y - 2, r.x + 1, r.y + 2);
+        gc.strokeLine(r.x, r.y - 2, r.x, r.y - 2);
+        gc.setFill(BOOKMARK_INNER_COLOR);
+        gc.strokeLine(r.x, r.y - 1, r.x, r.y + 1);
+        gc.setFill(Color.WHITE);
+        gc.strokeLine(r.x - 1, r.y + 3, r.x - 1, r.y + 3);
+        gc.strokeLine(r.x, r.y + 2, r.x, r.y + 2);
+        gc.strokeLine(r.x + 1, r.y + 3, r.x + 1, r.y + 3);
     }
 
-    private static void drawSearchMatch(Rectangle r, GC gc) {
-        gc.setForeground(SEARCH_MATCH_COLOR);
-        gc.drawPoint(r.x, r.y + r.height);
-        gc.drawLine(r.x - 1, r.y + r.height + 1, r.x + 1, r.y + r.height + 1);
-        gc.drawLine(r.x - 2, r.y + r.height + 2, r.x + 2, r.y + r.height + 2);
+    private static void drawSearchMatch(Rectangle r, GraphicsContext gc) {
+        gc.setFill(SEARCH_MATCH_COLOR);
+        gc.strokeLine(r.x, r.y + r.height, r.x, r.y + r.height);
+        gc.strokeLine(r.x - 1, r.y + r.height + 1, r.x + 1, r.y + r.height + 1);
+        gc.strokeLine(r.x - 2, r.y + r.height + 2, r.x + 2, r.y + r.height + 2);
     }
 }

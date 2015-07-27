@@ -21,6 +21,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
 
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.text.Text;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
@@ -759,6 +764,63 @@ public class Utils {
         int x = (int) (x1 + r * (x2 - x1));
         int y = (int) (y1 + r * (y2 - y1));
         return Math.sqrt(distance2(px, py, x, y));
+    }
+
+    /**
+     * @param string
+     * @return
+     */
+    public static Point getTextSize(String string) {
+        final Text text = new Text(string);
+        new Scene(new Group(text));
+
+        text.applyCss();
+
+        return new Point((int) text.getLayoutBounds().getWidth(), (int) text.getLayoutBounds().getHeight());
+    }
+
+    /**
+     * @param gc
+     * @param text
+     * @param rect
+     * @return
+     */
+    public static int drawTextFx(GraphicsContext gc, String text, Rectangle rect) {
+        Point size = getTextSize(text);
+        gc.strokeText(text, rect.x, rect.y);
+        return size.x;
+    }
+
+    /**
+     * @param gc
+     * @param text
+     * @param x
+     * @param y
+     * @param width
+     * @param isCentered
+     * @return
+     */
+    public static int drawTextFx(GraphicsContext gc, String text, int x, int y, int width, boolean isCentered) {
+        int len = text.length();
+        int textWidth = 0;
+        boolean isReallyCentered = isCentered;
+        int realX = x;
+
+        while (len > 0) {
+            textWidth = getTextSize(text.substring(0, len)).x;
+            if (textWidth <= width) {
+                break;
+            }
+            isReallyCentered = false;
+            len--;
+        }
+        if (len > 0) {
+            if (isReallyCentered) {
+                realX += (width - textWidth) / 2;
+            }
+            gc.strokeText(text.substring(0, len), realX, y);
+        }
+        return len;
     }
 
 }

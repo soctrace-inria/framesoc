@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.ui,
  fr.inria.linuxtools.tmf.ui;bundle-version="3.0.0",
  fr.inria.linuxtools.tmf.core;bundle-version="3.0.0",
  org.eclipse.jface
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: fr.inria.soctrace.framesoc.ui.gantt.loaders,
  fr.inria.soctrace.framesoc.ui.gantt.model
