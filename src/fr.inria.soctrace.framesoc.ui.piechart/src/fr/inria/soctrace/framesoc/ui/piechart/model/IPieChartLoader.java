@@ -11,11 +11,12 @@
 package fr.inria.soctrace.framesoc.ui.piechart.model;
 
 import java.text.NumberFormat;
+import javafx.scene.chart.PieChart;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.jfree.data.general.PieDataset;
+import javafx.collections.ObservableList;
 
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
@@ -121,7 +122,7 @@ public interface IPieChartLoader {
 	 *            list of merged items
 	 * @return the pie dataset
 	 */
-	PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
+	ObservableList<PieChart.Data> getPieDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged);
 
 	/**

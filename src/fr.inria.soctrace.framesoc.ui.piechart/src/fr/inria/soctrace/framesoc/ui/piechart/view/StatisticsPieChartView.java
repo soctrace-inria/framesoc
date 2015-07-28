@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -57,7 +58,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -78,8 +78,13 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
+import javafx.embed.swt.FXCanvas;
+import javafx.scene.Scene;
+import javafx.scene.Group;
+import javafx.scene.chart.PieChart;
+import javafx.collections.ObservableList;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.control.Tooltip;
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -278,7 +283,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * The chart parent composite
 	 */
-	private Group compositePie;
+	private FXCanvas compositePie;
 
 	/**
 	 * The table viewer
@@ -320,8 +325,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			JFaceResources.getResources());
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
-
-	protected ChartComposite chartFrame;
 
 	/**
 	 * Constructor
@@ -431,7 +434,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(false);
 
 		// Composite Pie
-		compositePie = new Group(compositeLeft, SWT.NONE);
+		compositePie = new FXCanvas(compositeLeft, SWT.NONE);
 		// Fill layout with Grid Data (FILL) to allow correct resize
 		compositePie.setLayout(new FillLayout());
 		compositePie.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -636,10 +639,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		}
 		return v;
-	}
-	
-	public ChartComposite getChartFrame() {
-		return chartFrame;
 	}
 	
 	public TreeViewer getTableTreeViewer() {
@@ -1057,7 +1056,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		globalLoadInterval.copy(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
-		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
+		final ObservableList<PieChart.Data> dataset = loader.getPieDataset(values, currentDescriptor.excluded,
 				currentDescriptor.merged.getMergedItems());
 		final StatisticsTableRow[] roots = loader.getTableDataset(values,
 				currentDescriptor.excluded, currentDescriptor.merged.getMergedItems());
@@ -1081,21 +1080,40 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 
 				// create new chart
-				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dataLoaded());
-				compositePie.setText(title);
-				chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
-						USE_BUFFER);
+				PieChart chart = createChart(dataset, title, loader, true);
 
-				Point size = compositePie.getSize();
-				size.x -= 5; // consider the group border
-				size.y -= 25; // consider the group border and text
-				chartFrame.setSize(size);
+				
+				Group root = new Group();
 
-				Point location = chartFrame.getLocation();
-				location.x += 1; // consider the group border
-				location.y += 20; // consider the group border and text
-				chartFrame.setLocation(location);
+				Scene scene = new Scene(root, compositePie.getBounds().width,
+						compositePie.getBounds().height, false,
+						SceneAntialiasing.BALANCED);
+				root.getChildren().add(chart);
+				compositePie.setScene(scene);
 
+				for (PieChart.Data data : dataset) {
+					String key = data.getName();
+					String color = "#" + Integer.toHexString(loader.getColor(key).getAwtColor().getRed())
+							+Integer.toHexString(loader.getColor(key).getAwtColor().getGreen())
+							+Integer.toHexString(loader.getColor(key).getAwtColor().getBlue());
+		
+					
+					data.getNode().setStyle(
+							"-fx-pie-color: " + color
+									+ ";");
+				}
+				
+				
+				chart.getData().stream().forEach(data -> {
+				Tooltip tooltip = new Tooltip();
+			    NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
+			    tooltip.setText(data.getName()+ ": (" + format.format(data.getPieValue()) + ")");
+			    Tooltip.install(data.getNode(), tooltip);
+		
+			    data.pieValueProperty().addListener((observable, oldValue, newValue) -> 
+			        tooltip.setText(data.getName()+ ": " +format.format(data.getPieValue()) + ")"));
+				});
+				
 				// update other elements
 				if (roots.length == 0) {
 					tableTreeViewer.setInput(null);
@@ -1127,20 +1145,24 @@ public class StatisticsPieChartView extends FramesocPart {
 	 *            current interval
 	 * @return the pie chart
 	 */
-	private JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader,
+	private PieChart createChart(ObservableList<PieChart.Data> dataset, String title, IPieChartLoader loader,
 			boolean dataRequested) {
 
-		JFreeChart chart = ChartFactory.createPieChart(title, dataset, HAS_LEGEND, HAS_TOOLTIPS,
-				HAS_URLS);
-
+	  
+		PieChart chart = new PieChart(dataset);
+		chart.setLabelsVisible(false);
+		chart.setStartAngle(90.0);
+		chart.setLegendVisible(false);
+		
 		// legend
-		if (HAS_LEGEND) {
+		/*if (HAS_LEGEND) {
 			LegendTitle legend = chart.getLegend();
 			legend.setPosition(RectangleEdge.LEFT);
-		}
+		}*/
 
+		
 		// plot
-		PiePlot plot = (PiePlot) chart.getPlot();
+		/*PiePlot plot = (PiePlot) chart.getPlot();
 		plot.setSectionOutlinesVisible(false);
 		plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
 		plot.setNoDataMessage("No data available "
@@ -1157,10 +1179,12 @@ public class StatisticsPieChartView extends FramesocPart {
 				format, g.getPercentFormat());
 		plot.setToolTipGenerator(sg);
 
+
+
 		for (Object o : dataset.getKeys()) {
 			String key = (String) o;
 			plot.setSectionPaint(key, loader.getColor(key).getAwtColor());
-		}
+		}*/
 		return chart;
 	}
 

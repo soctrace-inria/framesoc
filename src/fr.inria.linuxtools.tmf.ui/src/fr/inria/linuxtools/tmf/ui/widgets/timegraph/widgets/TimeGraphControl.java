@@ -56,6 +56,7 @@ import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.TypedEvent;
 
+import javafx.scene.CacheHint;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -237,15 +238,11 @@ public class TimeGraphControl extends TimeGraphBaseControl
         super(parent, colors, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
 
         root = new Group();
+        root.setCache(true);
+        root.setCacheHint(CacheHint.SPEED);
         org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 
         scene = new Scene(root, Color.rgb(col.getRed(), col.getGreen(), col.getBlue()));
-        setScene(scene);
-
-        //Rectangle bounds = getClientArea();
-       // canvas = new Canvas(bounds.width, bounds.height);
-
-        //group.getChildren().add(canvas);
 
         fItemData = new ItemData();
 
@@ -1437,9 +1434,18 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
         if(graphicsContext == null) {
             canvas = new Canvas(getClientArea().width, getClientArea().height);
+            canvas.setCache(true);
+            //canvas.setCacheShape(true);
+            canvas.setCacheHint(CacheHint.SPEED);
+
             root.getChildren().add(canvas);
             graphicsContext = canvas.getGraphicsContext2D();
         }
+
+        if(getScene() == null) {
+            setScene(scene);
+        }
+
       //e.gc;
         //gc.setBackground(getColorScheme().getColor(TimeGraphColorScheme.BACKGROUND));
         //drawBackground(gc, bounds.x, bounds.y, bounds.width, bounds.height);

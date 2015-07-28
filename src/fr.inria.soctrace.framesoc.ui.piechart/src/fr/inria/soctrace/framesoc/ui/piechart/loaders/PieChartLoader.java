@@ -4,6 +4,10 @@
 package fr.inria.soctrace.framesoc.ui.piechart.loaders;
 
 import java.text.DecimalFormat;
+import javafx.scene.chart.PieChart;
+import javafx.collections.ObservableList;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.general.PieDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +107,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	}
 
 	@Override
-	public PieDataset getPieDataset(Map<String, Double> values, List<String> excluded,
+	public ObservableList<PieChart.Data> getPieDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged) {
 
 		Assert.isTrue(values != null, "Null map passed");
@@ -171,9 +173,9 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		Collections.sort(sortedSlices, new ValueComparator());
 		
 		// create dataset
-		DefaultPieDataset dataset = new DefaultPieDataset();
+		ObservableList dataset = FXCollections.observableArrayList();
 		for (Pair<String, Double> pair : sortedSlices) {
-			dataset.setValue(pair.getFirst(), pair.getSecond());
+			dataset.add(new PieChart.Data(pair.getFirst(), pair.getSecond()));
 		}
 		return dataset;
 	}

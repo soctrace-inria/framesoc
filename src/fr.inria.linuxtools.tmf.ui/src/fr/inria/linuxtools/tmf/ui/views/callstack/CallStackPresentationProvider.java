@@ -28,7 +28,6 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphPresentationProvide
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.NullTimeEvent;
-import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 
 /**
  * Presentation provider for the Call Stack view, based on the generic TMF
