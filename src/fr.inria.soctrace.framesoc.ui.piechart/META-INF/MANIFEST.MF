@@ -14,7 +14,7 @@ Require-Bundle: org.eclipse.ui,
  fr.inria.soctrace.lib.storage;bundle-version="1.0.0",
  fr.inria.soctrace.lib.utils;bundle-version="1.0.0",
  org.eclipse.swt,
- org.eclipse.fx.javafx;bundle-version="2.2.0"
+ org.eclipse.fx.javafx
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: INRIA

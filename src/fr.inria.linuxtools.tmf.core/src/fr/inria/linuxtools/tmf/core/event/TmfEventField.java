@@ -60,7 +60,6 @@ public class TmfEventField implements ITmfEventField {
      * @throws IllegalArgumentException
      *             If 'name' is null, or if 'fields' has duplicate field names.
      */
-    @SuppressWarnings("null") /* ImmutableMap methods do not return @NonNull */
     public TmfEventField(String name, @Nullable Object value, @Nullable ITmfEventField[] fields) {
         if (name == null) {
             throw new IllegalArgumentException();

@@ -26,13 +26,13 @@
 	<logger name="fr.inria.soctrace.framesoc.core" level="off" />
 
 	<!-- Ui -->
-	<logger name="fr.inria.soctrace.framesoc.ui" level="off" />
+	<logger name="fr.inria.soctrace.framesoc.ui" level="debug" />
 
 	<!-- Tools -->
 	<logger name="fr.inria.soctrace.tools" level="off" />
 
 	<!-- Default -->
-	<root level="off">
+	<root level="debug">
 		<appender-ref ref="STDOUT" />
 	</root>
 

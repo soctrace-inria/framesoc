@@ -65,7 +65,6 @@ public class TextTraceEventContent implements ITmfEventField {
     private TextTraceEventContent(@NonNull String fieldName) {
         fName = fieldName;
         fValue = null;
-        @SuppressWarnings("null")
         @NonNull List<TextTraceEventContent> fields = Collections.EMPTY_LIST;
         fFields = fields;
     }

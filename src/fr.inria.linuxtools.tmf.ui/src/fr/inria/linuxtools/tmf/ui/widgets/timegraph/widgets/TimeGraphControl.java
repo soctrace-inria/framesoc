@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.action.IStatusLineManager;
-import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -65,8 +63,6 @@ import org.eclipse.swt.graphics.Cursor;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
@@ -240,7 +236,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         root = new Group();
         root.setCache(true);
         root.setCacheHint(CacheHint.SPEED);
-        org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+        org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 
         scene = new Scene(root, Color.rgb(col.getRed(), col.getGreen(), col.getBlue()));
 
@@ -1446,9 +1442,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             setScene(scene);
         }
 
-      //e.gc;
-        //gc.setBackground(getColorScheme().getColor(TimeGraphColorScheme.BACKGROUND));
-        //drawBackground(gc, bounds.x, bounds.y, bounds.width, bounds.height);
+        graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         if (bounds.width < 2 || bounds.height < 2 || null == fTimeProvider) {
             return;
@@ -1812,7 +1806,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *            Graphics context
      */
     protected void drawName(Item item, Rectangle bounds, GraphicsContext gc) {
-        boolean hasTimeEvents = item.fEntry.hasTimeEvents();
+       /* boolean hasTimeEvents = item.fEntry.hasTimeEvents();
         if (!hasTimeEvents) {
             gc.setFill(getColorScheme().getFxBkColorGroup(item.fSelected, fIsInFocus));
             gc.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -1901,7 +1895,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 gc.setFill(getColorScheme(TimeGraphColorScheme.MID_LINE));
                 gc.strokeLine(x, midy, x + width, midy);
             }
-        }
+        }*/
     }
 
     /**

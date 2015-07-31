@@ -38,8 +38,8 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 				+ pieView.getCurrentShownTrace().getAlias() + SUFFIX_SNAPSHOT
 				+ ".png");
 		try {
-		ImageIO.write(pieView.getChartFrame().getChart()
-					.createBufferedImage(width, height), "png", outputFile);
+		//ImageIO.write(pieView.getChartFrame().getChart()
+		//			.createBufferedImage(width, height), "png", outputFile);
 
 			// Get value in CSV file
 			String CSVValues = getTableInfo();
@@ -83,7 +83,7 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 		
 		valueToCSV.append(newLine);
 
-		StatisticsTableRow[] data = (StatisticsTableRow[]) pieView
+		/*StatisticsTableRow[] data = (StatisticsTableRow[]) pieView
 				.getTableTreeViewer().getInput();
 		try {
 			for (StatisticsTableRow row : data) {
@@ -114,7 +114,7 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 		} catch (SoCTraceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 		return valueToCSV.toString();
 	}

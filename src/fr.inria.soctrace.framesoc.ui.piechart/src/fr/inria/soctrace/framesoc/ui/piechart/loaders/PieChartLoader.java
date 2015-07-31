@@ -7,7 +7,6 @@ import java.text.DecimalFormat;
 import javafx.scene.chart.PieChart;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
-import javafx.collections.transformation.FilteredList;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -173,7 +172,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 		Collections.sort(sortedSlices, new ValueComparator());
 		
 		// create dataset
-		ObservableList dataset = FXCollections.observableArrayList();
+		ObservableList<PieChart.Data> dataset = FXCollections.observableArrayList();
 		for (Pair<String, Double> pair : sortedSlices) {
 			dataset.add(new PieChart.Data(pair.getFirst(), pair.getSecond()));
 		}
@@ -181,7 +180,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 	}
 
 	@Override
-	public StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
+	public List<StatisticsTableRow> getTableDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged) {
 
 		Assert.isTrue(values != null, "Null map passed");
@@ -259,7 +258,7 @@ public abstract class PieChartLoader implements IPieChartLoader {
 			roots.add(agg);
 		}
 
-		return roots.toArray(new StatisticsTableRow[roots.size()]);
+		return roots;
 	}
 
 	@Override

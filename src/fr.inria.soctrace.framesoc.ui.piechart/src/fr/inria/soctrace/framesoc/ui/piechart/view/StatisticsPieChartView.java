@@ -10,16 +10,13 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.piechart.view;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -35,56 +32,58 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.StandardPieToolTipGenerator;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.general.PieDataset;
-import org.jfree.experimental.chart.swt.ChartComposite;
-import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.embed.swt.FXCanvas;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.Group;
 import javafx.scene.chart.PieChart;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.SceneAntialiasing;
+import javafx.scene.control.Cell;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableColumn.CellDataFeatures;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.stage.WindowEvent;
+import javafx.util.Callback;
+import javafx.beans.property.ReadOnlyStringWrapper;
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -106,13 +105,12 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItems;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
+import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
 import fr.inria.soctrace.framesoc.ui.piechart.snapshot.StatisticsPieChartSnapshotDialog;
-import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
-import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
 import fr.inria.soctrace.framesoc.ui.treefilter.FilterDataManager;
 import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
 import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimensionData;
@@ -273,22 +271,22 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Statistics loader combo
 	 */
-	private Combo combo;
+	private ComboBox<String> combo;
 
 	/**
 	 * Description text
 	 */
-	private Text txtDescription;
+	private TextField txtDescription;
 
 	/**
 	 * The chart parent composite
 	 */
-	private FXCanvas compositePie;
+	private FXCanvas mainFxCanvas;
 
 	/**
 	 * The table viewer
 	 */
-	private TreeViewer tableTreeViewer;
+	private TreeTableView<StatisticsTableRow> tableTreeViewer;
 
 	/**
 	 * The time management bar
@@ -298,7 +296,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Status text
 	 */
-	private Text statusText;
+	private TextField statusText;
 
 	/**
 	 * Column comparator
@@ -308,7 +306,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * Filter text for table
 	 */
-	private Text textFilter;
+	private TextField textFilter;
 
 	/**
 	 * Filter for table
@@ -323,8 +321,25 @@ public class StatisticsPieChartView extends FramesocPart {
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
 			JFaceResources.getResources());
-	private org.eclipse.swt.graphics.Color grayColor;
-	private org.eclipse.swt.graphics.Color blackColor;
+
+	private Scene scene;
+
+	private Group root;
+
+	private VBox vboxLeft;
+
+	private PieChart pieChart;
+
+	private ObservableList<TreeItem<StatisticsTableRow>> treeItems;
+	private List<TreeTableColumn<StatisticsTableRow, String>> tableColumns;
+
+	private TreeItem<StatisticsTableRow> treeRoot;
+
+	private HBox hbox;
+
+	private VBox vboxRight;
+	
+    private ContextMenu contextMenu;
 
 	/**
 	 * Constructor
@@ -385,130 +400,161 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Base GUI: pie + table
 		// -------------------------------
 
-		SashForm sashForm = new SashForm(parent, SWT.BORDER | SWT.SMOOTH);
-		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		//SashForm sashForm = new SashForm(parent, SWT.BORDER | SWT.SMOOTH);
+		//sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		// Composite Left: composite combo + composite pie
-		Composite compositeLeft = new Composite(sashForm, SWT.NONE);
-		GridLayout gl_compositeLeft = new GridLayout(1, false);
-		gl_compositeLeft.marginBottom = 3;
-		gl_compositeLeft.verticalSpacing = 0;
-		gl_compositeLeft.marginHeight = 0;
-		compositeLeft.setLayout(gl_compositeLeft);
+		root = new Group();
+		scene = new Scene(root);
 
-		// Composite Combo
-		Composite compositeCombo = new Composite(compositeLeft, SWT.NONE);
-		compositeCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		GridLayout gl_compositeCombo = new GridLayout(1, false);
-		gl_compositeCombo.marginWidth = 0;
-		compositeCombo.setLayout(gl_compositeCombo);
+		hbox = new HBox();
+		vboxLeft = new VBox();
+		mainFxCanvas = new FXCanvas(parent, SWT.NONE);
+		mainFxCanvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		mainFxCanvas.setLayout(new GridLayout(1, true));	
+		mainFxCanvas.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				hbox.setPrefHeight(mainFxCanvas.getClientArea().height);
+				vboxLeft.setPrefWidth(mainFxCanvas.getClientArea().width / 2);
+				vboxRight.setPrefWidth(mainFxCanvas.getClientArea().width / 2);
+				combo.setPrefWidth(mainFxCanvas.getClientArea().width / 2);
+			}
+		});
+				
+		mainFxCanvas.setScene(scene);
 
 		// combo
-		combo = new Combo(compositeCombo, SWT.READ_ONLY);
-		combo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		combo.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				boolean firstTime = true;
-				for (LoaderDescriptor d : loaderDescriptors) {
-					firstTime = firstTime && !d.dataLoaded();
-				}
-				if (firstTime) {
-					return;
-				}
-				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				cleanTableFilter();
-				refreshTableFilter();
-				// use global load interval
-				timeBar.setSelection(globalLoadInterval);
-				loadPieChart();
-			}
-		});
+		combo = new ComboBox<String>();
+		combo.getSelectionModel().selectedIndexProperty()
+				.addListener(new ChangeListener<Number>() {
+					@Override
+					public void changed(ObservableValue<? extends Number> ov,
+							Number value, Number newValue) {
+						boolean firstTime = true;
+						for (LoaderDescriptor d : loaderDescriptors) {
+							firstTime = firstTime && !d.dataLoaded();
+						}
+						if (firstTime) {
+							return;
+						}
+						currentDescriptor = loaderDescriptors.get(combo
+								.getSelectionModel().getSelectedIndex());
+						cleanTableFilter();
+						refreshTableFilter();
+						// use global load interval
+						timeBar.setSelection(globalLoadInterval);
+						loadPieChart();
+					}
+				});
+		
 
-		int position = 0;
 		for (LoaderDescriptor descriptor : loaderDescriptors) {
-			combo.add(descriptor.loader.getStatName(), position++);
+			combo.getItems().add(descriptor.loader.getStatName());
 		}
-		combo.select(0);
+		combo.getSelectionModel().selectFirst();
 		currentDescriptor = loaderDescriptors.get(0);
-		combo.setEnabled(false);
+		combo.setDisable(true);
+		vboxLeft.getChildren().add(combo);
+
 
 		// Composite Pie
-		compositePie = new FXCanvas(compositeLeft, SWT.NONE);
-		// Fill layout with Grid Data (FILL) to allow correct resize
-		compositePie.setLayout(new FillLayout());
-		compositePie.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-		txtDescription = new Text(compositePie, SWT.READ_ONLY | SWT.WRAP | SWT.CENTER | SWT.MULTI);
-		txtDescription.setEnabled(false);
+		txtDescription = new TextField("Select one of the above metrics, then press the Load button.");
+		txtDescription.setDisable(true);
 		txtDescription.setEditable(false);
-		txtDescription.setText("Select one of the above metrics, then press the Load button.");
 		txtDescription.setVisible(false);
+		vboxLeft.getChildren().add(txtDescription);
+		
+		pieChart = new PieChart();
+		pieChart.setLabelsVisible(false);
+		pieChart.setStartAngle(90.0);
 
+		pieChart.setLegendVisible(false);
+		VBox.setVgrow(pieChart, Priority.ALWAYS);
+		vboxLeft.getChildren().add(pieChart);
+
+		hbox.getChildren().add(vboxLeft);
+		
 		// Composite Table
-		Composite compositeTable = new Composite(sashForm, SWT.NONE);
-		GridLayout gl_compositeTable = new GridLayout(1, false);
-		compositeTable.setLayout(gl_compositeTable);
-
+		vboxRight = new VBox();
+		
 		// filter
-		textFilter = new Text(compositeTable, SWT.BORDER);
-		textFilter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		textFilter.addFocusListener(new FocusListener() {
+		textFilter = new TextField();
+		textFilter.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
-			public void focusLost(FocusEvent e) {
+			public void changed(ObservableValue<? extends Boolean> arg0,
+					Boolean wasFocused, Boolean isFocus) {
 				String filter = textFilter.getText().trim();
-				if (filter.isEmpty()) {
-					cleanTableFilter();
-				}
-			}
-
-			@Override
-			public void focusGained(FocusEvent e) {
-				String filter = textFilter.getText().trim();
-				if (filter.equals(FILTER_HINT)) {
-					textFilter.setText("");
-					textFilter.setData("");
-					textFilter.setForeground(blackColor);
+				if (isFocus) {
+					if (filter.isEmpty()) {
+						cleanTableFilter();
+					}
+				} else {
+					if (filter.equals(FILTER_HINT)) {
+						textFilter.setText("");
+						// textFilter.setData("");
+						// textFilter.setForeground(blackColor);
+					}
 				}
 			}
 		});
-		textFilter.addKeyListener(new KeyAdapter() {
+		
+		textFilter.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				if (e.keyCode == SWT.CR || textFilter.getText().trim().isEmpty()) {
-					textFilter.setData(textFilter.getText());
+			public void handle(KeyEvent keyPressed) {
+				if (keyPressed.getCode() == KeyCode.ENTER
+						|| (textFilter.getText().trim()).isEmpty()) {
+					textFilter.setText(textFilter.getText());
 					refreshTableFilter();
 				}
 			}
 		});
-
+		
+		vboxRight.getChildren().add(textFilter);
+		treeRoot = new TreeItem<StatisticsTableRow>(new StatisticsTableRow("Toto", "0", "12", null));
+	
 		// table
-		tableTreeViewer = new TreeViewer(compositeTable, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-		tableTreeViewer.setContentProvider(new TreeContentProvider());
+		tableTreeViewer = new TreeTableView<StatisticsTableRow>(treeRoot);
+		tableTreeViewer.setShowRoot(false);
+		tableTreeViewer.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		tableTreeViewer.getSelectionModel().setCellSelectionEnabled(false);
 		comparator = new StatisticsColumnComparator();
-		tableTreeViewer.setComparator(comparator);
-		Tree table = tableTreeViewer.getTree();
-		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		table.setLinesVisible(true);
-		table.setHeaderVisible(true);
+
+		//tableTreeViewer.setComparator(comparator);
 		createColumns();
 		createContextMenu();
+		contextMenu.setAutoHide(true);
+
+		tableTreeViewer.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				if (e.getButton() == MouseButton.SECONDARY) {
+					contextMenu.hide();
+
+					if (!contextMenu.getItems().isEmpty()) {
+						contextMenu.show(tableTreeViewer, e.getScreenX(),
+								e.getScreenY());
+					} else {
+						// The event won't fire if the menu is empty
+						contextMenu.fireEvent(new WindowEvent(contextMenu,
+								WindowEvent.WINDOW_SHOWN));
+					}
+				} else {
+					contextMenu.hide();
+				}
+			}
+		});
+
+		VBox.setVgrow(tableTreeViewer, Priority.ALWAYS);
+		vboxRight.getChildren().add(tableTreeViewer);
 
 		// status bar
-		Composite statusBar = new Composite(compositeTable, SWT.BORDER);
-		GridLayout statusBarLayout = new GridLayout();
-		GridData statusBarGridData = new GridData();
-		statusBarGridData.horizontalAlignment = SWT.FILL;
-		statusBarGridData.grabExcessHorizontalSpace = true;
-		statusBar.setLayoutData(statusBarGridData);
-		statusBarLayout.numColumns = 1;
-		statusBar.setLayout(statusBarLayout);
 		// text
-		statusText = new Text(statusBar, SWT.NONE);
-		statusText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		statusText = new TextField();
 		statusText.setText(getStatus(0, 0));
-
+		statusText.setEditable(false);
+		
+		vboxRight.getChildren().add(statusText);
+		hbox.getChildren().add(vboxRight);
+		root.getChildren().add(hbox);
 		// -------------------------------
 		// TIME MANAGEMENT BAR
 		// -------------------------------
@@ -521,7 +567,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		timeBar.setEnabled(false);
-		combo.setEnabled(false);
+		combo.setDisable(true);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
 
@@ -545,9 +591,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (combo.getSelectionIndex() == -1)
+				if (combo.getSelectionModel().getSelectedIndex() == -1)
 					return;
-				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
+				currentDescriptor = loaderDescriptors.get(combo.getSelectionModel().getSelectedIndex());
 				cleanTableFilter();
 				refreshTableFilter();
 				loadPieChart();
@@ -562,8 +608,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		createFilterDialogs();
 		createActions();
 
-		// create SWT resources
-		createResources();
 		// clean the filter, after creating the font
 		cleanTableFilter();
 
@@ -588,7 +632,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Expand all action
 		Action expandAction = new Action() {
 			public void run() {
-				tableTreeViewer.expandAll();
+				expandTreeViewNodes(tableTreeViewer.getRoot(), true);
 			}
 		};
 		expandAction.setText("Expand all");
@@ -600,7 +644,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// Collapse all action
 		Action collapseAction = new Action() {
 			public void run() {
-				tableTreeViewer.collapseAll();
+				expandTreeViewNodes(tableTreeViewer.getRoot(), false);
 			}
 		};
 		collapseAction.setText("Collapse all");
@@ -630,10 +674,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		return des;
 	}
 
-	private int getTreeLeafs(TreeItem[] items, int v) {
-		for (TreeItem ti : items) {
-			if (ti.getItems().length > 0) {
-				v += getTreeLeafs(ti.getItems(), 0); // add only leafs
+	private int getTreeLeafs(TreeItem<StatisticsTableRow> root, int v) {
+		for (TreeItem<StatisticsTableRow> child : root.getChildren()) {
+			if (child.getChildren().size() > 0) {
+				v += getTreeLeafs(child, 0); // add only leafs
 			} else {
 				v += 1;
 			}
@@ -641,34 +685,26 @@ public class StatisticsPieChartView extends FramesocPart {
 		return v;
 	}
 	
-	public TreeViewer getTableTreeViewer() {
+	public TreeTableView getTableTreeViewer() {
 		return tableTreeViewer;
 	}
 
-	public void setTableTreeViewer(TreeViewer tableTreeViewer) {
+	public void setTableTreeViewer(TreeTableView tableTreeViewer) {
 		this.tableTreeViewer = tableTreeViewer;
 	}
 
 
 	// GUI creation
-
 	private void createContextMenu() {
-		final Tree tree = tableTreeViewer.getTree();
-		final Menu menu = new Menu(tree);
-		tree.setMenu(menu);
-		menu.addMenuListener(new MenuAdapter() {
+		contextMenu = new ContextMenu();
 
+		contextMenu.setOnShown(new EventHandler<WindowEvent>() {
 			private boolean allLeaves = false;
 			private boolean allMerged = false;
-
-			@Override
-			public void menuShown(MenuEvent e) {
-
+		
+		    public void handle(WindowEvent e) {
 				// clean menu
-				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
+				contextMenu.getItems().clear();
 
 				// get current selection
 				final List<String> rows = new ArrayList<>();
@@ -676,27 +712,24 @@ public class StatisticsPieChartView extends FramesocPart {
 
 				// exclude
 				if (allLeaves && rows.size() > 0) {
-					MenuItem hide = new MenuItem(menu, SWT.NONE);
-					hide.setText("Exclude " + ((rows.size() > 1) ? "Items" : "Item")
+					MenuItem hide = new MenuItem("Exclude " + ((rows.size() > 1) ? "Items" : "Item")
 							+ " from Statistics");
-					hide.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
+					hide.setOnAction(new EventHandler<ActionEvent>() {
+					    public void handle(ActionEvent e) {
 							currentDescriptor.excluded.addAll(rows);
 							refresh();
 							refreshTableFilter();
-							tableTreeViewer.collapseAll();
+							//tableTreeViewer.collapseAll();
 						}
 					});
+					contextMenu.getItems().add(hide);
 				}
 
 				// merge
 				if (allLeaves && rows.size() > 1) {
-					MenuItem merge = new MenuItem(menu, SWT.NONE);
-					merge.setText("Merge Items");
-					merge.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
+					MenuItem merge = new MenuItem("Merge Items");
+					merge.setOnAction(new EventHandler<ActionEvent>() {
+					    public void handle(ActionEvent e) {
 							MergeItemsDialog dlg = new MergeItemsDialog(getSite().getShell());
 							if (dlg.open() == Dialog.OK) {
 								MergedItem mergedItem = new MergedItem();
@@ -711,83 +744,90 @@ public class StatisticsPieChartView extends FramesocPart {
 								mergedItem.setLabel(dlg.getLabel());
 								currentDescriptor.merged.addMergedItem(mergedItem);
 								refresh();
-								tableTreeViewer.collapseAll();
+								//tableTreeViewer.collapseAll();
 							}
 						}
 					});
+					contextMenu.getItems().add(merge);
 				}
 
-				if (!currentDescriptor.excluded.isEmpty() || !currentDescriptor.merged.isEmpty()) {
-					new MenuItem(menu, SWT.SEPARATOR);
+				if ((!currentDescriptor.excluded.isEmpty() || !currentDescriptor.merged
+						.isEmpty()) && !contextMenu.getItems().isEmpty()) {
+					contextMenu.getItems().add(new SeparatorMenuItem());
 				}
 
 				// restore merged
 				if (!currentDescriptor.merged.isEmpty() && allMerged) {
-					MenuItem restore = new MenuItem(menu, SWT.NONE);
-					restore.setText("Unmerge Items");
-					restore.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
+					MenuItem restore = new MenuItem("Unmerge Items");
+
+					restore.setOnAction(new EventHandler<ActionEvent>() {
+					    public void handle(ActionEvent e) {
 							currentDescriptor.merged.removeMergedItems(rows);
 							refresh();
 							refreshTableFilter();
-							tableTreeViewer.collapseAll();
+							//tableTreeViewer.collapseAll();
 						}
 					});
+					contextMenu.getItems().add(restore);
 				}
 
 				// restore excluded
 				if (!currentDescriptor.excluded.isEmpty()) {
-					MenuItem restore = new MenuItem(menu, SWT.NONE);
-					restore.setText("Restore Excluded Items");
-					restore.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
+					MenuItem restore = new MenuItem("Restore Excluded Items");
+					restore.setOnAction(new EventHandler<ActionEvent>() {
+					    public void handle(ActionEvent e) {
 							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
 							refreshTableFilter();
-							tableTreeViewer.collapseAll();
+							//tableTreeViewer.collapseAll();
 						}
 					});
+					contextMenu.getItems().add(restore);
 				}
 
 				// restore all merged
 				if (!currentDescriptor.merged.isEmpty()) {
-					MenuItem restore = new MenuItem(menu, SWT.NONE);
-					restore.setText("Unmerge All Merged Items");
-					restore.addSelectionListener(new SelectionAdapter() {
-						@Override
-						public void widgetSelected(SelectionEvent e) {
+					MenuItem restore = new MenuItem("Unmerge All Merged Items");
+					restore.setOnAction(new EventHandler<ActionEvent>() {
+					    public void handle(ActionEvent e) {
 							currentDescriptor.merged.removeAllMergedItems();
 							refresh();
 							refreshTableFilter();
-							tableTreeViewer.collapseAll();
+							//tableTreeViewer.collapseAll();
 						}
 					});
+					contextMenu.getItems().add(restore);
 				}
-
 			}
 
 			private void getSelectedRows(List<String> rows) {
-				final IStructuredSelection sel = (IStructuredSelection) tableTreeViewer
-						.getSelection();
+				final ObservableList<TreeItem<StatisticsTableRow>> sel = tableTreeViewer
+						.getSelectionModel().getSelectedItems();
 				if (sel.isEmpty()) {
 					allLeaves = false;
 					allMerged = false;
 					return;
 				}
-				@SuppressWarnings("unchecked")
-				Iterator<StatisticsTableRow> it = (Iterator<StatisticsTableRow>) sel.iterator();
+				//@SuppressWarnings("unchecked")
+				//Iterator<TreeItem<StatisticsTableRow>> it = (Iterator<TreeItem<StatisticsTableRow>>) sel.iterator();
+	
+				logger.debug("Selection size in table is: " + sel.size());
+				
 				allLeaves = true;
 				allMerged = true;
-				while (it.hasNext()) {
-					StatisticsTableRow r = it.next();
+				
+				List<StatisticsTableRow> tmprows = sel.stream()
+						.filter(treeItem -> treeItem != null)
+						.map(TreeItem::getValue).collect(Collectors.toList());
+
+				for (StatisticsTableRow r : tmprows) {
 					try {
 						rows.add(r.get(StatisticsTableColumn.NAME));
 						allLeaves = allLeaves && !r.hasChildren();
 						if (currentDescriptor.loader.isAggregationSupported()) {
 							if (r.get(StatisticsTableColumn.NAME).equals(
-									currentDescriptor.loader.getAggregatedLabel())) {
+									currentDescriptor.loader
+											.getAggregatedLabel())) {
 								allMerged = false;
 							} else {
 								allMerged = allMerged && r.hasChildren();
@@ -801,14 +841,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 				return;
 			}
-
 		});
-	}
-
-	private void createResources() {
-		grayColor = resourceManager.createColor(ColorUtil.blend(tableTreeViewer.getTree()
-				.getBackground().getRGB(), tableTreeViewer.getTree().getForeground().getRGB()));
-		blackColor = tableTreeViewer.getTree().getDisplay().getSystemColor(SWT.COLOR_BLACK);
 	}
 
 	private String getStatus(int events, int matched) {
@@ -829,27 +862,69 @@ public class StatisticsPieChartView extends FramesocPart {
 	}
 
 	private void createColumns() {
+		tableColumns = new ArrayList<TreeTableColumn<StatisticsTableRow,String>>();
+		
 		for (final StatisticsTableColumn col : StatisticsTableColumn.values()) {
-			TreeViewerColumn elemsViewerCol = new TreeViewerColumn(tableTreeViewer, SWT.NONE);
+			TreeTableColumn<StatisticsTableRow, String> elemsViewerCol = new TreeTableColumn<StatisticsTableRow, String>(
+					col.getHeader());
 
 			if (col.equals(StatisticsTableColumn.NAME)) {
 				// add a filter for this column
 				nameFilter = new StatisticsTableRowFilter(col);
-				tableTreeViewer.addFilter(nameFilter);
+				
+				//tableTreeViewer.addFilter(nameFilter);
 				// the label provider puts also the image
 				StatisticsTableRowLabelProvider p = new StatisticsTableRowLabelProvider(col);
 				nameProviders.add(p);
-				elemsViewerCol.setLabelProvider(p);
+				elemsViewerCol
+						.setCellValueFactory(new Callback<CellDataFeatures<StatisticsTableRow, String>, ObservableValue<String>>() {
+							public ObservableValue<String> call(
+									CellDataFeatures<StatisticsTableRow, String> param) {
+								try {
+									return new ReadOnlyStringWrapper(param.getValue()
+											.getValue().get(col));
+								} catch (SoCTraceException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								return null;
+							}
+						});
 			} else if (col.equals(StatisticsTableColumn.VALUE)) {
-				elemsViewerCol.setLabelProvider(new ValueLabelProvider(col, this));
+				elemsViewerCol.setCellValueFactory(new Callback<CellDataFeatures<StatisticsTableRow, String>, ObservableValue<String>>() {
+					public ObservableValue<String> call(
+							CellDataFeatures<StatisticsTableRow, String> param) {
+						try {
+							 NumberFormat format = ValueLabelProvider.getActualFormat(currentDescriptor.loader.getFormat(), getTimeUnit());
+							return new ReadOnlyStringWrapper(format.format(Double.valueOf(param.getValue().getValue().get(col))));
+						} catch (SoCTraceException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return null;
+					}
+				});
+				//elemsViewerCol.setCellValueFactory(new ValueLabelProvider(col, this));
 			} else {
-				elemsViewerCol.setLabelProvider(new TableRowLabelProvider(col));
+				elemsViewerCol.setCellValueFactory(new Callback<CellDataFeatures<StatisticsTableRow, String>, ObservableValue<String>>() {
+					public ObservableValue<String> call(
+							CellDataFeatures<StatisticsTableRow, String> param) {
+						try {
+							return new ReadOnlyStringWrapper(param.getValue().getValue().get(col));
+						} catch (SoCTraceException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return null;
+					}
+				});
+						
+						//new TableRowLabelProvider(col));
 			}
 
-			final TreeColumn elemsTableCol = elemsViewerCol.getColumn();
-			elemsTableCol.setWidth(col.getWidth());
-			elemsTableCol.setText(col.getHeader());
-			elemsTableCol.addSelectionListener(new SelectionAdapter() {
+			//final TreeColumn elemsTableCol = elemsViewerCol.getColumns();
+			elemsViewerCol.setPrefWidth(col.getWidth());
+			/*elemsViewerCol.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					comparator.setColumn(col);
@@ -857,7 +932,8 @@ public class StatisticsPieChartView extends FramesocPart {
 					tableTreeViewer.getTree().setSortColumn(elemsTableCol);
 					tableTreeViewer.refresh();
 				}
-			});
+			});*/
+			tableColumns.add(elemsViewerCol);
 		}
 	}
 
@@ -976,7 +1052,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			public void run() {
 				if (!timeBar.isDisposed()) {
 					timeBar.setEnabled(enable);
-					combo.setEnabled(enable);
+					combo.setDisable(!enable);
 				}
 			}
 		});
@@ -1017,13 +1093,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
-
 	}
 
 	private void cleanTableFilter() {
-		textFilter.setText(FILTER_HINT);
-		textFilter.setData("");
-		textFilter.setForeground(grayColor);
+		textFilter.setPromptText(FILTER_HINT);
+		//textFilter.setData("");
 	}
 
 	private void refreshTableFilter() {
@@ -1031,15 +1105,16 @@ public class StatisticsPieChartView extends FramesocPart {
 			return;
 		if (currentDescriptor == null || currentDescriptor.map == null)
 			return;
-		String data = (String) textFilter.getData();
-		if (data != null) {
+		String data = (String) textFilter.getText();
+		if (!data.isEmpty()) {
 			nameFilter.setSearchText(data);
-			tableTreeViewer.refresh();
-			tableTreeViewer.expandAll();
-			logger.debug("items: " + getTreeLeafs(tableTreeViewer.getTree().getItems(), 0));
+			//tableTreeViewer.refresh();
+			//tableTreeViewer.expandAll();
+			expandTreeViewNodes(tableTreeViewer.getRoot(), true);
+			logger.debug("items: " + getTreeLeafs(tableTreeViewer.getRoot(), 0));
 			statusText.setText(getStatus(
 					currentDescriptor.map.size() - currentDescriptor.excluded.size(),
-					getTreeLeafs(tableTreeViewer.getTree().getItems(), 0)));
+					getTreeLeafs(tableTreeViewer.getRoot(), 0)));
 		}
 	}
 
@@ -1058,8 +1133,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
 		final ObservableList<PieChart.Data> dataset = loader.getPieDataset(values, currentDescriptor.excluded,
 				currentDescriptor.merged.getMergedItems());
-		final StatisticsTableRow[] roots = loader.getTableDataset(values,
+		final List<StatisticsTableRow> roots = loader.getTableDataset(values,
 				currentDescriptor.excluded, currentDescriptor.merged.getMergedItems());
+		createTreeTableItem(roots);
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
 
@@ -1074,53 +1150,41 @@ public class StatisticsPieChartView extends FramesocPart {
 					currentDescriptor.interval.endTimestamp = timeBar.getEndTimestamp();
 				}
 
-				// clean UI: composite pie + images
-				for (Control c : compositePie.getChildren()) {
-					c.dispose();
-				}
-
-				// create new chart
-				PieChart chart = createChart(dataset, title, loader, true);
-
+				// Update dataset
+				pieChart.setData(dataset);
 				
-				Group root = new Group();
-
-				Scene scene = new Scene(root, compositePie.getBounds().width,
-						compositePie.getBounds().height, false,
-						SceneAntialiasing.BALANCED);
-				root.getChildren().add(chart);
-				compositePie.setScene(scene);
-
-				for (PieChart.Data data : dataset) {
+				pieChart.getData().stream().forEach(data -> {
+					Tooltip tooltip = new Tooltip();
+				    NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
+				    tooltip.setText(data.getName()+ ": (" + format.format(data.getPieValue()) + ")");
+				    Tooltip.install(data.getNode(), tooltip);
+			
+				    data.pieValueProperty().addListener((observable, oldValue, newValue) -> 
+				        tooltip.setText(data.getName()+ ": " +format.format(newValue) + ")"));
+				    
 					String key = data.getName();
-					String color = "#" + Integer.toHexString(loader.getColor(key).getAwtColor().getRed())
-							+Integer.toHexString(loader.getColor(key).getAwtColor().getGreen())
-							+Integer.toHexString(loader.getColor(key).getAwtColor().getBlue());
+					String color = "#" + getHexaColor(loader.getColor(key).getAwtColor());
 		
-					
-					data.getNode().setStyle(
-							"-fx-pie-color: " + color
-									+ ";");
-				}
-				
-				
-				chart.getData().stream().forEach(data -> {
-				Tooltip tooltip = new Tooltip();
-			    NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
-			    tooltip.setText(data.getName()+ ": (" + format.format(data.getPieValue()) + ")");
-			    Tooltip.install(data.getNode(), tooltip);
-		
-			    data.pieValueProperty().addListener((observable, oldValue, newValue) -> 
-			        tooltip.setText(data.getName()+ ": " +format.format(data.getPieValue()) + ")"));
+					// Set the corresponding color
+					data.getNode().setStyle("-fx-pie-color: " + color + ";");
 				});
 				
+				// Remove present elements
+				treeRoot.getChildren().clear();
+				// Add current
+				treeRoot.getChildren().addAll(treeItems);
+				
+				tableTreeViewer.getColumns().clear();
+				tableTreeViewer.getColumns().addAll(tableColumns);
+				
 				// update other elements
-				if (roots.length == 0) {
+				/*if (roots.length == 0) {
 					tableTreeViewer.setInput(null);
 				} else {
 					tableTreeViewer.setInput(roots);
-				}
-				tableTreeViewer.collapseAll();
+				}*/
+				expandTreeViewNodes(tableTreeViewer.getRoot(), false);
+				//tableTreeViewer.collapseAll();
 				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace
 						.getTimeUnit()));
 				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
@@ -1128,64 +1192,27 @@ public class StatisticsPieChartView extends FramesocPart {
 				timeBar.setDisplayInterval(currentDescriptor.interval);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 				enableActions(currentDescriptor.dataLoaded());
-
 			}
 		});
 	}
 
-	/**
-	 * Creates the chart.
-	 * 
-	 * @param dataset
-	 *            the dataset.
-	 * @param loader
-	 *            the pie chart loader
-	 * @param dataRequested
-	 *            flag indicating if the data have been requested for the current loader and the
-	 *            current interval
-	 * @return the pie chart
-	 */
-	private PieChart createChart(ObservableList<PieChart.Data> dataset, String title, IPieChartLoader loader,
-			boolean dataRequested) {
+	private void createTreeTableItem(List<StatisticsTableRow> roots) {
+		treeItems = FXCollections.observableArrayList();
+		roots.stream()
+				.forEach(
+						row -> {
+							treeItems.add(new TreeItem<>(row));
 
-	  
-		PieChart chart = new PieChart(dataset);
-		chart.setLabelsVisible(false);
-		chart.setStartAngle(90.0);
-		chart.setLegendVisible(false);
-		
-		// legend
-		/*if (HAS_LEGEND) {
-			LegendTitle legend = chart.getLegend();
-			legend.setPosition(RectangleEdge.LEFT);
-		}*/
-
-		
-		// plot
-		/*PiePlot plot = (PiePlot) chart.getPlot();
-		plot.setSectionOutlinesVisible(false);
-		plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-		plot.setNoDataMessage("No data available "
-				+ (dataRequested ? "in this time interval" : "yet. Press the Load button."));
-		plot.setCircular(true);
-		plot.setLabelGenerator(null); // hide labels
-		plot.setBackgroundPaint(Color.WHITE);
-		plot.setOutlineVisible(false);
-		plot.setShadowPaint(Color.WHITE);
-		plot.setBaseSectionPaint(Color.WHITE);
-		StandardPieToolTipGenerator g = (StandardPieToolTipGenerator) plot.getToolTipGenerator();
-		NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
-		StandardPieToolTipGenerator sg = new StandardPieToolTipGenerator(g.getLabelFormat(),
-				format, g.getPercentFormat());
-		plot.setToolTipGenerator(sg);
-
-
-
-		for (Object o : dataset.getKeys()) {
-			String key = (String) o;
-			plot.setSectionPaint(key, loader.getColor(key).getAwtColor());
-		}*/
-		return chart;
+							if (row instanceof StatisticsTableFolderRow) {
+								StatisticsTableFolderRow folder = (StatisticsTableFolderRow) row;
+								for (ITreeNode childRow : folder.getChildren()) {
+									StatisticsTableRow childTableRow = (StatisticsTableRow) childRow;
+									treeItems.get(treeItems.size() - 1)
+											.getChildren()
+											.add(new TreeItem<>(childTableRow));
+								}
+							}
+						});
 	}
 
 	public class StatisticsColumnComparator extends ViewerComparator {
@@ -1210,31 +1237,28 @@ public class StatisticsPieChartView extends FramesocPart {
 		@Override
 		public int compare(Viewer viewer, Object e1, Object e2) {
 
-			StatisticsTableRow r1 = (StatisticsTableRow) e1;
-			StatisticsTableRow r2 = (StatisticsTableRow) e2;
+			Cell r1 = (Cell) e1;
+			Cell r2 = (Cell) e2;
 
 			int rc = 0;
 			try {
 				if (this.col.equals(StatisticsTableColumn.VALUE)) {
 					// number comparison
-					Double v1 = Double.valueOf(r1.get(this.col));
-					Double v2 = Double.valueOf(r2.get(this.col));
+					Double v1 = Double.valueOf((Double)r1.getItem());
+					Double v2 = Double.valueOf((Double)r2.getItem());
 					rc = v1.compareTo(v2);
 				} else if (this.col.equals(StatisticsTableColumn.PERCENTAGE)) {
 					// percentage comparison 'xx.xx %'
 					NumberFormat format = NumberFormat.getInstance();
-					Double v1 = format.parse(r1.get(this.col).split(" ")[0]).doubleValue();
-					Double v2 = format.parse(r2.get(this.col).split(" ")[0]).doubleValue();
+					Double v1 = format.parse(((String)r1.getItem()).split(" ")[0]).doubleValue();
+					Double v2 = format.parse(((String)r2.getItem()).split(" ")[0]).doubleValue();
 					rc = v1.compareTo(v2);
 				} else {
 					// string comparison
-					String v1 = r1.get(this.col);
-					String v2 = r2.get(this.col);
+					String v1 = (String)(r1.getItem());
+					String v2 = (String)(r2.getItem());
 					rc = v1.compareTo(v2);
 				}
-			} catch (SoCTraceException e) {
-				e.printStackTrace();
-				rc = 0;
 			} catch (ParseException e) {
 				e.printStackTrace();
 				rc = 0;
@@ -1268,7 +1292,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	@Override
 	public void showTrace(Trace trace, Object data) {
-		combo.setEnabled(true);
+		combo.setDisable(false);
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
 		currentShownTrace = trace;
@@ -1280,7 +1304,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
 				if (operatorDialog.open() == Dialog.OK) {
 					if (operatorDialog.getSelectionIndex() != -1) {
-						combo.select(operatorDialog.getSelectionIndex());
+						combo.getSelectionModel().select(operatorDialog.getSelectionIndex());
 						currentDescriptor = loaderDescriptors.get(operatorDialog
 								.getSelectionIndex());
 					}
@@ -1290,7 +1314,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			globalLoadInterval.copy(intDes.getTimeInterval());
 			loadPieChart();
 		} else {
-			combo.select(0);
+			combo.getSelectionModel().select(0);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
 			timeBar.setDisplayInterval(timeBar.getSelection());
 			txtDescription.setVisible(true);
@@ -1445,4 +1469,34 @@ public class StatisticsPieChartView extends FramesocPart {
 		return output.toString();
 	}
 
+	
+	private void expandTreeViewNodes(TreeItem anItem, boolean expand) {
+		if(anItem == null)
+			return;
+	/*	
+		for (Object aTreeitem : anItem.getChildren()){
+			for (Object childItem :  ((TreeItem)aTreeitem).getChildren())
+				expandTreeViewNodes(((TreeItem)childItem), expand);
+			anItem.setExpanded(expand);
+		}*/
+	}
+
+	private String getHexaColor(java.awt.Color color) {
+		String hexValue = "";
+		List<String> colorValue = new ArrayList<String>();
+		colorValue.add(Integer.toHexString(color.getRed()));
+		colorValue.add(Integer.toHexString(color.getGreen()));
+		colorValue.add(Integer.toHexString(color.getBlue()));
+
+		for (String colorString : colorValue) {
+			if (colorString.length() <= 1){
+				colorString = "0" + colorString;
+			}
+			hexValue = hexValue + colorString;
+		}
+
+		return hexValue;
+	}
+
+	
 }

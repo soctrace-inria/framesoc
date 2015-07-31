@@ -136,7 +136,7 @@ public interface IPieChartLoader {
 	 *            list of merged items
 	 * @return the roots row
 	 */
-	StatisticsTableRow[] getTableDataset(Map<String, Double> values, List<String> excluded,
+	List<StatisticsTableRow> getTableDataset(Map<String, Double> values, List<String> excluded,
 			List<MergedItem> merged);
 
 	/*
