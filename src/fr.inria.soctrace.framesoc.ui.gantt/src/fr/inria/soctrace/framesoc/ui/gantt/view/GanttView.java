@@ -928,8 +928,8 @@ public class GanttView extends AbstractGanttView {
 	public void takeSnapshot(int width, int height, boolean fullHeight,
 			boolean includeTimeScale, String fileName) {
 		int totalHeight = 0;
-		int hierarchyWidth = getTimeGraphCombo().getTreeViewer().getTree()
-				.getBounds().width;
+		int hierarchyWidth = (int) getTimeGraphCombo().getTreeViewer()
+				.getWidth();
 		int headerHeight = 0;
 
 		if (includeTimeScale)
@@ -998,7 +998,7 @@ public class GanttView extends AbstractGanttView {
 		int entryShifting = 20;
 		// Shift to center the name of the producer
 		int verticalShift = 5;
-		int width = getTimeGraphCombo().getTreeViewer().getTree().getBounds().width;
+		int width = (int) getTimeGraphCombo().getTreeViewer().getWidth();
 		
 		// Set colors
 		Color rectangleBgColor1 = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);

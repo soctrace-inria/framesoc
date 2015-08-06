@@ -83,6 +83,7 @@
 				<configuration>
 					<excludes>
 						<plugin id="fr.inria.soctrace.lib.slf4j" />
+						<plugin id="fr.inria.soctrace.lib.javafx" />
 						<plugin id="fr.inria.soctrace.framesoc.brand" />
 					</excludes>
 				</configuration>
@@ -147,6 +148,7 @@
 		<!-- Branding -->
 		<module>../fr.inria.soctrace.framesoc.brand</module>
 
+		<module>../fr.inria.soctrace.lib.javafx</module>
 	</modules>
 
 </project>

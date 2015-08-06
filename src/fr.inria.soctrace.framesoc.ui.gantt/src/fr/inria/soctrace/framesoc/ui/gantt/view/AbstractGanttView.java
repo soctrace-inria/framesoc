@@ -15,10 +15,10 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javafx.scene.control.TreeView;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -29,14 +29,10 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -46,10 +42,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,7 +231,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		@Override
 		public ISelectionProvider getSelectionProvider() {
-			return combo.getTreeViewer();
+			return null;//combo.getTreeViewer();
 		}
 
 		@Override
@@ -281,7 +273,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 			return combo;
 		}
 
-		TreeViewer getTreeViewer() {
+		TreeView getTreeViewer() {
 			return combo.getTreeViewer();
 		}
 	}
@@ -745,10 +737,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 		// Event Producer Tree
 		combo.setTreeContentProvider(new TimeGraphTreeContentProvider());
 		combo.setTreeLabelProvider(fLabelProvider);
-		combo.setTreeColumns(fColumns);
+		//combo.setTreeColumns(fColumns);
 
 		// Event Producer Context Menu
-		final Tree tree = combo.getTreeViewer().getTree();
+		/*final Tree tree = combo.getTreeViewer().getTree();
 		final Menu menu = new Menu(tree);
 		tree.setMenu(menu);
 		menu.addMenuListener(new MenuAdapter() {
@@ -838,7 +830,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 				return filteredSet;
 			}
-		});
+		});*/
 
 		// Event Producer Filter
 		combo.setFilterContentProvider(new TimeGraphTreeContentProvider());
@@ -1075,10 +1067,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 				fTimeBar.setDisplayInterval(fStartTime, fEndTime);
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
-					for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
+					/*for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
 							.getTreeViewer().getTree().getColumns()) {
 						column.pack();
-					}
+					}*/
 					if (hasEntries) {
 						fPackDone = true;
 					}

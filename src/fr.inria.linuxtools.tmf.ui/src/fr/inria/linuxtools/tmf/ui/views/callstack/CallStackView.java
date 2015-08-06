@@ -33,11 +33,8 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -114,7 +111,7 @@ public class CallStackView extends TmfView {
      */
     private enum State { IDLE, BUSY, PENDING }
 
-    private static final String[] COLUMN_NAMES = new String[] {
+  /*  private static final String[] COLUMN_NAMES = new String[] {
             Messages.CallStackView_FunctionColumn,
             Messages.CallStackView_DepthColumn,
             Messages.CallStackView_EntryTimeColumn,
@@ -128,7 +125,7 @@ public class CallStackView extends TmfView {
             120,
             120,
             120
-    };
+    };*/
 
     // Fraction of a function duration to be added as spacing
     private static final double SPACING_RATIO = 0.01;
@@ -504,13 +501,13 @@ public class CallStackView extends TmfView {
 
         fTimeGraphCombo.setTreeLabelProvider(new TreeLabelProvider());
 
-        fTimeGraphCombo.setTreeColumns(COLUMN_NAMES);
+        /*fTimeGraphCombo.setTreeColumns(COLUMN_NAMES);
 
         fTimeGraphCombo.getTreeViewer().getTree().getColumn(0).setWidth(COLUMN_WIDTHS[0]);
         fTimeGraphCombo.getTreeViewer().getTree().getColumn(1).setWidth(COLUMN_WIDTHS[1]);
         fTimeGraphCombo.getTreeViewer().getTree().getColumn(2).setWidth(COLUMN_WIDTHS[2]);
         fTimeGraphCombo.getTreeViewer().getTree().getColumn(3).setWidth(COLUMN_WIDTHS[3]);
-        fTimeGraphCombo.getTreeViewer().getTree().getColumn(4).setWidth(COLUMN_WIDTHS[4]);
+        fTimeGraphCombo.getTreeViewer().getTree().getColumn(4).setWidth(COLUMN_WIDTHS[4]);*/
 
         fTimeGraphCombo.setTimeGraphProvider(new CallStackPresentationProvider(this));
         fTimeGraphCombo.getTimeGraphViewer().setTimeFormat(TimeFormat.CALENDAR);
@@ -546,7 +543,7 @@ public class CallStackView extends TmfView {
             }
         });
 
-        fTimeGraphCombo.getTreeViewer().addDoubleClickListener(new IDoubleClickListener() {
+       /* fTimeGraphCombo.getTreeViewer().addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent event) {
                 Object selection = ((IStructuredSelection) event.getSelection()).getFirstElement();
@@ -565,7 +562,7 @@ public class CallStackView extends TmfView {
                     }
                 }
             }
-        });
+        });*/
 
         fTimeGraphCombo.getTimeGraphViewer().getTimeGraphControl().addMouseListener(new MouseAdapter() {
             @Override

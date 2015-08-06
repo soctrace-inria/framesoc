@@ -38,13 +38,11 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 
 import fr.inria.linuxtools.tmf.core.signal.TmfRangeSynchSignal;
@@ -278,7 +276,7 @@ public abstract class AbstractTimeGraphView extends TmfView {
 
         @Override
         public ISelectionProvider getSelectionProvider() {
-            return combo.getTreeViewer();
+            return null;//combo.getTreeViewer();
         }
 
         @Override
@@ -320,9 +318,9 @@ public abstract class AbstractTimeGraphView extends TmfView {
             return combo;
         }
 
-        TreeViewer getTreeViewer() {
+        /*TreeView getTreeViewer() {
             return combo.getTreeViewer();
-        }
+        }*/
 
         IAction getShowFilterAction() {
             return combo.getShowFilterAction();
@@ -829,7 +827,7 @@ public abstract class AbstractTimeGraphView extends TmfView {
             TimeGraphCombo combo = wrapper.getTimeGraphCombo();
             combo.setTreeContentProvider(new TreeContentProvider());
             combo.setTreeLabelProvider(fLabelProvider);
-            combo.setTreeColumns(fColumns);
+            //combo.setTreeColumns(fColumns);
             combo.setFilterContentProvider(new TreeContentProvider());
             combo.setFilterLabelProvider(fFilterLabelProvider);
             combo.setFilterColumns(fFilterColumns);
@@ -1179,9 +1177,9 @@ public abstract class AbstractTimeGraphView extends TmfView {
                 fTimeGraphWrapper.getTimeGraphViewer().setStartFinishTime(startTime, endTime);
 
                 if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
-                    for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper).getTreeViewer().getTree().getColumns()) {
+                    /*for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper).getTreeViewer().getTree().getColumns()) {
                         column.pack();
-                    }
+                    }*/
                     if (hasEntries) {
                         fPackDone = true;
                     }
