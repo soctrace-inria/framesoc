@@ -415,7 +415,6 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
             this.sci = sp;
 
             // sci.getTrace() will eventually return a @NonNull
-            @SuppressWarnings("null")
             @NonNull ITmfTrace tr = sci.getTrace();
 
             this.trace = tr;
@@ -463,7 +462,6 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
 
     @Override
     public Iterable<ITmfStateSystem> getStateSystems() {
-        @SuppressWarnings("null")
         @NonNull Iterable<ITmfStateSystem> ret = Collections.singleton((ITmfStateSystem) fStateSystem);
         return ret;
     }

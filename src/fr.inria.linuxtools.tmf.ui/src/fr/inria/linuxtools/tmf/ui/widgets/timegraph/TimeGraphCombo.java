@@ -728,7 +728,7 @@ public class TimeGraphCombo extends Composite {
                 if (fFilterDialog.getResult().length != allElements.size()) {
                     // @Framesoc
                     checkProducerFilter(true);
-                    ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
+                    ArrayList<Object> filteredElements = new ArrayList<>(allElements);
                     filteredElements.removeAll(Arrays.asList(fFilterDialog.getResult()));
                     fFilter.setFiltered(filteredElements);
                 } else {

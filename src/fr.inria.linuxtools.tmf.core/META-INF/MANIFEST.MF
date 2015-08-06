@@ -7,7 +7,7 @@ Bundle-Localization: plugin
 Bundle-SymbolicName: fr.inria.linuxtools.tmf.core;singleton:=true
 Bundle-Activator: fr.inria.linuxtools.internal.tmf.core.Activator
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
  fr.inria.linuxtools.statesystem.core;visibility:=reexport,

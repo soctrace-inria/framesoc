@@ -8,7 +8,7 @@ Export-Package: fr.inria.soctrace.test.junit.lib.query,
  fr.inria.soctrace.test.junit.lib.storage,
  fr.inria.soctrace.test.junit.lib.utils,
  fr.inria.soctrace.test.junit.utils
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: fr.inria.soctrace.framesoc.core;bundle-version="1.0.0",
  fr.inria.soctrace.lib.model;bundle-version="1.0.0",
  fr.inria.soctrace.lib.query;bundle-version="1.0.0",

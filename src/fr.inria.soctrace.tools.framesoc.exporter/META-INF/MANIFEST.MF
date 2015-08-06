@@ -14,7 +14,7 @@ Require-Bundle: org.eclipse.ui,
  fr.inria.soctrace.lib.utils;bundle-version="1.0.0",
  org.eclipse.wb.core.lib,
  fr.inria.soctrace.lib.slf4j
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: INRIA
 Import-Package: fr.inria.soctrace.framesoc.ui.dialogs,

@@ -20,7 +20,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface,
  fr.inria.linuxtools.tmf.ui,
  org.eclipse.swt
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  swing2swt.jar,
