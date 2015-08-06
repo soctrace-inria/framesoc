@@ -29,14 +29,10 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -46,14 +42,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.ContextMenu;
+import javafx.stage.WindowEvent;
+import javafx.scene.control.MenuItem;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphContentProvider;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphRangeListener;
@@ -143,6 +140,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The previous resource action */
 	private Action fPreviousResourceAction;
+	
+    protected Action fVZoomOutAction;
+    protected Action fVZoomInAction;
+    protected Action fResetScaleAction;
 
 	/** A comparator class */
 	private Comparator<ITimeGraphEntry> fEntryComparator = null;
@@ -157,9 +158,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	/** The presentation provider for this view */
 	private final TimeGraphPresentationProvider fPresentation;
-
-	/** The tree column label array, or null if combo is not used */
-	private String[] fColumns;
 
 	/** The tree label provider, or null if combo is not used */
 	private TimeGraphTreeLabelProvider fLabelProvider = null;
@@ -239,7 +237,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		@Override
 		public ISelectionProvider getSelectionProvider() {
-			return combo.getTreeViewer();
+			return null;
+			//return combo.getTreeViewer();
 		}
 
 		@Override
@@ -279,10 +278,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		TimeGraphCombo getTimeGraphCombo() {
 			return combo;
-		}
-
-		TreeViewer getTreeViewer() {
-			return combo.getTreeViewer();
 		}
 	}
 
@@ -478,16 +473,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 */
 	protected ITimeGraphPresentationProvider2 getPresentationProvider() {
 		return fPresentation;
-	}
-
-	/**
-	 * Sets the tree column labels. This should be called from the constructor.
-	 * 
-	 * @param columns
-	 *            The array of tree column labels
-	 */
-	protected void setTreeColumns(final String[] columns) {
-		fColumns = columns;
 	}
 
 	/**
@@ -745,43 +730,47 @@ public abstract class AbstractGanttView extends FramesocPart {
 		// Event Producer Tree
 		combo.setTreeContentProvider(new TimeGraphTreeContentProvider());
 		combo.setTreeLabelProvider(fLabelProvider);
-		combo.setTreeColumns(fColumns);
 
 		// Event Producer Context Menu
-		final Tree tree = combo.getTreeViewer().getTree();
-		final Menu menu = new Menu(tree);
-		tree.setMenu(menu);
-		menu.addMenuListener(new MenuAdapter() {
+		final ContextMenu menu = new ContextMenu();
+		MenuItem exp = new MenuItem("Dummy item");
+		menu.getItems().add(exp);
+		
+		menu.setOnShown(new EventHandler<WindowEvent>() {
 			@Override
-			public void menuShown(MenuEvent e) {
-				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
-				IStructuredSelection selection = (IStructuredSelection) combo.getTreeViewer()
-						.getSelection();
-				final ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
+			public void handle(WindowEvent e) {
+				menu.getItems().clear();
+				final ITimeGraphEntry node = (ITimeGraphEntry) combo
+						.getTreeViewer().getSelectionModel().getSelectedItem().getValue();
+				
+				if(node == null)
+					return;
+				
 				// expand/collapse
 				if (node.hasChildren()) {
-					MenuItem exp = new MenuItem(menu, SWT.NONE);
-					final boolean expanded = combo.getTreeViewer().getExpandedState(node);
+					MenuItem exp = new MenuItem();
+					final boolean expanded = combo.getTreeItems().get(node)
+							.isExpanded();
 					exp.setText(expanded ? "Collapse" : "Expand All");
-					exp.addSelectionListener(new SelectionAdapter() {
+					exp.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
-						public void widgetSelected(SelectionEvent e) {
-							if (expanded)
+						public void handle(ActionEvent actionEvent) {
+							if (expanded) {
 								combo.setExpandedState(node, false);
-							else
+							} else {
 								expandFromNode(node);
+							}
 						}
 
-						private void expandFromNode(ITimeGraphEntry node) {
-							combo.setExpandedState(node, true);
-							for (ITimeGraphEntry entry : node.getChildren()) {
+						private void expandFromNode(ITimeGraphEntry nodeToExtand) {
+							combo.setExpandedState(nodeToExtand, true);
+							for (ITimeGraphEntry entry : nodeToExtand
+									.getChildren()) {
 								expandFromNode(entry);
 							}
 						}
 					});
+					menu.getItems().add(exp);
 					// restore
 					Set<ITimeGraphEntry> filteredSet = getFiltered();
 					List<ITimeGraphEntry> filteredChildren = new ArrayList<>();
@@ -794,33 +783,36 @@ public abstract class AbstractGanttView extends FramesocPart {
 						for (ITimeGraphEntry entry : filteredSet) {
 							newFiltered.add(entry);
 						}
-						MenuItem restore = new MenuItem(menu, SWT.NONE);
-						restore.setText("Restore hidden children");
-						restore.addSelectionListener(new SelectionAdapter() {
+						MenuItem restore = new MenuItem(
+								"Restore hidden children");
+
+						restore.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
-							public void widgetSelected(SelectionEvent e) {
+							public void handle(ActionEvent actionEvent) {
 								combo.setFilteredEntries(newFiltered);
 								combo.refresh();
 							}
 						});
+						menu.getItems().add(restore);
 					}
 				}
 				// hide
-				MenuItem hide = new MenuItem(menu, SWT.NONE);
-				hide.setText("Hide");
-				hide.addSelectionListener(new SelectionAdapter() {
+				MenuItem hide = new MenuItem("Hide");
+				hide.setOnAction(new EventHandler<ActionEvent>() {
 					@Override
-					public void widgetSelected(SelectionEvent e) {
-						IStructuredSelection selection = (IStructuredSelection) combo
-								.getTreeViewer().getSelection();
-						ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
-						combo.addFiltered(node);
+					public void handle(ActionEvent actionEvent) {
+						ITimeGraphEntry entryNode = (ITimeGraphEntry) combo
+								.getTreeViewer().getSelectionModel()
+								.getSelectedItem();
+						combo.addFiltered(entryNode);
 						combo.refresh();
 					}
 				});
+				menu.getItems().add(hide);
 			}
 
-			private void getFilteredChildren(List<ITimeGraphEntry> filteredChildren,
+			private void getFilteredChildren(
+					List<ITimeGraphEntry> filteredChildren,
 					Set<ITimeGraphEntry> filteredSet, ITimeGraphEntry entry) {
 				for (ITimeGraphEntry e : entry.getChildren()) {
 					if (filteredSet.contains(e)) {
@@ -839,6 +831,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 				return filteredSet;
 			}
 		});
+
+	    combo.getTreeViewer().setContextMenu(menu);
 
 		// Event Producer Filter
 		combo.setFilterContentProvider(new TimeGraphTreeContentProvider());
@@ -1075,10 +1069,10 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 				fTimeBar.setDisplayInterval(fStartTime, fEndTime);
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
-					for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
+					/*for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
 							.getTreeViewer().getTree().getColumns()) {
 						column.pack();
-					}
+					}*/
 					if (hasEntries) {
 						fPackDone = true;
 					}

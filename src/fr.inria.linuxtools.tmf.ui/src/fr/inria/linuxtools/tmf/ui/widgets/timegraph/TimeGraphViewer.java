@@ -72,7 +72,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private static final int DEFAULT_NAME_WIDTH = 200;
     private static final int MIN_NAME_WIDTH = 6;
     private static final int MAX_NAME_WIDTH = 1000;
-    private static final int DEFAULT_HEIGHT = 22;
+    private static final int DEFAULT_SCALE_HEIGHT = 22;
     private static final long RECENTERING_MARGIN_FACTOR = 50;
     private static final String HIDE_ARROWS_KEY = "hide.arrows"; //$NON-NLS-1$
 
@@ -110,9 +110,8 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     // Number
     private TimeFormat fTimeFormat = TimeFormat.RELATIVE;
     private int fBorderWidth = 0;
-    private int fTimeScaleHeight = DEFAULT_HEIGHT;
+    private int fTimeScaleHeight = DEFAULT_SCALE_HEIGHT;
 
-    private Action fResetScaleAction;
     private Action fShowLegendAction;
     private Action fNextEventAction;
     private Action fPrevEventAction;
@@ -349,7 +348,9 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
             @Override
             public void redraw() {
                 fTimeScaleCtrl.redraw();
-                fTimeGraphCtrl.redraw();
+                if(fTimeGraphCtrl != null) {
+                    fTimeGraphCtrl.redraw();
+                }
                 super.redraw();
             }
         };
@@ -880,6 +881,27 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         fTimeGraphCtrl.zoomOut();
     }
 
+    /**
+     * Callback for the vertical Zoom Out action
+     */
+    public void verticalZoomOut() {
+        fTimeGraphCtrl.verticalZoomOut();
+    }
+
+    /**
+     * Callback for the vertical Zoom In action
+     */
+    public void verticalZoomIn() {
+        fTimeGraphCtrl.verticalZoomIn();
+    }
+
+    /**
+     * Callback for resetting the vertical Zoom action
+     */
+    public void resetVerticalZoom() {
+        fTimeGraphCtrl.resetVerticalZoom();
+    }
+
     private String getPreferenceString(String string) {
         return getViewTypeStr() + "." + string; //$NON-NLS-1$
     }
@@ -1362,28 +1384,6 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     public void removeTreeListener(ITimeGraphTreeListener listener) {
         fTimeGraphCtrl.removeTreeListener(listener);
-    }
-
-    /**
-     * Get the reset scale action.
-     *
-     * @return The Action object
-     */
-    public Action getResetScaleAction() {
-        if (fResetScaleAction == null) {
-            // resetScale
-            fResetScaleAction = new Action() {
-                @Override
-                public void run() {
-                    resetStartFinishTime();
-                    notifyStartFinishTime();
-                }
-            };
-            fResetScaleAction.setText(Messages.TmfTimeGraphViewer_ResetScaleActionNameText);
-            fResetScaleAction.setToolTipText(Messages.TmfTimeGraphViewer_ResetScaleActionToolTipText);
-            fResetScaleAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ITmfImageConstants.IMG_UI_HOME_MENU));
-        }
-        return fResetScaleAction;
     }
 
     /**

@@ -17,7 +17,7 @@
 	</appender>
 
 	<!-- Default -->
-	<root level="debug">
+	<root level="off">
 		<appender-ref ref="STDOUT" />
 	</root>
 

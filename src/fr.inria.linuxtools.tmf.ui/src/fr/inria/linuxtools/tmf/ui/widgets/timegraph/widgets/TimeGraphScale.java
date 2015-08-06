@@ -177,7 +177,15 @@ public class TimeGraphScale extends TimeGraphBaseControl implements
      *            The height to use
      */
     public void setHeight(int height) {
+        boolean redraw =  height != fHeight;
         this.fHeight = height;
+
+        // If new height value, redraw everything
+        if(redraw) {
+            getParent().layout();
+            getParent().update();
+            getParent().redraw();
+        }
     }
 
     /**
