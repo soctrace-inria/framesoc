@@ -39,7 +39,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 import org.eclipse.jface.action.Action;
@@ -400,11 +402,16 @@ public class TimeGraphCombo extends Composite {
         super(parent, style);
         setLayout(new FillLayout());
 
-       final SashForm sash = new SashForm(this, SWT.NONE);
-
+       //final SashForm sash = new SashForm(this, SWT.NONE);
+       final HBox hbox = new HBox();
         root = new Group();
-        scene = new Scene(root);
-        mainFxCanvas = new FXCanvas(sash, SWT.NONE);
+
+        // Set background color
+        org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+        Color bkColor = Color.rgb(col.getRed(), col.getGreen(), col.getBlue());
+        scene = new Scene(root, bkColor);
+
+        mainFxCanvas = new FXCanvas(parent, SWT.NONE);
         mainFxCanvas.setScene(scene);
 
         VBox vbox = new VBox();
@@ -592,9 +599,11 @@ public class TimeGraphCombo extends Composite {
                     return;
                 }
 
-                Object selection = fTreeViewer.getSelectionModel().getSelectedItem().getValue();
-                if (selection instanceof ITimeGraphEntry && selection != FILLER) {
-                    fTimeGraphViewer.setSelection((ITimeGraphEntry) selection);
+                if (fTreeViewer.getSelectionModel().getSelectedItem() != null) {
+                    Object selection = fTreeViewer.getSelectionModel().getSelectedItem().getValue();
+                    if (selection instanceof ITimeGraphEntry && selection != FILLER) {
+                        fTimeGraphViewer.setSelection((ITimeGraphEntry) selection);
+                    }
                 }
                 alignTreeItems(false);
             }
@@ -1019,6 +1028,11 @@ public class TimeGraphCombo extends Composite {
         List<ITimeGraphEntry> entries = (List<ITimeGraphEntry>) input;
         List<ITimeGraphEntry> topEntries = entries.stream().filter(entry -> entry.getParent() == null).collect(Collectors.toList());
         buildTreeItems(topEntries);
+        // Build filler row items (use to avoid bad alignment with the graph
+        // when there is a horizontal scrollbar
+        for (int i = 0; i < fNumFillerRows; i++) {
+            fTreeRoot.getChildren().add(new TreeItem<>(FILLER));
+        }
         setTreeItemsHeight();
         setTreeExpandedState(true);
     }
@@ -1048,10 +1062,6 @@ public class TimeGraphCombo extends Composite {
             if (!entry.getChildren().isEmpty()) {
                 buildTreeItems(entry.getChildren());
             }
-        }
-
-        for (int i = 0; i < fNumFillerRows; i++) {
-            fTreeRoot.getChildren().add(new TreeItem<>(FILLER));
         }
     }
 

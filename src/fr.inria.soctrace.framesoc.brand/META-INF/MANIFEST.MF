@@ -4,4 +4,4 @@ Bundle-Name: Framesoc
 Bundle-SymbolicName: fr.inria.soctrace.framesoc.brand
 Bundle-Version: 1.0.9.qualifier
 Bundle-Vendor: INRIA
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

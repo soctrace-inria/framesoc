@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
@@ -188,6 +189,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     private GraphicsContext graphicsContext = null;
 
+    private boolean hasChanged = true;
+
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
         private static final long POLLING_INTERVAL = 10L;
@@ -241,7 +244,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
         org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 
         scene = new Scene(root, Color.rgb(col.getRed(), col.getGreen(), col.getBlue()));
-
         fItemData = new ItemData();
 
         addFocusListener(this);
@@ -312,6 +314,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void setTimeProvider(ITimeDataProvider timeProvider) {
         fTimeProvider = timeProvider;
         adjustScrolls();
+        hasChanged = true;
         redraw();
     }
 
@@ -478,6 +481,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void refreshData() {
         fItemData.refreshData();
         adjustScrolls();
+        hasChanged = true;
         redraw();
     }
 
@@ -490,6 +494,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void refreshData(ITimeGraphEntry[] traces) {
         fItemData.refreshData(traces);
         adjustScrolls();
+        hasChanged = true;
         redraw();
     }
 
@@ -533,6 +538,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             timePos = (int) (H_SCROLLBAR_MAX * ((double) (time0 - timeMin) / delta));
         }
 
+        hasChanged = true;
         // position, minimum, maximum, thumb size, increment (half page)t, page
         // increment size (full page)
         getHorizontalBar().setValues(timePos, 0, H_SCROLLBAR_MAX, thumb, Math.max(1, thumb / 2), Math.max(2, thumb));
@@ -554,6 +560,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (index < fTopIndex) {
             setTopIndex(index);
             if (redraw) {
+                hasChanged = true;
                 redraw();
             }
             changed = true;
@@ -562,6 +569,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             if (index >= fTopIndex + page) {
                 setTopIndex(index - page + 1);
                 if (redraw) {
+                    hasChanged = true;
                     redraw();
                 }
                 changed = true;
@@ -580,6 +588,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         int index = Math.min(idx, fItemData.fExpandedItems.length - countPerPage());
         index = Math.max(0, index);
         fTopIndex = index;
+        hasChanged = true;
         redraw();
     }
 
@@ -628,6 +637,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (item != null && item.fExpanded != expanded) {
             item.fExpanded = expanded;
             fItemData.updateExpandedItems();
+            hasChanged = true;
             redraw();
         }
     }
@@ -642,6 +652,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             item.fExpanded = false;
         }
         fItemData.updateExpandedItems();
+        hasChanged = true;
         redraw();
     }
 
@@ -655,6 +666,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             item.fExpanded = true;
         }
         fItemData.updateExpandedItems();
+        hasChanged = true;
         redraw();
     }
 
@@ -850,6 +862,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
         if (changed) {
             ensureVisibleItem(-1, false);
+            hasChanged = true;
             redraw();
             fireSelectionChanged();
         }
@@ -1161,6 +1174,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 item.fExpanded = !item.fExpanded;
                 fItemData.updateExpandedItems();
                 adjustScrolls();
+                hasChanged = true;
                 redraw();
                 toggled = true;
                 fireTreeEvent(item.fEntry, item.fExpanded);
@@ -1323,6 +1337,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
         changed |= ensureVisibleItem(idx, true);
         if (changed) {
+            hasChanged = true;
             redraw();
         }
     }
@@ -1458,20 +1473,29 @@ public class TimeGraphControl extends TimeGraphBaseControl
     @Override
     void paint(Rectangle bounds, PaintEvent e) {
 
+        // Don't draw if nothing has changed
+        if (!hasChanged) {
+            return;
+        }
+
+        hasChanged = false;
+
         if(graphicsContext == null) {
             canvas = new Canvas(getClientArea().width, getClientArea().height);
-            canvas.setCache(true);
+            canvas.setCache(false);
             //canvas.setCacheShape(true);
-            canvas.setCacheHint(CacheHint.SPEED);
+            //canvas.setCacheHint(CacheHint.SPEED);
+
+            canvas.widthProperty().bind(scene.widthProperty());
+            canvas.heightProperty().bind(scene.heightProperty());
 
             root.getChildren().add(canvas);
             graphicsContext = canvas.getGraphicsContext2D();
         }
 
-        if(getScene() == null) {
+        if (getScene() == null) {
             setScene(scene);
         }
-
         graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         if (bounds.width < 2 || bounds.height < 2 || null == fTimeProvider) {
@@ -1579,10 +1603,11 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public void drawItems(Rectangle bounds, ITimeDataProvider timeProvider,
             Item[] items, int topIndex, int nameSpace, GraphicsContext gc) {
-        for (int i = topIndex; i < items.length; i++) {
+
+        IntStream.range(topIndex, items.length).forEach( i -> {
             Item item = items[i];
             drawItem(item, bounds, timeProvider, i, nameSpace, gc);
-        }
+        });
     }
 
     /**
@@ -1805,8 +1830,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *
      * The algorithm was taken from this site, not the code itself
      */
-    private static void drawArrowHead(int x0, int y0, int x1, int y1, GraphicsContext gc)
-    {
+    private static void drawArrowHead(int x0, int y0, int x1, int y1, GraphicsContext gc) {
         int factor = 10;
         double cos = 0.9510;
         double sin = 0.3090;
@@ -2117,6 +2141,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             };
             getDisplay().addFilter(SWT.MouseWheel, fMouseScrollFilterListener);
         }
+        hasChanged = true;
         redraw();
         updateStatusLine(NO_STATUS);
     }
@@ -2132,6 +2157,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             setCapture(false);
             fDragState = DRAG_NONE;
         }
+        hasChanged = true;
         redraw();
         updateStatusLine(NO_STATUS);
     }
@@ -2280,16 +2306,19 @@ public class TimeGraphControl extends TimeGraphBaseControl
             fTimeProvider.setNameSpace(e.x);
         } else if (DRAG_SELECTION == fDragState) {
             fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+            hasChanged = true;
             redraw();
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
             fireDragSelectionChanged(getTimeAtX(fDragX0), getTimeAtX(fDragX));
         } else if (DRAG_ZOOM == fDragState) {
             fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+            hasChanged = true;
             redraw();
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
         } else if (DRAG_NONE == fDragState) {
             boolean mouseOverSplitLine = isOverSplitLine(e.x);
             if (fMouseOverSplitLine != mouseOverSplitLine) {
+                hasChanged = true;
                 redraw();
             }
             fMouseOverSplitLine = mouseOverSplitLine;
@@ -2308,6 +2337,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fTimeProvider.setNameSpace(fIdealNameSpace);
                 boolean mouseOverSplitLine = isOverSplitLine(e.x);
                 if (fMouseOverSplitLine != mouseOverSplitLine) {
+                    hasChanged = true;
                     redraw();
                 }
                 fMouseOverSplitLine = mouseOverSplitLine;
@@ -2338,6 +2368,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fDragX0 = fDragX;
                 fTime0bak = fTimeProvider.getTime0();
                 fTime1bak = fTimeProvider.getTime1();
+                hasChanged = true;
                 redraw();
                 updateCursor(e.x, e.stateMask);
                 return;
@@ -2392,6 +2423,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 }
                 fTime0bak = fTimeProvider.getTime0();
                 fTime1bak = fTimeProvider.getTime1();
+                hasChanged = true;
                 redraw();
                 updateCursor(e.x, e.stateMask);
                 fTimeGraphScale.setDragRange(fDragX0, fDragX);
@@ -2414,6 +2446,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             fDragX0 = fDragX;
             fDragState = DRAG_ZOOM;
             fDragButton = e.button;
+            hasChanged = true;
             redraw();
             updateCursor(e.x, e.stateMask);
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
@@ -2434,6 +2467,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fDragState = DRAG_NONE;
             } else if (e.button == fDragButton && DRAG_SPLIT_LINE == fDragState) {
                 fDragState = DRAG_NONE;
+                hasChanged = true;
                 redraw();
             } else if (e.button == fDragButton && DRAG_SELECTION == fDragState) {
                 if (fDragX == fDragX0) { // click without selecting anything
@@ -2449,6 +2483,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                     }
                 }
                 fDragState = DRAG_NONE;
+                hasChanged = true;
                 redraw();
                 fTimeGraphScale.setDragRange(-1, -1);
             } else if (e.button == fDragButton && DRAG_ZOOM == fDragState) {
@@ -2462,6 +2497,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                         fTimeProvider.setStartFinishTimeNotify(time1, time0);
                     }
                 } else {
+                    hasChanged = true;
                     redraw();
                 }
                 fDragState = DRAG_NONE;
@@ -2480,6 +2516,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void mouseExit(MouseEvent e) {
         if (fMouseOverSplitLine) {
             fMouseOverSplitLine = false;
+            hasChanged = true;
             redraw();
         }
         updateStatusLine(NO_STATUS);
@@ -2756,6 +2793,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         } else {
             fEventColorMap = new Color[] {};
         }
+        hasChanged = true;
         redraw();
     }
 
