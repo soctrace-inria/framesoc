@@ -28,9 +28,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swt.FXCanvas;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -39,7 +42,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
@@ -54,19 +57,11 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.MouseWheelListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Slider;
 
 import fr.inria.linuxtools.internal.tmf.ui.Activator;
 import fr.inria.linuxtools.internal.tmf.ui.ITmfImageConstants;
@@ -83,7 +78,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
  * @version 1.0
  * @author Patrick Tasse
  */
-public class TimeGraphCombo extends Composite {
+public class TimeGraphCombo extends FXCanvas {
 
     // ------------------------------------------------------------------------
     // Constants
@@ -132,10 +127,10 @@ public class TimeGraphCombo extends Composite {
     private RawViewerFilter fFilter;
 
     /** Default weight of each part of the sash */
-    private static final int[] DEFAULT_WEIGHTS = { 1, 1 };
+    private static final double[] DEFAULT_WEIGHTS = { 0.5, 0.5 };
 
     /** Default height value in pixels for the objects */
-    public static final int DEFAULT_TREE_ITEM_HEIGHT = 23;
+    public static final int DEFAULT_TREE_ITEM_HEIGHT = 25;
     private int fItemHeight = DEFAULT_TREE_ITEM_HEIGHT;
 
     /** Minimal height for an item of the graph view */
@@ -151,8 +146,6 @@ public class TimeGraphCombo extends Composite {
     private Map<ITimeGraphEntry, TreeItem<ITimeGraphEntry>>  treeItems = new HashMap<>();
 
     private TextField treeHeader;
-
-    private FXCanvas mainFxCanvas;
 
     // ------------------------------------------------------------------------
     // Classes
@@ -398,12 +391,12 @@ public class TimeGraphCombo extends Composite {
      *            The relative weights of each side of the sash form
      * @since 2.1
      */
-    public TimeGraphCombo(Composite parent, int style, int[] weights) {
+    public TimeGraphCombo(Composite parent, int style, double[] weights) {
         super(parent, style);
         setLayout(new FillLayout());
 
-       //final SashForm sash = new SashForm(this, SWT.NONE);
-       final HBox hbox = new HBox();
+        final SplitPane splitPane = new SplitPane();
+        splitPane.setOrientation(Orientation.HORIZONTAL);
         root = new Group();
 
         // Set background color
@@ -411,17 +404,18 @@ public class TimeGraphCombo extends Composite {
         Color bkColor = Color.rgb(col.getRed(), col.getGreen(), col.getBlue());
         scene = new Scene(root, bkColor);
 
-        mainFxCanvas = new FXCanvas(parent, SWT.NONE);
-        mainFxCanvas.setScene(scene);
+        setScene(scene);
 
-        VBox vbox = new VBox();
+        VBox vBoxTree = new VBox();
+        vBoxTree.maxWidth(Double.MAX_VALUE);
 
         treeHeader = new TextField("Event Producers"); //$NON-NLS-1$
         treeHeader.setEditable(false);
-        vbox.getChildren().add(treeHeader);
+        vBoxTree.getChildren().add(treeHeader);
 
         fTreeViewer = new TreeView<>();
         fTreeViewer.setShowRoot(false);
+        fTreeViewer.maxWidth(Double.MAX_VALUE);
         fTreeViewer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         fTreeViewer.setCellFactory(new Callback<TreeView<ITimeGraphEntry>, TreeCell<ITimeGraphEntry>>() {
             @Override
@@ -440,7 +434,6 @@ public class TimeGraphCombo extends Composite {
                             setText(null);
                         } else {
                             setText(item.getName());
-
                         }
                     }
                 };
@@ -451,15 +444,17 @@ public class TimeGraphCombo extends Composite {
 
         fTreeRoot = new TreeItem<>(new TimeGraphEntry("Root", 0 , 0));//$NON-NLS-1$
 
-        vbox.getChildren().add(fTreeViewer);
-        root.getChildren().add(vbox);
+        vBoxTree.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        VBox.setVgrow(fTreeViewer, Priority.ALWAYS);
+        fTreeViewer.setMaxHeight(Double.MAX_VALUE);
 
-        //fTreeViewer.set
-        //fTreeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
-        //tree.setHeaderVisible(true);
+        vBoxTree.getChildren().add(fTreeViewer);
+        splitPane.getItems().add(vBoxTree);
+
         //tree.setLinesVisible(true);
 
-        fTimeGraphViewer = new TimeGraphViewer(sash, SWT.NONE);
+        VBox vBoxGraph = new VBox();
+        fTimeGraphViewer = new TimeGraphViewer(vBoxGraph);
         fTimeGraphViewer.setItemHeight(fItemHeight);
         //fTimeGraphViewer.setBorderWidth(fTreeViewer.getBorderWidth());
         fTimeGraphViewer.setNameWidthPref(0);
@@ -468,27 +463,6 @@ public class TimeGraphCombo extends Composite {
         addFilter(fFilter);
 
         fFilterDialog = new TimeGraphFilterDialog(getShell());
-
-        // Feature in Windows. The tree vertical bar reappears when
-        // the control is resized so we need to hide it again.
-        // Bug in Linux. The tree header height is 0 in constructor,
-        // so we need to reset it later when the control is resized.
-        /*fTreeViewer.addControlListener(new ControlAdapter() {
-            private int depth = 0;
-
-            @Override
-            public void controlResized(ControlEvent e) {
-                if (depth == 0) {
-                    depth++;
-                    tree.getVerticalBar().setEnabled(false);
-                    // this can trigger controlResized recursively
-                    tree.getVerticalBar().setVisible(false);
-                    depth--;
-                }
-                fTimeGraphViewer.setHeaderHeight(fTreeViewer.set.getHeaderHeight());
-            }
-        });*/
-
 
         // ensure synchronization of expanded items between tree and time graph
         fTimeGraphViewer.addTreeListener(new ITimeGraphTreeListener() {
@@ -543,11 +517,10 @@ public class TimeGraphCombo extends Composite {
                 scrollEvent.consume();
                 double pixelScrolled = scrollEvent.getDeltaY();
                 int lineScrolled = (int) (pixelScrolled / fItemHeight);
-                Slider scrollBar = fTimeGraphViewer.getVerticalBar();
-                fTimeGraphViewer.setTopIndex(scrollBar.getSelection() - lineScrolled);
+                ScrollBar scrollBar = fTimeGraphViewer.getVerticalBar();
+                fTimeGraphViewer.setTopIndex((int)scrollBar.getValue() - lineScrolled);
                 alignTreeItems(false);
             }
-
         });
 
         // prevent key stroke from selecting a filler tree item
@@ -584,12 +557,12 @@ public class TimeGraphCombo extends Composite {
         });
 
         // ensure alignment of top item between tree and time graph
-        fTimeGraphViewer.getTimeGraphControl().addControlListener(new ControlAdapter() {
+        /*fTimeGraphViewer.getTimeGraphControl().setOnaddControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
                 alignTreeItems(false);
             }
-        });
+        });*/
 
         // ensure synchronization of selected item between tree and time graph
         fTreeViewer.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<ITimeGraphEntry>>() {
@@ -627,18 +600,24 @@ public class TimeGraphCombo extends Composite {
         });
 
         // ensure alignment of top item between tree and time graph
-        fTimeGraphViewer.getVerticalBar().addSelectionListener(new SelectionAdapter() {
+        fTimeGraphViewer.getVerticalBar().setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
+            public void handle(ScrollEvent arg0) {
                 alignTreeItems(false);
             }
         });
 
         // ensure alignment of top item between tree and time graph
-        fTimeGraphViewer.getTimeGraphControl().addMouseWheelListener(new MouseWheelListener() {
+        fTimeGraphViewer.getTimeGraphControl().setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
-            public void mouseScrolled(org.eclipse.swt.events.MouseEvent e) {
-                alignTreeItems(false);
+            public void handle(ScrollEvent e) {
+                if(fTimeGraphViewer.getTimeGraphControl().scrolled(e))
+                {
+                    fTimeGraphViewer.adjustVerticalScrollBar();
+                    alignTreeItems(false);
+                } else {
+                    fTimeGraphViewer.adjustVerticalScrollBar();
+                }
             }
         });
 
@@ -655,7 +634,7 @@ public class TimeGraphCombo extends Composite {
 
         // ensure the time graph has focus control when mouse is over it if the
         // tree had control
-        fTimeGraphViewer.getTimeGraphControl().addMouseTrackListener(new MouseTrackAdapter() {
+       /* fTimeGraphViewer.getTimeGraphControl().addMouseTrackListener(new MouseTrackAdapter() {
             @Override
             public void mouseEnter(org.eclipse.swt.events.MouseEvent e) {
                 if (fTreeViewer.isFocused()) {
@@ -670,25 +649,31 @@ public class TimeGraphCombo extends Composite {
                     fTimeGraphViewer.getTimeGraphControl().setFocus();
                 }
             }
-        });
+        });*/
 
         // The filler rows are required to ensure alignment when the tree does
-        // not have a
-        // visible horizontal scroll bar. The tree does not allow its top item
-        // to be set
-        // to a value that would cause blank space to be drawn at the bottom of
-        // the tree.
+        // not have a visible horizontal scroll bar. The tree does not allow its
+        // top item to be set to a value that would cause blank space to be
+        // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight();
 
-        sash.setWeights(weights);
+        splitPane.setMinHeight(100);
+        splitPane.getItems().add(vBoxGraph);
+        splitPane.setDividerPositions(weights[0], weights[1]);
+        root.getChildren().add(splitPane);
 
-        mainFxCanvas.addListener(SWT.Resize, new Listener() {
+        addListener(SWT.Resize, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                fTreeViewer.setPrefHeight(mainFxCanvas.getClientArea().height);
-                fTreeViewer.setPrefWidth(mainFxCanvas.getClientArea().width);
-                if(treeHeader.getHeight() > 0) {
-                    fTimeGraphViewer.setHeaderHeight((int) treeHeader.getHeight());
+                if (getClientArea().width > 0 && getClientArea().height > 0) {
+                    splitPane.setPrefSize(getClientArea().width, getClientArea().height);
+                    //vBoxTree.setPrefSize(getClientArea().width / 3.0, getClientArea().height);
+                    fTreeViewer.setPrefHeight(splitPane.getHeight());
+                    fTreeViewer.setPrefWidth(vBoxTree.getWidth());
+                    //if (treeHeader.getHeight() > 0) {
+                   //     fTimeGraphViewer.setHeaderHeight((int) treeHeader.getHeight());
+                   // }
+                    //vBoxGraph.setPrefSize(2.0 * (getClientArea().width / 3.0), getClientArea().height);
                 }
             }
         });
@@ -916,7 +901,10 @@ public class TimeGraphCombo extends Composite {
 
     @Override
     public void redraw() {
-        fTimeGraphViewer.getControl().redraw();
+        if(fTimeGraphViewer != null) {
+            fTimeGraphViewer.redraw();
+        }
+
         super.redraw();
     }
 
@@ -1003,7 +991,6 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = true;
         setTreeInput(input);
         fTreeViewer.setRoot(fTreeRoot);
-        //fTreeViewer.set(input);
         for (SelectionListenerWrapper listenerWrapper : fSelectionListenerMap.values()) {
             listenerWrapper.selection = null;
         }
@@ -1208,7 +1195,7 @@ public class TimeGraphCombo extends Composite {
     public void setTreeExpandedState(boolean expanded) {
         if (expanded) {
             for (TreeItem<ITimeGraphEntry> treeItem : treeItems.values()) {
-                if (!treeItem.getChildren().isEmpty()) {
+                if (!treeItem.isLeaf()) {
                     treeItem.setExpanded(true);
                 }
             }
@@ -1360,39 +1347,6 @@ public class TimeGraphCombo extends Composite {
         fTimeGraphViewer.refresh();
 
         fTreeViewer.scrollTo(topIndex);
-       // TreeItem item = expandedTreeItems.get(topIndex);
-
-        //setTopItem(item);
-
-        // ensure the time graph item heights are equal to the tree item heights
-       /* int treeHeight = (int) fTreeViewer.getHeight();
-        int index = topIndex;
-        Rectangle bounds = item.getBounds();
-        while (index < expandedTreeItems.size() - 1) {
-            if (bounds.y > treeHeight) {
-                break;
-            }*/
-            /*
-             * Bug in Linux. The method getBounds doesn't always return the
-             * correct height. Use the difference of y position between items to
-             * calculate the height.
-             */
-         /*   TreeItem nextItem = expandedTreeItems.get(index + 1);
-            Rectangle nextBounds = nextItem.getBounds();
-            Integer itemHeight = nextBounds.y - bounds.y;
-            if (itemHeight > 0 && !itemHeight.equals(item.getData(ITEM_HEIGHT))) {
-                ITimeGraphEntry entry = (ITimeGraphEntry) item.getValue();
-                if (fTimeGraphViewer.getTimeGraphControl().setItemHeight(entry, itemHeight)) {
-                    // @Framesoc: with this line uncommented we get alignment
-                    // issues on Ubuntu
-                    // XXX Investigate
-                    // item.setData(ITEM_HEIGHT, itemHeight);
-                }
-            }
-            index++;
-            item = nextItem;
-            bounds = nextBounds;
-        }*/
     }
 
     /**

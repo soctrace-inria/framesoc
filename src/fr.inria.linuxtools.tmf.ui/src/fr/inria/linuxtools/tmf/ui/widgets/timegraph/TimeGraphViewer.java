@@ -24,25 +24,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MenuDetectListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseWheelListener;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.ScrollBar;
-import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Display;
 
 import fr.inria.linuxtools.internal.tmf.ui.Activator;
 import fr.inria.linuxtools.internal.tmf.ui.ITmfImageConstants;
@@ -59,7 +46,17 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.TimeGraphTooltipHand
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
-import javafx.embed.swt.*;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 /**
  * Generic time graph viewer implementation
@@ -72,7 +69,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private static final int DEFAULT_NAME_WIDTH = 200;
     private static final int MIN_NAME_WIDTH = 6;
     private static final int MAX_NAME_WIDTH = 1000;
-    private static final int DEFAULT_SCALE_HEIGHT = 22;
+    private static final int DEFAULT_SCALE_HEIGHT = 26;
     private static final long RECENTERING_MARGIN_FACTOR = 50;
     private static final String HIDE_ARROWS_KEY = "hide.arrows"; //$NON-NLS-1$
 
@@ -92,11 +89,11 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private int fNameWidthPref = DEFAULT_NAME_WIDTH;
     private int fMinNameWidth = MIN_NAME_WIDTH;
     private int fNameWidth;
-    private Composite fDataViewer;
+    private VBox fDataViewer;
 
     private TimeGraphControl fTimeGraphCtrl;
     private TimeGraphScale fTimeScaleCtrl;
-    private Slider fVerticalScrollBar;
+    private ScrollBar fVerticalScrollBar;
     private TimeGraphColorFxScheme fColorScheme;
     private Object fInputElement;
     private ITimeGraphContentProvider fTimeGraphContentProvider;
@@ -129,13 +126,11 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      * The default timegraph content provider accepts an ITimeGraphEntry[] as
      * input element.
      *
-     * @param parent
-     *            The parent UI composite object
-     * @param style
-     *            The style to use
+     * @param vBox
+     *            parent node
      */
-    public TimeGraphViewer(Composite parent, int style) {
-        createDataViewer(parent, style);
+    public TimeGraphViewer(Node vBox) {
+        createDataViewer(vBox);
         fTimeGraphContentProvider = new ITimeGraphContentProvider() {
             @Override
             public ITimeGraphEntry[] getElements(Object inputElement) {
@@ -215,7 +210,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
 
         if (fTimeGraphCtrl != null) {
             setTimeRange(input);
-            fVerticalScrollBar.setEnabled(true);
+            fVerticalScrollBar.setDisable(false);
             setTopIndex(0);
             fSelectionBegin = 0;
             fSelectionEnd = 0;
@@ -254,7 +249,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     public void refresh() {
         ITimeGraphEntry[] input = fTimeGraphContentProvider.getElements(fInputElement);
         setTimeRange(input);
-        fVerticalScrollBar.setEnabled(true);
+        fVerticalScrollBar.setDisable(false);
         refreshAllData(input);
     }
 
@@ -299,10 +294,26 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
                 // set window to match limits
                 setStartFinishTime(fTime0Bound, fTime1Bound);
             } else {
+                hasChanged();
                 fTimeGraphCtrl.redraw();
                 fTimeScaleCtrl.redraw();
             }
         }
+    }
+
+    void redraw() {
+        fTimeScaleCtrl.redraw();
+        if(fTimeGraphCtrl != null) {
+            fTimeGraphCtrl.redraw();
+        }
+    }
+
+    /**
+     * Set the flags signaling it is necessary to redraw
+     */
+    public void hasChanged() {
+        fTimeGraphCtrl.setHasChanged(true);
+        fTimeScaleCtrl.setHasChanged(true);
     }
 
     /**
@@ -335,86 +346,107 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     /**
      * Create a data viewer.
      *
-     * @param parent
-     *            Parent composite
-     * @param style
-     *            Style to use
+     * @param parentBox
+     *            parent node
      * @return The new data viewer
      */
-    protected Control createDataViewer(Composite parent, int style) {
+    protected Node createDataViewer(Node parentBox) {
         loadOptions();
         fColorScheme = new TimeGraphColorFxScheme();
-        fDataViewer = new FXCanvas(parent, style) {
-            @Override
-            public void redraw() {
-                fTimeScaleCtrl.redraw();
-                if(fTimeGraphCtrl != null) {
-                    fTimeGraphCtrl.redraw();
-                }
-                super.redraw();
-            }
-        };
-        GridLayout gl = new GridLayout(2, false);
-        gl.marginHeight = fBorderWidth;
-        gl.marginWidth = 0;
-        gl.verticalSpacing = 0;
-        gl.horizontalSpacing = 0;
-        fDataViewer.setLayout(gl);
+        fDataViewer = (VBox) parentBox;
+        HBox hbox = new HBox();
+        VBox vbox = new VBox();
 
-        fTimeScaleCtrl = new TimeGraphScale(fDataViewer, fColorScheme);
+        fTimeScaleCtrl = new TimeGraphScale(fColorScheme);
         fTimeScaleCtrl.setTimeProvider(this);
-        fTimeScaleCtrl.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
         fTimeScaleCtrl.setHeight(fTimeScaleHeight);
 
-        fVerticalScrollBar = new Slider(fDataViewer, SWT.VERTICAL | SWT.NO_FOCUS);
-        fVerticalScrollBar.setLayoutData(new GridData(SWT.DEFAULT, SWT.FILL, false, true, 1, 2));
-        fVerticalScrollBar.addSelectionListener(new SelectionAdapter() {
+        vbox.getChildren().add(fTimeScaleCtrl);
+        hbox.getChildren().add(vbox);
+
+        fVerticalScrollBar = new ScrollBar();
+        fVerticalScrollBar.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                setTopIndex(fVerticalScrollBar.getSelection());
+            public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
+                setTopIndex((int) fVerticalScrollBar.getValue());
             }
         });
-        fVerticalScrollBar.setEnabled(false);
+        fVerticalScrollBar.setOrientation(Orientation.VERTICAL);
+        fVerticalScrollBar.setDisable(true);
+        hbox.getChildren().add(fVerticalScrollBar);
 
-        fTimeGraphCtrl = createTimeGraphControl(fDataViewer, fColorScheme);
+        fTimeGraphCtrl = createTimeGraphControl(fColorScheme);
 
         fTimeGraphCtrl.setTimeProvider(this);
         fTimeGraphCtrl.setTimeGraphScale(fTimeScaleCtrl);
         fTimeGraphCtrl.addSelectionListener(this);
-        fTimeGraphCtrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
-        fTimeGraphCtrl.addMouseWheelListener(new MouseWheelListener() {
+        fTimeGraphCtrl.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
-            public void mouseScrolled(MouseEvent e) {
-                adjustVerticalScrollBar();
-            }
-        });
-        fTimeGraphCtrl.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.character == '+') {
+            public void handle(KeyEvent e) {
+                if (e.getCode() == KeyCode.PLUS) {
                     zoomIn();
-                } else if (e.character == '-') {
+                } else if (e.getCode() == KeyCode.MINUS) {
                     zoomOut();
                 }
                 adjustVerticalScrollBar();
             }
         });
 
-        Composite filler = new Composite(fDataViewer, SWT.NONE);
-        GridData gd = new GridData(SWT.DEFAULT, SWT.DEFAULT, false, false);
-        gd.heightHint = fTimeGraphCtrl.getHorizontalBar().getSize().y;
-        filler.setLayoutData(gd);
-        filler.setLayout(new FillLayout());
+        fDataViewer.setMaxHeight(Double.MAX_VALUE);
+        fTimeGraphCtrl.maxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(fTimeGraphCtrl, Priority.ALWAYS);
+        vbox.getChildren().add(fTimeGraphCtrl);
+        vbox.setMaxHeight(Double.MAX_VALUE);
 
-        fTimeGraphCtrl.addControlListener(new ControlAdapter() {
+        vbox.getChildren().add(getHorizontalBar());
+
+        VBox.setVgrow(hbox, Priority.ALWAYS);
+        fDataViewer.getChildren().add(hbox);
+
+        fTimeGraphCtrl.widthProperty().bind(vbox.widthProperty());//.subtract(fVerticalScrollBar.getWidth()));
+        fTimeGraphCtrl.heightProperty().bind(vbox.heightProperty().subtract(fTimeScaleCtrl.getHeight() + getHorizontalBar().getHeight()));
+        fTimeScaleCtrl.widthProperty().bind(vbox.widthProperty());
+
+        fDataViewer.widthProperty().addListener(new ChangeListener<Object>() {
             @Override
-            public void controlResized(ControlEvent event) {
-                resizeControls();
+            public void changed(ObservableValue arg0, Object arg1, Object arg2) {
+                if (fDataViewer.getWidth() > 0) {
+                    hbox.setPrefWidth(fDataViewer.getWidth());
+                    vbox.setPrefWidth(fDataViewer.getWidth() - fVerticalScrollBar.getWidth());
+                    //fTimeScaleCtrl.setWidth(vbox.getWidth());
+                    //fTimeGraphCtrl.setWidth(vbox.getWidth());
+                    getHorizontalBar().setPrefWidth(vbox.getWidth());
+
+                    hbox.setPrefHeight(fDataViewer.getHeight());
+                    vbox.setPrefHeight(fDataViewer.getHeight());
+                    //fTimeScaleCtrl.setHeight(26);
+                    //fTimeGraphCtrl.setHeight(fDataViewer.getHeight() - (fTimeScaleCtrl.getHeight() + getHorizontalBar().getHeight()));
+                    hasChanged();
+                    redraw();
+                }
             }
         });
+        fDataViewer.heightProperty().addListener(new ChangeListener<Object>() {
+            @Override
+            public void changed(ObservableValue arg0, Object arg1, Object arg2) {
+                if (fDataViewer.getHeight() > 0) {
+                    hbox.setPrefWidth(fDataViewer.getWidth());
+                    vbox.setPrefWidth(fDataViewer.getWidth() - fVerticalScrollBar.getWidth());
+                    //fTimeScaleCtrl.setWidth(vbox.getWidth());
+                    //fTimeGraphCtrl.setWidth(vbox.getWidth());
+                    getHorizontalBar().setPrefWidth(vbox.getWidth());
+
+                    hbox.setPrefHeight(fDataViewer.getHeight());
+                    vbox.setPrefHeight(fDataViewer.getHeight());
+                    //fTimeScaleCtrl.setHeight(26);
+                    //fTimeGraphCtrl.setHeight(fDataViewer.getHeight() - (fTimeScaleCtrl.getHeight() + getHorizontalBar().getHeight()));
+                }
+            }
+        });
+
         resizeControls();
-        fDataViewer.update();
         adjustVerticalScrollBar();
+
         return fDataViewer;
     }
 
@@ -423,31 +455,26 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     public void dispose() {
         saveOptions();
-        fTimeGraphCtrl.dispose();
-        fDataViewer.dispose();
         fColorScheme.dispose();
     }
 
     /**
      * Create a new time graph control.
      *
-     * @param parent
-     *            The parent composite
      * @param colors
      *            The color scheme
      * @return The new TimeGraphControl
      * @since 2.0
      */
-    protected TimeGraphControl createTimeGraphControl(Composite parent,
-            TimeGraphColorFxScheme colors) {
-        return new TimeGraphControl(parent, colors);
+    protected TimeGraphControl createTimeGraphControl(TimeGraphColorFxScheme colors) {
+        return new TimeGraphControl(colors);
     }
 
     /**
      * Resize the controls
      */
     public void resizeControls() {
-        Rectangle r = fDataViewer.getClientArea();
+        Rectangle r = new Rectangle(0, 0, (int) fDataViewer.getWidth(), (int) fDataViewer.getHeight());//getClientArea();
         if (r.isEmpty()) {
             return;
         }
@@ -546,6 +573,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         } else if (fSelectionEnd > fEndTime) {
             fSelectionEnd = fEndTime;
         }
+        hasChanged();
         fTimeGraphCtrl.refreshData(traces);
         fTimeScaleCtrl.redraw();
         adjustVerticalScrollBar();
@@ -555,9 +583,9 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      * Callback for when this view is focused
      */
     public void setFocus() {
-        if (null != fTimeGraphCtrl) {
+        /*if (null != fTimeGraphCtrl) {
             fTimeGraphCtrl.setFocus();
-        }
+        }*/
     }
 
     /**
@@ -610,13 +638,14 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     @Override
     public void setNameSpace(int width) {
         fNameWidth = width;
-        int w = fTimeGraphCtrl.getClientArea().width;
+        int w = (int) fTimeGraphCtrl.getWidth();
         if (fNameWidth > w - MIN_NAME_WIDTH) {
             fNameWidth = w - MIN_NAME_WIDTH;
         }
         if (fNameWidth < MIN_NAME_WIDTH) {
             fNameWidth = MIN_NAME_WIDTH;
         }
+        hasChanged();
         fTimeGraphCtrl.adjustScrolls();
         fTimeGraphCtrl.redraw();
         fTimeScaleCtrl.redraw();
@@ -624,7 +653,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
 
     @Override
     public int getTimeSpace() {
-        int w = fTimeGraphCtrl.getClientArea().width;
+        int w = (int) fTimeGraphCtrl.getWidth();
         return w - fNameWidth;
     }
 
@@ -696,6 +725,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         }
         fTimeRangeFixed = true;
         fTimeGraphCtrl.adjustScrolls();
+        hasChanged();
         fTimeGraphCtrl.redraw();
         fTimeScaleCtrl.redraw();
     }
@@ -747,6 +777,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         boolean changed = (beginTime != fSelectionBegin || endTime != fSelectionEnd);
         fSelectionBegin = Math.max(fTime0Bound, Math.min(fTime1Bound, beginTime));
         fSelectionEnd = Math.max(fTime0Bound, Math.min(fTime1Bound, endTime));
+        hasChanged();
         fTimeGraphCtrl.redraw();
         fTimeScaleCtrl.redraw();
         if (changed) {
@@ -761,6 +792,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     public void setSelectionRange(long beginTime, long endTime) {
         fSelectionBegin = Math.max(fTime0Bound, Math.min(fTime1Bound, beginTime));
         fSelectionEnd = Math.max(fTime0Bound, Math.min(fTime1Bound, endTime));
+        hasChanged();
         fTimeGraphCtrl.redraw();
         fTimeScaleCtrl.redraw();
     }
@@ -791,6 +823,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         if (fTime1 - fTime0 < fMinTimeInterval) {
             fTime1 = Math.min(fTime1Bound, fTime0 + fMinTimeInterval);
         }
+        hasChanged();
         fTimeGraphCtrl.adjustScrolls();
         fTimeGraphCtrl.redraw();
         fTimeScaleCtrl.redraw();
@@ -860,11 +893,11 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      * Callback for the show legend action
      */
     public void showLegend() {
-        if (fDataViewer == null || fDataViewer.isDisposed()) {
+        if (fDataViewer == null) {
             return;
         }
 
-        TimeGraphLegend.open(fDataViewer.getShell(), fTimeGraphProvider);
+        TimeGraphLegend.open(Display.getDefault().getActiveShell(), fTimeGraphProvider);
     }
 
     /**
@@ -886,6 +919,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     public void verticalZoomOut() {
         fTimeGraphCtrl.verticalZoomOut();
+        adjustVerticalScrollBar();
     }
 
     /**
@@ -893,6 +927,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     public void verticalZoomIn() {
         fTimeGraphCtrl.verticalZoomIn();
+        adjustVerticalScrollBar();
     }
 
     /**
@@ -1115,8 +1150,8 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     public void setBorderWidth(int borderWidth) {
         if (borderWidth > -1) {
             this.fBorderWidth = borderWidth;
-            GridLayout gl = (GridLayout) fDataViewer.getLayout();
-            gl.marginHeight = borderWidth;
+            //GridLayout gl = (GridLayout) fDataViewer.getLayout();
+            //gl.marginHeight = borderWidth;
         }
     }
 
@@ -1208,7 +1243,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      *
      * @return the SWT control which displays this viewer's content
      */
-    public Control getControl() {
+    public Node getControl() {
         return fDataViewer;
     }
 
@@ -1291,7 +1326,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      *
      * @return The scroll bar
      */
-    public Slider getVerticalBar() {
+    public ScrollBar getVerticalBar() {
         return fVerticalScrollBar;
     }
 
@@ -1633,7 +1668,10 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         return fFollowArrowBwdAction;
     }
 
-    private void adjustVerticalScrollBar() {
+    /**
+     * Adjust the vertical scrollbar to the current view
+     */
+    public void adjustVerticalScrollBar() {
         int topIndex = fTimeGraphCtrl.getTopIndex();
         int countPerPage = fTimeGraphCtrl.countPerPage();
         int expandedElementCount = fTimeGraphCtrl.getExpandedElementCount();
@@ -1647,7 +1685,13 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         int thumb = Math.min(max, Math.max(1, countPerPage - 1));
         int increment = 1;
         int pageIncrement = Math.max(1, countPerPage);
-        fVerticalScrollBar.setValues(selection, min, max, thumb, increment, pageIncrement);
+
+        fVerticalScrollBar.setValue(selection);
+        fVerticalScrollBar.setMin(min);
+        fVerticalScrollBar.setMax(max);
+        fVerticalScrollBar.setVisibleAmount(thumb);
+        fVerticalScrollBar.setUnitIncrement(increment);
+        fVerticalScrollBar.setBlockIncrement(pageIncrement);
     }
 
     /**

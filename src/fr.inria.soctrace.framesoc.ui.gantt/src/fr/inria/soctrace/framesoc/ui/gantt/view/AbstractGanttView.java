@@ -163,7 +163,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private TimeGraphTreeLabelProvider fLabelProvider = null;
 
 	/** The relative weight of the sash, ignored if combo is not used */
-	private int[] fWeight = { 1, 4 };
+	private double[] fWeight = { 0.2, 0.8 };
 
 	/** The filter column label array, or null if filter is not used */
 	private String[] fFilterColumns;
@@ -268,6 +268,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		@Override
 		public void redraw() {
+			combo.getTimeGraphViewer().hasChanged();
 			combo.redraw();
 		}
 
@@ -492,7 +493,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * @param weights
 	 *            The array (length 2) of relative weights of each part of the combo
 	 */
-	protected void setWeight(final int[] weights) {
+	protected void setWeight(final double[] weights) {
 		fWeight = weights;
 	}
 
@@ -832,7 +833,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 			}
 		});
 
-	    combo.getTreeViewer().setContextMenu(menu);
+	    //combo.getTreeViewer().setContextMenu(menu);
 
 		// Event Producer Filter
 		combo.setFilterContentProvider(new TimeGraphTreeContentProvider());

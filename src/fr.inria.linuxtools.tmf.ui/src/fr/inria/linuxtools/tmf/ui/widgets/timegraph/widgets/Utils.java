@@ -787,7 +787,7 @@ public class Utils {
      */
     public static int drawTextFx(GraphicsContext gc, String text, Rectangle rect) {
         Point size = getTextSize(text);
-        gc.strokeText(text, rect.x, rect.y);
+        gc.fillText(text, rect.x, rect.height);
         return size.x;
     }
 

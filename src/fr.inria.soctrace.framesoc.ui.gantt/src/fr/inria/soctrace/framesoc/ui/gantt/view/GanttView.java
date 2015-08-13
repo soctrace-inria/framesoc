@@ -1016,7 +1016,7 @@ public class GanttView extends AbstractGanttView {
 		// Create a paint event to paint on the image graphic context
 		Event newEvent = new Event();
 		newEvent.display = Display.getCurrent();
-		newEvent.widget = getTimeGraphViewer().getTimeGraphControl();
+		//newEvent.widget = getTimeGraphViewer().getTimeGraphControl();
 
 		PaintEvent paintEvent = new PaintEvent(newEvent);
 		paintEvent.gc = gc;

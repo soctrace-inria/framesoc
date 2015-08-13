@@ -17,6 +17,8 @@ package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 import java.util.Iterator;
 import java.util.Map;
 
+import javafx.scene.Node;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -103,8 +105,8 @@ public class TimeGraphTooltipHandler {
      * @param control
      *            The control object to use
      */
-    public void activateHoverHelp(final Control control) {
-        control.addMouseListener(new MouseAdapter() {
+    public void activateHoverHelp(final Node control) {
+        /*control.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDown(MouseEvent e) {
                 if (fTipShell != null && !fTipShell.isDisposed()) {
@@ -146,12 +148,12 @@ public class TimeGraphTooltipHandler {
                 valueLabel.setText(value);
                 setupControl(valueLabel);
             }
-
+*/
             /*
              * @Framesoc Using the Framesoc Timestamp formatter instead of
              * Utils.formatTime()
              */
-            private void fillValues(Point pt, TimeGraphControl timeGraphControl, ITimeGraphEntry entry) {
+/*            private void fillValues(Point pt, TimeGraphControl timeGraphControl, ITimeGraphEntry entry) {
                 if (entry == null) {
                     return;
                 }
@@ -252,12 +254,12 @@ public class TimeGraphTooltipHandler {
                     }
                 }
             }
-
+*/
             /*
              * @Framesoc Using the Framesoc Timestamp formatter instead of
              * Utils.formatTime()
              */
-            private void fillValues(ILinkEvent linkEvent) {
+         /*   private void fillValues(ILinkEvent linkEvent) {
                 addItem(Messages.TmfTimeTipHandler_LINK_SOURCE, linkEvent.getEntry().getName());
                 addItem(Messages.TmfTimeTipHandler_LINK_TARGET, linkEvent.getDestinationEntry().getName());
 
@@ -328,7 +330,7 @@ public class TimeGraphTooltipHandler {
                 setHoverLocation(fTipShell, tipPosition);
                 fTipShell.setVisible(true);
             }
-        });
+        });*/
     }
 
     private static void setHoverLocation(Shell shell, Point position) {

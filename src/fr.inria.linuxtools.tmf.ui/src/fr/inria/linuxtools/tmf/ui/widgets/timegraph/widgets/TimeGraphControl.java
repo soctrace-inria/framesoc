@@ -39,31 +39,37 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.TypedEvent;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.CacheHint;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
-
-import org.eclipse.swt.graphics.Cursor;
-
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
@@ -72,7 +78,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ScrollBar;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphColorListener;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider;
@@ -97,8 +102,8 @@ import fr.inria.soctrace.lib.model.utils.TimestampFormat;
  * @author Patrick Tasse
  */
 public class TimeGraphControl extends TimeGraphBaseControl
-        implements FocusListener, KeyListener, MouseMoveListener, MouseListener, MouseWheelListener,
-        ControlListener, SelectionListener, MouseTrackListener, TraverseListener, ISelectionProvider,
+        implements FocusListener,
+         ISelectionProvider,
         MenuDetectListener, ITmfTimeGraphDrawingHelper, ITimeGraphColorListener {
 
     /** Max scrollbar size */
@@ -142,7 +147,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private int fMinimumItemWidth = 0;
     private int fTopIndex = 0;
     private int fDragState = DRAG_NONE;
-    private int fDragButton;
+    private MouseButton fDragButton;
     private int fDragX0 = 0;
     private int fDragX = 0;
     private long fDragTime0 = 0; // used to preserve accuracy of modified
@@ -158,16 +163,16 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private final List<ITimeGraphTreeListener> fTreeListeners = new ArrayList<>();
     private final List<MenuDetectListener> fTimeGraphEntryMenuListeners = new ArrayList<>();
     private final List<MenuDetectListener> fTimeEventMenuListeners = new ArrayList<>();
-    private final Cursor fDragCursor = Display.getDefault().getSystemCursor(SWT.CURSOR_HAND);
-    private final Cursor fResizeCursor = Display.getDefault().getSystemCursor(SWT.CURSOR_IBEAM);
-    private final Cursor fWaitCursor = Display.getDefault().getSystemCursor(SWT.CURSOR_WAIT);
-    private final Cursor fZoomCursor = Display.getDefault().getSystemCursor(SWT.CURSOR_SIZEWE);
+    private final Cursor fDragCursor = Cursor.HAND;
+    private final Cursor fResizeCursor = Cursor.H_RESIZE;//Display.getDefault().getSystemCursor(SWT.CURSOR_IBEAM);
+    private final Cursor fWaitCursor = Cursor.WAIT;
+    private final Cursor fZoomCursor = Cursor.H_RESIZE;
     private final List<ViewerFilter> fFilters = new ArrayList<>();
     private MenuDetectEvent fPendingMenuDetectEvent = null;
     private boolean fHideArrows = false;
     private int fAutoExpandLevel = ALL_LEVELS;
 
-    private int fBorderWidth = 0;
+    //private int fBorderWidth = 0;
     private int fHeaderHeight = 0;
 
     private Listener fMouseScrollFilterListener;
@@ -181,15 +186,12 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private boolean snapshot = false;
     private Rectangle snapBounds;
 
-    private Group root;
-
-    private Scene scene;
-
-    private Canvas canvas;
-
     private GraphicsContext graphicsContext = null;
+    private ScrollBar scrollHor;
 
-    private boolean hasChanged = true;
+    protected double cursorPosX;
+
+    protected double cursorPosY;
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -209,9 +211,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 Display.getDefault().asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        if (isDisposed()) {
+                        /*if (isDisposed()) {
                             return;
-                        }
+                        }*/
                         fTimeProvider.notifyStartFinishTime();
                     }
                 });
@@ -234,37 +236,377 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param colors
      *            The color scheme to use
      */
-    public TimeGraphControl(Composite parent, TimeGraphColorFxScheme colors) {
+    public TimeGraphControl(TimeGraphColorFxScheme colors) {
+        super(colors);
 
-        super(parent, colors, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
-
-        root = new Group();
-        root.setCache(true);
-        root.setCacheHint(CacheHint.SPEED);
-        org.eclipse.swt.graphics.Color col = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-
-        scene = new Scene(root, Color.rgb(col.getRed(), col.getGreen(), col.getBlue()));
         fItemData = new ItemData();
 
-        addFocusListener(this);
-        addMouseListener(this);
-        addMouseMoveListener(this);
-        addMouseTrackListener(this);
-        addMouseWheelListener(this);
-        addTraverseListener(this);
-        addKeyListener(this);
-        addControlListener(this);
-        addMenuDetectListener(this);
-        ScrollBar scrollHor = getHorizontalBar();
+        setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent e) {
+                Point size = getCtrlSize();
+                if (DRAG_SELECTION == fDragState) {
+                    fDragX = Math.min(Math.max((int) e.getX(), fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+                    hasChanged = true;
+                    redraw();
+                    fTimeGraphScale.setDragRange(fDragX0, fDragX);
+                    fireDragSelectionChanged(getTimeAtX(fDragX0), getTimeAtX(fDragX));
+                }
+                updateCursor((int) e.getX(), e);
+                updateStatusLine((int) e.getX());
+            }
+        });
 
-        if (scrollHor != null) {
-            scrollHor.addSelectionListener(this);
-        }
-    }
 
-    @Override
-    public void dispose() {
-        super.dispose();
+        // Mouse move
+        setOnMouseMoved(new EventHandler<MouseEvent>() {
+
+        @Override
+                public void handle(MouseEvent e) {
+                    if (null == fTimeProvider) {
+                        return;
+                    }
+                    cursorPosX = e.getX();
+                    cursorPosY = e.getY();
+
+                    Point size = getCtrlSize();
+                    if (DRAG_TRACE_ITEM == fDragState) {
+                        int nameWidth = fTimeProvider.getNameSpace();
+                        if (e.getX() > nameWidth && size.x > nameWidth && fDragX != e.getX()) {
+                            fDragX = (int) e.getX();
+                            double pixelsPerNanoSec = (size.x - nameWidth <= RIGHT_MARGIN) ? 0 : (double) (size.x - nameWidth - RIGHT_MARGIN) / (fTime1bak - fTime0bak);
+                            long timeDelta = (long) ((pixelsPerNanoSec == 0) ? 0 : ((fDragX - fDragX0) / pixelsPerNanoSec));
+                            long time1 = fTime1bak - timeDelta;
+                            long maxTime = fTimeProvider.getMaxTime();
+                            if (time1 > maxTime) {
+                                time1 = maxTime;
+                            }
+                            long time0 = time1 - (fTime1bak - fTime0bak);
+                            if (time0 < fTimeProvider.getMinTime()) {
+                                time0 = fTimeProvider.getMinTime();
+                                time1 = time0 + (fTime1bak - fTime0bak);
+                            }
+                            fTimeProvider.setStartFinishTime(time0, time1);
+                        }
+                    } else if (DRAG_SPLIT_LINE == fDragState) {
+                        fDragX = (int) e.getX();
+                        fTimeProvider.setNameSpace((int) e.getX());
+                    } else if (DRAG_ZOOM == fDragState) {
+                        fDragX = Math.min(Math.max((int) e.getX(), fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+                        hasChanged = true;
+                        redraw();
+                        fTimeGraphScale.setDragRange(fDragX0, fDragX);
+                    } else if (DRAG_NONE == fDragState) {
+                        boolean mouseOverSplitLine = isOverSplitLine((int) e.getX());
+                        if (fMouseOverSplitLine != mouseOverSplitLine) {
+                            hasChanged = true;
+                            redraw();
+                        }
+                        fMouseOverSplitLine = mouseOverSplitLine;
+                    }
+                    updateCursor((int) e.getX(), e);
+                    updateStatusLine((int) e.getX());
+            }
+        });
+
+        setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent e) {
+                // Make sure it is double-click
+                if(!(e.getButton().equals(MouseButton.PRIMARY) && e.getClickCount() == 2)) {
+                    return;
+                }
+
+                if (null == fTimeProvider) {
+                    return;
+                }
+                if (MouseButton.PRIMARY == e.getButton() && !(e.isAltDown() || e.isControlDown() || e.isShiftDown())) {
+                    if (isOverSplitLine((int) e.getX()) && fTimeProvider.getNameSpace() != 0) {
+                        fTimeProvider.setNameSpace(fIdealNameSpace);
+                        boolean mouseOverSplitLine = isOverSplitLine((int) e.getX());
+                        if (fMouseOverSplitLine != mouseOverSplitLine) {
+                            hasChanged = true;
+                            redraw();
+                        }
+                        fMouseOverSplitLine = mouseOverSplitLine;
+                        return;
+                    }
+                    int idx = getItemIndexAtY((int) e.getY());
+                    if (idx >= 0) {
+                        selectItem(idx, false);
+                        fireDefaultSelection();
+                    }
+                }
+            }
+        });
+
+        setOnMousePressed(new EventHandler<MouseEvent>() {
+
+            @Override
+            public void handle(MouseEvent e) {
+                    if (fDragState != DRAG_NONE || null == fTimeProvider ||
+                            fTimeProvider.getTime0() == fTimeProvider.getTime1() ||
+                            getCtrlSize().x - fTimeProvider.getNameSpace() <= 0) {
+                        return;
+                    }
+
+                    int idx;
+                    if (MouseButton.PRIMARY == e.getButton() && !(e.isAltDown() || e.isControlDown() || e.isShiftDown())) {
+                        int nameSpace = fTimeProvider.getNameSpace();
+                        if (nameSpace != 0 && isOverSplitLine((int) e.getX())) {
+                            fDragState = DRAG_SPLIT_LINE;
+                            fDragButton = e.getButton();
+                            fDragX = (int) e.getX();
+                            fDragX0 = fDragX;
+                            fTime0bak = fTimeProvider.getTime0();
+                            fTime1bak = fTimeProvider.getTime1();
+                            hasChanged = true;
+                            redraw();
+                            updateCursor((int) e.getX(), e);
+                            return;
+                        }
+                    }
+                    if (MouseButton.PRIMARY == e.getButton() && (!(e.isAltDown() || e.isControlDown()))) {
+                        int nameSpace = fTimeProvider.getNameSpace();
+                        idx = getItemIndexAtY((int) e.getY());
+                        if (idx >= 0) {
+                            Item item = fItemData.fExpandedItems[idx];
+                            if (item.fHasChildren && (int) e.getX() < nameSpace && (int) e.getX() < MARGIN + (item.fLevel + 1) * EXPAND_SIZE) {
+                                toggle(idx);
+                                return;
+                            }
+                            selectItem(idx, false);
+                            fireSelectionChanged();
+                        } else {
+                            selectItem(idx, false); // clear selection
+                            fireSelectionChanged();
+                        }
+                        long hitTime = getTimeAtX((int) e.getX());
+                        if (hitTime >= 0) {
+                            //setCapture(true);
+
+                            fDragState = DRAG_SELECTION;
+                            fDragButton = e.getButton();
+                            fDragX = (int) e.getX();
+                            fDragX0 = fDragX;
+                            fDragTime0 = getTimeAtX(fDragX0);
+                            long selectionBegin = fTimeProvider.getSelectionBegin();
+                            long selectionEnd = fTimeProvider.getSelectionEnd();
+                            int xBegin = getXForTime(selectionBegin);
+                            int xEnd = getXForTime(selectionEnd);
+                            if (e.isShiftDown()) {
+                                long time = getTimeAtX((int) e.getX());
+                                if (Math.abs(time - selectionBegin) < Math.abs(time - selectionEnd)) {
+                                    fDragX0 = xEnd;
+                                    fDragTime0 = selectionEnd;
+                                } else {
+                                    fDragX0 = xBegin;
+                                    fDragTime0 = selectionBegin;
+                                }
+                            } else {
+                                long time = getTimeAtX((int) e.getX());
+                                if (Math.abs((int) e.getX() - xBegin) < SNAP_WIDTH && Math.abs(time - selectionBegin) <= Math.abs(time - selectionEnd)) {
+                                    fDragX0 = xEnd;
+                                    fDragTime0 = selectionEnd;
+                                } else if (Math.abs((int) e.getX() - xEnd) < SNAP_WIDTH && Math.abs(time - selectionEnd) <= Math.abs(time - selectionBegin)) {
+                                    fDragX0 = xBegin;
+                                    fDragTime0 = selectionBegin;
+                                }
+                            }
+                            fTime0bak = fTimeProvider.getTime0();
+                            fTime1bak = fTimeProvider.getTime1();
+                            hasChanged = true;
+                            redraw();
+                            updateCursor((int) e.getX(), e);
+                            fTimeGraphScale.setDragRange(fDragX0, fDragX);
+                        }
+                    } else if (MouseButton.MIDDLE == e.getButton() || (MouseButton.PRIMARY == e.getButton() && e.isControlDown())) {
+                        long hitTime = getTimeAtX((int) e.getX());
+                        if (hitTime > 0) {
+                            //setCapture(true);
+                            fDragState = DRAG_TRACE_ITEM;
+                            fDragButton = e.getButton();
+                            fDragX = (int) e.getX();
+                            fDragX0 = fDragX;
+                            fTime0bak = fTimeProvider.getTime0();
+                            fTime1bak = fTimeProvider.getTime1();
+                            updateCursor((int) e.getX(), e);
+                        }
+                    } else if (MouseButton.SECONDARY == e.getButton()) {
+                        //setCapture(true);
+                        fDragX = Math.min(Math.max((int) e.getX(), fTimeProvider.getNameSpace()), getCtrlSize().x - RIGHT_MARGIN);
+                        fDragX0 = fDragX;
+                        fDragState = DRAG_ZOOM;
+                        fDragButton = e.getButton();
+                        hasChanged = true;
+                        redraw();
+                        updateCursor((int) e.getX(), e);
+                        fTimeGraphScale.setDragRange(fDragX0, fDragX);
+                    }
+                }
+        });
+
+        setOnMouseReleased(new EventHandler<MouseEvent>() {
+
+            @Override
+            public void handle(MouseEvent e) {
+                    if (fPendingMenuDetectEvent != null && e.getButton() == MouseButton.SECONDARY) {
+                        menuDetected(fPendingMenuDetectEvent);
+                    }
+                    if (DRAG_NONE != fDragState) {
+                        //setCapture(false);
+                        if (e.getButton() == fDragButton && DRAG_TRACE_ITEM == fDragState) {
+                            if (fDragX != fDragX0) {
+                                fTimeProvider.notifyStartFinishTime();
+                            }
+                            fDragState = DRAG_NONE;
+                        } else if (e.getButton() == fDragButton && DRAG_SPLIT_LINE == fDragState) {
+                            fDragState = DRAG_NONE;
+                            hasChanged = true;
+                            redraw();
+                        } else if (e.getButton() == fDragButton && DRAG_SELECTION == fDragState) {
+                            if (fDragX == fDragX0) { // click without selecting anything
+                                long time = getTimeAtX((int) e.getX());
+                                fTimeProvider.setSelectedTimeNotify(time, false);
+                            } else {
+                                long time0 = fDragTime0;
+                                long time1 = getTimeAtX(fDragX);
+                                if (time0 <= time1) {
+                                    fTimeProvider.setSelectionRangeNotify(time0, time1);
+                                } else {
+                                    fTimeProvider.setSelectionRangeNotify(time1, time0);
+                                }
+                            }
+                            fDragState = DRAG_NONE;
+                            hasChanged = true;
+                            redraw();
+                            fTimeGraphScale.setDragRange(-1, -1);
+                        } else if (e.getButton() == fDragButton && DRAG_ZOOM == fDragState) {
+                            int nameWidth = fTimeProvider.getNameSpace();
+                            if (Math.max(fDragX, fDragX0) > nameWidth && fDragX != fDragX0) {
+                                long time0 = getTimeAtX(fDragX0);
+                                long time1 = getTimeAtX(fDragX);
+                                if (time0 < time1) {
+                                    fTimeProvider.setStartFinishTimeNotify(time0, time1);
+                                } else {
+                                    fTimeProvider.setStartFinishTimeNotify(time1, time0);
+                                }
+                            } else {
+                                hasChanged = true;
+                                redraw();
+                            }
+                            fDragState = DRAG_NONE;
+                            fTimeGraphScale.setDragRange(-1, -1);
+                        }
+                    }
+                    updateCursor((int) e.getX(), e);
+                    updateStatusLine((int) e.getX());
+                }
+        });
+
+       /* setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent e) {
+                updateCursor(-1, e);
+            }
+        });*/
+
+        setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent e) {
+                int idx = -1;
+                if (fItemData.fExpandedItems.length == 0) {
+                    return;
+                }
+                if (KeyCode.HOME == e.getCode()) {
+                    idx = 0;
+                } else if (KeyCode.END == e.getCode()) {
+                    idx = fItemData.fExpandedItems.length - 1;
+                } else if (KeyCode.DOWN == e.getCode()) {
+                    idx = getSelectedIndex();
+                    if (idx < 0) {
+                        idx = 0;
+                    } else if (idx < fItemData.fExpandedItems.length - 1) {
+                        idx++;
+                    }
+                } else if (KeyCode.UP == e.getCode()) {
+                    idx = getSelectedIndex();
+                    if (idx < 0) {
+                        idx = 0;
+                    } else if (idx > 0) {
+                        idx--;
+                    }
+                } else if (KeyCode.LEFT == e.getCode()) {
+                    selectPrevEvent();
+                } else if (KeyCode.RIGHT == e.getCode()) {
+                    selectNextEvent();
+                } else if (KeyCode.PAGE_DOWN == e.getCode()) {
+                    int page = countPerPage();
+                    idx = getSelectedIndex();
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                    idx += page;
+                    if (idx >= fItemData.fExpandedItems.length) {
+                        idx = fItemData.fExpandedItems.length - 1;
+                    }
+                } else if (KeyCode.PAGE_UP == e.getCode()) {
+                    int page = countPerPage();
+                    idx = getSelectedIndex();
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                    idx -= page;
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                } else if (KeyCode.ENTER == e.getCode()) {
+                    idx = getSelectedIndex();
+                    if (idx >= 0) {
+                        if (fItemData.fExpandedItems[idx].fHasChildren) {
+                            toggle(idx);
+                        } else {
+                            fireDefaultSelection();
+                        }
+                    }
+                    idx = -1;
+                }
+                if (idx >= 0) {
+                    selectItem(idx, false);
+                    fireSelectionChanged();
+                }
+               // int x = toControl(e.display.getCursorLocation()).x;
+               // updateCursor(x, e.stateMask | e.keyCode);
+            }
+        });
+
+        scrollHor = new ScrollBar();
+        scrollHor.setOrientation(Orientation.HORIZONTAL);
+        scrollHor.valueProperty().addListener(new ChangeListener<Number>() {
+
+            @Override
+            public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
+            if (null != fTimeProvider) {
+                int start = (int) getHorizontalBar().getValue();
+                long time0 = fTimeProvider.getTime0();
+                long time1 = fTimeProvider.getTime1();
+                long timeMin = fTimeProvider.getMinTime();
+                long timeMax = fTimeProvider.getMaxTime();
+                long delta = timeMax - timeMin;
+
+                long range = time1 - time0;
+                time0 = timeMin + Math.round(delta * ((double) start / H_SCROLLBAR_MAX));
+                time1 = time0 + range;
+
+               //if (e. == SWT.DRAG) {
+               //     fTimeProvider.setStartFinishTime(time0, time1);
+              //  } else {
+                fTimeProvider.setStartFinishTimeNotify(time0, time1);
+              //  }
+            }
+
+            }
+        });
     }
 
     /**
@@ -514,7 +856,13 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public void adjustScrolls() {
         if (null == fTimeProvider) {
-            getHorizontalBar().setValues(0, 1, 1, 1, 1, 1);
+            getHorizontalBar().setValue(0);
+            getHorizontalBar().setMin(1);
+            getHorizontalBar().setMax(1);
+            getHorizontalBar().setVisibleAmount(1);
+            getHorizontalBar().setUnitIncrement(1);
+            getHorizontalBar().setBlockIncrement(1);
+            //getHorizontalBar().setValues(0, 1, 1, 1, 1, 1);
             return;
         }
 
@@ -541,7 +889,22 @@ public class TimeGraphControl extends TimeGraphBaseControl
         hasChanged = true;
         // position, minimum, maximum, thumb size, increment (half page)t, page
         // increment size (full page)
-        getHorizontalBar().setValues(timePos, 0, H_SCROLLBAR_MAX, thumb, Math.max(1, thumb / 2), Math.max(2, thumb));
+        getHorizontalBar().setValue(timePos);
+        getHorizontalBar().setMin(0);
+        getHorizontalBar().setMax(H_SCROLLBAR_MAX);
+        getHorizontalBar().setVisibleAmount(thumb);
+        getHorizontalBar().setUnitIncrement(Math.max(1, thumb / 2));
+        getHorizontalBar().setBlockIncrement(Math.max(2, thumb));
+       // getHorizontalBar().setValues(timePos, 0, H_SCROLLBAR_MAX, thumb, Math.max(1, thumb / 2), Math.max(2, thumb));
+    }
+
+    /**
+     * Getter for the horizontal scrollbar
+     *
+     * @return the horizontal scrollbar
+     */
+    public ScrollBar getHorizontalBar() {
+        return scrollHor;
     }
 
     boolean ensureVisibleItem(int idx, boolean redraw) {
@@ -955,9 +1318,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @param zoomIn
      *            true to zoom in, false to zoom out
      */
-    public void zoom(boolean zoomIn) {
-        int globalX = getDisplay().getCursorLocation().x;
-        Point p = toControl(globalX, 0);
+    public void zoom(boolean zoomIn, ScrollEvent e) {
+        int globalX = (int) cursorPosX; ///(int) e.getSceneX();//getDisplay().getCursorLocation().x;
+        Point p = new Point(globalX, 0);
         int nameSpace = fTimeProvider.getNameSpace();
         int timeSpace = fTimeProvider.getTimeSpace();
         int xPos = Math.max(nameSpace, Math.min(nameSpace + timeSpace, p.x));
@@ -1280,7 +1643,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
         int nameSpace = fTimeProvider.getNameSpace();
         double pixelsPerNanoSec = (width - nameSpace <= RIGHT_MARGIN) ? 0 : (double) (width - nameSpace - RIGHT_MARGIN) / (time1 - time0);
-        int xBound = getBounds().x;
+        int xBound = (int) getWidth();//().x;
         // @Framesoc
         if (snapshot) {
             xBound = snapBounds.x;
@@ -1413,9 +1776,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
     }
 
     Point getCtrlSize() {
-        Point size = getSize();
+        Point size = new Point((int) getWidth(), (int) getHeight());
         if (getHorizontalBar().isVisible()) {
-            size.y -= getHorizontalBar().getSize().y;
+            size.y -= getHorizontalBar().getHeight();
         }
         return size;
     }
@@ -1465,13 +1828,13 @@ public class TimeGraphControl extends TimeGraphBaseControl
             e.height = ySum;
         }
 
-        paint(bounds, e);
+        paint(bounds);
         fTopIndex = oldTopIndex;
         snapshot = false;
     }
 
     @Override
-    void paint(Rectangle bounds, PaintEvent e) {
+    void paint(Rectangle bounds) {
 
         // Don't draw if nothing has changed
         if (!hasChanged) {
@@ -1481,7 +1844,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         hasChanged = false;
 
         if(graphicsContext == null) {
-            canvas = new Canvas(getClientArea().width, getClientArea().height);
+            /*canvas = new Canvas(.width, getClientArea().height);
             canvas.setCache(false);
             //canvas.setCacheShape(true);
             //canvas.setCacheHint(CacheHint.SPEED);
@@ -1489,14 +1852,14 @@ public class TimeGraphControl extends TimeGraphBaseControl
             canvas.widthProperty().bind(scene.widthProperty());
             canvas.heightProperty().bind(scene.heightProperty());
 
-            root.getChildren().add(canvas);
-            graphicsContext = canvas.getGraphicsContext2D();
+            root.getChildren().add(canvas);*/
+            graphicsContext = getGraphicsContext2D();
         }
 
-        if (getScene() == null) {
+        /*if (getScene() == null) {
             setScene(scene);
-        }
-        graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        }*/
+        graphicsContext.clearRect(0, 0, getWidth(), getHeight());
 
         if (bounds.width < 2 || bounds.height < 2 || null == fTimeProvider) {
             return;
@@ -1506,8 +1869,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
         int nameSpace = fTimeProvider.getNameSpace();
 
         // draw empty name space background
-        //gc.setBackground(getColorScheme().getBkFxColor(false, false, true));
-        //drawBackground(gc, bounds.x, bounds.y, nameSpace, bounds.height);
+        graphicsContext.setFill(getColorScheme().getBkFxColor(false, false, false));
+        graphicsContext.fillRect(0, 0, getWidth(), getHeight());
 
         // draw items
         drawItems(bounds, fTimeProvider, fItemData.fExpandedItems, fTopIndex, nameSpace, graphicsContext);
@@ -1603,8 +1966,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public void drawItems(Rectangle bounds, ITimeDataProvider timeProvider,
             Item[] items, int topIndex, int nameSpace, GraphicsContext gc) {
-
-        IntStream.range(topIndex, items.length).forEach( i -> {
+        IntStream.range(topIndex, items.length).forEach(i -> {
             Item item = items[i];
             drawItem(item, bounds, timeProvider, i, nameSpace, gc);
         });
@@ -1659,10 +2021,14 @@ public class TimeGraphControl extends TimeGraphBaseControl
         // Initialize _rect1 to same values as enclosing rectangle rect
         Rectangle stateRect = Utils.clone(rect);
         boolean selected = item.fSelected;
+        boolean nextPixel = true;
+        double nanoSecPerPixel =  (time1 - time0) / rect.width;
+
         // K pixels per second
         double pixelsPerNanoSec = (rect.width <= RIGHT_MARGIN) ? 0 : (double) (rect.width - RIGHT_MARGIN) / (time1 - time0);
 
         if (item.fEntry.hasTimeEvents()) {
+
             //gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
             fillSpace(rect, gc, selected);
             // Drawing rectangle is smaller than reserved space
@@ -1675,12 +2041,23 @@ public class TimeGraphControl extends TimeGraphBaseControl
             int lastX = -1;
             while (iterator.hasNext()) {
                 ITimeEvent event = iterator.next();
+                // If the event is too small to be represented and an event at already been drawn at that pixel
+
                 int x = rect.x + (int) ((event.getTime() - time0) * pixelsPerNanoSec);
+
+                if(!nextPixel && lastX == x && event.getDuration() < nanoSecPerPixel) {
+                    continue;
+                }
+
+                nextPixel = true;
+
                 int xEnd = rect.x + (int) ((event.getTime() + event.getDuration() - time0) * pixelsPerNanoSec);
                 if (x >= rect.x + rect.width || xEnd < rect.x) {
                     // event is out of bounds
                     continue;
                 }
+
+
                 xEnd = Math.min(rect.x + rect.width, xEnd);
                 stateRect.x = Math.max(rect.x, x);
                 stateRect.width = Math.max(0, xEnd - stateRect.x + 1);
@@ -1691,8 +2068,10 @@ public class TimeGraphControl extends TimeGraphBaseControl
                         gc.setStroke(Color.BLACK);
                         gc.strokeLine(stateRect.x, stateRect.y - 2, stateRect.x, stateRect.y - 2);
                         stateRect.x += 1;
+                        nextPixel = false;
                     }
                 }
+
                 boolean timeSelected = selectedTime >= event.getTime() && selectedTime < event.getTime() + event.getDuration();
                 if (drawState(getColorScheme(), event, stateRect, gc, selected, timeSelected)) {
                     lastX = x;
@@ -2030,7 +2409,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     protected void fillSpace(Rectangle rect, GraphicsContext gc, boolean selected) {
         gc.setFill(getColorScheme().getBkFxColor(selected, fIsInFocus, false));
-        gc.fillRect(rect.x, rect.y, rect.width, rect.height);
+        // Useless since already the color of the background ?
+        //gc.fillRect(rect.x, rect.y, rect.width, rect.height);
         if (fDragState == DRAG_ZOOM) {
             gc.setFill(getColorScheme().getBkFxColor(selected, fIsInFocus, true));
             if (fDragX0 < fDragX) {
@@ -2040,7 +2420,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
             }
         }
         // draw middle line
-        gc.setFill(getColorScheme(TimeGraphColorScheme.MID_LINE));
         gc.setStroke(getColorScheme(TimeGraphColorScheme.MID_LINE));
         int midy = rect.y + rect.height / 2;
         gc.strokeLine(rect.x, midy, rect.x + rect.width, midy);
@@ -2051,79 +2430,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if ((e.detail == SWT.TRAVERSE_TAB_NEXT) || (e.detail == SWT.TRAVERSE_TAB_PREVIOUS)) {
             e.doit = true;
         }
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        int idx = -1;
-        if (fItemData.fExpandedItems.length == 0) {
-            return;
-        }
-        if (SWT.HOME == e.keyCode) {
-            idx = 0;
-        } else if (SWT.END == e.keyCode) {
-            idx = fItemData.fExpandedItems.length - 1;
-        } else if (SWT.ARROW_DOWN == e.keyCode) {
-            idx = getSelectedIndex();
-            if (idx < 0) {
-                idx = 0;
-            } else if (idx < fItemData.fExpandedItems.length - 1) {
-                idx++;
-            }
-        } else if (SWT.ARROW_UP == e.keyCode) {
-            idx = getSelectedIndex();
-            if (idx < 0) {
-                idx = 0;
-            } else if (idx > 0) {
-                idx--;
-            }
-        } else if (SWT.ARROW_LEFT == e.keyCode) {
-            selectPrevEvent();
-        } else if (SWT.ARROW_RIGHT == e.keyCode) {
-            selectNextEvent();
-        } else if (SWT.PAGE_DOWN == e.keyCode) {
-            int page = countPerPage();
-            idx = getSelectedIndex();
-            if (idx < 0) {
-                idx = 0;
-            }
-            idx += page;
-            if (idx >= fItemData.fExpandedItems.length) {
-                idx = fItemData.fExpandedItems.length - 1;
-            }
-        } else if (SWT.PAGE_UP == e.keyCode) {
-            int page = countPerPage();
-            idx = getSelectedIndex();
-            if (idx < 0) {
-                idx = 0;
-            }
-            idx -= page;
-            if (idx < 0) {
-                idx = 0;
-            }
-        } else if (SWT.CR == e.keyCode) {
-            idx = getSelectedIndex();
-            if (idx >= 0) {
-                if (fItemData.fExpandedItems[idx].fHasChildren) {
-                    toggle(idx);
-                } else {
-                    fireDefaultSelection();
-                }
-            }
-            idx = -1;
-        }
-        if (idx >= 0) {
-            selectItem(idx, false);
-            fireSelectionChanged();
-        }
-        int x = toControl(e.display.getCursorLocation()).x;
-        updateCursor(x, e.stateMask | e.keyCode);
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        int x = toControl(e.display.getCursorLocation()).x;
-        updateCursor(x, e.stateMask & ~e.keyCode);
     }
 
     @Override
@@ -2185,7 +2491,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
     }
 
-    private void updateCursor(int x, int stateMask) {
+    private void updateCursor(int x, MouseEvent e) {
         // if Wait cursor not active, check for the need to change the cursor
         if (getCursor() == fWaitCursor) {
             return;
@@ -2198,9 +2504,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
             cursor = fDragCursor;
         } else if (fDragState == DRAG_ZOOM) {
             cursor = fZoomCursor;
-        } else if ((stateMask & SWT.MODIFIER_MASK) == SWT.CTRL) {
+        } else if (e.isControlDown()) {
             cursor = fDragCursor;
-        } else if ((stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT) {
+        } else if (e.isShiftDown()) {
             cursor = fResizeCursor;
         } else if (!isOverSplitLine(x)) {
             long selectionBegin = fTimeProvider.getSelectionBegin();
@@ -2277,240 +2583,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
         fStatusLineManager.setMessage(message.toString());
     }
 
-    @Override
-    public void mouseMove(MouseEvent e) {
-        if (null == fTimeProvider) {
-            return;
-        }
-        Point size = getCtrlSize();
-        if (DRAG_TRACE_ITEM == fDragState) {
-            int nameWidth = fTimeProvider.getNameSpace();
-            if (e.x > nameWidth && size.x > nameWidth && fDragX != e.x) {
-                fDragX = e.x;
-                double pixelsPerNanoSec = (size.x - nameWidth <= RIGHT_MARGIN) ? 0 : (double) (size.x - nameWidth - RIGHT_MARGIN) / (fTime1bak - fTime0bak);
-                long timeDelta = (long) ((pixelsPerNanoSec == 0) ? 0 : ((fDragX - fDragX0) / pixelsPerNanoSec));
-                long time1 = fTime1bak - timeDelta;
-                long maxTime = fTimeProvider.getMaxTime();
-                if (time1 > maxTime) {
-                    time1 = maxTime;
-                }
-                long time0 = time1 - (fTime1bak - fTime0bak);
-                if (time0 < fTimeProvider.getMinTime()) {
-                    time0 = fTimeProvider.getMinTime();
-                    time1 = time0 + (fTime1bak - fTime0bak);
-                }
-                fTimeProvider.setStartFinishTime(time0, time1);
-            }
-        } else if (DRAG_SPLIT_LINE == fDragState) {
-            fDragX = e.x;
-            fTimeProvider.setNameSpace(e.x);
-        } else if (DRAG_SELECTION == fDragState) {
-            fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
-            hasChanged = true;
-            redraw();
-            fTimeGraphScale.setDragRange(fDragX0, fDragX);
-            fireDragSelectionChanged(getTimeAtX(fDragX0), getTimeAtX(fDragX));
-        } else if (DRAG_ZOOM == fDragState) {
-            fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
-            hasChanged = true;
-            redraw();
-            fTimeGraphScale.setDragRange(fDragX0, fDragX);
-        } else if (DRAG_NONE == fDragState) {
-            boolean mouseOverSplitLine = isOverSplitLine(e.x);
-            if (fMouseOverSplitLine != mouseOverSplitLine) {
-                hasChanged = true;
-                redraw();
-            }
-            fMouseOverSplitLine = mouseOverSplitLine;
-        }
-        updateCursor(e.x, e.stateMask);
-        updateStatusLine(e.x);
-    }
-
-    @Override
-    public void mouseDoubleClick(MouseEvent e) {
-        if (null == fTimeProvider) {
-            return;
-        }
-        if (1 == e.button && (e.stateMask & SWT.BUTTON_MASK) == 0) {
-            if (isOverSplitLine(e.x) && fTimeProvider.getNameSpace() != 0) {
-                fTimeProvider.setNameSpace(fIdealNameSpace);
-                boolean mouseOverSplitLine = isOverSplitLine(e.x);
-                if (fMouseOverSplitLine != mouseOverSplitLine) {
-                    hasChanged = true;
-                    redraw();
-                }
-                fMouseOverSplitLine = mouseOverSplitLine;
-                return;
-            }
-            int idx = getItemIndexAtY(e.y);
-            if (idx >= 0) {
-                selectItem(idx, false);
-                fireDefaultSelection();
-            }
-        }
-    }
-
-    @Override
-    public void mouseDown(MouseEvent e) {
-        if (fDragState != DRAG_NONE || null == fTimeProvider ||
-                fTimeProvider.getTime0() == fTimeProvider.getTime1() ||
-                getCtrlSize().x - fTimeProvider.getNameSpace() <= 0) {
-            return;
-        }
-        int idx;
-        if (1 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
-            int nameSpace = fTimeProvider.getNameSpace();
-            if (nameSpace != 0 && isOverSplitLine(e.x)) {
-                fDragState = DRAG_SPLIT_LINE;
-                fDragButton = e.button;
-                fDragX = e.x;
-                fDragX0 = fDragX;
-                fTime0bak = fTimeProvider.getTime0();
-                fTime1bak = fTimeProvider.getTime1();
-                hasChanged = true;
-                redraw();
-                updateCursor(e.x, e.stateMask);
-                return;
-            }
-        }
-        if (1 == e.button && ((e.stateMask & SWT.MODIFIER_MASK) == 0 || (e.stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT)) {
-            int nameSpace = fTimeProvider.getNameSpace();
-            idx = getItemIndexAtY(e.y);
-            if (idx >= 0) {
-                Item item = fItemData.fExpandedItems[idx];
-                if (item.fHasChildren && e.x < nameSpace && e.x < MARGIN + (item.fLevel + 1) * EXPAND_SIZE) {
-                    toggle(idx);
-                    return;
-                }
-                selectItem(idx, false);
-                fireSelectionChanged();
-            } else {
-                selectItem(idx, false); // clear selection
-                fireSelectionChanged();
-            }
-            long hitTime = getTimeAtX(e.x);
-            if (hitTime >= 0) {
-                setCapture(true);
-
-                fDragState = DRAG_SELECTION;
-                fDragButton = e.button;
-                fDragX = e.x;
-                fDragX0 = fDragX;
-                fDragTime0 = getTimeAtX(fDragX0);
-                long selectionBegin = fTimeProvider.getSelectionBegin();
-                long selectionEnd = fTimeProvider.getSelectionEnd();
-                int xBegin = getXForTime(selectionBegin);
-                int xEnd = getXForTime(selectionEnd);
-                if ((e.stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT) {
-                    long time = getTimeAtX(e.x);
-                    if (Math.abs(time - selectionBegin) < Math.abs(time - selectionEnd)) {
-                        fDragX0 = xEnd;
-                        fDragTime0 = selectionEnd;
-                    } else {
-                        fDragX0 = xBegin;
-                        fDragTime0 = selectionBegin;
-                    }
-                } else {
-                    long time = getTimeAtX(e.x);
-                    if (Math.abs(e.x - xBegin) < SNAP_WIDTH && Math.abs(time - selectionBegin) <= Math.abs(time - selectionEnd)) {
-                        fDragX0 = xEnd;
-                        fDragTime0 = selectionEnd;
-                    } else if (Math.abs(e.x - xEnd) < SNAP_WIDTH && Math.abs(time - selectionEnd) <= Math.abs(time - selectionBegin)) {
-                        fDragX0 = xBegin;
-                        fDragTime0 = selectionBegin;
-                    }
-                }
-                fTime0bak = fTimeProvider.getTime0();
-                fTime1bak = fTimeProvider.getTime1();
-                hasChanged = true;
-                redraw();
-                updateCursor(e.x, e.stateMask);
-                fTimeGraphScale.setDragRange(fDragX0, fDragX);
-            }
-        } else if (2 == e.button || (1 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == SWT.CTRL)) {
-            long hitTime = getTimeAtX(e.x);
-            if (hitTime > 0) {
-                setCapture(true);
-                fDragState = DRAG_TRACE_ITEM;
-                fDragButton = e.button;
-                fDragX = e.x;
-                fDragX0 = fDragX;
-                fTime0bak = fTimeProvider.getTime0();
-                fTime1bak = fTimeProvider.getTime1();
-                updateCursor(e.x, e.stateMask);
-            }
-        } else if (3 == e.button) {
-            setCapture(true);
-            fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), getCtrlSize().x - RIGHT_MARGIN);
-            fDragX0 = fDragX;
-            fDragState = DRAG_ZOOM;
-            fDragButton = e.button;
-            hasChanged = true;
-            redraw();
-            updateCursor(e.x, e.stateMask);
-            fTimeGraphScale.setDragRange(fDragX0, fDragX);
-        }
-    }
-
-    @Override
-    public void mouseUp(MouseEvent e) {
-        if (fPendingMenuDetectEvent != null && e.button == 3) {
-            menuDetected(fPendingMenuDetectEvent);
-        }
-        if (DRAG_NONE != fDragState) {
-            setCapture(false);
-            if (e.button == fDragButton && DRAG_TRACE_ITEM == fDragState) {
-                if (fDragX != fDragX0) {
-                    fTimeProvider.notifyStartFinishTime();
-                }
-                fDragState = DRAG_NONE;
-            } else if (e.button == fDragButton && DRAG_SPLIT_LINE == fDragState) {
-                fDragState = DRAG_NONE;
-                hasChanged = true;
-                redraw();
-            } else if (e.button == fDragButton && DRAG_SELECTION == fDragState) {
-                if (fDragX == fDragX0) { // click without selecting anything
-                    long time = getTimeAtX(e.x);
-                    fTimeProvider.setSelectedTimeNotify(time, false);
-                } else {
-                    long time0 = fDragTime0;
-                    long time1 = getTimeAtX(fDragX);
-                    if (time0 <= time1) {
-                        fTimeProvider.setSelectionRangeNotify(time0, time1);
-                    } else {
-                        fTimeProvider.setSelectionRangeNotify(time1, time0);
-                    }
-                }
-                fDragState = DRAG_NONE;
-                hasChanged = true;
-                redraw();
-                fTimeGraphScale.setDragRange(-1, -1);
-            } else if (e.button == fDragButton && DRAG_ZOOM == fDragState) {
-                int nameWidth = fTimeProvider.getNameSpace();
-                if (Math.max(fDragX, fDragX0) > nameWidth && fDragX != fDragX0) {
-                    long time0 = getTimeAtX(fDragX0);
-                    long time1 = getTimeAtX(fDragX);
-                    if (time0 < time1) {
-                        fTimeProvider.setStartFinishTimeNotify(time0, time1);
-                    } else {
-                        fTimeProvider.setStartFinishTimeNotify(time1, time0);
-                    }
-                } else {
-                    hasChanged = true;
-                    redraw();
-                }
-                fDragState = DRAG_NONE;
-                fTimeGraphScale.setDragRange(-1, -1);
-            }
-        }
-        updateCursor(e.x, e.stateMask);
-        updateStatusLine(e.x);
-    }
-
-    @Override
-    public void mouseEnter(MouseEvent e) {
-    }
 
     @Override
     public void mouseExit(MouseEvent e) {
@@ -2523,106 +2595,10 @@ public class TimeGraphControl extends TimeGraphBaseControl
     }
 
     @Override
-    public void mouseHover(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseScrolled(MouseEvent e) {
-        if ((fMouseScrollFilterListener == null) || fDragState != DRAG_NONE) {
-            return;
-        }
-        boolean zoomScroll = false;
-        Point p = getParent().toControl(getDisplay().getCursorLocation());
-        Point parentSize = getParent().getSize();
-        if (p.x >= 0 && p.x < parentSize.x && p.y >= 0 && p.y < parentSize.y) {
-            // over the parent control
-            if (e.x > getCtrlSize().x) {
-                // over the vertical scroll bar
-                zoomScroll = false;
-            } else if (e.y < 0 || e.y >= getCtrlSize().y) {
-                // over the time scale or horizontal scroll bar
-                zoomScroll = true;
-            } else {
-                if (e.x < fTimeProvider.getNameSpace()) {
-                    // over the name space
-                    zoomScroll = false;
-                } else {
-                    // over the state area
-                    if ((e.stateMask & SWT.MODIFIER_MASK) == SWT.CTRL) {
-                        // over the state area, CTRL pressed
-                        zoomScroll = true;
-                    } else {
-                        // over the state area, CTRL not pressed
-                        zoomScroll = false;
-                    }
-                }
-            }
-        }
-        if (zoomScroll && fTimeProvider.getTime0() != fTimeProvider.getTime1()) {
-            if (e.count > 0) {
-                zoom(true);
-            } else if (e.count < 0) {
-                zoom(false);
-            }
-        } else {
-            setTopIndex(getTopIndex() - e.count);
-        }
-    }
-
-    @Override
-    public void controlMoved(ControlEvent e) {
-    }
-
-    @Override
     public void controlResized(ControlEvent e) {
         adjustScrolls();
     }
 
-    @Override
-    public void widgetDefaultSelected(SelectionEvent e) {
-    }
-
-    @Override
-    public void widgetSelected(SelectionEvent e) {
-        if (e.widget == getVerticalBar()) {
-            setTopIndex(getVerticalBar().getSelection());
-        } else if (e.widget == getHorizontalBar() && null != fTimeProvider) {
-            int start = getHorizontalBar().getSelection();
-            long time0 = fTimeProvider.getTime0();
-            long time1 = fTimeProvider.getTime1();
-            long timeMin = fTimeProvider.getMinTime();
-            long timeMax = fTimeProvider.getMaxTime();
-            long delta = timeMax - timeMin;
-
-            long range = time1 - time0;
-            time0 = timeMin + Math.round(delta * ((double) start / H_SCROLLBAR_MAX));
-            time1 = time0 + range;
-
-            // TODO: Follow-up with Bug 310310
-            // In Linux SWT.DRAG is the only value received
-            // https://bugs.eclipse.org/bugs/show_bug.cgi?id=310310
-            if (e.detail == SWT.DRAG) {
-                fTimeProvider.setStartFinishTime(time0, time1);
-            } else {
-                fTimeProvider.setStartFinishTimeNotify(time0, time1);
-            }
-        }
-    }
-
-    @Override
-    public int getBorderWidth() {
-        return fBorderWidth;
-    }
-
-    /**
-     * Set the border width
-     *
-     * @param borderWidth
-     *            The width
-     */
-    public void setBorderWidth(int borderWidth) {
-        this.fBorderWidth = borderWidth;
-    }
 
     /**
      * @return The current height of the header row
@@ -3002,6 +2978,60 @@ public class TimeGraphControl extends TimeGraphBaseControl
             e.data = entry;
             fireMenuEventOnTimeGraphEntry(e);
         }
+    }
+
+    /**
+     * Handle scrolling event
+     *
+     * @param e
+     *            the corresponding scrolling event
+     * @return true if there was a change, false otherwise
+     */
+    public boolean scrolled (ScrollEvent e) {
+        if (fDragState != DRAG_NONE) {
+            return false;
+        }
+        boolean zoomScroll = false;
+        Point p = new Point((int) e.getX(), (int) e.getY());// getParent().toControl(getDisplay().getCursorLocation());
+        Point parentSize = new Point((int) getWidth(), (int) getHeight()); // getParent().get//getSize();
+        if (p.x >= 0 && p.x < parentSize.x && p.y >= 0 && p.y < parentSize.y) {
+            // over the parent control
+            if (e.getX() > getCtrlSize().x) {
+                // over the vertical scroll bar
+                zoomScroll = false;
+            } else if (e.getY() < 0 || e.getY() >= getCtrlSize().y) {
+                // over the time scale or horizontal scroll bar
+                zoomScroll = true;
+            } else {
+                if (e.getX() < fTimeProvider.getNameSpace()) {
+                    // over the name space
+                    zoomScroll = false;
+                } else {
+                    // over the state area
+                    if (e.isControlDown()) {
+                        // over the state area, CTRL pressed
+                        zoomScroll = true;
+                    } else {
+                        // over the state area, CTRL not pressed
+                        zoomScroll = false;
+                    }
+                }
+            }
+        }
+        if (zoomScroll && fTimeProvider.getTime0() != fTimeProvider.getTime1()) {
+            if (e.getDeltaY() > 0) {
+                zoom(true, e);
+            } else if (e.getDeltaY() < 0) {
+                zoom(false, e);
+            }
+        } else {
+            // Number of pixel scrolled divided by the height of an item
+            int shifting = (int) Math.ceil(e.getDeltaY() / fGlobalItemHeight);
+
+            setTopIndex(getTopIndex() - shifting);
+            return true;
+        }
+        return false;
     }
 
 }

@@ -14,13 +14,12 @@
 
 package fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
+
+import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Rectangle;
-import javafx.embed.swt.FXCanvas;
-import org.eclipse.swt.widgets.Composite;
+
 
 /**
  * Base control abstract class for the time graph widget
@@ -29,7 +28,7 @@ import org.eclipse.swt.widgets.Composite;
  * @author Alvaro Sanchez-Leon
  * @author Patrick Tasse
  */
-public abstract class TimeGraphBaseControl extends FXCanvas implements PaintListener {
+public abstract class TimeGraphBaseControl extends Canvas {
 
     /** Default left margin size */
     public static final int MARGIN = 4;
@@ -50,46 +49,52 @@ public abstract class TimeGraphBaseControl extends FXCanvas implements PaintList
     private int fFontHeight = 0;
 
     /**
-     * Basic constructor. Uses a default style value
-     *
-     * @param parent
-     *            The parent composite object
-     * @param colors
-     *            The color scheme to use
+     * Monitor if a change has taken place (avoid useless redrawing)
      */
-    public TimeGraphBaseControl(Composite parent, TimeGraphColorFxScheme colors) {
-        this(parent, colors, SWT.NO_BACKGROUND | SWT.NO_FOCUS);
+    protected boolean hasChanged = true;
+
+    /**
+     * @return the haschanged flag
+     */
+    public boolean isHasChanged() {
+        return hasChanged;
+    }
+
+    /**
+     * Set the value of hasChanged flag
+     *
+     * @param hasChanged
+     *            the new value assigned to the flag
+     */
+    public void setHasChanged(boolean hasChanged) {
+        this.hasChanged = hasChanged;
     }
 
     /**
      * Standard constructor
      *
-     * @param parent
-     *            The parent composite object
      * @param colorScheme
      *            The color scheme to use
-     * @param style
-     *            The index of the style to use
      */
-    public TimeGraphBaseControl(Composite parent, TimeGraphColorFxScheme colorScheme, int style) {
-        super(parent, style);
+    public TimeGraphBaseControl(TimeGraphColorFxScheme colorScheme) {
+        super();
         fColorScheme = colorScheme;
-        addPaintListener(this);
+        //addPaintListener(this);
     }
-
+/*
     @Override
     public void paintControl(PaintEvent e) {
-        if (e.widget != this) {
+        if (e.getSource() != this) {
             return;
         }
         fFontHeight = e.gc.getFontMetrics().getHeight();
-        Rectangle bound = getClientArea();
+        Rectangle bound = new Rectangle(0, 0, (int) getWidth(), (int) getHeight());
         if (!bound.isEmpty()) {
             org.eclipse.swt.graphics.Color colBackup = e.gc.getBackground();
-            paint(bound, e);
+            paint(bound);
             e.gc.setBackground(colBackup);
         }
-    }
+    }*/
 
     /**
      * Retrieve the color scheme
@@ -125,7 +130,17 @@ public abstract class TimeGraphBaseControl extends FXCanvas implements PaintList
         return fFontHeight;
     }
 
-    abstract void paint(Rectangle bound, PaintEvent e);
+    /**
+     * Redraw the view
+     */
+    public void redraw() {
+        Rectangle bound = new Rectangle(0, 0, (int) getWidth(), (int) getHeight());
+        if (!bound.isEmpty()) {
+            paint(bound);
+        }
+    }
+
+    abstract void paint(Rectangle bound);
 
     /**
      * @Framesoc
@@ -136,8 +151,8 @@ public abstract class TimeGraphBaseControl extends FXCanvas implements PaintList
      *            should the snapshot take the whole height of the gantt or only
      *            what is displayed
      */
-    void takeSnapshot(Rectangle bound, PaintEvent e, boolean fullHeight) {
-        paint(bound, e);
+    void takeSnapshot(Rectangle bound, boolean fullHeight) {
+        paint(bound);
     }
 
     /**
@@ -152,7 +167,7 @@ public abstract class TimeGraphBaseControl extends FXCanvas implements PaintList
     public void takeSnapshot(PaintEvent e, boolean fullHeight) {
         Rectangle bound = new Rectangle(e.x, e.y, e.width, e.height);
         if (!bound.isEmpty()) {
-            takeSnapshot(bound, e, fullHeight);
+            takeSnapshot(bound, fullHeight);
         }
     }
 }
