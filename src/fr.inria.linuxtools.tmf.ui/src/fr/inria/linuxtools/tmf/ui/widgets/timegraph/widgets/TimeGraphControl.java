@@ -190,7 +190,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private ScrollBar scrollHor;
 
     protected double cursorPosX;
-
     protected double cursorPosY;
 
     private class MouseScrollNotifier extends Thread {
@@ -257,55 +256,54 @@ public class TimeGraphControl extends TimeGraphBaseControl
             }
         });
 
-
         // Mouse move
         setOnMouseMoved(new EventHandler<MouseEvent>() {
 
-        @Override
-                public void handle(MouseEvent e) {
-                    if (null == fTimeProvider) {
-                        return;
-                    }
-                    cursorPosX = e.getX();
-                    cursorPosY = e.getY();
+            @Override
+            public void handle(MouseEvent e) {
+                if (null == fTimeProvider) {
+                    return;
+                }
+                cursorPosX = e.getX();
+                cursorPosY = e.getY();
 
-                    Point size = getCtrlSize();
-                    if (DRAG_TRACE_ITEM == fDragState) {
-                        int nameWidth = fTimeProvider.getNameSpace();
-                        if (e.getX() > nameWidth && size.x > nameWidth && fDragX != e.getX()) {
-                            fDragX = (int) e.getX();
-                            double pixelsPerNanoSec = (size.x - nameWidth <= RIGHT_MARGIN) ? 0 : (double) (size.x - nameWidth - RIGHT_MARGIN) / (fTime1bak - fTime0bak);
-                            long timeDelta = (long) ((pixelsPerNanoSec == 0) ? 0 : ((fDragX - fDragX0) / pixelsPerNanoSec));
-                            long time1 = fTime1bak - timeDelta;
-                            long maxTime = fTimeProvider.getMaxTime();
-                            if (time1 > maxTime) {
-                                time1 = maxTime;
-                            }
-                            long time0 = time1 - (fTime1bak - fTime0bak);
-                            if (time0 < fTimeProvider.getMinTime()) {
-                                time0 = fTimeProvider.getMinTime();
-                                time1 = time0 + (fTime1bak - fTime0bak);
-                            }
-                            fTimeProvider.setStartFinishTime(time0, time1);
-                        }
-                    } else if (DRAG_SPLIT_LINE == fDragState) {
+                Point size = getCtrlSize();
+                if (DRAG_TRACE_ITEM == fDragState) {
+                    int nameWidth = fTimeProvider.getNameSpace();
+                    if (e.getX() > nameWidth && size.x > nameWidth && fDragX != e.getX()) {
                         fDragX = (int) e.getX();
-                        fTimeProvider.setNameSpace((int) e.getX());
-                    } else if (DRAG_ZOOM == fDragState) {
-                        fDragX = Math.min(Math.max((int) e.getX(), fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+                        double pixelsPerNanoSec = (size.x - nameWidth <= RIGHT_MARGIN) ? 0 : (double) (size.x - nameWidth - RIGHT_MARGIN) / (fTime1bak - fTime0bak);
+                        long timeDelta = (long) ((pixelsPerNanoSec == 0) ? 0 : ((fDragX - fDragX0) / pixelsPerNanoSec));
+                        long time1 = fTime1bak - timeDelta;
+                        long maxTime = fTimeProvider.getMaxTime();
+                        if (time1 > maxTime) {
+                            time1 = maxTime;
+                        }
+                        long time0 = time1 - (fTime1bak - fTime0bak);
+                        if (time0 < fTimeProvider.getMinTime()) {
+                            time0 = fTimeProvider.getMinTime();
+                            time1 = time0 + (fTime1bak - fTime0bak);
+                        }
+                        fTimeProvider.setStartFinishTime(time0, time1);
+                    }
+                } else if (DRAG_SPLIT_LINE == fDragState) {
+                    fDragX = (int) e.getX();
+                    fTimeProvider.setNameSpace((int) e.getX());
+                } else if (DRAG_ZOOM == fDragState) {
+                    fDragX = Math.min(Math.max((int) e.getX(), fTimeProvider.getNameSpace()), size.x - RIGHT_MARGIN);
+                    hasChanged = true;
+                    redraw();
+                    fTimeGraphScale.setDragRange(fDragX0, fDragX);
+                } else if (DRAG_NONE == fDragState) {
+                    boolean mouseOverSplitLine = isOverSplitLine((int) e.getX());
+                    if (fMouseOverSplitLine != mouseOverSplitLine) {
                         hasChanged = true;
                         redraw();
-                        fTimeGraphScale.setDragRange(fDragX0, fDragX);
-                    } else if (DRAG_NONE == fDragState) {
-                        boolean mouseOverSplitLine = isOverSplitLine((int) e.getX());
-                        if (fMouseOverSplitLine != mouseOverSplitLine) {
-                            hasChanged = true;
-                            redraw();
-                        }
-                        fMouseOverSplitLine = mouseOverSplitLine;
                     }
-                    updateCursor((int) e.getX(), e);
-                    updateStatusLine((int) e.getX());
+                    fMouseOverSplitLine = mouseOverSplitLine;
+                }
+                updateCursor((int) e.getX(), e);
+                updateStatusLine((int) e.getX());
             }
         });
 
@@ -585,21 +583,26 @@ public class TimeGraphControl extends TimeGraphBaseControl
         scrollHor.valueProperty().addListener(new ChangeListener<Number>() {
 
             @Override
-            public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
+            public void changed(ObservableValue<? extends Number> arg0, Number oldValue, Number newValue) {
             if (null != fTimeProvider) {
-                int start = (int) getHorizontalBar().getValue();
+                //int start =((double) newValue); //getHorizontalBar().getValue();
                 long time0 = fTimeProvider.getTime0();
                 long time1 = fTimeProvider.getTime1();
-                long timeMin = fTimeProvider.getMinTime();
-                long timeMax = fTimeProvider.getMaxTime();
+                long timeMin = fTimeProvider.getMinTime();//getMinTime();
+                long timeMax = fTimeProvider.getMaxTime();//getMaxTime();
                 long delta = timeMax - timeMin;
-
                 long range = time1 - time0;
-                time0 = timeMin + Math.round(delta * ((double) start / H_SCROLLBAR_MAX));
+
+                time0 = timeMin + Math.round(delta * ((double) newValue / H_SCROLLBAR_MAX));
                 time1 = time0 + range;
 
+                if(time1 > fTimeProvider.getMaxTime()) {
+                    time1 = fTimeProvider.getMaxTime();
+                    time0 = time1 - range;
+                }
+
                //if (e. == SWT.DRAG) {
-               //     fTimeProvider.setStartFinishTime(time0, time1);
+              //     fTimeProvider.setStartFinishTime(time0, time1);
               //  } else {
                 fTimeProvider.setStartFinishTimeNotify(time0, time1);
               //  }
@@ -882,6 +885,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (delta != 0) {
             // Thumb size (page size)
             thumb = Math.max(1, (int) (H_SCROLLBAR_MAX * ((double) (time1 - time0) / delta)));
+            System.out.println("Thumb: " + thumb + ", time0: " + time0 + ", time1: " + time1 + ", duration: " + (time1 - time0));
             // At the beginning of visible window
             timePos = (int) (H_SCROLLBAR_MAX * ((double) (time0 - timeMin) / delta));
         }

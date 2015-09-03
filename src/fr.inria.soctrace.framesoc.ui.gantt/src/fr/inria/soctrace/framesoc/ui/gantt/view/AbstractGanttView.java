@@ -163,7 +163,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private TimeGraphTreeLabelProvider fLabelProvider = null;
 
 	/** The relative weight of the sash, ignored if combo is not used */
-	private double[] fWeight = { 0.2, 0.8 };
+	private double[] fWeight = { 0.2 };
 
 	/** The filter column label array, or null if filter is not used */
 	private String[] fFilterColumns;

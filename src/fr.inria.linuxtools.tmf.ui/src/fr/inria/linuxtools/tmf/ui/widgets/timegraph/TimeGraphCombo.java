@@ -405,9 +405,10 @@ public class TimeGraphCombo extends FXCanvas {
         scene = new Scene(root, bkColor);
 
         setScene(scene);
+        splitPane.prefWidthProperty().bind(scene.widthProperty());
+        splitPane.prefHeightProperty().bind(scene.heightProperty());
 
         VBox vBoxTree = new VBox();
-        vBoxTree.maxWidth(Double.MAX_VALUE);
 
         treeHeader = new TextField("Event Producers"); //$NON-NLS-1$
         treeHeader.setEditable(false);
@@ -445,6 +446,7 @@ public class TimeGraphCombo extends FXCanvas {
         fTreeRoot = new TreeItem<>(new TimeGraphEntry("Root", 0 , 0));//$NON-NLS-1$
 
         vBoxTree.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        vBoxTree.setMinWidth(200);
         VBox.setVgrow(fTreeViewer, Priority.ALWAYS);
         fTreeViewer.setMaxHeight(Double.MAX_VALUE);
 
@@ -452,9 +454,7 @@ public class TimeGraphCombo extends FXCanvas {
         splitPane.getItems().add(vBoxTree);
 
         //tree.setLinesVisible(true);
-
-        VBox vBoxGraph = new VBox();
-        fTimeGraphViewer = new TimeGraphViewer(vBoxGraph);
+        fTimeGraphViewer = new TimeGraphViewer(splitPane);
         fTimeGraphViewer.setItemHeight(fItemHeight);
         //fTimeGraphViewer.setBorderWidth(fTreeViewer.getBorderWidth());
         fTimeGraphViewer.setNameWidthPref(0);
@@ -657,16 +657,20 @@ public class TimeGraphCombo extends FXCanvas {
         // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight();
 
+
+        SplitPane.setResizableWithParent(vBoxTree, Boolean.FALSE);
+
         splitPane.setMinHeight(100);
-        splitPane.getItems().add(vBoxGraph);
-        splitPane.setDividerPositions(weights[0], weights[1]);
+        splitPane.setDividerPositions(weights[0]);//, weights[1]);
         root.getChildren().add(splitPane);
 
-        addListener(SWT.Resize, new Listener() {
+
+       /* addListener(SWT.Resize, new Listener() {
             @Override
             public void handleEvent(Event e) {
                 if (getClientArea().width > 0 && getClientArea().height > 0) {
-                    splitPane.setPrefSize(getClientArea().width, getClientArea().height);
+                    //splitPane.setPrefSize(getClientArea().width, getClientArea().height);
+                    splitPane.setDividerPositions(weights[0]);
                     //vBoxTree.setPrefSize(getClientArea().width / 3.0, getClientArea().height);
                     fTreeViewer.setPrefHeight(splitPane.getHeight());
                     fTreeViewer.setPrefWidth(vBoxTree.getWidth());
@@ -676,7 +680,7 @@ public class TimeGraphCombo extends FXCanvas {
                     //vBoxGraph.setPrefSize(2.0 * (getClientArea().width / 3.0), getClientArea().height);
                 }
             }
-        });
+        });*/
     }
 
     // @Framesoc

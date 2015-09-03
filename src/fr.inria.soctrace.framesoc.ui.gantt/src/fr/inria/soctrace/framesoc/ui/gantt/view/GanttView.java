@@ -532,7 +532,6 @@ public class GanttView extends AbstractGanttView {
 				logger.debug("LoadedInterval {}", loadedInterval.toString());
 				logger.debug("start: {}", getStartTime());
 				logger.debug("end: {}", getEndTime());
-
 			}
 		};
 		drawerThread.start();

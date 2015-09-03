@@ -151,6 +151,7 @@
 		<module>../fr.inria.soctrace.lib.storage</module>
 		<module>../fr.inria.soctrace.lib.utils</module>
 		<module>../fr.inria.soctrace.lib.slf4j</module>
+		<module>../fr.inria.soctrace.lib.javafx</module>
 		<module>../fr.inria.soctrace.tools.framesoc.exporter</module>
 
 		<!-- Repository configuration -->
@@ -167,6 +168,7 @@
 		<!-- Branding -->
 		<module>../fr.inria.soctrace.framesoc.brand</module>
 
+		
 	</modules>
 
 </project>
