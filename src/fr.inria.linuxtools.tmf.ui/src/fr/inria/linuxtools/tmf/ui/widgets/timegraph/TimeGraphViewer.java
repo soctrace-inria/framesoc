@@ -433,7 +433,7 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
                 if (fDataViewer.getHeight() > 0) {
                    // hbox.setPrefWidth(fDataViewer.getWidth());
                     vbox.setPrefWidth(fDataViewer.getWidth() - fVerticalScrollBar.getWidth());
-                    fTimeScaleCtrl.setWidth(vbox.getWidth());
+                    //fTimeScaleCtrl.setWidth(vbox.getWidth());
                     //fTimeGraphCtrl.setWidth(vbox.getWidth());
                     getHorizontalBar().setPrefWidth(vbox.getWidth());
 
@@ -709,8 +709,6 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
 
     @Override
     public void setStartFinishTime(long time0, long time1) {
-        System.out.println("BBB FFF, time0: " + time0 + ", time1: " + time1 + ", duration: " + (time1 - time0));
-
         fTime0 = time0;
         if (fTime0 < fTime0Bound) {
             fTime0 = fTime0Bound;
@@ -728,8 +726,6 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         if (fTime1 - fTime0 < fMinTimeInterval) {
             fTime1 = Math.min(fTime1Bound, fTime0 + fMinTimeInterval);
         }
-
-        System.out.println("AAA FFF, time0: " + fTime0 + ", time1: " + fTime1 + ", duration: " + (fTime1 - fTime0));
 
         fTimeRangeFixed = true;
         fTimeGraphCtrl.adjustScrolls();

@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Javafx
+Bundle-SymbolicName: fr.inria.soctrace.lib.javafx;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Vendor: INRIA
+Bundle-ClassPath: lib/jfxrt.jar,
+ lib/jfxswt.jar
+Export-Package: javafx.embed.swt;
+  uses:="org.eclipse.swt.events,
+   javafx.scene.input,
+   org.eclipse.swt.graphics,
+   com.sun.javafx.cursor,
+   org.eclipse.swt.widgets,
+   com.sun.javafx.embed,
+   javafx.scene.image,
+   javafx.scene,
+   new javafx.embed.swt,
+   org.eclipse.swt.dnd,
+   javafx.util",
+ javafx.scene.control
+Bundle-ActivationPolicy: lazy

@@ -885,7 +885,6 @@ public class TimeGraphControl extends TimeGraphBaseControl
         if (delta != 0) {
             // Thumb size (page size)
             thumb = Math.max(1, (int) (H_SCROLLBAR_MAX * ((double) (time1 - time0) / delta)));
-            System.out.println("Thumb: " + thumb + ", time0: " + time0 + ", time1: " + time1 + ", duration: " + (time1 - time0));
             // At the beginning of visible window
             timePos = (int) (H_SCROLLBAR_MAX * ((double) (time0 - timeMin) / delta));
         }
@@ -1863,7 +1862,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
         /*if (getScene() == null) {
             setScene(scene);
         }*/
-        graphicsContext.clearRect(0, 0, getWidth(), getHeight());
+       // graphicsContext.clearRect(0, 0, getWidth(), getHeight());
 
         if (bounds.width < 2 || bounds.height < 2 || null == fTimeProvider) {
             return;
@@ -2031,7 +2030,11 @@ public class TimeGraphControl extends TimeGraphBaseControl
         // K pixels per second
         double pixelsPerNanoSec = (rect.width <= RIGHT_MARGIN) ? 0 : (double) (rect.width - RIGHT_MARGIN) / (time1 - time0);
 
-        if (item.fEntry.hasTimeEvents()) {
+       if (item.fEntry.hasTimeEvents()) {
+           // Rectangle clip = new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height);
+          // gc.getCanvas().setClip(new javafx.scene.shape.Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
+            //  gc.setClip(clip);
+            //gc.clip();
 
             //gc.setClipping(new Rectangle(nameSpace, 0, bounds.width - nameSpace, bounds.height));
             fillSpace(rect, gc, selected);
@@ -2081,6 +2084,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
                     lastX = x;
                 }
             }
+            //graphicsContext.clip();
+           // gc.getCanvas().setClip(null);
+           // gc.clip();
            // gc.setClipping((Rectangle) null);
         }
         fTimeGraphProvider.postDrawEntry(entry, rect, gc);

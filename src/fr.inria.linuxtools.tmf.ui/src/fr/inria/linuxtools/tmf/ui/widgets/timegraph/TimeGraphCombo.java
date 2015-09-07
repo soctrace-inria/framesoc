@@ -60,8 +60,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
 import fr.inria.linuxtools.internal.tmf.ui.Activator;
 import fr.inria.linuxtools.internal.tmf.ui.ITmfImageConstants;
@@ -657,13 +655,11 @@ public class TimeGraphCombo extends FXCanvas {
         // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight();
 
-
         SplitPane.setResizableWithParent(vBoxTree, Boolean.FALSE);
 
         splitPane.setMinHeight(100);
         splitPane.setDividerPositions(weights[0]);//, weights[1]);
         root.getChildren().add(splitPane);
-
 
        /* addListener(SWT.Resize, new Listener() {
             @Override
