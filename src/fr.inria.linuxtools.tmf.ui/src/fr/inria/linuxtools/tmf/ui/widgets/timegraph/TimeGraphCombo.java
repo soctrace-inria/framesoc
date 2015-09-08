@@ -39,6 +39,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
@@ -400,7 +401,7 @@ public class TimeGraphCombo extends Composite {
         super(parent, style);
         setLayout(new FillLayout());
 
-       final SashForm sash = new SashForm(this, SWT.NONE);
+        final SashForm sash = new SashForm(this, SWT.NONE);
 
         root = new Group();
         scene = new Scene(root);
@@ -444,6 +445,7 @@ public class TimeGraphCombo extends Composite {
 
         fTreeRoot = new TreeItem<>(new TimeGraphEntry("Root", 0 , 0));//$NON-NLS-1$
 
+        VBox.setVgrow(fTreeViewer, Priority.ALWAYS);
         vbox.getChildren().add(fTreeViewer);
         root.getChildren().add(vbox);
 
@@ -558,7 +560,7 @@ public class TimeGraphCombo extends Composite {
                     fTimeGraphViewer.setSelection(expandedTreeItems.get(index).getValue());
                     event.consume();
                 } else if (event.getCode() == KeyCode.PAGE_DOWN) {
-                    int height = (int)fTreeViewer.getHeight();//tree.getSize().y - tree.getHeaderHeight() - tree.getHorizontalBar().getSize().y;
+                    int height = (int) fTreeViewer.getHeight();//tree.getSize().y - tree.getHeaderHeight() - tree.getHorizontalBar().getSize().y;
                     int countPerPage = height / getItemHeight();
                     int index = Math.min(fTimeGraphViewer.getSelectionIndex() + countPerPage - 1, expandedTreeItems.size() - 1);
                     fTimeGraphViewer.setSelection(expandedTreeItems.get(index).getValue());
@@ -1019,6 +1021,12 @@ public class TimeGraphCombo extends Composite {
         List<ITimeGraphEntry> entries = (List<ITimeGraphEntry>) input;
         List<ITimeGraphEntry> topEntries = entries.stream().filter(entry -> entry.getParent() == null).collect(Collectors.toList());
         buildTreeItems(topEntries);
+
+        // Build filler row items (use to avoid bad alignment with the graph
+        // when there is a horizontal scrollbar
+        for (int i = 0; i < fNumFillerRows; i++) {
+            fTreeRoot.getChildren().add(new TreeItem<>(FILLER));
+        }
         setTreeItemsHeight();
         setTreeExpandedState(true);
     }
@@ -1048,10 +1056,6 @@ public class TimeGraphCombo extends Composite {
             if (!entry.getChildren().isEmpty()) {
                 buildTreeItems(entry.getChildren());
             }
-        }
-
-        for (int i = 0; i < fNumFillerRows; i++) {
-            fTreeRoot.getChildren().add(new TreeItem<>(FILLER));
         }
     }
 
@@ -1350,6 +1354,9 @@ public class TimeGraphCombo extends Composite {
         fTimeGraphViewer.refresh();
 
         fTreeViewer.scrollTo(topIndex);
+        mainFxCanvas.redraw();
+        mainFxCanvas.layout();
+        mainFxCanvas.update();
        // TreeItem item = expandedTreeItems.get(topIndex);
 
         //setTopItem(item);

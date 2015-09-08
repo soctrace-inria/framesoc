@@ -73,6 +73,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvid
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTimeListener;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphTreeListener;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.StateItem;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphCombo;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.TimeGraphTreeExpansionEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
@@ -1010,6 +1011,34 @@ public class TimeGraphControl extends TimeGraphBaseControl
         }
 
         fTimeProvider.setStartFinishTimeNotify(time0, time1);
+    }
+
+    /**
+     * Zoom out vertically on the Gantt chart
+     */
+    public void verticalZoomOut() {
+        if(fGlobalItemHeight <= TimeGraphCombo.MINIMAL_ITEM_HEIGHT) {
+            return;
+        }
+
+        setItemHeight(fGlobalItemHeight - 1);
+        refreshData();
+    }
+
+    /**
+     * Zoom in vertically on the Gantt chart
+     */
+    public void verticalZoomIn() {
+        setItemHeight(fGlobalItemHeight + 1);
+        refreshData();
+    }
+
+    /**
+     * Reset the vertical zoom
+     */
+    public void resetVerticalZoom() {
+        setItemHeight(TimeGraphCombo.DEFAULT_TREE_ITEM_HEIGHT);
+        refreshData();
     }
 
     /**

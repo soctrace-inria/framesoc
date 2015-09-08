@@ -136,6 +136,15 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** The previous resource action */
 	private Action fPreviousResourceAction;
 
+	/** The vertical zoom out action */
+    protected Action fVZoomOutAction;
+    
+    /** The vertical zoom in action */
+    protected Action fVZoomInAction;
+    
+    /** The reset to default scale action */
+    protected Action fResetScaleAction;
+
 	/** A comparator class */
 	private Comparator<ITimeGraphEntry> fEntryComparator = null;
 

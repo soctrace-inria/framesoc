@@ -111,7 +111,6 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
     private int fBorderWidth = 0;
     private int fTimeScaleHeight = DEFAULT_HEIGHT;
 
-    private Action fResetScaleAction;
     private Action fShowLegendAction;
     private Action fNextEventAction;
     private Action fPrevEventAction;
@@ -879,6 +878,30 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
         fTimeGraphCtrl.zoomOut();
     }
 
+
+    /**
+     * Callback for the vertical Zoom Out action
+     */
+    public void verticalZoomOut() {
+        fTimeGraphCtrl.verticalZoomOut();
+        adjustVerticalScrollBar();
+    }
+
+    /**
+     * Callback for the vertical Zoom In action
+     */
+    public void verticalZoomIn() {
+        fTimeGraphCtrl.verticalZoomIn();
+        adjustVerticalScrollBar();
+    }
+
+    /**
+     * Callback for resetting the vertical Zoom action
+     */
+    public void resetVerticalZoom() {
+        fTimeGraphCtrl.resetVerticalZoom();
+    }
+
     private String getPreferenceString(String string) {
         return getViewTypeStr() + "." + string; //$NON-NLS-1$
     }
@@ -1361,28 +1384,6 @@ public class TimeGraphViewer implements ITimeDataProvider, SelectionListener {
      */
     public void removeTreeListener(ITimeGraphTreeListener listener) {
         fTimeGraphCtrl.removeTreeListener(listener);
-    }
-
-    /**
-     * Get the reset scale action.
-     *
-     * @return The Action object
-     */
-    public Action getResetScaleAction() {
-        if (fResetScaleAction == null) {
-            // resetScale
-            fResetScaleAction = new Action() {
-                @Override
-                public void run() {
-                    resetStartFinishTime();
-                    notifyStartFinishTime();
-                }
-            };
-            fResetScaleAction.setText(Messages.TmfTimeGraphViewer_ResetScaleActionNameText);
-            fResetScaleAction.setToolTipText(Messages.TmfTimeGraphViewer_ResetScaleActionToolTipText);
-            fResetScaleAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ITmfImageConstants.IMG_UI_HOME_MENU));
-        }
-        return fResetScaleAction;
     }
 
     /**

@@ -44,6 +44,7 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.inria.linuxtools.internal.tmf.ui.Messages;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
@@ -95,6 +96,7 @@ import fr.inria.soctrace.lib.utils.DeltaManager;
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
+@SuppressWarnings("restriction")
 public class GanttView extends AbstractGanttView {
 
 	/**
@@ -628,9 +630,11 @@ public class GanttView extends AbstractGanttView {
 		manager.add(new Separator());
 
 		// zoom
-		manager.add(getTimeGraphViewer().getResetScaleAction());
+		manager.add(getResetScaleAction());
 		manager.add(getTimeGraphViewer().getZoomInAction());
 		manager.add(getTimeGraphViewer().getZoomOutAction());
+		manager.add(getVZoomInAction());
+		manager.add(getVZoomOutAction());
 		manager.add(new Separator());
 
 		// navigation
@@ -736,7 +740,87 @@ public class GanttView extends AbstractGanttView {
 			}
 		});
 	}
+	
+	/**
+	 * Get the reset scale action.
+	 *
+	 * @return The Action object
+	 */
+	public Action getResetScaleAction() {
+		if (fResetScaleAction == null) {
+			// resetScale
+			fResetScaleAction = new Action() {
+				@Override
+				public void run() {
+					resetVerticalZoom();
+					getTimeGraphViewer().resetStartFinishTime();
+					getTimeGraphViewer().notifyStartFinishTime();
+				}
+			};
+			fResetScaleAction
+					.setText(Messages.TmfTimeGraphViewer_ResetScaleActionNameText);
+			fResetScaleAction
+					.setToolTipText(Messages.TmfTimeGraphViewer_ResetScaleActionToolTipText);
+			fResetScaleAction.setImageDescriptor(ResourceManager
+					.getPluginImageDescriptor(Activator.PLUGIN_ID,
+							"icons/home_nav.gif"));
+		}
+		return fResetScaleAction;
+    }
 
+	public Action getVZoomOutAction() {
+		if (fVZoomOutAction == null) {
+			fVZoomOutAction = new Action() {
+				@Override
+				public void run() {
+					verticalZoomOut();
+				}
+			};
+			fVZoomOutAction
+					.setText(Messages.TmfTimeGraphViewer_VZoomOutActionNameText);
+			fVZoomOutAction
+					.setToolTipText(Messages.TmfTimeGraphViewer_VZoomOutActionToolTipText);
+			fVZoomOutAction.setImageDescriptor(ResourceManager
+					.getPluginImageDescriptor(Activator.PLUGIN_ID,
+							"icons/decrease_vertical_zoom.png"));
+		}
+		return fVZoomOutAction;
+	}
+
+	protected void verticalZoomOut() {
+		getTimeGraphCombo().verticalZoomOut();
+		getTimeGraphViewer().verticalZoomOut();
+	}
+
+	public Action getVZoomInAction() {
+		if (fVZoomInAction == null) {
+			fVZoomInAction = new Action() {
+				@Override
+				public void run() {
+					verticalZoomIn();
+				}
+			};
+			fVZoomInAction
+					.setText(Messages.TmfTimeGraphViewer_VZoomInActionNameText);
+			fVZoomInAction
+					.setToolTipText(Messages.TmfTimeGraphViewer_VZoomInActionToolTipText);
+			fVZoomInAction.setImageDescriptor(ResourceManager
+					.getPluginImageDescriptor(Activator.PLUGIN_ID,
+							"icons/increase_vertical_zoom.png"));
+		}
+		return fVZoomInAction;
+	}
+
+	protected void verticalZoomIn() {
+		getTimeGraphCombo().verticalZoomIn();
+		getTimeGraphViewer().verticalZoomIn();
+	}
+
+	protected void resetVerticalZoom() {
+		getTimeGraphCombo().resetVerticalZoom();
+		getTimeGraphViewer().resetVerticalZoom();
+	}
+	
 	/**
 	 * Get the event type hierarchy
 	 * 
