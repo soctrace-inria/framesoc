@@ -1257,7 +1257,7 @@ public abstract class AbstractTimeGraphView extends TmfView {
         }
         manager.add(fTimeGraphWrapper.getTimeGraphViewer().getShowLegendAction());
         manager.add(new Separator());
-        manager.add(fTimeGraphWrapper.getTimeGraphViewer().getResetScaleAction());
+        //manager.add(fTimeGraphWrapper.getTimeGraphViewer().getResetScaleAction());
         manager.add(fTimeGraphWrapper.getTimeGraphViewer().getPreviousEventAction());
         manager.add(fTimeGraphWrapper.getTimeGraphViewer().getNextEventAction());
         manager.add(fPreviousResourceAction);

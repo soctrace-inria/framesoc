@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.application.Platform;
+
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -31,15 +34,23 @@ import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +58,13 @@ import org.slf4j.LoggerFactory;
 import fr.inria.linuxtools.internal.tmf.ui.Messages;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
 import fr.inria.soctrace.framesoc.ui.gantt.Activator;
 import fr.inria.soctrace.framesoc.ui.gantt.GanttContributionManager;
 import fr.inria.soctrace.framesoc.ui.gantt.loaders.CpuEventDrawer;
@@ -102,7 +117,8 @@ public class GanttView extends AbstractGanttView {
 	/**
 	 * Logger
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(GanttView.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(GanttView.class);
 
 	/**
 	 * Event producer column
@@ -113,7 +129,7 @@ public class GanttView extends AbstractGanttView {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = FramesocViews.GANTT_CHART_VIEW_ID;
-	
+
 	/**
 	 * Time graph presentation provider
 	 */
@@ -132,7 +148,8 @@ public class GanttView extends AbstractGanttView {
 	/**
 	 * Largest requested and loaded interval for the current shown trace
 	 */
-	private TimeInterval loadedInterval = new TimeInterval(Long.MAX_VALUE, Long.MIN_VALUE);
+	private TimeInterval loadedInterval = new TimeInterval(Long.MAX_VALUE,
+			Long.MIN_VALUE);
 
 	/**
 	 * Links
@@ -185,10 +202,10 @@ public class GanttView extends AbstractGanttView {
 	private TraceConfigurationDescriptor focusEventDescriptor = null;
 
 	/**
-	 * Flag specifying if we use the CPU drawer? 
+	 * Flag specifying if we use the CPU drawer?
 	 */
 	private boolean forceCpuDrawer = false;
-	
+
 	public boolean isForceCpuDrawer() {
 		return forceCpuDrawer;
 	}
@@ -202,7 +219,6 @@ public class GanttView extends AbstractGanttView {
 	 */
 	public GanttView() {
 		super(ID, new GanttPresentationProvider());
-		setTreeColumns(new String[] { PRODUCER });
 		setTreeLabelProvider(new TimeGraphTreeLabelProvider());
 		setFilterColumns(new String[] { PRODUCER });
 		setFilterLabelProvider(new TimeGraphTreeLabelProvider());
@@ -216,11 +232,14 @@ public class GanttView extends AbstractGanttView {
 		topics.registerAll();
 	}
 
-	private static class GanttViewEntryComparator implements Comparator<ITimeGraphEntry> {
+	private static class GanttViewEntryComparator implements
+			Comparator<ITimeGraphEntry> {
 		@Override
 		public int compare(ITimeGraphEntry o1, ITimeGraphEntry o2) {
-			if ((o1 instanceof TimeGraphEntry) && (o2 instanceof TimeGraphEntry)) {
-				int ret = AlphanumComparator.compare(o1.getName(), o2.getName());
+			if ((o1 instanceof TimeGraphEntry)
+					&& (o2 instanceof TimeGraphEntry)) {
+				int ret = AlphanumComparator
+						.compare(o1.getName(), o2.getName());
 				return ret;
 			}
 			return 0;
@@ -234,6 +253,7 @@ public class GanttView extends AbstractGanttView {
 
 	@Override
 	public void dispose() {
+		Platform.setImplicitExit(false);
 		if (loaderJob != null)
 			loaderJob.cancel();
 		if (drawerThread != null)
@@ -275,24 +295,27 @@ public class GanttView extends AbstractGanttView {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
 			if (des.getTimeInterval().equals(TimeInterval.NOT_SPECIFIED)) {
 				// double click
-				showWindow(des.getTrace(), des.getTrace().getMinTimestamp(), des.getTrace()
-						.getMaxTimestamp());
+				showWindow(des.getTrace(), des.getTrace().getMinTimestamp(),
+						des.getTrace().getMaxTimestamp());
 			} else {
 				long start = des.getStartTimestamp();
 				long end = des.getEndTimestamp();
-				
+
 				// Are we in the case where we should focus on an event
 				if (data instanceof TraceConfigurationDescriptor) {
 					focusOnEvent = true;
 					focusEventDescriptor = (TraceConfigurationDescriptor) data;
-					
-					// Change duration to load one percent of the trace around the event
+
+					// Change duration to load one percent of the trace around
+					// the event
 					long duration = (des.getTrace().getMaxTimestamp() - des
 							.getTrace().getMinTimestamp()) / 100;
-					start = Math.max(des.getTrace().getMinTimestamp(), des.getStartTimestamp() - duration / 2);
-					end = Math.min(des.getTrace().getMaxTimestamp(), des.getEndTimestamp() + duration / 2);
+					start = Math.max(des.getTrace().getMinTimestamp(),
+							des.getStartTimestamp() - duration / 2);
+					end = Math.min(des.getTrace().getMaxTimestamp(),
+							des.getEndTimestamp() + duration / 2);
 				}
-				
+
 				showWindow(des.getTrace(), start, end);
 			}
 		}
@@ -308,24 +331,25 @@ public class GanttView extends AbstractGanttView {
 		LoaderQueue<ReducedEvent> queue = new LoaderQueue<>();
 
 		// create the event loader
-		IEventLoader loader = GanttContributionManager.getEventLoader(trace.getType().getId());
+		IEventLoader loader = GanttContributionManager.getEventLoader(trace
+				.getType().getId());
 		loader.setTrace(trace);
 		loader.setQueue(queue);
 
 		// compute the actual time interval to load
 		TimeInterval interval = new TimeInterval(start, end);
-		
+
 		// check for unchanged interval
 		if (checkReuse(trace, interval)) {
 			loader.release();
-			refresh(interval);	
-			
+			refresh(interval);
+
 			// Do we need to focus on a particular event ?
 			if (focusOnEvent) {
 				focusOnEvent = false;
 				focusViewOn(focusEventDescriptor);
 			}
-			
+
 			return;
 		}
 
@@ -356,7 +380,8 @@ public class GanttView extends AbstractGanttView {
 		LoaderQueue<ReducedEvent> queue = new LoaderQueue<>();
 
 		// create the event loader
-		IEventLoader loader = GanttContributionManager.getEventLoader(trace.getType().getId());
+		IEventLoader loader = GanttContributionManager.getEventLoader(trace
+				.getType().getId());
 		loader.setTrace(trace);
 		loader.setQueue(queue);
 
@@ -368,7 +393,8 @@ public class GanttView extends AbstractGanttView {
 		if (forceCpuDrawer) {
 			drawer = new CpuEventDrawer();
 		} else {
-			drawer = GanttContributionManager.getEventDrawer(trace.getType().getId());
+			drawer = GanttContributionManager.getEventDrawer(trace.getType()
+					.getId());
 		}
 		drawer.setProducers(loader.getProducers());
 
@@ -392,7 +418,8 @@ public class GanttView extends AbstractGanttView {
 		return false;
 	}
 
-	private void launchLoaderJob(final IEventLoader loader, final TimeInterval interval) {
+	private void launchLoaderJob(final IEventLoader loader,
+			final TimeInterval interval) {
 		loaderJob = new Job("Loading Gantt Chart...") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -403,7 +430,8 @@ public class GanttView extends AbstractGanttView {
 				typeHierarchy = getTypeHierarchy(types);
 				visibleTypeNodes = listAllInputs(Arrays.asList(typeHierarchy));
 				allTypeNodes = visibleTypeNodes.size();
-				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
+				loader.loadWindow(interval.startTimestamp,
+						interval.endTimestamp, monitor);
 				loader.release();
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
 				if (monitor.isCanceled())
@@ -441,7 +469,7 @@ public class GanttView extends AbstractGanttView {
 				setMaxTime(max);
 				setStartTime(Long.MAX_VALUE);
 				setEndTime(Long.MIN_VALUE);
-				
+
 				long waited = 0;
 				TimeInterval partial = null;
 				while (!queue.done()) {
@@ -457,11 +485,14 @@ public class GanttView extends AbstractGanttView {
 						partial = drawer.draw(events);
 
 						// update start / end timestamp
-						long newStart = Math.max(requestedInterval.startTimestamp,
-								Math.min(partial.startTimestamp, getStartTime()));
+						long newStart = Math
+								.max(requestedInterval.startTimestamp, Math
+										.min(partial.startTimestamp,
+												getStartTime()));
 						long newEnd = Math.min(requestedInterval.endTimestamp,
 								Math.max(partial.endTimestamp, getEndTime()));
-						boolean needRefresh = drawer.needRefresh() || (newEnd > getEndTime())
+						boolean needRefresh = drawer.needRefresh()
+								|| (newEnd > getEndTime())
 								|| newStart < getStartTime();
 
 						// update start time
@@ -491,8 +522,9 @@ public class GanttView extends AbstractGanttView {
 					// the whole requested interval has been loaded
 					setStartTime(Math.max(requestedInterval.startTimestamp,
 							queueInterval.startTimestamp));
-					setEndTime(Math.min(requestedInterval.endTimestamp, queueInterval.endTimestamp));
-					
+					setEndTime(Math.min(requestedInterval.endTimestamp,
+							queueInterval.endTimestamp));
+
 					// Update loadedInterval values
 					loadedInterval.startTimestamp = getStartTime();
 					loadedInterval.endTimestamp = getEndTime();
@@ -503,13 +535,14 @@ public class GanttView extends AbstractGanttView {
 						setStartTime(Math.max(requestedInterval.startTimestamp,
 								queueInterval.startTimestamp));
 						setEndTime(Math.min(partial.endTimestamp, Math.min(
-								requestedInterval.endTimestamp, queueInterval.endTimestamp)));
+								requestedInterval.endTimestamp,
+								queueInterval.endTimestamp)));
 						loadedInterval.startTimestamp = getStartTime();
 						loadedInterval.endTimestamp = getEndTime();
 					}
 					handleCancel(closeIfCancelled);
 				}
-				
+
 				// Should we focus on an event ?
 				if (focusOnEvent) {
 					Display.getDefault().syncExec(new Runnable() {
@@ -524,11 +557,12 @@ public class GanttView extends AbstractGanttView {
 
 				// refresh one last time
 				refresh();
-				
+
 				// release drawer
 				drawer.release();
 
-				logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
+				logger.debug(all
+						.endMessage("Drawer Thread: visualizing everything"));
 				logger.debug("Waited {} ms", waited);
 				logger.debug("LoadedInterval {}", loadedInterval.toString());
 				logger.debug("start: {}", getStartTime());
@@ -554,8 +588,8 @@ public class GanttView extends AbstractGanttView {
 	}
 
 	@Override
-	protected List<ILinkEvent> getLinkList(long startTime, long endTime, long resolution,
-			IProgressMonitor monitor) {
+	protected List<ILinkEvent> getLinkList(long startTime, long endTime,
+			long resolution, IProgressMonitor monitor) {
 		if (links == null)
 			return null;
 		List<ILinkEvent> actualLinks = new ArrayList<>();
@@ -571,7 +605,8 @@ public class GanttView extends AbstractGanttView {
 			// move the time cursor
 			actualStart = Math.max(link.getTime(), actualStart);
 
-			if (link.getTime() > endTime || (link.getTime() + link.getDuration()) < startTime) {
+			if (link.getTime() > endTime
+					|| (link.getTime() + link.getDuration()) < startTime) {
 				// link not intersecting the interval
 				continue;
 			}
@@ -597,7 +632,8 @@ public class GanttView extends AbstractGanttView {
 			@Override
 			public void run() {
 				if (closeIfCancelled) {
-					FramesocPartManager.getInstance().disposeFramesocPart(GanttView.this);
+					FramesocPartManager.getInstance().disposeFramesocPart(
+							GanttView.this);
 					GanttView.this.hideView();
 				}
 			}
@@ -624,7 +660,7 @@ public class GanttView extends AbstractGanttView {
 		hideArrowsAction = createHideArrowsAction();
 		manager.add(hideArrowsAction);
 		manager.add(new Separator());
-		
+
 		// snapshot
 		manager.add(createSnapshotAction());
 		manager.add(new Separator());
@@ -672,7 +708,7 @@ public class GanttView extends AbstractGanttView {
 		des.setEndTimestamp(getEndTime());
 		return des;
 	}
-	
+
 	private IAction createShowTypeFilterAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
@@ -680,16 +716,17 @@ public class GanttView extends AbstractGanttView {
 				showTypeFilterAction();
 			}
 		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/filter_types.gif"));
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/filter_types.gif"));
 		action.setToolTipText("Show Event Type Filter");
 		return action;
 	}
 
 	private IAction createHideArrowsAction() {
-		DialogSettings settings = (DialogSettings) Activator.getDefault().getDialogSettings();
-		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer().getHideArrowsAction(
-				settings);
+		DialogSettings settings = (DialogSettings) Activator.getDefault()
+				.getDialogSettings();
+		final IAction defaultAction = getTimeGraphCombo().getTimeGraphViewer()
+				.getHideArrowsAction(settings);
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
 			public void run() {
@@ -712,15 +749,15 @@ public class GanttView extends AbstractGanttView {
 
 	private IAction createCpuDrawerAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
-			 
+
 			@Override
 			public void run() {
 				setForceCpuDrawer(isChecked());
 				reloadWindow(currentShownTrace, getStartTime(), getEndTime());
 			}
 		};
-		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
-				"icons/cpu_node.png"));
+		action.setImageDescriptor(ResourceManager.getPluginImageDescriptor(
+				Activator.PLUGIN_ID, "icons/cpu_node.png"));
 		action.setToolTipText("Use CPU Drawer");
 		return action;
 	}
@@ -740,7 +777,7 @@ public class GanttView extends AbstractGanttView {
 			}
 		});
 	}
-	
+
 	/**
 	 * Get the reset scale action.
 	 *
@@ -766,7 +803,7 @@ public class GanttView extends AbstractGanttView {
 							"icons/home_nav.gif"));
 		}
 		return fResetScaleAction;
-    }
+	}
 
 	public Action getVZoomOutAction() {
 		if (fVZoomOutAction == null) {
@@ -820,7 +857,7 @@ public class GanttView extends AbstractGanttView {
 		getTimeGraphCombo().resetVerticalZoom();
 		getTimeGraphViewer().resetVerticalZoom();
 	}
-	
+
 	/**
 	 * Get the event type hierarchy
 	 * 
@@ -838,11 +875,13 @@ public class GanttView extends AbstractGanttView {
 				continue;
 			}
 			if (!categories.containsKey(et.getCategory())) {
-				categories.put(et.getCategory(), new CategoryNode(et.getCategory()));
+				categories.put(et.getCategory(),
+						new CategoryNode(et.getCategory()));
 			}
 			categories.get(et.getCategory()).addChild(etn);
 		}
-		return categories.values().toArray(new CategoryNode[categories.values().size()]);
+		return categories.values().toArray(
+				new CategoryNode[categories.values().size()]);
 	}
 
 	/**
@@ -874,7 +913,8 @@ public class GanttView extends AbstractGanttView {
 			typeFilterDialog.setTitle("Event Type Filter");
 			typeFilterDialog.setMessage("Check the event types to show");
 
-			List<Object> allElements = listAllInputs(Arrays.asList(typeHierarchy));
+			List<Object> allElements = listAllInputs(Arrays
+					.asList(typeHierarchy));
 			typeFilterDialog.setExpandedElements(allElements.toArray());
 			typeFilterDialog.setInitialElementSelections(visibleTypeNodes);
 			// Sort in alphabetical order
@@ -896,11 +936,13 @@ public class GanttView extends AbstractGanttView {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				visibleTypeNodes = Arrays.asList(typeFilterDialog.getResult());
+				visibleTypeNodes = new ArrayList<Object>(Arrays.asList(typeFilterDialog.getResult()));
 				checkTypeFilter(visibleTypeNodes.size() != allTypeNodes);
-				ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
+				ArrayList<Object> filteredElements = new ArrayList<Object>(
+						allElements);
 				filteredElements.removeAll(visibleTypeNodes);
-				List<Integer> filteredTypes = new ArrayList<>(filteredElements.size());
+				List<Integer> filteredTypes = new ArrayList<>(
+						filteredElements.size());
 				for (Object o : filteredElements) {
 					if (o instanceof EventTypeNode) {
 						EventTypeNode type = (EventTypeNode) o;
@@ -909,7 +951,8 @@ public class GanttView extends AbstractGanttView {
 				}
 				fPresentationProvider.setFilteredTypes(filteredTypes);
 			} else {
-				fPresentationProvider.setFilteredTypes(Collections.<Integer> emptyList());
+				fPresentationProvider.setFilteredTypes(Collections
+						.<Integer> emptyList());
 			}
 			refresh();
 		}
@@ -918,23 +961,23 @@ public class GanttView extends AbstractGanttView {
 	private void checkTypeFilter(boolean check) {
 		if (check) {
 			typeFilterAction.setChecked(true);
-			typeFilterAction.setToolTipText("Show Event Type Filter (filter applied)");
+			typeFilterAction
+					.setToolTipText("Show Event Type Filter (filter applied)");
 
 		} else {
 			typeFilterAction.setChecked(false);
 			typeFilterAction.setToolTipText("Show Event Type Filter");
 		}
 	}
-	
+
 	/**
-	 * Focus the Gantt chart on a specific event (time region), by selecting the corresponding
-	 * row and centering the view on the event.
+	 * Focus the Gantt chart on a specific event (time region), by selecting the
+	 * corresponding row and centering the view on the event.
 	 * 
 	 * @param des
 	 *            the parameters needed to focus on the event
 	 */
-	private void focusViewOn(TraceConfigurationDescriptor des)
-	{
+	private void focusViewOn(TraceConfigurationDescriptor des) {
 		if (des.getEventProducer() == null) {
 			logger.debug("No event producer was provided in the descriptor");
 			return;
@@ -958,7 +1001,7 @@ public class GanttView extends AbstractGanttView {
 
 		// Select the corresponding entry
 		getTimeGraphCombo().setSelection(entry);
-		
+
 		// Zoom in on the desired part
 		getTimeGraphViewer().setStartFinishTimeNotify(des.getStartTimestamp(),
 				des.getEndTimestamp());
@@ -980,7 +1023,7 @@ public class GanttView extends AbstractGanttView {
 
 		return snapshotAction;
 	}
-	
+
 	private class SnapshotAction extends Action {
 		public GanttView ganttView;
 
@@ -991,7 +1034,8 @@ public class GanttView extends AbstractGanttView {
 		@Override
 		public void run() {
 			Rectangle bound = getTimeGraphCombo().getClientArea();
-			new GanttSnapshotDialog(getSite().getShell(), ganttView, bound.width, bound.height).open();
+			new GanttSnapshotDialog(getSite().getShell(), ganttView,
+					bound.width, bound.height).open();
 		}
 	}
 
@@ -1074,7 +1118,8 @@ public class GanttView extends AbstractGanttView {
 	 * @return the total height of the drawing
 	 */
 	private void drawHierarchy(GC gc, boolean fullHeight) {
-		ITimeGraphEntry[] graphEntries = getTimeGraphViewer().getExpandedElements();
+		ITimeGraphEntry[] graphEntries = getTimeGraphViewer()
+				.getExpandedElements();
 		int entryHeight = 0;
 		int currentHeight = 0;
 		int entryLevel = 0;
@@ -1083,11 +1128,14 @@ public class GanttView extends AbstractGanttView {
 		// Shift to center the name of the producer
 		int verticalShift = 5;
 		int width = (int) getTimeGraphCombo().getTreeViewer().getWidth();
-		
+
 		// Set colors
-		Color rectangleBgColor1 = Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-		Color rectangleBgColor2 = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-		Color fgColor = Display.getCurrent().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+		Color rectangleBgColor1 = Display.getCurrent().getSystemColor(
+				SWT.COLOR_WIDGET_BACKGROUND);
+		Color rectangleBgColor2 = Display.getCurrent().getSystemColor(
+				SWT.COLOR_LIST_BACKGROUND);
+		Color fgColor = Display.getCurrent().getSystemColor(
+				SWT.COLOR_LIST_FOREGROUND);
 		gc.setBackground(rectangleBgColor2);
 		gc.setForeground(fgColor);
 
@@ -1095,8 +1143,8 @@ public class GanttView extends AbstractGanttView {
 		if (fullHeight)
 			// Draw all
 			topIndex = 0;
-		
-		for (int i = topIndex; i < graphEntries.length; i++) { 
+
+		for (int i = topIndex; i < graphEntries.length; i++) {
 			entryHeight = getTimeGraphViewer().getTimeGraphControl()
 					.getItemHeight(graphEntries[i]);
 			entryLevel = getTimeGraphViewer().getTimeGraphControl()
@@ -1113,12 +1161,12 @@ public class GanttView extends AbstractGanttView {
 			gc.fillRectangle(0, currentHeight, width, entryHeight);
 			gc.drawText(graphEntries[i].getName(), entryLevel * entryShifting,
 					currentHeight + verticalShift);
-			
+
 			// Update total height
 			currentHeight += entryHeight;
 		}
 	}
-	
+
 	/**
 	 * Compute the height of the final image according to the given constraints
 	 * 
@@ -1130,7 +1178,8 @@ public class GanttView extends AbstractGanttView {
 	 *            the height required by the user
 	 * @return the computed height
 	 */
-	private int computeHeight(boolean fullHeight, int timeScaleHeight, int askedHeight) {
+	private int computeHeight(boolean fullHeight, int timeScaleHeight,
+			int askedHeight) {
 		ITimeGraphEntry[] graphEntries = getTimeGraphViewer()
 				.getExpandedElements();
 		int computedHeight = timeScaleHeight;
@@ -1173,29 +1222,33 @@ public class GanttView extends AbstractGanttView {
 		List<Integer> filteredType = fPresentationProvider.getFilteredTypes();
 		for (Object typeObject : listAllInputs(Arrays.asList(typeHierarchy))) {
 			if (typeObject instanceof EventTypeNode) {
-			if (filteredType.contains(((EventTypeNode) typeObject).getEventType().getId()))
+				if (filteredType.contains(((EventTypeNode) typeObject)
+						.getEventType().getId()))
 
-				filteredTypes = filteredTypes
-						+ ((EventTypeNode) typeObject).getEventType().getName() + ", ";
+					filteredTypes = filteredTypes
+							+ ((EventTypeNode) typeObject).getEventType()
+									.getName() + ", ";
 			}
 		}
-		
+
 		// If there was some filtered event producers
 		if (!filteredTypes.isEmpty()) {
 			// Remove last separator
-			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
+			filteredTypes = filteredTypes.substring(0,
+					filteredTypes.length() - 2);
 			output.append("\nFiltered event types: ");
 			output.append(filteredTypes);
 		}
 
 		// Filtered event producers
 		String filteredEP = "";
-		List<Object> filteredEntry = (List<Object>) (getTimeGraphCombo().getFilteredEntries());
+		List<Object> filteredEntry = (List<Object>) (getTimeGraphCombo()
+				.getFilteredEntries());
 		for (Object objectEntry : filteredEntry) {
 			filteredEP = filteredEP + ((GanttEntry) objectEntry).getName()
 					+ ", ";
 		}
-		
+
 		// If there was some filtered event producers
 		if (!filteredEP.isEmpty()) {
 			// Remove last separator
@@ -1203,8 +1256,139 @@ public class GanttView extends AbstractGanttView {
 			output.append("\nFiltered event producers: ");
 			output.append(filteredEP);
 		}
-		
+
 		return output.toString();
 	}
-	
+
+	@Override
+	public void createContextMenu() {
+		Menu contextMenu = new Menu(getTimeGraphViewer().getTimeGraphControl());
+		getTimeGraphViewer().getTimeGraphControl().setContextMenu(contextMenu);
+		getTimeGraphViewer().getTimeGraphControl().setMenu(
+				getTimeGraphViewer().getTimeGraphControl().getContextMenu());
+		contextMenu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent menuEvent) {
+				// clean menu
+				MenuItem[] items = getTimeGraphViewer().getTimeGraphControl()
+						.getContextMenu().getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+
+				MouseEvent rightClickEvent = getTimeGraphViewer()
+						.getTimeGraphControl().getRightClickEvent();
+
+				if (rightClickEvent == null) {
+					return;
+				}
+
+				// Get the corresponding event
+				ITimeEvent selectedEvent = Utils.findEvent(
+						getTimeGraphViewer().getTimeGraphControl()
+								.getExpandedElements()[getTimeGraphViewer()
+								.getTimeGraphControl().getItemIndexAtY(
+										rightClickEvent.y)],
+						getTimeGraphViewer().getTimeGraphControl().getTimeAtX(
+								rightClickEvent.x), 0);
+				// String name = fTimeGraphProvider.getEventName(selectedEvent);
+
+				// If there is no event at the given position
+				if (selectedEvent == null || fPresentationProvider
+						.getStateTableIndex(selectedEvent) < 0) {
+					return;
+				}
+
+				// Hide type
+				MenuItem hideType = new MenuItem(getTimeGraphViewer()
+						.getTimeGraphControl().getContextMenu(), SWT.NONE);
+				hideType.setText("Hide Type");
+				hideType.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						// Find the type ID
+						int typeIndex = fPresentationProvider
+								.getStateTableIndex(selectedEvent);
+						
+						// Add it to the filtered types
+						List<Integer> filteredTypes = fPresentationProvider
+								.getFilteredTypes();
+						filteredTypes.add(typeIndex);
+						fPresentationProvider.setFilteredTypes(filteredTypes);
+
+						// Synchronize with filter action
+						for (Object o : visibleTypeNodes) {
+							if (o instanceof EventTypeNode) {
+								EventTypeNode type = (EventTypeNode) o;
+								if (type.getId() == typeIndex) {
+									visibleTypeNodes.remove(o);
+									typeFilterAction.setChecked(true);
+									break;
+								}
+							}
+						}
+						refresh();
+					}
+				});
+
+				// Change color
+				MenuItem changeColor = new MenuItem(contextMenu, SWT.NONE);
+				changeColor.setText("Change Color Type");
+				changeColor.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+
+						// Get the current color
+						Color c = getTimeGraphViewer().getTimeGraphControl()
+								.getEventColorMap()[fPresentationProvider
+								.getStateTableIndex(selectedEvent)];
+						ColorDialog colorDialog = new ColorDialog(Display
+								.getDefault().getActiveShell());
+						// Set the default color of the color dialog to the
+						// current color
+						colorDialog.setRGB(new RGB(c.getRed(), c.getGreen(), c
+								.getBlue()));
+						RGB rgb = colorDialog.open();
+						// If a color was selected
+						if (rgb != null) {
+							Color newColor = new Color(Display.getDefault(),
+									rgb.red, rgb.green, rgb.blue);
+							FramesocColor fColor = new FramesocColor(rgb.red,
+									rgb.green, rgb.blue);
+							
+							// Change the color
+							fPresentationProvider.getStateTable()[fPresentationProvider
+									.getStateTableIndex(selectedEvent)].setStateColor(rgb);
+							
+							getTimeGraphViewer().getTimeGraphControl()
+									.getEventColorMap()[fPresentationProvider
+									.getStateTableIndex(selectedEvent)] = newColor;
+
+							// Save it in the general settings
+							FramesocColorManager
+									.getInstance()
+									.setEventTypeColor(
+											fPresentationProvider
+													.getEventName(selectedEvent),
+											fColor);
+							FramesocColorManager.getInstance()
+									.saveEventTypeColors();
+							refresh();
+						}
+					}
+				});
+
+				// Show in table (and higllight event)
+				/*MenuItem showInfo = new MenuItem(contextMenu, SWT.NONE);
+				showInfo.setText("Show Event Info");
+				showInfo.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						System.out.println("Click!" + e.getSource());
+					}
+				});*/
+			}
+		});
+	}	
+
 }

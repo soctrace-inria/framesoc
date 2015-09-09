@@ -18,8 +18,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javafx.scene.control.TreeView;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.Action;
@@ -159,9 +157,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** The presentation provider for this view */
 	private final TimeGraphPresentationProvider fPresentation;
 
-	/** The tree column label array, or null if combo is not used */
-	private String[] fColumns;
-
 	/** The tree label provider, or null if combo is not used */
 	private TimeGraphTreeLabelProvider fLabelProvider = null;
 
@@ -280,10 +275,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		TimeGraphCombo getTimeGraphCombo() {
 			return combo;
-		}
-
-		TreeView getTreeViewer() {
-			return combo.getTreeViewer();
 		}
 	}
 
@@ -479,16 +470,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 */
 	protected ITimeGraphPresentationProvider2 getPresentationProvider() {
 		return fPresentation;
-	}
-
-	/**
-	 * Sets the tree column labels. This should be called from the constructor.
-	 * 
-	 * @param columns
-	 *            The array of tree column labels
-	 */
-	protected void setTreeColumns(final String[] columns) {
-		fColumns = columns;
 	}
 
 	/**
@@ -958,6 +939,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 				showTrace(currentShownTrace, des);
 			}
 		});
+		
+		createContextMenu();
 
 		// -------------------------------
 		// TOOL BAR
@@ -1212,6 +1195,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 	protected TimeGraphFilterDialog getTypeFilterDialog() {
 		return fTypeFilterDialog;
+	}
+	
+	public void createContextMenu(){		
 	}
 
 }

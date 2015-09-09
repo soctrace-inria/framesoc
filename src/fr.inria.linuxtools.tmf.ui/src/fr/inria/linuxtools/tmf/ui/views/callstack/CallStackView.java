@@ -1076,7 +1076,7 @@ public class CallStackView extends TmfView {
 
     private void fillLocalToolBar(IToolBarManager manager) {
         manager.add(getImportMappingAction());
-        manager.add(fTimeGraphCombo.getTimeGraphViewer().getResetScaleAction());
+       // manager.add(fTimeGraphCombo.getTimeGraphViewer().getResetScaleAction());
         manager.add(getPreviousEventAction());
         manager.add(getNextEventAction());
         manager.add(fPreviousItemAction);
