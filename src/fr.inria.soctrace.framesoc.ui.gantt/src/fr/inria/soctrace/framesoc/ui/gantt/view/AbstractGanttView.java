@@ -208,7 +208,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		void redraw();
 
 		void update();
-
 	}
 
 	private class TimeGraphComboWrapper implements ITimeGraphWrapper {

@@ -119,8 +119,7 @@ public class CSVExport {
 							csvExport.append(currentRow.get(column)
 									+ FramesocConstants.CSV_SEPARATOR);
 						}
-						
-					
+
 						if (exportParameters)
 							handleParameters(currentRow);
 						else {

@@ -62,6 +62,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
 import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
@@ -76,6 +77,7 @@ import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
 import fr.inria.soctrace.framesoc.ui.gantt.snapshot.GanttSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventTableDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
@@ -253,6 +255,8 @@ public class GanttView extends AbstractGanttView {
 
 	@Override
 	public void dispose() {
+		// Prevent exit in order to avoid exception when launching a second
+		// Gantt
 		Platform.setImplicitExit(false);
 		if (loaderJob != null)
 			loaderJob.cancel();
@@ -308,8 +312,10 @@ public class GanttView extends AbstractGanttView {
 
 					// Change duration to load one percent of the trace around
 					// the event
-					long duration = (des.getTrace().getMaxTimestamp() - des
-							.getTrace().getMinTimestamp()) / 100;
+					long duration = Math.max(
+							(des.getTrace().getMaxTimestamp() - des.getTrace()
+									.getMinTimestamp()) / 100,
+							TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING);
 					start = Math.max(des.getTrace().getMinTimestamp(),
 							des.getStartTimestamp() - duration / 2);
 					end = Math.min(des.getTrace().getMaxTimestamp(),
@@ -1379,16 +1385,49 @@ public class GanttView extends AbstractGanttView {
 				});
 
 				// Show in table (and higllight event)
-				/*MenuItem showInfo = new MenuItem(contextMenu, SWT.NONE);
-				showInfo.setText("Show Event Info");
+				MenuItem showInfo = new MenuItem(contextMenu, SWT.NONE);
+				showInfo.setText("Show in Event Table");
 				showInfo.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
-						System.out.println("Click!" + e.getSource());
+						switchToEventTable(
+								selectedEvent,
+								fPresentationProvider
+										.getEventName(selectedEvent),
+								getTimeGraphViewer().getTimeGraphControl()
+										.getExpandedElements()[getTimeGraphViewer()
+										.getTimeGraphControl().getItemIndexAtY(
+												rightClickEvent.y)].getName());
 					}
-				});*/
+				});
 			}
 		});
 	}	
+	
+	private void switchToEventTable(ITimeEvent event, String typeName, String eventProducerName) {
+		
+		long startTimestamp = event.getTime();
+		long endTimestamp = event.getTime() + event.getDuration();
+		long duration = event.getDuration();
+		
+		// Punctual event
+		if (duration == 0)
+			// Show only the minimum between MIN_TIME_UNIT_SHOWING time units around or one
+			// percent of the trace
+			duration = Math.min(TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING,
+					(currentShownTrace.getMaxTimestamp() - currentShownTrace
+							.getMinTimestamp()) / 100);
+
+		EventTableDescriptor des = new EventTableDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(startTimestamp - duration / 2);
+		des.setEndTimestamp(endTimestamp + duration / 2);
+		des.setEventProducerName(eventProducerName);
+		des.setTypeName(typeName);
+		des.setEventStartTimeStamp(startTimestamp);
+
+		FramesocBus.getInstance().send(
+				FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL, des);
+	}
 
 }
