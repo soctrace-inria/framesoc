@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.core.expressions,
  org.eclipse.ui.navigator.resources,
  fr.inria.soctrace.lib.model,
  org.eclipse.jdt.annotation;bundle-version="[1.1.0,2.0.0)";resolution:=optional,
- fr.inria.soctrace.lib.javafx;bundle-version="1.0.0"
+ fr.inria.soctrace.lib.javafx;bundle-version="1.0.0",
+ fr.inria.soctrace.lib.javafx
 Export-Package: fr.inria.linuxtools.internal.tmf.ui;x-friends:="fr.inria.linuxtools.tmf.ui.tests,fr.inria.linuxtools.tmf.ctf.ui.tests",
  fr.inria.linuxtools.internal.tmf.ui.commands;x-internal:=true,
  fr.inria.linuxtools.internal.tmf.ui.dialogs;x-internal:=true,
