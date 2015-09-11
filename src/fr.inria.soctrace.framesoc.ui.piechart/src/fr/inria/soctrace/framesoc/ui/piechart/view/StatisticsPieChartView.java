@@ -10,8 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.piechart.view;
 
-import java.awt.Color;
-import java.awt.Font;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -19,6 +18,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import javafx.collections.ObservableList;
+import javafx.embed.swt.FXCanvas;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
+import javafx.scene.control.Tooltip;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -49,7 +56,6 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -57,7 +63,8 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -67,16 +74,10 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.StandardPieToolTipGenerator;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.general.PieDataset;
 import org.jfree.experimental.chart.swt.ChartComposite;
-import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 
 
@@ -278,7 +279,7 @@ public class StatisticsPieChartView extends FramesocPart {
 	/**
 	 * The chart parent composite
 	 */
-	private Group compositePie;
+	private FXCanvas compositePie;
 
 	/**
 	 * The table viewer
@@ -322,6 +323,12 @@ public class StatisticsPieChartView extends FramesocPart {
 	private org.eclipse.swt.graphics.Color blackColor;
 
 	protected ChartComposite chartFrame;
+
+	private PieChart pieChart;
+
+	private Group root;
+
+	private Scene scene;
 
 	/**
 	 * Constructor
@@ -431,11 +438,27 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(false);
 
 		// Composite Pie
-		compositePie = new Group(compositeLeft, SWT.NONE);
+		compositePie = new FXCanvas(compositeLeft, SWT.NONE);
 		// Fill layout with Grid Data (FILL) to allow correct resize
 		compositePie.setLayout(new FillLayout());
 		compositePie.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
+		compositePie.addListener(SWT.Resize, new Listener() {
+					public void handleEvent(Event e) {
+						pieChart.setPrefHeight(compositePie.getClientArea().height);
+						pieChart.setPrefWidth(compositePie.getClientArea().width);
+			 			}
+			 		});
+		
+		pieChart = new PieChart();
+		pieChart.setLabelsVisible(false);
+		pieChart.setStartAngle(90.0);
+		pieChart.setLegendVisible(false);
+		
+		root = new Group();
+		scene = new Scene(root);
+		root.getChildren().add(pieChart);
+		compositePie.setScene(scene);
+		
 		txtDescription = new Text(compositePie, SWT.READ_ONLY | SWT.WRAP | SWT.CENTER | SWT.MULTI);
 		txtDescription.setEnabled(false);
 		txtDescription.setEditable(false);
@@ -563,7 +586,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		createResources();
 		// clean the filter, after creating the font
 		cleanTableFilter();
-
 	}
 
 	private void createActions() {
@@ -962,7 +984,6 @@ public class StatisticsPieChartView extends FramesocPart {
 				logger.debug(dm.endMessage("finished drawing"));
 			}
 		}
-
 	}
 
 	/**
@@ -1018,7 +1039,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
-
 	}
 
 	private void cleanTableFilter() {
@@ -1050,19 +1070,19 @@ public class StatisticsPieChartView extends FramesocPart {
 	 * @param dataReady
 	 */
 	private void refresh() {
-
-		// compute graphical elements
+		// Compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
 		globalLoadInterval.copy(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
-		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
+		final ObservableList<PieChart.Data>  dataset = loader.getPieDataset(values, currentDescriptor.excluded,
 				currentDescriptor.merged.getMergedItems());
 		final StatisticsTableRow[] roots = loader.getTableDataset(values,
 				currentDescriptor.excluded, currentDescriptor.merged.getMergedItems());
 		final String title = loader.getStatName();
 		final int valuesCount = values.size();
+		final Double total = computeTotal(values);
 
 		// update the new UI
 		Display.getDefault().syncExec(new Runnable() {
@@ -1079,22 +1099,33 @@ public class StatisticsPieChartView extends FramesocPart {
 				for (Control c : compositePie.getChildren()) {
 					c.dispose();
 				}
+				
+				// Update dataset
+				pieChart.setData(dataset);
+				
+				pieChart.getData().stream().forEach(data -> {
+								Tooltip tooltip = new Tooltip();
+								
+								// Compute percentage
+								Double pValue = (data.getPieValue() * 100) / total;
+								NumberFormat formatter = new DecimalFormat("#0.00");
+								
+								NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
+							    tooltip.setText(data.getName()+ ": (" + format.format(data.getPieValue()) + ", "
+										+		formatter.format(pValue) + " %)");
+							    Tooltip.install(data.getNode(), tooltip);
 
-				// create new chart
-				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dataLoaded());
-				compositePie.setText(title);
-				chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
-						USE_BUFFER);
+							    data.pieValueProperty().addListener((observable, oldValue, newValue) -> 
+									tooltip.setText(data.getName()+ ": " + format.format(newValue) + ", "
+									+		formatter.format(pValue) + " %)"));
+							    
+							    // Set colors
+								String key = data.getName();
+								String color = "#" + getHexaColor(loader.getColor(key).getAwtColor()); 
 
-				Point size = compositePie.getSize();
-				size.x -= 5; // consider the group border
-				size.y -= 25; // consider the group border and text
-				chartFrame.setSize(size);
-
-				Point location = chartFrame.getLocation();
-				location.x += 1; // consider the group border
-				location.y += 20; // consider the group border and text
-				chartFrame.setLocation(location);
+								// Set the corresponding color
+								data.getNode().setStyle("-fx-pie-color: " + color + ";");
+							});
 
 				// update other elements
 				if (roots.length == 0) {
@@ -1110,58 +1141,8 @@ public class StatisticsPieChartView extends FramesocPart {
 				timeBar.setDisplayInterval(currentDescriptor.interval);
 				statusText.setText(getStatus(valuesCount, valuesCount));
 				enableActions(currentDescriptor.dataLoaded());
-
 			}
 		});
-	}
-
-	/**
-	 * Creates the chart.
-	 * 
-	 * @param dataset
-	 *            the dataset.
-	 * @param loader
-	 *            the pie chart loader
-	 * @param dataRequested
-	 *            flag indicating if the data have been requested for the current loader and the
-	 *            current interval
-	 * @return the pie chart
-	 */
-	private JFreeChart createChart(PieDataset dataset, String title, IPieChartLoader loader,
-			boolean dataRequested) {
-
-		JFreeChart chart = ChartFactory.createPieChart(title, dataset, HAS_LEGEND, HAS_TOOLTIPS,
-				HAS_URLS);
-
-		// legend
-		if (HAS_LEGEND) {
-			LegendTitle legend = chart.getLegend();
-			legend.setPosition(RectangleEdge.LEFT);
-		}
-
-		// plot
-		PiePlot plot = (PiePlot) chart.getPlot();
-		plot.setSectionOutlinesVisible(false);
-		plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
-		plot.setNoDataMessage("No data available "
-				+ (dataRequested ? "in this time interval" : "yet. Press the Load button."));
-		plot.setCircular(true);
-		plot.setLabelGenerator(null); // hide labels
-		plot.setBackgroundPaint(Color.WHITE);
-		plot.setOutlineVisible(false);
-		plot.setShadowPaint(Color.WHITE);
-		plot.setBaseSectionPaint(Color.WHITE);
-		StandardPieToolTipGenerator g = (StandardPieToolTipGenerator) plot.getToolTipGenerator();
-		NumberFormat format = ValueLabelProvider.getActualFormat(loader.getFormat(), getTimeUnit());
-		StandardPieToolTipGenerator sg = new StandardPieToolTipGenerator(g.getLabelFormat(),
-				format, g.getPercentFormat());
-		plot.setToolTipGenerator(sg);
-
-		for (Object o : dataset.getKeys()) {
-			String key = (String) o;
-			plot.setSectionPaint(key, loader.getColor(key).getAwtColor());
-		}
-		return chart;
 	}
 
 	public class StatisticsColumnComparator extends ViewerComparator {
@@ -1208,10 +1189,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					String v2 = r2.get(this.col);
 					rc = v1.compareTo(v2);
 				}
-			} catch (SoCTraceException e) {
-				e.printStackTrace();
-				rc = 0;
-			} catch (ParseException e) {
+			} catch (SoCTraceException | ParseException e) {
 				e.printStackTrace();
 				rc = 0;
 			}
@@ -1419,6 +1397,37 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 		
 		return output.toString();
+	}
+	
+	private String getHexaColor(java.awt.Color color) {
+		String hexValue = "";
+		List<String> colorValue = new ArrayList<String>();
+		colorValue.add(Integer.toHexString(color.getRed()));
+		colorValue.add(Integer.toHexString(color.getGreen()));
+		colorValue.add(Integer.toHexString(color.getBlue()));
+
+		for (String colorString : colorValue) {
+			if (colorString.length() <= 1) {
+				colorString = "0" + colorString;
+			}
+			hexValue = hexValue + colorString;
+		}
+
+		return hexValue;
+	}
+	
+	private Double computeTotal(Map<String, Double> values) {
+		Double total = 0.0;
+
+		Iterator<Entry<String, Double>> it = values.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry<String, Double> entry = it.next();
+			if (!currentDescriptor.excluded.contains(entry.getKey())) {
+				total += entry.getValue();
+			}
+		}
+		
+		return total;
 	}
 
 }
