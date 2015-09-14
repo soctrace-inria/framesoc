@@ -723,11 +723,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fTimeGraphWrapper = wrapper;
 		final TimeGraphCombo combo = wrapper.getTimeGraphCombo();
 
-		// Event Producer Tree
-		combo.setTreeContentProvider(new TimeGraphTreeContentProvider());
-		combo.setTreeLabelProvider(fLabelProvider);
-		//combo.setTreeColumns(fColumns);
-
 		// Event Producer Context Menu
 		/*final Tree tree = combo.getTreeViewer().getTree();
 		final Menu menu = new Menu(tree);
@@ -883,7 +878,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		fTimeGraphWrapper.getTimeGraphViewer().getTimeGraphControl()
 				.setStatusLineManager(statusLineManager);
-
+	
 		// -------------------------------
 		// TIME MANAGEMENT BAR
 		// -------------------------------
@@ -949,7 +944,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		makeActions();
 		contributeToActionBars();
 		enableActions(false);
-
 	}
 
 	@Override
