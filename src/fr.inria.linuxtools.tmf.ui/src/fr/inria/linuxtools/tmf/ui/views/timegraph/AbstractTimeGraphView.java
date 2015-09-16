@@ -825,8 +825,6 @@ public abstract class AbstractTimeGraphView extends TmfView {
             TimeGraphComboWrapper wrapper = new TimeGraphComboWrapper(parent, SWT.NONE);
             fTimeGraphWrapper = wrapper;
             TimeGraphCombo combo = wrapper.getTimeGraphCombo();
-            combo.setTreeContentProvider(new TreeContentProvider());
-            combo.setTreeLabelProvider(fLabelProvider);
             //combo.setTreeColumns(fColumns);
             combo.setFilterContentProvider(new TreeContentProvider());
             combo.setFilterLabelProvider(fFilterLabelProvider);

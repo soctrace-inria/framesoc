@@ -221,7 +221,6 @@ public class GanttView extends AbstractGanttView {
 	 */
 	public GanttView() {
 		super(ID, new GanttPresentationProvider());
-		setTreeLabelProvider(new TimeGraphTreeLabelProvider());
 		setFilterColumns(new String[] { PRODUCER });
 		setFilterLabelProvider(new TimeGraphTreeLabelProvider());
 		setEntryComparator(new GanttViewEntryComparator());
@@ -1285,10 +1284,11 @@ public class GanttView extends AbstractGanttView {
 				MouseEvent rightClickEvent = getTimeGraphViewer()
 						.getTimeGraphControl().getRightClickEvent();
 
-				if (rightClickEvent == null) {
+				if (rightClickEvent == null || getTimeGraphViewer().getTimeGraphControl().getItemIndexAtY(
+						rightClickEvent.y) < 0) {
 					return;
 				}
-
+				
 				// Get the corresponding event
 				ITimeEvent selectedEvent = Utils.findEvent(
 						getTimeGraphViewer().getTimeGraphControl()

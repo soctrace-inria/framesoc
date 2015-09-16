@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.WritableImage;
+
 import javax.imageio.ImageIO;
 
 import fr.inria.soctrace.framesoc.core.FramesocConstants;
@@ -38,8 +41,9 @@ public class StatisticsPieChartSnapshot extends Snapshot {
 				+ pieView.getCurrentShownTrace().getAlias() + SUFFIX_SNAPSHOT
 				+ ".png");
 		try {
-		ImageIO.write(pieView.getChartFrame().getChart()
-					.createBufferedImage(width, height), "png", outputFile);
+			WritableImage snapshot = new WritableImage(width,  height); 
+			pieView.getScene().snapshot(snapshot);
+			ImageIO.write(SwingFXUtils.fromFXImage(snapshot, null), "png", outputFile);
 
 			// Get value in CSV file
 			String CSVValues = getTableInfo();

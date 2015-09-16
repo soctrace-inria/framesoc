@@ -157,9 +157,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	/** The presentation provider for this view */
 	private final TimeGraphPresentationProvider fPresentation;
 
-	/** The tree label provider, or null if combo is not used */
-	private TimeGraphTreeLabelProvider fLabelProvider = null;
-
 	/** The relative weight of the sash, ignored if combo is not used */
 	private int[] fWeight = { 1, 4 };
 
@@ -469,16 +466,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 */
 	protected ITimeGraphPresentationProvider2 getPresentationProvider() {
 		return fPresentation;
-	}
-
-	/**
-	 * Sets the tree label provider. This should be called from the constructor.
-	 * 
-	 * @param tlp
-	 *            The tree label provider
-	 */
-	protected void setTreeLabelProvider(final TimeGraphTreeLabelProvider tlp) {
-		fLabelProvider = tlp;
 	}
 
 	/**

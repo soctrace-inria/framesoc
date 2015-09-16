@@ -2423,7 +2423,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     @Override
     public void mouseUp(MouseEvent e) {
         if (fPendingMenuDetectEvent != null && e.button == 3) {
-         //   menuDetected(fPendingMenuDetectEvent);
+            menuDetected(fPendingMenuDetectEvent);
         }
         if (DRAG_NONE != fDragState) {
             setCapture(false);

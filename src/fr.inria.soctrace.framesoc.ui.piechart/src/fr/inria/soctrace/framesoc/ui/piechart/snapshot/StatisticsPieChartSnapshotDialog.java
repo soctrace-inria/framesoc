@@ -82,7 +82,7 @@ private StatisticsPieChartView histoView;
 		snapshotWidth.setIncrement(1);
 		snapshotWidth.setMaximum(100000);
 		snapshotWidth.setMinimum(10);
-		snapshotWidth.setSelection(histoView.getChartFrame().getBounds().width);
+		snapshotWidth.setSelection(histoView.getCompositePie().getClientArea().width);
 		snapshotWidth.setToolTipText("Width of the generated image in pixels (10 - 100000)");
 		new Label(groupSnapshotSettings, SWT.NONE);
 		
@@ -94,7 +94,7 @@ private StatisticsPieChartView histoView;
 		snapshotHeight.setIncrement(1);
 		snapshotHeight.setMaximum(100000);
 		snapshotHeight.setMinimum(10);
-		snapshotHeight.setSelection(histoView.getChartFrame().getBounds().height);
+		snapshotHeight.setSelection(histoView.getCompositePie().getClientArea().height);
 		snapshotHeight.setToolTipText("Height of the generated image in pixels  (10 - 100000)");
 		new Label(groupSnapshotSettings, SWT.NONE);
 

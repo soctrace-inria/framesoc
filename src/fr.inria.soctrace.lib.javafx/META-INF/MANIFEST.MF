@@ -8,9 +8,11 @@ Bundle-Vendor: INRIA
 Bundle-ClassPath: lib/jfxrt.jar,
  lib/jfxswt.jar
 Export-Package: javafx.application,
+ javafx.beans.binding,
  javafx.beans.property,
  javafx.beans.value,
  javafx.collections,
+ javafx.embed.swing,
  javafx.embed.swt;
   uses:="org.eclipse.swt.events,
    javafx.scene.input,
@@ -24,11 +26,14 @@ Export-Package: javafx.application,
    org.eclipse.swt.dnd,
    javafx.util",
  javafx.event,
+ javafx.geometry,
  javafx.scene,
  javafx.scene.chart,
  javafx.scene.control,
+ javafx.scene.image,
  javafx.scene.input,
  javafx.scene.layout,
+ javafx.stage,
  javafx.util
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.swt;bundle-version="3.103.2"

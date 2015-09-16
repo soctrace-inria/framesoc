@@ -33,17 +33,12 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -71,8 +66,6 @@ import fr.inria.linuxtools.tmf.core.signal.TmfTraceSelectedSignal;
 import fr.inria.linuxtools.tmf.core.timestamp.ITmfTimestamp;
 import fr.inria.linuxtools.tmf.core.timestamp.TmfNanoTimestamp;
 import fr.inria.linuxtools.tmf.core.timestamp.TmfTimeRange;
-import fr.inria.linuxtools.tmf.core.timestamp.TmfTimestamp;
-import fr.inria.linuxtools.tmf.core.timestamp.TmfTimestampDelta;
 import fr.inria.linuxtools.tmf.core.trace.ITmfTrace;
 import fr.inria.linuxtools.tmf.core.trace.TmfTraceManager;
 import fr.inria.linuxtools.tmf.ui.editors.ITmfTraceEditor;
@@ -129,9 +122,6 @@ public class CallStackView extends TmfView {
 
     // Fraction of a function duration to be added as spacing
     private static final double SPACING_RATIO = 0.01;
-
-    private static final Image THREAD_IMAGE = Activator.getDefault().getImageFromPath("icons/obj16/thread_obj.gif"); //$NON-NLS-1$
-    private static final Image STACKFRAME_IMAGE = Activator.getDefault().getImageFromPath("icons/obj16/stckframe_obj.gif"); //$NON-NLS-1$
 
     private static final String IMPORT_MAPPING_ICON_PATH = "icons/etool16/import.gif"; //$NON-NLS-1$
 
@@ -304,103 +294,8 @@ public class CallStackView extends TmfView {
         }
     }
 
-    private class TreeContentProvider implements ITreeContentProvider {
 
-        @Override
-        public void dispose() {
-        }
 
-        @Override
-        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-        }
-
-        @Override
-        public Object[] getElements(Object inputElement) {
-            return (ITimeGraphEntry[]) inputElement;
-        }
-
-        @Override
-        public Object[] getChildren(Object parentElement) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) parentElement;
-            return entry.getChildren().toArray();
-        }
-
-        @Override
-        public Object getParent(Object element) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) element;
-            return entry.getParent();
-        }
-
-        @Override
-        public boolean hasChildren(Object element) {
-            ITimeGraphEntry entry = (ITimeGraphEntry) element;
-            return entry.hasChildren();
-        }
-
-    }
-
-    private class TreeLabelProvider implements ITableLabelProvider {
-
-        @Override
-        public void addListener(ILabelProviderListener listener) {
-        }
-
-        @Override
-        public void dispose() {
-        }
-
-        @Override
-        public boolean isLabelProperty(Object element, String property) {
-            return false;
-        }
-
-        @Override
-        public void removeListener(ILabelProviderListener listener) {
-        }
-
-        @Override
-        public Image getColumnImage(Object element, int columnIndex) {
-            if (columnIndex == 0) {
-                if (element instanceof ThreadEntry) {
-                    return THREAD_IMAGE;
-                } else if (element instanceof CallStackEntry) {
-                    CallStackEntry entry = (CallStackEntry) element;
-                    if (entry.getFunctionName().length() > 0) {
-                        return STACKFRAME_IMAGE;
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public String getColumnText(Object element, int columnIndex) {
-            if (element instanceof ThreadEntry) {
-                if (columnIndex == 0) {
-                    return ((ThreadEntry) element).getName();
-                }
-            } else if (element instanceof CallStackEntry) {
-                CallStackEntry entry = (CallStackEntry) element;
-                if (columnIndex == 0) {
-                    return entry.getFunctionName();
-                } else if (columnIndex == 1 && entry.getFunctionName().length() > 0) {
-                    int depth = entry.getStackLevel();
-                    return Integer.toString(depth);
-                } else if (columnIndex == 2 && entry.getFunctionName().length() > 0) {
-                    ITmfTimestamp ts = new TmfTimestamp(entry.getStartTime(), ITmfTimestamp.NANOSECOND_SCALE);
-                    return ts.toString();
-                } else if (columnIndex == 3 && entry.getFunctionName().length() > 0) {
-                    ITmfTimestamp ts = new TmfTimestamp(entry.getEndTime(), ITmfTimestamp.NANOSECOND_SCALE);
-                    return ts.toString();
-                } else if (columnIndex == 4 && entry.getFunctionName().length() > 0) {
-                    ITmfTimestamp ts = new TmfTimestampDelta(entry.getEndTime() - entry.getStartTime(), ITmfTimestamp.NANOSECOND_SCALE);
-                    return ts.toString();
-                }
-            }
-            return ""; //$NON-NLS-1$
-        }
-
-    }
 
     private class BuildThread extends Thread {
         private final ITmfTrace fBuildTrace;
@@ -496,10 +391,6 @@ public class CallStackView extends TmfView {
     @Override
     public void createPartControl(Composite parent) {
         fTimeGraphCombo = new TimeGraphCombo(parent, SWT.NONE);
-
-        fTimeGraphCombo.setTreeContentProvider(new TreeContentProvider());
-
-        fTimeGraphCombo.setTreeLabelProvider(new TreeLabelProvider());
 
         /*fTimeGraphCombo.setTreeColumns(COLUMN_NAMES);
 

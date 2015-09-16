@@ -74,13 +74,8 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.themes.ColorUtil;
 import org.eclipse.wb.swt.ResourceManager;
-import org.jfree.experimental.chart.swt.ChartComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-
-
 
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
@@ -321,8 +316,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			JFaceResources.getResources());
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
-
-	protected ChartComposite chartFrame;
 
 	private PieChart pieChart;
 
@@ -588,6 +581,14 @@ public class StatisticsPieChartView extends FramesocPart {
 		cleanTableFilter();
 	}
 
+	public Scene getScene() {
+		return scene;
+	}
+
+	public FXCanvas getCompositePie() {
+		return compositePie;
+	}
+
 	private void createActions() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
@@ -658,10 +659,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			}
 		}
 		return v;
-	}
-	
-	public ChartComposite getChartFrame() {
-		return chartFrame;
 	}
 	
 	public TreeViewer getTableTreeViewer() {

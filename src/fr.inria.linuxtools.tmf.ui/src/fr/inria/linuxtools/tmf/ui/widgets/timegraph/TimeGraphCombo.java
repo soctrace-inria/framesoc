@@ -23,15 +23,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swt.FXCanvas;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -42,6 +49,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
 import org.eclipse.jface.action.Action;
@@ -90,8 +98,6 @@ public class TimeGraphCombo extends Composite {
     // ------------------------------------------------------------------------
 
     private static final TimeGraphEntry FILLER = new TimeGraphEntry("FILLER", -1, -1); //$NON-NLS-1$
-
-  //  private static final String ITEM_HEIGHT = "$height$"; //$NON-NLS-1$
 
     // ------------------------------------------------------------------------
     // Fields
@@ -150,6 +156,8 @@ public class TimeGraphCombo extends Composite {
     private TextField treeHeader;
 
     private FXCanvas mainFxCanvas;
+
+    private ContextMenu contextMenu;
 
     /**
      * The SelectionListenerWrapper is used to intercept the filler items from
@@ -302,10 +310,23 @@ public class TimeGraphCombo extends Composite {
         fTreeViewer = new TreeView<>();
         fTreeViewer.setShowRoot(false);
         fTreeViewer.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        createTreeContextMenu();
+        contextMenu.centerOnScreen();
+        contextMenu.setAutoHide(true);
+        fTreeViewer.setContextMenu(contextMenu);
+
         fTreeViewer.setCellFactory(new Callback<TreeView<ITimeGraphEntry>, TreeCell<ITimeGraphEntry>>() {
             @Override
             public TreeCell<ITimeGraphEntry> call(TreeView<ITimeGraphEntry> p) {
-                return new TreeCell<ITimeGraphEntry>() {
+
+                final ContextMenu treeItemMenu = new ContextMenu();
+                final ContextMenu treeMenu = fTreeViewer.getContextMenu();
+                if (treeMenu != null) {
+                    treeItemMenu.getItems().addAll(treeMenu.getItems());
+                    treeItemMenu.getItems().add(new SeparatorMenuItem());
+                }
+
+                TreeCell<ITimeGraphEntry> treeCell = new TreeCell<ITimeGraphEntry>() {
                     @Override
                     public void updateItem(ITimeGraphEntry item, boolean empty) {
                         if(item != null && (item == FILLER || item.equals(FILLER))) {
@@ -322,8 +343,13 @@ public class TimeGraphCombo extends Composite {
                         }
                     }
                 };
+
+                treeCell.setContextMenu(treeItemMenu);
+
+                return treeCell;
             }
         });
+
 
         fTreeRoot = new TreeItem<>(new TimeGraphEntry("Root", 0 , 0));//$NON-NLS-1$
 
@@ -331,9 +357,7 @@ public class TimeGraphCombo extends Composite {
         vbox.getChildren().add(fTreeViewer);
         root.getChildren().add(vbox);
 
-        //fTreeViewer.set
         //fTreeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
-        //tree.setHeaderVisible(true);
         //tree.setLinesVisible(true);
 
         fTimeGraphViewer = new TimeGraphViewer(sash, SWT.NONE);
@@ -345,26 +369,6 @@ public class TimeGraphCombo extends Composite {
         addFilter(fFilter);
 
         fFilterDialog = new TimeGraphFilterDialog(getShell());
-
-        // Feature in Windows. The tree vertical bar reappears when
-        // the control is resized so we need to hide it again.
-        // Bug in Linux. The tree header height is 0 in constructor,
-        // so we need to reset it later when the control is resized.
-        /*fTreeViewer.addControlListener(new ControlAdapter() {
-            private int depth = 0;
-
-            @Override
-            public void controlResized(ControlEvent e) {
-                if (depth == 0) {
-                    depth++;
-                    tree.getVerticalBar().setEnabled(false);
-                    // this can trigger controlResized recursively
-                    tree.getVerticalBar().setVisible(false);
-                    depth--;
-                }
-                fTimeGraphViewer.setHeaderHeight(fTreeViewer.set.getHeaderHeight());
-            }
-        });*/
 
         // ensure synchronization of expanded items between tree and time graph
         fTimeGraphViewer.addTreeListener(new ITimeGraphTreeListener() {
@@ -393,9 +397,18 @@ public class TimeGraphCombo extends Composite {
         fTreeViewer.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
-                TreeItem<ITimeGraphEntry> treeItem = fTreeViewer.getSelectionModel().getSelectedItem();
-                        //fTreeRoot.getItem(new Point(event.x, event.y));
-                if (treeItem == null || treeItem.getValue() == FILLER) {
+                ITimeGraphEntry treeItem = null; //fTreeViewer.getSelectionModel().getSelectedItem();
+
+                int index = getTimeGraphViewer()
+                        .getTimeGraphControl().getItemIndexAtY(
+                                (int) e.getY());
+
+                if(index >= 0) {
+                    treeItem = fTimeGraphViewer.getTimeGraphControl()
+                                .getExpandedElements()[index];
+                }
+
+                if (treeItem == null || treeItem == FILLER) {
                     e.consume();
                     List<TreeItem<ITimeGraphEntry>> expandedTreeItems = getVisibleExpandedItems(false);
                     if (expandedTreeItems.size() == 0) {
@@ -405,7 +418,6 @@ public class TimeGraphCombo extends Composite {
                     }
                     // this prevents from scrolling up when selecting
                     // the partially visible tree item at the bottom
-                    //tree.select(expandedTreeItems.get(expandedTreeItems.size() - 1));
                     fTreeViewer.getSelectionModel().clearSelection();
                     fTimeGraphViewer.setSelection(null);
                 }
@@ -423,7 +435,6 @@ public class TimeGraphCombo extends Composite {
                 fTimeGraphViewer.setTopIndex(scrollBar.getSelection() - lineScrolled);
                 alignTreeItems(false);
             }
-
         });
 
         // prevent key stroke from selecting a filler tree item
@@ -475,9 +486,11 @@ public class TimeGraphCombo extends Composite {
                     return;
                 }
 
-                Object selection = fTreeViewer.getSelectionModel().getSelectedItem().getValue();
-                if (selection instanceof ITimeGraphEntry && selection != FILLER) {
-                    fTimeGraphViewer.setSelection((ITimeGraphEntry) selection);
+                if (fTreeViewer.getSelectionModel().getSelectedItem() != null) {
+                    Object selection = fTreeViewer.getSelectionModel().getSelectedItem().getValue();
+                    if (selection instanceof ITimeGraphEntry && selection != FILLER) {
+                        fTimeGraphViewer.setSelection((ITimeGraphEntry) selection);
+                    }
                 }
                 alignTreeItems(false);
             }
@@ -537,21 +550,11 @@ public class TimeGraphCombo extends Composite {
                 }
             }
         });
-        fTimeGraphViewer.getTimeGraphScale().addMouseTrackListener(new MouseTrackAdapter() {
-            @Override
-            public void mouseEnter(org.eclipse.swt.events.MouseEvent e) {
-                if (fTreeViewer.isFocused()) {
-                    fTimeGraphViewer.getTimeGraphControl().setFocus();
-                }
-            }
-        });
 
         // The filler rows are required to ensure alignment when the tree does
-        // not have a
-        // visible horizontal scroll bar. The tree does not allow its top item
-        // to be set
-        // to a value that would cause blank space to be drawn at the bottom of
-        // the tree.
+        // not have a visible horizontal scroll bar. The tree does not allow its
+        // top item to be set to a value that would cause blank space to be
+        // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight();
 
         sash.setWeights(weights);
@@ -859,7 +862,6 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = true;
         setTreeInput(input);
         fTreeViewer.setRoot(fTreeRoot);
-        //fTreeViewer.set(input);
         for (SelectionListenerWrapper listenerWrapper : fSelectionListenerMap.values()) {
             listenerWrapper.selection = null;
         }
@@ -889,18 +891,21 @@ public class TimeGraphCombo extends Composite {
             fTreeRoot.getChildren().add(new TreeItem<>(FILLER));
         }
 
-        final ScrollBar verticalScrollBar = (ScrollBar) fTreeViewer.lookup(".scroll-bar:vertical");
-        if (verticalScrollBar != null) {
-            // Ensure that the scroll bar is never visible
-            verticalScrollBar.visibleProperty().addListener(new ChangeListener<Boolean>() {
-                @Override
-                public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
-                    if (arg2) {
-                        // Always set to false
-                        verticalScrollBar.setVisible(false);
+        Set<Node> verticalScrollBars = fTreeViewer.lookupAll(".scroll-bar:vertical"); //$NON-NLS-1$
+        for (Node sBar : verticalScrollBars) {
+            ScrollBar verticalScrollBar = (ScrollBar) sBar;
+            if (verticalScrollBar.getOrientation() == Orientation.VERTICAL) {
+                // Ensure that the scroll bar is never visible
+                verticalScrollBar.visibleProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+                        if (arg2) {
+                            // Always set to false
+                            verticalScrollBar.setVisible(false);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         setTreeItemsHeight();
@@ -1027,7 +1032,7 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = true; // block the tree selection changed
                                       // listener
         if (selection != null) {
-            fTreeViewer.getSelectionModel().select(treeItems.get(selection));//setSelection(structuredSelection);
+            fTreeViewer.getSelectionModel().select(treeItems.get(selection));
         } else {
             fTreeViewer.getSelectionModel().clearSelection();
         }
@@ -1221,8 +1226,6 @@ public class TimeGraphCombo extends Composite {
 
         // Set the time scale to the same size as the tree header
         fTimeGraphViewer.setHeaderHeight((int) treeHeader.getHeight());
-        layout();
-        update();
         fTimeGraphViewer.resizeControls();
         fTimeGraphViewer.refresh();
 
@@ -1250,6 +1253,134 @@ public class TimeGraphCombo extends Composite {
                 expandTimeGraphTree((ITimeGraphEntry) t.getValue());
             }*/
         }
+    }
+
+     private void createTreeContextMenu() {
+        contextMenu = new ContextMenu();
+
+        // hide
+        final MenuItem hide = new MenuItem("Hide"); //$NON-NLS-1$
+        contextMenu.getItems().add(hide);
+
+        hide.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                ITimeGraphEntry node =
+                        getTreeViewer().getSelectionModel()
+                        .getSelectedItem().getValue();
+               addFiltered(node);
+               refresh();
+            }
+        });
+
+        hide.disableProperty().bind(
+                  Bindings.isEmpty(
+                            getTreeViewer().getSelectionModel()
+                            .getSelectedItems()));
+
+        contextMenu.setOnShowing(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent e) {
+                System.out.println("Showing"); //$NON-NLS-1$
+            }
+        });
+
+        contextMenu.setOnShown(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent e) {
+                System.out.println("Menu"); //$NON-NLS-1$
+            }
+        });
+      /*  contextMenu.setOnShown(new EventHandler<WindowEvent>() {
+
+            @Override
+            public void handle(WindowEvent e) {
+
+                if (getTreeViewer().getSelectionModel()
+                        .getSelectedItem() == null) {
+                    return;
+                }
+
+                // clean menu
+                //contextMenu.getItems().clear();
+
+                 final ITimeGraphEntry node = getTreeViewer().getSelectionModel().getSelectedItem().getValue();
+                // expand/collapse
+                if (node.hasChildren()) {
+                    MenuItem exp = new MenuItem("Collapse");
+                    final boolean expanded = getTreeViewer().getSelectionModel()
+                            .getSelectedItem().isExpanded();
+                    exp.setText(expanded ? "Collapse" : "Expand All");
+                    exp.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent e) {
+                            if (expanded) {
+                                setExpandedState(node,
+                                        false);
+                            } else {
+                                expandFromNode(node);
+                            }
+                        }
+
+                        private void expandFromNode(ITimeGraphEntry node) {
+                            setExpandedState(node, true);
+                            for (ITimeGraphEntry entry : node.getChildren()) {
+                                expandFromNode(entry);
+                            }
+                        }
+                    });
+
+                    contextMenu.getItems().add(exp);
+
+                    // restore
+                    Set<ITimeGraphEntry> filteredSet = getFiltered();
+                    List<ITimeGraphEntry> filteredChildren = new ArrayList<>();
+                    getFilteredChildren(filteredChildren, filteredSet, node);
+                    if (filteredChildren.size() > 0) {
+                        for (ITimeGraphEntry entry : filteredChildren) {
+                            filteredSet.remove(entry);
+                        }
+                        final List<Object> newFiltered = new ArrayList<>();
+                        for (ITimeGraphEntry entry : filteredSet) {
+                            newFiltered.add(entry);
+                        }
+                        MenuItem restore = new MenuItem(
+                                "Restore hidden children");
+                        restore.setOnAction(new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent actionEvent) {
+                                setFilteredEntries(
+                                        newFiltered);
+                                refresh();
+                            }
+                        });
+                        contextMenu.getItems().add(restore);
+                    }
+                }
+
+
+            }
+
+            private void getFilteredChildren(
+                    List<ITimeGraphEntry> filteredChildren,
+                    Set<ITimeGraphEntry> filteredSet, ITimeGraphEntry entry) {
+                for (ITimeGraphEntry e : entry.getChildren()) {
+                    if (filteredSet.contains(e)) {
+                        filteredChildren.add(e);
+                    }
+                    getFilteredChildren(filteredChildren, filteredSet, e);
+                }
+            }
+
+            private Set<ITimeGraphEntry> getFiltered() {
+                List<Object> filtered = getFilteredEntries();
+                Set<ITimeGraphEntry> filteredSet = new HashSet<>();
+                for (Object e : filtered) {
+                    filteredSet.add(((ITimeGraphEntry) e));
+                }
+                return filteredSet;
+            }
+        });*/
     }
 
 }
