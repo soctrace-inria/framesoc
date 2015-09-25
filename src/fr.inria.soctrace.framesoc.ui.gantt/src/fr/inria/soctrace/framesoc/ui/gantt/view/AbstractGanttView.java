@@ -958,6 +958,8 @@ public abstract class AbstractGanttView extends FramesocPart {
 			}
 		});
 
+		createContextMenu();
+		
 		// -------------------------------
 		// TOOL BAR
 		// -------------------------------
@@ -1212,5 +1214,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected TimeGraphFilterDialog getTypeFilterDialog() {
 		return fTypeFilterDialog;
 	}
+	
+	public abstract void createContextMenu();
 
 }

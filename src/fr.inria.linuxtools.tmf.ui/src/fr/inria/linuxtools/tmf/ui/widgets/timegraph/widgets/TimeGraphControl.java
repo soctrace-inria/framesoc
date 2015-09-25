@@ -65,6 +65,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphColorListener;
@@ -175,6 +176,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private TimestampFormat fFormatter = new TimestampFormat();
     private boolean snapshot = false;
     private Rectangle snapBounds;
+
+    private Menu contextMenu;
+    private MouseEvent rightClickEvent;
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -321,6 +325,34 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public void setTimeGraphScale(TimeGraphScale timeGraphScale) {
         fTimeGraphScale = timeGraphScale;
+    }
+
+    /**
+     * Get the context menu
+     *
+     * @return the context menu
+     */
+    public Menu getContextMenu() {
+        return contextMenu;
+    }
+
+    /**
+     * Set the context menu variable
+     *
+     * @param contextMenu
+     *            the context menu to be assigned
+     */
+    public void setContextMenu(Menu contextMenu) {
+        this.contextMenu = contextMenu;
+    }
+
+    /**
+     * Get the right-click event when the context menu was called
+     *
+     * @return the right-click event
+     */
+    public MouseEvent getRightClickEvent() {
+        return rightClickEvent;
     }
 
     /**
@@ -1131,7 +1163,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * @return the index of the item at the given location, of -1 if none.
      * @since 3.0
      */
-    protected int getItemIndexAtY(int y) {
+    public int getItemIndexAtY(int y) {
         if (y < 0) {
             return -1;
         }
@@ -2259,6 +2291,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 getCtrlSize().x - fTimeProvider.getNameSpace() <= 0) {
             return;
         }
+        contextMenu.setVisible(false);
         int idx;
         if (1 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
             int nameSpace = fTimeProvider.getNameSpace();
@@ -2339,7 +2372,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fTime1bak = fTimeProvider.getTime1();
                 updateCursor(e.x, e.stateMask);
             }
-        } else if (3 == e.button) {
+        } else if (3 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == SWT.CTRL) { // Right-click + ctrl
             setCapture(true);
             fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), getCtrlSize().x - RIGHT_MARGIN);
             fDragX0 = fDragX;
@@ -2348,6 +2381,12 @@ public class TimeGraphControl extends TimeGraphBaseControl
             redraw();
             updateCursor(e.x, e.stateMask);
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
+        } else if (e.button == 3) // Just right-click
+        {
+            // Allow menu
+            contextMenu.setVisible(true);
+            // Save event
+            rightClickEvent = e;
         }
     }
 

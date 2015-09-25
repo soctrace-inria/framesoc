@@ -31,24 +31,38 @@ import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.wb.swt.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs.TimeGraphFilterDialog;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ILinkEvent;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
+import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColor;
+import fr.inria.soctrace.framesoc.ui.colors.FramesocColorManager;
 import fr.inria.soctrace.framesoc.ui.gantt.Activator;
 import fr.inria.soctrace.framesoc.ui.gantt.GanttContributionManager;
 import fr.inria.soctrace.framesoc.ui.gantt.loaders.CpuEventDrawer;
@@ -60,6 +74,7 @@ import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
 import fr.inria.soctrace.framesoc.ui.gantt.snapshot.GanttSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventTableDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
@@ -285,8 +300,10 @@ public class GanttView extends AbstractGanttView {
 					focusEventDescriptor = (TraceConfigurationDescriptor) data;
 					
 					// Change duration to load one percent of the trace around the event
-					long duration = (des.getTrace().getMaxTimestamp() - des
-							.getTrace().getMinTimestamp()) / 100;
+					long duration = Math.max(
+							(des.getTrace().getMaxTimestamp() - des.getTrace()
+									.getMinTimestamp()) / 100,
+							TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING);
 					start = Math.max(des.getTrace().getMinTimestamp(), des.getStartTimestamp() - duration / 2);
 					end = Math.min(des.getTrace().getMaxTimestamp(), des.getEndTimestamp() + duration / 2);
 				}
@@ -1123,4 +1140,167 @@ public class GanttView extends AbstractGanttView {
 		return output.toString();
 	}
 	
+	@Override
+	public void createContextMenu() {
+		final Menu contextMenu = new Menu(getTimeGraphViewer().getTimeGraphControl());
+		getTimeGraphViewer().getTimeGraphControl().setContextMenu(contextMenu);
+		getTimeGraphViewer().getTimeGraphControl().setMenu(
+				getTimeGraphViewer().getTimeGraphControl().getContextMenu());
+		contextMenu.addMenuListener(new MenuAdapter() {
+			@Override
+			public void menuShown(MenuEvent menuEvent) {
+				// clean menu
+				MenuItem[] items = getTimeGraphViewer().getTimeGraphControl()
+						.getContextMenu().getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+
+				final MouseEvent rightClickEvent = getTimeGraphViewer()
+						.getTimeGraphControl().getRightClickEvent();
+
+				if (rightClickEvent == null) {
+					return;
+				}
+
+				// Get the corresponding event
+				final ITimeEvent selectedEvent = Utils.findEvent(
+						getTimeGraphViewer().getTimeGraphControl()
+								.getExpandedElements()[getTimeGraphViewer()
+								.getTimeGraphControl().getItemIndexAtY(
+										rightClickEvent.y)],
+						getTimeGraphViewer().getTimeGraphControl().getTimeAtX(
+								rightClickEvent.x), 0);
+				// String name = fTimeGraphProvider.getEventName(selectedEvent);
+
+				// If there is no event at the given position
+				if (selectedEvent == null || fPresentationProvider
+						.getStateTableIndex(selectedEvent) < 0) {
+					return;
+				}
+
+				// Hide type
+				MenuItem hideType = new MenuItem(getTimeGraphViewer()
+						.getTimeGraphControl().getContextMenu(), SWT.NONE);
+				hideType.setText("Hide Type");
+				hideType.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						// Find the type ID
+						int typeIndex = fPresentationProvider
+								.getStateTableIndex(selectedEvent);
+						
+						// Add it to the filtered types
+						List<Integer> filteredTypes = fPresentationProvider
+								.getFilteredTypes();
+						filteredTypes.add(typeIndex);
+						fPresentationProvider.setFilteredTypes(filteredTypes);
+
+						// Synchronize with filter action
+						for (Object o : visibleTypeNodes) {
+							if (o instanceof EventTypeNode) {
+								EventTypeNode type = (EventTypeNode) o;
+								if (type.getId() == typeIndex) {
+									visibleTypeNodes.remove(o);
+									typeFilterAction.setChecked(true);
+									break;
+								}
+							}
+						}
+						refresh();
+					}
+				});
+
+				// Change color
+				MenuItem changeColor = new MenuItem(contextMenu, SWT.NONE);
+				changeColor.setText("Change Color Type");
+				changeColor.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+
+						// Get the current color
+						Color c = getTimeGraphViewer().getTimeGraphControl()
+								.getEventColorMap()[fPresentationProvider
+								.getStateTableIndex(selectedEvent)];
+						ColorDialog colorDialog = new ColorDialog(Display
+								.getDefault().getActiveShell());
+						// Set the default color of the color dialog to the
+						// current color
+						colorDialog.setRGB(new RGB(c.getRed(), c.getGreen(), c
+								.getBlue()));
+						RGB rgb = colorDialog.open();
+						// If a color was selected
+						if (rgb != null) {
+							Color newColor = new Color(Display.getDefault(),
+									rgb.red, rgb.green, rgb.blue);
+							FramesocColor fColor = new FramesocColor(rgb.red,
+									rgb.green, rgb.blue);
+							
+							// Change the color
+							fPresentationProvider.getStateTable()[fPresentationProvider
+									.getStateTableIndex(selectedEvent)].setStateColor(rgb);
+							
+							getTimeGraphViewer().getTimeGraphControl()
+									.getEventColorMap()[fPresentationProvider
+									.getStateTableIndex(selectedEvent)] = newColor;
+
+							// Save it in the general settings
+							FramesocColorManager
+									.getInstance()
+									.setEventTypeColor(
+											fPresentationProvider
+													.getEventName(selectedEvent),
+											fColor);
+							FramesocColorManager.getInstance()
+									.saveEventTypeColors();
+							refresh();
+						}
+					}
+				});
+
+				// Show in table (and higllight event)
+				MenuItem showInfo = new MenuItem(contextMenu, SWT.NONE);
+				showInfo.setText("Show in Event Table");
+				showInfo.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						switchToEventTable(
+								selectedEvent,
+								fPresentationProvider
+										.getEventName(selectedEvent),
+								getTimeGraphViewer().getTimeGraphControl()
+										.getExpandedElements()[getTimeGraphViewer()
+										.getTimeGraphControl().getItemIndexAtY(
+												rightClickEvent.y)].getName());
+					}
+				});
+			}
+		});
+	}	
+	
+	private void switchToEventTable(ITimeEvent event, String typeName, String eventProducerName) {
+		
+		long startTimestamp = event.getTime();
+		long endTimestamp = event.getTime() + event.getDuration();
+		long duration = event.getDuration();
+		
+		// Punctual event
+		if (duration == 0)
+			// Show only the minimum between MIN_TIME_UNIT_SHOWING time units around or one
+			// percent of the trace
+			duration = Math.min(TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING,
+					(currentShownTrace.getMaxTimestamp() - currentShownTrace
+							.getMinTimestamp()) / 100);
+
+		EventTableDescriptor des = new EventTableDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(startTimestamp - duration / 2);
+		des.setEndTimestamp(endTimestamp + duration / 2);
+		des.setEventProducerName(eventProducerName);
+		des.setTypeName(typeName);
+		des.setEventStartTimeStamp(startTimestamp);
+
+		FramesocBus.getInstance().send(
+				FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL, des);
+	}
 }

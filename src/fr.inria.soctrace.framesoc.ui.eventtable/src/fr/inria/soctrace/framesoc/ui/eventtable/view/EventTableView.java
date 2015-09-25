@@ -70,6 +70,7 @@ import fr.inria.soctrace.framesoc.ui.eventtable.loader.IEventLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
+import fr.inria.soctrace.framesoc.ui.model.EventTableDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
@@ -107,12 +108,6 @@ public final class EventTableView extends FramesocPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = FramesocViews.EVENT_TABLE_VIEW_ID;
-	
-	/**
-	 * The minimum amount of time unit to show around an event when focusing on
-	 * it in the Gantt chart
-	 */
-	public static final int MIN_TIME_UNIT_SHOWING = 200;
 	
 	/**
 	 * Hint for filter row
@@ -177,6 +172,10 @@ public final class EventTableView extends FramesocPart {
 	private final Object exportSyncObj = new Object();
 	private Map<EventTableColumn, Boolean> columnSelection;
 	private String exportFileName;
+	
+	// Focus on one event
+	private boolean focusOnEvent = false;
+	private EventTableDescriptor focusEventDescriptor = null;
 
 	/**
 	 * Keys for table data
@@ -683,6 +682,13 @@ public final class EventTableView extends FramesocPart {
 			showWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp());
 		} else {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
+			
+			// Are we in the case where we should focus on an event
+			if (data instanceof EventTableDescriptor) {
+				focusOnEvent = true;
+				focusEventDescriptor = (EventTableDescriptor) data;
+			}
+			
 			showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
 		}
 	}
@@ -725,7 +731,14 @@ public final class EventTableView extends FramesocPart {
 			table.clearAll();
 			table.setItemCount(cache.getIndexedRowCount() + 1); // +1 for header
 			table.refresh();
-			table.setSelection(0);
+
+			if (!focusOnEvent) {
+				table.setSelection(0);
+			} else {
+				focusOnEvent = false;
+				table.setSelection(findEventIndex());
+			}
+
 			startTimestamp = interval.startTimestamp;
 			endTimestamp = interval.endTimestamp;
 			statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
@@ -845,6 +858,17 @@ public final class EventTableView extends FramesocPart {
 				} else {
 					closeView();
 				}
+			}
+			
+			// Do we set the focus on a specific event
+			if (focusOnEvent) {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						focusOnEvent = false;
+						table.setSelection(findEventIndex());
+					}
+				});
 			}
 
 			logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
@@ -1142,7 +1166,7 @@ public final class EventTableView extends FramesocPart {
 		if (duration == 0)
 			// Show only the minimum between MIN_TIME_UNIT_SHOWING time units around or one
 			// percent of the trace
-			duration = Math.min(MIN_TIME_UNIT_SHOWING,
+			duration = Math.min(TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING,
 					(currentShownTrace.getMaxTimestamp() - currentShownTrace
 							.getMinTimestamp()) / 100);
 
@@ -1195,4 +1219,39 @@ public final class EventTableView extends FramesocPart {
 		return null;
 	}
 	
+	/**
+	 * Find the first event corresponding to the info given in the
+	 * EventTableDescriptor
+	 * 
+	 * @return the corresponding index if found, 0 (header) otherwise
+	 */
+	private int findEventIndex() {
+		int index = 0;
+		try {
+			for (int i = 0; i < cache.getIndexedRowCount(); i++) {
+				EventTableRow row = cache.get(i);
+
+				if (row.getTimestamp() != focusEventDescriptor
+						.getEventStartTimeStamp())
+					continue;
+				if (!row.get(EventTableColumn.TYPE_NAME).equals(
+						focusEventDescriptor.getTypeName()))
+					continue;
+
+				if (!row.get(EventTableColumn.PRODUCER_NAME).equals(
+						focusEventDescriptor.getEventProducerName()))
+					continue;
+
+				// Add +1 because of the header row
+				index = i + 1;
+				break;
+			}
+
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return index;
+	}
 }
