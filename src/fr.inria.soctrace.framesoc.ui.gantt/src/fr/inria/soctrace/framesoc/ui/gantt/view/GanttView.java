@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -74,6 +75,7 @@ import fr.inria.soctrace.framesoc.ui.gantt.provider.GanttPresentationProvider;
 import fr.inria.soctrace.framesoc.ui.gantt.snapshot.GanttSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.model.CategoryNode;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTableDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
@@ -88,6 +90,7 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.providers.EventProducerTreeLabelProvider;
 import fr.inria.soctrace.framesoc.ui.utils.AlphanumComparator;
+import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
@@ -201,6 +204,12 @@ public class GanttView extends AbstractGanttView {
 	 * Flag specifying if we use the CPU drawer? 
 	 */
 	private boolean forceCpuDrawer = false;
+
+	/**
+	 * Flag indicating saying to check if we need to set up the filters (event
+	 * producers and event types)
+	 */
+	private boolean setFilters = false;
 	
 	public boolean isForceCpuDrawer() {
 		return forceCpuDrawer;
@@ -293,19 +302,38 @@ public class GanttView extends AbstractGanttView {
 			} else {
 				long start = des.getStartTimestamp();
 				long end = des.getEndTimestamp();
-				
+
 				// Are we in the case where we should focus on an event
 				if (data instanceof TraceConfigurationDescriptor) {
-					focusOnEvent = true;
 					focusEventDescriptor = (TraceConfigurationDescriptor) data;
 					
-					// Change duration to load one percent of the trace around the event
-					long duration = Math.max(
-							(des.getTrace().getMaxTimestamp() - des.getTrace()
-									.getMinTimestamp()) / 100,
-							TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING);
-					start = Math.max(des.getTrace().getMinTimestamp(), des.getStartTimestamp() - duration / 2);
-					end = Math.min(des.getTrace().getMaxTimestamp(), des.getEndTimestamp() + duration / 2);
+					// Check later if filters apply since we need loading to
+					// have taken place before performing the checks (check
+					// performed in DrawerThread)
+					setFilters = true;
+
+					if (focusEventDescriptor.isFocusOnEvent()) {
+						focusOnEvent = true;
+
+						// Change duration to load one percent of the trace
+						// around the event
+						long duration = Math
+								.max((des.getTrace().getMaxTimestamp() - des
+										.getTrace().getMinTimestamp()) / 100,
+										TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING);
+						start = Math.max(des.getTrace().getMinTimestamp(),
+								des.getStartTimestamp() - duration / 2);
+						end = Math.min(des.getTrace().getMaxTimestamp(),
+								des.getEndTimestamp() + duration / 2);
+						
+						// If it is within the already loaded interval
+						if ((start >= loadedInterval.startTimestamp)
+								&& (end <= loadedInterval.endTimestamp)) {
+							// Don't reload
+							start = loadedInterval.startTimestamp;
+							end = loadedInterval.endTimestamp;
+						}
+					}
 				}
 				
 				showWindow(des.getTrace(), start, end);
@@ -333,6 +361,12 @@ public class GanttView extends AbstractGanttView {
 		// check for unchanged interval
 		if (checkReuse(trace, interval)) {
 			loader.release();
+			
+			if (setFilters) {
+				setFilters = false;
+				checkFilters();
+			}
+			
 			refresh(interval);	
 			
 			// Do we need to focus on a particular event ?
@@ -418,9 +452,11 @@ public class GanttView extends AbstractGanttView {
 				typeHierarchy = getTypeHierarchy(types);
 				visibleTypeNodes = listAllInputs(Arrays.asList(typeHierarchy));
 				allTypeNodes = visibleTypeNodes.size();
+				
 				loader.loadWindow(interval.startTimestamp, interval.endTimestamp, monitor);
 				loader.release();
 				logger.debug(all.endMessage("Loader Job: loaded everything"));
+
 				if (monitor.isCanceled())
 					return Status.CANCEL_STATUS;
 				return Status.OK_STATUS;
@@ -523,6 +559,12 @@ public class GanttView extends AbstractGanttView {
 						loadedInterval.endTimestamp = getEndTime();
 					}
 					handleCancel(closeIfCancelled);
+				}
+				
+				// Apply filter from synchronization with other views
+				if (setFilters) {
+					setFilters = false;
+					checkFilters();
 				}
 				
 				// Should we focus on an event ?
@@ -679,13 +721,23 @@ public class GanttView extends AbstractGanttView {
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null)
 			return null;
-		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
 		des.setTrace(currentShownTrace);
 		des.setStartTimestamp(getStartTime());
 		des.setEndTimestamp(getEndTime());
+		
+		// Set event producers and event types filter
+		Set<ITimeGraphEntry> entries = getTimeGraphViewer()
+				.getTimeGraphControl().getEntries();
+		
+		des.setEventProducers(convertToEventProducerNode(entries));
+		
+		des.setEventTypes(visibleTypeNodes);
+		
 		return des;
 	}
-	
+
+
 	private IAction createShowTypeFilterAction() {
 		IAction action = new Action("", IAction.AS_CHECK_BOX) {
 			@Override
@@ -860,14 +912,13 @@ public class GanttView extends AbstractGanttView {
 	}
 	
 	/**
-	 * Focus the Gantt chart on a specific event (time region), by selecting the corresponding
-	 * row and centering the view on the event.
+	 * Focus the Gantt chart on a specific event (time region), by selecting the
+	 * corresponding row and centering the view on the event.
 	 * 
 	 * @param des
 	 *            the parameters needed to focus on the event
 	 */
-	private void focusViewOn(TraceConfigurationDescriptor des)
-	{
+	private void focusViewOn(TraceConfigurationDescriptor des) {
 		if (des.getEventProducer() == null) {
 			logger.debug("No event producer was provided in the descriptor");
 			return;
@@ -891,7 +942,7 @@ public class GanttView extends AbstractGanttView {
 
 		// Select the corresponding entry
 		getTimeGraphCombo().setSelection(entry);
-		
+
 		// Zoom in on the desired part
 		getTimeGraphViewer().setStartFinishTimeNotify(des.getStartTimestamp(),
 				des.getEndTimestamp());
@@ -1113,7 +1164,7 @@ public class GanttView extends AbstractGanttView {
 			}
 		}
 		
-		// If there was some filtered event producers
+		// If there was some filtered event type
 		if (!filteredTypes.isEmpty()) {
 			// Remove last separator
 			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
@@ -1123,8 +1174,7 @@ public class GanttView extends AbstractGanttView {
 
 		// Filtered event producers
 		String filteredEP = "";
-		List<Object> filteredEntry = (List<Object>) (getTimeGraphCombo().getFilteredEntries());
-		for (Object objectEntry : filteredEntry) {
+		for (Object objectEntry : getTimeGraphCombo().getFilteredEntries()) {
 			filteredEP = filteredEP + ((GanttEntry) objectEntry).getName()
 					+ ", ";
 		}
@@ -1171,11 +1221,11 @@ public class GanttView extends AbstractGanttView {
 										rightClickEvent.y)],
 						getTimeGraphViewer().getTimeGraphControl().getTimeAtX(
 								rightClickEvent.x), 0);
-				// String name = fTimeGraphProvider.getEventName(selectedEvent);
 
 				// If there is no event at the given position
-				if (selectedEvent == null || fPresentationProvider
-						.getStateTableIndex(selectedEvent) < 0) {
+				if (selectedEvent == null
+						|| fPresentationProvider
+								.getStateTableIndex(selectedEvent) < 0) {
 					return;
 				}
 
@@ -1258,7 +1308,7 @@ public class GanttView extends AbstractGanttView {
 					}
 				});
 
-				// Show in table (and higllight event)
+				// Show in table (and highlight event)
 				MenuItem showInfo = new MenuItem(contextMenu, SWT.NONE);
 				showInfo.setText("Show in Event Table");
 				showInfo.addSelectionListener(new SelectionAdapter() {
@@ -1278,8 +1328,17 @@ public class GanttView extends AbstractGanttView {
 		});
 	}	
 	
+	/**
+	 * Method that launch the event table view and focus on a specific event
+	 * 
+	 * @param event
+	 *            the (Gantt) event to set the focus on
+	 * @param typeName
+	 *            the type of the focused event
+	 * @param eventProducerName
+	 *            the event producer name of the focused event
+	 */
 	private void switchToEventTable(ITimeEvent event, String typeName, String eventProducerName) {
-		
 		long startTimestamp = event.getTime();
 		long endTimestamp = event.getTime() + event.getDuration();
 		long duration = event.getDuration();
@@ -1303,4 +1362,114 @@ public class GanttView extends AbstractGanttView {
 		FramesocBus.getInstance().send(
 				FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL, des);
 	}
+
+	/**
+	 * Apply the event producers and event types filters
+	 */
+	private void checkFilters() {
+		// Event producers
+		if (!focusEventDescriptor.getEventProducers().isEmpty()) {
+			// Get the IDs of unfiltered EventProducers
+			List<Integer> ids = new ArrayList<Integer>();
+			for (Object o : focusEventDescriptor.getEventProducers()) {
+				if (o instanceof EventProducerNode) {
+					ids.add(((EventProducerNode) o).getEventProducer().getId());
+				}
+			}
+			List<Object> filteredEntries = new ArrayList<Object>();
+			for (ITimeGraphEntry entry : getTimeGraphViewer()
+					.getTimeGraphControl().getEntries()) {
+				if (entry instanceof GanttEntry) {
+					GanttEntry ganttEntry = (GanttEntry) entry;
+					if (!ids.contains(ganttEntry.getEventProducerID())) {
+						filteredEntries.add(ganttEntry);
+					}
+				}
+			}
+			getTimeGraphCombo().setFilteredEntries(filteredEntries);
+		}
+
+		// Event types
+		if (!focusEventDescriptor.getEventTypes().isEmpty()) {
+			if (typeHierarchy.length > 0) {
+				List<Object> allElements = listAllInputs(Arrays
+						.asList(typeHierarchy));
+
+				visibleTypeNodes = focusEventDescriptor.getEventTypes();
+				checkTypeFilter(!(focusEventDescriptor.getEventTypes().size() == allTypeNodes || focusEventDescriptor
+						.getEventTypes().isEmpty()));
+				ArrayList<Object> filteredElements = new ArrayList<Object>(
+						allElements);
+				filteredElements
+						.removeAll(focusEventDescriptor.getEventTypes());
+				List<Integer> filteredTypes = new ArrayList<>(
+						filteredElements.size());
+				for (Object o : filteredElements) {
+					if (o instanceof EventTypeNode) {
+						EventTypeNode type = (EventTypeNode) o;
+						filteredTypes.add(type.getId());
+					}
+				}
+				fPresentationProvider.setFilteredTypes(filteredTypes);
+
+			}
+		}
+	}
+
+	/**
+	 * Convert the GanntEntry to EventProducerNode
+	 * 
+	 * @param entries
+	 *            the entries of the Gantt
+	 * @return the converted entries in event producer nodes
+	 */
+	private List<Object> convertToEventProducerNode(Set<ITimeGraphEntry> entries) {
+		IEventLoader loader = GanttContributionManager
+				.getEventLoader(currentShownTrace.getType().getId());
+		loader.setTrace(currentShownTrace);
+		Map<Integer, EventProducer> eventProducers = loader.getProducers();
+		Map<Integer, EventProducerNode> eventProducersNode = new HashMap<Integer, EventProducerNode>();
+		List<Object> epNodes = new ArrayList<Object>();
+
+		// Create EP Nodes
+		for (ITimeGraphEntry entry : entries) {
+			if (entry instanceof GanttEntry) {
+				if (!getTimeGraphCombo().getFilteredEntries().contains(entry)) {
+					EventProducerNode epn = new EventProducerNode(
+							eventProducers.get(((GanttEntry) entry)
+									.getEventProducerID()));
+					eventProducersNode.put(epn.getId(), epn);
+					epNodes.add(epn);
+				}
+			}
+		}
+
+		// Rebuild hierarchy
+		for (ITimeGraphEntry entry : entries) {
+			if (entry instanceof GanttEntry) {
+				if (!getTimeGraphCombo().getFilteredEntries().contains(entry)) {
+					GanttEntry gEntry = (GanttEntry) entry;
+					EventProducerNode epn = eventProducersNode.get(gEntry
+							.getEventProducerID());
+					if (gEntry.getParent() != null) {
+						epn.setParent(eventProducersNode
+								.get(((GanttEntry) gEntry.getParent())
+										.getEventProducerID()));
+					}
+
+					for (ITimeGraphEntry childEntry : gEntry.getChildren()) {
+						if (!getTimeGraphCombo().getFilteredEntries().contains(
+								childEntry)) {
+							epn.addChild(eventProducersNode
+									.get(((GanttEntry) childEntry)
+											.getEventProducerID()));
+						}
+					}
+
+				}
+			}
+		}
+		return epNodes;
+	}
+
 }

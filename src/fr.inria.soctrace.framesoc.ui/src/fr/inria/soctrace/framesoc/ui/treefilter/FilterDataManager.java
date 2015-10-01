@@ -100,6 +100,7 @@ public abstract class FilterDataManager {
 		roots = rootNodes;
 		checked = TreeFilterDialog.listAllInputs(Arrays.asList(roots));
 		allElements = new ArrayList<>(checked);
+		filterAction.setChecked(false);
 	}
 
 	/**
@@ -128,6 +129,12 @@ public abstract class FilterDataManager {
 		return new ArrayList<Object>(checked);
 	}
 	
+	public void setChecked(List<Object> elements) {
+		checked.clear();
+		checked.addAll(elements);
+		filterAction.setChecked(true);
+	}
+	
 	public List<Object> getAllElements() {
 		return allElements;
 	}
@@ -151,7 +158,6 @@ public abstract class FilterDataManager {
 	/*
 	 * Utilities
 	 */
-
 	private void showFilterAction() {
 
 		if (roots.length > 0) {

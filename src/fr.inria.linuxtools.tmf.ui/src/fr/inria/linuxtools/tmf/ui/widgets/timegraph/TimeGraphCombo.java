@@ -621,11 +621,9 @@ public class TimeGraphCombo extends Composite {
         });
 
         // The filler rows are required to ensure alignment when the tree does
-        // not have a
-        // visible horizontal scroll bar. The tree does not allow its top item
-        // to be set
-        // to a value that would cause blank space to be drawn at the bottom of
-        // the tree.
+        // not have a visible horizontal scroll bar. The tree does not allow its
+        // top item to be set to a value that would cause blank space to be
+        // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight(tree);
 
         sash.setWeights(weights);
@@ -725,6 +723,7 @@ public class TimeGraphCombo extends Composite {
             // Process selected elements
             if (fFilterDialog.getResult() != null) {
                 fInhibitTreeSelection = true;
+
                 if (fFilterDialog.getResult().length != allElements.size()) {
                     // @Framesoc
                     checkProducerFilter(true);
@@ -778,6 +777,7 @@ public class TimeGraphCombo extends Composite {
      * @Framesoc
      */
     public void setFilteredEntries(List<Object> filtered) {
+        checkProducerFilter(!filtered.isEmpty());
         fFilter.setFiltered(filtered);
     }
 
@@ -814,6 +814,7 @@ public class TimeGraphCombo extends Composite {
         for (ITimeGraphEntry e : entry.getChildren()) {
             addFiltered(e);
         }
+        checkProducerFilter(true);
     }
 
     /**
@@ -963,6 +964,7 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = false;
         fTreeViewer.getTree().getVerticalBar().setEnabled(false);
         fTreeViewer.getTree().getVerticalBar().setVisible(false);
+
         fTimeGraphViewer.setItemHeight(getItemHeight(fTreeViewer.getTree()));
         fTimeGraphViewer.setInput(input);
         // queue the alignment update because in Linux the item bounds are not

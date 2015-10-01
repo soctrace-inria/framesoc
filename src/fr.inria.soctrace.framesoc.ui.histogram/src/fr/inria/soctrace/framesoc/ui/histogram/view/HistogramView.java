@@ -81,6 +81,7 @@ import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -343,9 +344,15 @@ public class HistogramView extends FramesocPart {
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || loadedInterval == null)
 			return null;
-		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
 		des.setTrace(currentShownTrace);
 		des.setTimeInterval(loadedInterval);
+		
+		// Set event type and event prod
+		des.setEventTypes(filterMap.get(FilterDimension.TYPE).getChecked());
+		des.setEventProducers(filterMap.get(FilterDimension.PRODUCERS)
+				.getChecked());
+
 		return des;
 	}
 
@@ -372,7 +379,7 @@ public class HistogramView extends FramesocPart {
 			TimeInterval desInterval = des.getTimeInterval();
 			if (desInterval.equals(TimeInterval.NOT_SPECIFIED)) {
 				// double click
-				if ((currentShownTrace != null && currentShownTrace.equals(trace))) {
+				if (currentShownTrace != null && currentShownTrace.equals(trace)) {
 					// same trace: keep interval and configuration
 					return;
 				}
@@ -382,11 +389,27 @@ public class HistogramView extends FramesocPart {
 					desInterval = new TimeInterval(t.getMinTimestamp(), t.getMaxTimestamp());
 				}
 			}
+			
+			// Check if we apply event producers and event types filters
+			if (des instanceof TraceConfigurationDescriptor) {
+				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) des;
+				if (tcd.getEventTypes().size() != filterMap
+						.get(FilterDimension.TYPE).getAllElements().size()
+						&& !tcd.getEventTypes().isEmpty()) {
+					filterMap.get(FilterDimension.TYPE).setChecked(
+							tcd.getEventTypes());
+				}
+				if (tcd.getEventProducers().size() != filterMap
+						.get(FilterDimension.PRODUCERS).getAllElements().size()
+						&& !tcd.getEventProducers().isEmpty()) {
+					filterMap.get(FilterDimension.PRODUCERS).setChecked(
+							tcd.getEventProducers());
+				}
+			}
 
 			if (loadedInterval == null || (!loadedInterval.equals(desInterval))) {
 				loadHistogram(des.getTrace(), desInterval);
 			}
-
 		}
 	}
 

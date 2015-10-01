@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.resource.JFaceResources;
@@ -2648,6 +2649,13 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public int getMinimumItemWidth() {
         return fMinimumItemWidth;
+    }
+
+    /**
+     * @return The set of the current entries
+     */
+    public Set<ITimeGraphEntry> getEntries() {
+        return fItemData.fItemMap.keySet();
     }
 
     /**

@@ -78,9 +78,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -92,6 +89,7 @@ import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -621,9 +619,15 @@ public class StatisticsPieChartView extends FramesocPart {
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
 		if (currentShownTrace == null || !currentDescriptor.dataLoaded())
 			return null;
-		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
 		des.setTrace(currentShownTrace);
 		des.setTimeInterval(currentDescriptor.interval);
+
+		// Set event type and event prod filter
+		des.setEventTypes(globalFilters.get(FilterDimension.TYPE).getChecked());
+		des.setEventProducers(globalFilters.get(FilterDimension.PRODUCERS)
+				.getChecked());
+		
 		return des;
 	}
 
@@ -1018,7 +1022,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
-
 	}
 
 	private void cleanTableFilter() {
@@ -1262,6 +1265,23 @@ public class StatisticsPieChartView extends FramesocPart {
 					}
 				}
 			}
+			
+			if (data instanceof TraceConfigurationDescriptor) {
+				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) intDes;
+				if (tcd.getEventTypes().size() != globalFilters
+						.get(FilterDimension.TYPE).getAllElements().size()
+						&& !tcd.getEventTypes().isEmpty()) {
+					globalFilters.get(FilterDimension.TYPE).setChecked(
+							tcd.getEventTypes());
+				}
+				if (tcd.getEventProducers().size() != globalFilters
+						.get(FilterDimension.PRODUCERS).getAllElements().size()
+						&& !tcd.getEventProducers().isEmpty()) {
+					globalFilters.get(FilterDimension.PRODUCERS).setChecked(
+							tcd.getEventProducers());
+				}
+			}
+			
 			timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
 			globalLoadInterval.copy(intDes.getTimeInterval());
 			loadPieChart();

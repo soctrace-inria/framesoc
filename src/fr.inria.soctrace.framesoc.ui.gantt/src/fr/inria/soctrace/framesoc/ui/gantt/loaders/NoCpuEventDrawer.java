@@ -163,7 +163,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 //		}
 	}
 
-	private GanttEntry getProducerRow(EventProducer ep) {
+	public GanttEntry getProducerRow(EventProducer ep) {
 		// get the row for the given producer
 		if (!rows.containsKey(ep.getId())) {
 			rows.put(ep.getId(), getNewEventProducerRow(ep, producers));
@@ -175,7 +175,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 
 		logger.trace("Creating event producer row " + ep.getId() + ", parent " + ep.getParentId());
 
-		GanttEntry entry = new GanttEntry(ep.getName());
+		GanttEntry entry = new GanttEntry(ep.getName(), ep.getId());
 		if (ep.getParentId() != EventProducer.NO_PARENT_ID) {
 			GanttEntry parentRow = null;
 			// there's a parent
@@ -269,5 +269,4 @@ public class NoCpuEventDrawer implements IEventDrawer {
 			// NOP
 		}
 	}
-
 }

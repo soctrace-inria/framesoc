@@ -74,8 +74,6 @@ public class CpuEventDrawer implements IEventDrawer {
 	private int states;
 	private int links;
 
-
-
 	/**
 	 * Constructor.
 	 */
@@ -96,7 +94,7 @@ public class CpuEventDrawer implements IEventDrawer {
 	public void setProducers(Map<Integer, EventProducer> producers) {
 		this.producers = producers;
 	}
-
+	
 	@Override
 	public ArrayList<TimeGraphEntry> getNewRootEntries() {
 		return newRoots;
@@ -172,7 +170,7 @@ public class CpuEventDrawer implements IEventDrawer {
 		// get the map containing all the rows for this CPU
 		if (!rows.containsKey(cpu)) {
 			rows.put(cpu, new HashMap<Integer, GanttEntry>());
-			main.put(cpu, new GanttEntry("CPU " + cpu));
+			main.put(cpu, new GanttEntry("CPU " + cpu, -1));
 			mainItems.add(main.get(cpu));
 			newRoots.add(main.get(cpu));
 			needRefresh = true;
@@ -202,7 +200,7 @@ public class CpuEventDrawer implements IEventDrawer {
 				cpuRows.put(ep.getParentId(), parentRow);
 			}
 		}
-		GanttEntry entry = new GanttEntry(ep.getName());
+		GanttEntry entry = new GanttEntry(ep.getName(), ep.getId());
 		parentRow.addChild(entry);
 		needRefresh = true;
 		return entry;
@@ -279,5 +277,4 @@ public class CpuEventDrawer implements IEventDrawer {
 			// NOP
 		}
 	}
-
 }
