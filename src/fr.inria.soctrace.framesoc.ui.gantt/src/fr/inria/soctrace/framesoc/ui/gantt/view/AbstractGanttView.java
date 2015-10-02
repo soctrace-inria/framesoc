@@ -107,7 +107,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private ITimeGraphWrapper fTimeGraphWrapper;
 
 	/** The timegraph entry list */
-	private List<TimeGraphEntry> fEntryList;
+	protected List<TimeGraphEntry> fEntryList;
 
 	/** The start time */
 	private long fStartTime;
@@ -968,7 +968,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		makeActions();
 		contributeToActionBars();
 		enableActions(false);
-
 	}
 
 	@Override

@@ -68,7 +68,7 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      *
      * @param entry The new parent entry
      */
-    protected void setParent(TimeGraphEntry entry) {
+    public void setParent(TimeGraphEntry entry) {
         fParent = entry;
     }
 

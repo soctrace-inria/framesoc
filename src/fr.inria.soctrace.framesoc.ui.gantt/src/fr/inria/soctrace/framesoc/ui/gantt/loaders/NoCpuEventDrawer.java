@@ -235,6 +235,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 		public void draw(ReducedEvent e) {
 			punctualEvents++;
 			GanttEntry producerRow = getProducerRow(producers.get(e.producerId));
+			producerRow.setProducingEvent(true);
 			producerRow.addEvent(new GanttEvent(producerRow, e.timestamp, 0, e.typeId));
 			logger.trace("punctual: {}", e.timestamp);
 		}
@@ -245,6 +246,7 @@ public class NoCpuEventDrawer implements IEventDrawer {
 		public void draw(ReducedEvent e) {
 			states++;
 			GanttEntry producerRow = getProducerRow(producers.get(e.producerId));
+			producerRow.setProducingEvent(true);
 			long duration = e.endTimestamp - e.timestamp;
 			producerRow.addEvent(new GanttEvent(producerRow, e.timestamp, duration, e.typeId));
 			logger.trace("state: {} {}", e.timestamp, e.endTimestamp);
@@ -256,7 +258,9 @@ public class NoCpuEventDrawer implements IEventDrawer {
 		public void draw(ReducedEvent e) {
 			links++;
 			GanttEntry start = getProducerRow(producers.get(e.producerId));
+			start.setProducingEvent(true);
 			GanttEntry end = getProducerRow(producers.get(e.endProducerId));
+			end.setProducingEvent(true);
 			linkList.add(new TimeLinkEvent(start, end, e.timestamp, e.endTimestamp - e.timestamp,
 					e.typeId));
 			logger.trace("link: {} {}", e.timestamp, e.endTimestamp);

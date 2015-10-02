@@ -28,6 +28,8 @@ public class GanttEntry extends TimeGraphEntry {
 	// Id of the event producer corresponding to the one
 	private int eventProducerID = -1;
 	
+	private boolean producingEvent = false;
+	
 	public GanttEntry(String name, int eventProducerID) {
 		super(name, Long.MAX_VALUE, Long.MIN_VALUE);
 		this.eventProducerID = eventProducerID;
@@ -62,6 +64,12 @@ public class GanttEntry extends TimeGraphEntry {
 		this.eventProducerID = eventProducerID;
 	}
 
+	public boolean isProducingEvent() {
+		return producingEvent;
+	}
 
+	public void setProducingEvent(boolean producingEvent) {
+		this.producingEvent = producingEvent;
+	}
 
 }
