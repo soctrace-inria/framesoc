@@ -97,7 +97,9 @@ import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 import fr.inria.soctrace.lib.model.utils.TimestampFormat.TickDescriptor;
+import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * Framesoc Bar Chart view.
@@ -395,13 +397,19 @@ public class HistogramView extends FramesocPart {
 				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) des;
 				if (tcd.getEventTypes().size() != filterMap
 						.get(FilterDimension.TYPE).getAllElements().size()
-						&& !tcd.getEventTypes().isEmpty()) {
+						&& !tcd.getEventTypes().isEmpty()
+						&& Boolean.valueOf(Configuration.getInstance().get(
+								SoCTraceProperty.type_filter_synchronization))) {
 					filterMap.get(FilterDimension.TYPE).setChecked(
 							tcd.getEventTypes());
 				}
 				if (tcd.getEventProducers().size() != filterMap
 						.get(FilterDimension.PRODUCERS).getAllElements().size()
-						&& !tcd.getEventProducers().isEmpty()) {
+						&& !tcd.getEventProducers().isEmpty()
+						&& Boolean
+								.valueOf(Configuration
+										.getInstance()
+										.get(SoCTraceProperty.producer_filter_synhronization))) {
 					filterMap.get(FilterDimension.PRODUCERS).setChecked(
 							tcd.getEventProducers());
 				}

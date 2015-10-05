@@ -78,6 +78,8 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -122,7 +124,9 @@ import fr.inria.soctrace.lib.query.EventProducerQuery;
 import fr.inria.soctrace.lib.query.EventTypeQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * Statistics pie chart view.
@@ -1270,13 +1274,19 @@ public class StatisticsPieChartView extends FramesocPart {
 				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) intDes;
 				if (tcd.getEventTypes().size() != globalFilters
 						.get(FilterDimension.TYPE).getAllElements().size()
-						&& !tcd.getEventTypes().isEmpty()) {
+						&& !tcd.getEventTypes().isEmpty()
+						&& Boolean.valueOf(Configuration.getInstance().get(
+								SoCTraceProperty.type_filter_synchronization))) {
 					globalFilters.get(FilterDimension.TYPE).setChecked(
 							tcd.getEventTypes());
 				}
 				if (tcd.getEventProducers().size() != globalFilters
 						.get(FilterDimension.PRODUCERS).getAllElements().size()
-						&& !tcd.getEventProducers().isEmpty()) {
+						&& !tcd.getEventProducers().isEmpty()
+						&& Boolean
+								.valueOf(Configuration
+										.getInstance()
+										.get(SoCTraceProperty.producer_filter_synhronization))) {
 					globalFilters.get(FilterDimension.PRODUCERS).setChecked(
 							tcd.getEventProducers());
 				}

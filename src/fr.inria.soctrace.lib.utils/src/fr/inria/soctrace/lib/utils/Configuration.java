@@ -90,6 +90,18 @@ public class Configuration {
 		 * same trace: true, false.
 		 */
 		allow_view_replication,
+		
+		/**
+		 * Flag specifying if we should take event producer filter into account
+		 * when synchronizing the views
+		 */
+		producer_filter_synhronization,
+
+		/**
+		 * Flag specifying if we should take event type filter into account when
+		 * synchronizing the views
+		 */
+		type_filter_synchronization,
 
 		// MySQL specific
 
@@ -284,7 +296,10 @@ public class Configuration {
 				"false");
 		defaults.setProperty(
 				SoCTraceProperty.allow_view_replication.toString(), "true");
-
+		defaults.setProperty(
+				SoCTraceProperty.type_filter_synchronization.toString(), "true");
+		defaults.setProperty(
+				SoCTraceProperty.producer_filter_synhronization.toString(), "true");
 		// MySQL
 		defaults.setProperty(
 				SoCTraceProperty.mysql_base_db_jdbc_url.toString(),

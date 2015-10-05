@@ -95,7 +95,9 @@ import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.ModelEntity;
+import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * Gantt View using the Lttng Time Graph Viewer.
@@ -1456,7 +1458,9 @@ public class GanttView extends AbstractGanttView {
 	 */
 	private void checkFilters() {
 		// Event producers
-		if (!focusEventDescriptor.getEventProducers().isEmpty()) {
+		if (!focusEventDescriptor.getEventProducers().isEmpty()
+				&& Boolean.valueOf(Configuration.getInstance().get(
+						SoCTraceProperty.producer_filter_synhronization))) {
 			// Get the IDs of unfiltered EventProducers
 			List<Integer> ids = new ArrayList<Integer>();
 			for (Object o : focusEventDescriptor.getEventProducers()) {
@@ -1478,7 +1482,9 @@ public class GanttView extends AbstractGanttView {
 		}
 
 		// Event types
-		if (!focusEventDescriptor.getEventTypes().isEmpty()) {
+		if (!focusEventDescriptor.getEventTypes().isEmpty()
+				&& Boolean.valueOf(Configuration.getInstance().get(
+						SoCTraceProperty.type_filter_synchronization))) {
 			if (typeHierarchy.length > 0) {
 				List<Object> allElements = listAllInputs(Arrays
 						.asList(typeHierarchy));
@@ -1509,7 +1515,8 @@ public class GanttView extends AbstractGanttView {
 	 * 
 	 * @param entries
 	 *            the entries of the Gantt
-	 * @return the converted entries in event producer nodes
+	 * @return the list of event producer nodes produced from the converted
+	 *         entries
 	 */
 	private List<Object> convertToEventProducerNode(Set<ITimeGraphEntry> entries) {
 		IEventLoader loader = GanttContributionManager

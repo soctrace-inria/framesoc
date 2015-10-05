@@ -95,6 +95,8 @@ public class ConfigurationDialog extends Dialog {
 	private ManageToolsComposite manageToolsComposite;
 
 	Map<Integer, Tool> oldTools;
+	private Button btnSynchronizeTypeFilter;
+	private Button btnSynchronizeProducerFilter;
 
 	public ConfigurationDialog(Shell parentShell) {
 		super(parentShell);
@@ -252,6 +254,28 @@ public class ConfigurationDialog extends Dialog {
 		final Composite compositeOtherParameter = new Composite(tabFolder, SWT.NONE);
 		tbtmOther.setControl(compositeOtherParameter);
 		compositeOtherParameter.setLayout(new GridLayout(1, false));
+		
+		final Group groupSynchronization = new Group(compositeOtherParameter, SWT.NONE);
+		groupSynchronization.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		groupSynchronization.setText("Synchronization");
+		groupSynchronization.setLayout(new GridLayout(1, false));
+
+		btnSynchronizeTypeFilter = new Button(groupSynchronization, SWT.CHECK);
+		btnSynchronizeTypeFilter.setSelection(Boolean.valueOf(config
+				.get(SoCTraceProperty.type_filter_synchronization)));
+		btnSynchronizeTypeFilter
+				.setText("Synchronize event type filter");
+		btnSynchronizeTypeFilter
+				.setToolTipText("When switching or synchronizing a view, take the filtered event type into account");
+
+		btnSynchronizeProducerFilter = new Button(groupSynchronization, SWT.CHECK);
+		btnSynchronizeProducerFilter.setSelection(Boolean.valueOf(config
+				.get(SoCTraceProperty.producer_filter_synhronization)));
+		btnSynchronizeProducerFilter
+				.setText("Synchronize event producer filter");
+		btnSynchronizeProducerFilter
+				.setToolTipText("When switching or synchronizing a view, take the filtered event producer into account");
+		
 
 		final Group groupOtherSettings = new Group(compositeOtherParameter, SWT.NONE);
 		groupOtherSettings.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -287,7 +311,11 @@ public class ConfigurationDialog extends Dialog {
 				String.valueOf(btnAllowViewReplication.getSelection()));
 		config.set(SoCTraceProperty.ask_for_tool_removal,
 				String.valueOf(btnDisplayToolWarningRemoval.getSelection()));
-
+		config.set(SoCTraceProperty.type_filter_synchronization,
+				String.valueOf(btnSynchronizeTypeFilter.getSelection()));
+		config.set(SoCTraceProperty.producer_filter_synhronization,
+				String.valueOf(btnSynchronizeProducerFilter.getSelection()));
+		
 		// Regenerate the configuration file
 		config.saveOnFile();
 
