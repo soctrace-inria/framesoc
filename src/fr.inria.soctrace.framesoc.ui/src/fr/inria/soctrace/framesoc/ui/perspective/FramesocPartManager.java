@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.perspective;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -372,6 +373,11 @@ public final class FramesocPartManager implements IFramesocBusListener {
 				&& data != null) {
 			logger.debug("Topic pie interval");
 			displayFramesocView(FramesocViews.STATISTICS_PIE_CHART_VIEW_ID, data);
+		} else if (topic
+				.equals(FramesocBusTopic.TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER)
+				&& data != null) {
+			logger.debug("Topic synchronize all the group view");
+			synchAllGroupView(data);
 		}
 	}
 
@@ -416,10 +422,10 @@ public final class FramesocPartManager implements IFramesocBusListener {
 					for (FramesocPart fp : desc.openParts) {
 						if (trace.equals(fp.getCurrentShownTrace())) {
 							logger.debug("Highlight " + fp.getPartName());
-							fp.higlightTitle(true);
+							fp.highlightTitle(true);
 						} else {
 							logger.debug("Unhighlight " + fp.getPartName());
-							fp.higlightTitle(false);
+							fp.highlightTitle(false);
 						}
 					}
 				}
@@ -476,6 +482,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL);
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER);
 		topics.registerAll();
 
 		// register the selection listener
@@ -685,6 +692,38 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		
 		for (ViewDesc viewDesc : viewDescMap.values()) {
 			viewDesc.maxInstances = max;
+		}
+	}
+
+	/**
+	 * Synchronize all the views of a given group with the current view on time
+	 * interval and producer and type filters
+	 * 
+	 * @param data
+	 *            a TraceIntervalDescriptor containing the synchronization
+	 *            elements
+	 */
+	private void synchAllGroupView(Object data) {
+		// Get trace
+		TraceIntervalDescriptor desc = (TraceIntervalDescriptor) data;
+		Trace trace = desc.getTrace();
+		List<FramesocPart> parts = new ArrayList<FramesocPart>();
+
+		// Get all parts of the group
+		for (ViewDesc viewDesc : viewDescMap.values()) {
+			if (viewDesc.partToGroup.containsKey(trace)) {
+				for (FramesocPart fPart : viewDesc.partToGroup.get(trace)
+						.keySet()) {
+					if (viewDesc.partToGroup.get(trace).get(fPart) == desc
+							.getGroup() && fPart != desc.getSender())
+						parts.add(fPart);
+				}
+			}
+		}
+
+		// Update them all
+		for (FramesocPart fPart : parts) {
+			fPart.showTrace(trace, desc);
 		}
 	}
 	

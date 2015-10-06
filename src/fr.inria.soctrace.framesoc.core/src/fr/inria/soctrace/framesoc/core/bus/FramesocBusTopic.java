@@ -89,6 +89,13 @@ public enum FramesocBusTopic {
 	 * The Pie Chart should handle the statistics operator selection in 
 	 * a convenient way (e.g., proposing a dialog to the user).
 	 */	
-	TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL;
+	TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL,
 	
+	/**
+	 * Event fired by the user to synchronize all the open views of a given
+	 * trace group. The synchronization will occur on the time interval and,
+	 * depending on the enabled options, the event types and event producer
+	 * filters.
+	 */
+	TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER;
 }

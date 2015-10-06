@@ -47,6 +47,7 @@ public abstract class TraceIntervalAction extends Action {
 	public void run() {
 		TraceIntervalDescriptor des = getTraceIntervalDescriptor();
 		des.setGroup(FramesocPartManager.getInstance().getPartGroup(des.getTrace(), part));
+		des.setSender(part);
 		if (des != null) {
 			FramesocBus.getInstance().send(getTopic(), des);
 		}

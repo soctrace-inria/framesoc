@@ -82,6 +82,7 @@ import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
 import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
@@ -463,7 +464,7 @@ public class GanttView extends AbstractGanttView {
 				Collection<EventType> types = loader.getTypes().values();
 				fPresentationProvider.setTypes(types);
 				typeHierarchy = getTypeHierarchy(types);
-				visibleTypeNodes = listAllInputs(Arrays.asList(typeHierarchy));
+				visibleTypeNodes = listAllInputs(new ArrayList<CategoryNode>(Arrays.asList(typeHierarchy)));
 				allTypeNodes = visibleTypeNodes.size();
 
 				loader.loadWindow(interval.startTimestamp,
@@ -777,6 +778,7 @@ public class GanttView extends AbstractGanttView {
 		TableTraceIntervalAction.add(manager, createTableAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
 
 		// TEST ACTION
 		// manager.add(new Action("Test Action", IAction.AS_PUSH_BUTTON) {
@@ -953,7 +955,7 @@ public class GanttView extends AbstractGanttView {
 
 			// Process selected elements
 			if (typeFilterDialog.getResult() != null) {
-				visibleTypeNodes = Arrays.asList(typeFilterDialog.getResult());
+				visibleTypeNodes = new ArrayList<Object>(Arrays.asList(typeFilterDialog.getResult()));
 				checkTypeFilter(visibleTypeNodes.size() != allTypeNodes);
 				ArrayList<Object> filteredElements = new ArrayList<Object>(
 						allElements);

@@ -78,8 +78,6 @@ import org.jfree.ui.RectangleEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 // TODO create a fragment plugin for jfreechart
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
@@ -89,6 +87,7 @@ import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
@@ -565,7 +564,6 @@ public class StatisticsPieChartView extends FramesocPart {
 		createResources();
 		// clean the filter, after creating the font
 		cleanTableFilter();
-
 	}
 
 	private void createActions() {
@@ -615,6 +613,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
 
 		// disable all actions
 		enableActions(false);
@@ -1254,8 +1253,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(true);
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		currentShownTrace = trace;
-		initTypesAndProducers(trace);
+		
+		if (currentShownTrace == null || !currentShownTrace.equals(trace)) {
+			currentShownTrace = trace;
+			initTypesAndProducers(trace);
+		}
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
 			// propose operator selection only if there is no data loaded
@@ -1269,20 +1271,16 @@ public class StatisticsPieChartView extends FramesocPart {
 					}
 				}
 			}
-			
+
 			if (data instanceof TraceConfigurationDescriptor) {
 				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) intDes;
-				if (tcd.getEventTypes().size() != globalFilters
-						.get(FilterDimension.TYPE).getAllElements().size()
-						&& !tcd.getEventTypes().isEmpty()
+				if (!tcd.getEventTypes().isEmpty()
 						&& Boolean.valueOf(Configuration.getInstance().get(
 								SoCTraceProperty.type_filter_synchronization))) {
 					globalFilters.get(FilterDimension.TYPE).setChecked(
 							tcd.getEventTypes());
 				}
-				if (tcd.getEventProducers().size() != globalFilters
-						.get(FilterDimension.PRODUCERS).getAllElements().size()
-						&& !tcd.getEventProducers().isEmpty()
+				if (!tcd.getEventProducers().isEmpty()
 						&& Boolean
 								.valueOf(Configuration
 										.getInstance()
