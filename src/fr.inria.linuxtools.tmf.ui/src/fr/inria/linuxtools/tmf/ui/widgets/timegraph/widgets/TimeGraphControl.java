@@ -177,9 +177,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
     private TimestampFormat fFormatter = new TimestampFormat();
     private boolean snapshot = false;
     private Rectangle snapBounds;
-
     private Menu contextMenu;
     private MouseEvent rightClickEvent;
+
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -332,6 +332,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * Get the context menu
      *
      * @return the context menu
+     * @Framesoc
      */
     public Menu getContextMenu() {
         return contextMenu;
@@ -342,6 +343,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *
      * @param contextMenu
      *            the context menu to be assigned
+     * @Framesoc
      */
     public void setContextMenu(Menu contextMenu) {
         this.contextMenu = contextMenu;
@@ -351,6 +353,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * Get the right-click event when the context menu was called
      *
      * @return the right-click event
+     * @Framesoc
      */
     public MouseEvent getRightClickEvent() {
         return rightClickEvent;
@@ -1163,6 +1166,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *            the y coordinate
      * @return the index of the item at the given location, of -1 if none.
      * @since 3.0
+     * @Framesoc - changed visibility from protected to public
      */
     public int getItemIndexAtY(int y) {
         if (y < 0) {
@@ -2292,6 +2296,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 getCtrlSize().x - fTimeProvider.getNameSpace() <= 0) {
             return;
         }
+        //@Framesoc
         contextMenu.setVisible(false);
         int idx;
         if (1 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
@@ -2373,6 +2378,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fTime1bak = fTimeProvider.getTime1();
                 updateCursor(e.x, e.stateMask);
             }
+            // @Framesoc
         } else if (3 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == SWT.CTRL) { // Right-click + ctrl
             setCapture(true);
             fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), getCtrlSize().x - RIGHT_MARGIN);
@@ -2382,6 +2388,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             redraw();
             updateCursor(e.x, e.stateMask);
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
+            // @Framesoc
         } else if (e.button == 3) // Just right-click
         {
             // Allow menu
@@ -2653,6 +2660,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     /**
      * @return The set of the current entries
+     * @Framesoc
      */
     public Set<ITimeGraphEntry> getEntries() {
         return fItemData.fItemMap.keySet();

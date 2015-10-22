@@ -67,6 +67,7 @@ public class TimeGraphEntry implements ITimeGraphEntry {
      * Sets the entry's parent
      *
      * @param entry The new parent entry
+     * @Framesoc -- changed visibility from protected to public
      */
     public void setParent(TimeGraphEntry entry) {
         fParent = entry;

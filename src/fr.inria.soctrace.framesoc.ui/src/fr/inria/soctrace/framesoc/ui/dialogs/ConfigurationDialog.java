@@ -169,13 +169,13 @@ public class ConfigurationDialog extends Dialog {
 		btnIndexingTime.setSelection(Boolean.valueOf(config
 				.get(SoCTraceProperty.trace_db_ts_indexing)));
 		btnIndexingTime.setText("Index traces on time");
-		btnIndexingTime.setToolTipText("Imported traces are indexed on time");
+		btnIndexingTime.setToolTipText("Event table of imported traces are indexed on time");
 
 		btnIndexingEP = new Button(groupIndexingSettings, SWT.CHECK);
 		btnIndexingEP.setSelection(Boolean.valueOf(config
 				.get(SoCTraceProperty.trace_db_eid_indexing)));
 		btnIndexingEP.setText("Index traces on event ID");
-		btnIndexingEP.setToolTipText("Imported traces are indexed on event ID");
+		btnIndexingEP.setToolTipText("Event parameter table of imported traces are indexed on event ID");
 
 		// GUI settings
 

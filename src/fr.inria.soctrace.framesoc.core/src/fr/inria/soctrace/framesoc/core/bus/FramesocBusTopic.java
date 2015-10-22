@@ -94,7 +94,7 @@ public enum FramesocBusTopic {
 	/**
 	 * Event fired by the user to synchronize all the open views of a given
 	 * trace group. The synchronization will occur on the time interval and,
-	 * depending on the enabled options, the event types and event producer
+	 * depending on the enabled options, the event type and event producer
 	 * filters.
 	 */
 	TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER;
