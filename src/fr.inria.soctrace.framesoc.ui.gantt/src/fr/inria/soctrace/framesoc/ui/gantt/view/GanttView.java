@@ -628,9 +628,9 @@ public class GanttView extends AbstractGanttView {
 		}
 
 		List<TimeGraphEntry> mergedEntries = new ArrayList<TimeGraphEntry>();
-
+		mergedIDs = new ArrayList<Integer>();
+		
 		if (root != null && root.getChildren().size() == 1) {
-			mergedIDs = new ArrayList<Integer>();
 			TimeGraphEntry child = root.getChildren().get(0);
 			while (child.getChildren().size() == 1) {
 				if (!((GanttEntry) child).isProducingEvent()) {
