@@ -121,11 +121,14 @@ public class SystemDBVisitorTest {
 			t.setDescription("please");
 			t.setNumberOfCpus(123);
 			t.setNumberOfEvents(123123);
+			t.setMinTimestamp(123456789);
+			t.setMaxTimestamp(987654321);
 			t.setOperatingSystem("please");
 			t.setOutputDevice("please");
 			t.setProcessed(true);
 			t.setTracedApplication("please");
 			t.setTracingDate(new Timestamp(new Date().getTime()));
+			t.setNumberOfProducers(123);
 			sysDB.update(t);
 			for (TraceParam tp: t.getParams()) {
 				tp.setValue("please");

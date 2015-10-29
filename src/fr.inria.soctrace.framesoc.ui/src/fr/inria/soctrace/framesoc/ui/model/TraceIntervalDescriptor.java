@@ -10,10 +10,13 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
+import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
  * Trace time interval descriptor. It is used for inter-view communication.
+ * 
+ * Only views belonging to the same group will synchronize using this message.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
@@ -33,6 +36,18 @@ public class TraceIntervalDescriptor {
 	 * Timestamp at which we end processing
 	 */
 	private long endTimestamp;
+
+	/**
+	 * View group. A group of view is a group of different view related to the same trace that will
+	 * synchronize over the Pub/Sub.
+	 */
+	private int group;
+	
+	/**
+	 * Sender of the data (used to avoid reloading the same trace when
+	 * synchronizing)
+	 */
+	private FramesocPart sender = null;
 
 	/**
 	 * @return the trace
@@ -99,10 +114,33 @@ public class TraceIntervalDescriptor {
 		return new TimeInterval(this.startTimestamp, this.endTimestamp);
 	}
 
+	/**
+	 * @return the group
+	 */
+	public int getGroup() {
+		return group;
+	}
+
+	/**
+	 * @param group
+	 *            the group to set
+	 */
+	public void setGroup(int group) {
+		this.group = group;
+	}
+
 	@Override
 	public String toString() {
-		return "TraceIntervalDescriptor [trace=" + trace.getAlias() + ", startTimestamp="
-				+ startTimestamp + ", endTimestamp=" + endTimestamp + "]";
+		return "TraceIntervalDescriptor [trace=" + trace + ", startTimestamp=" + startTimestamp
+				+ ", endTimestamp=" + endTimestamp + ", group=" + group + "]";
+	}
+
+	public FramesocPart getSender() {
+		return sender;
+	}
+
+	public void setSender(FramesocPart sender) {
+		this.sender = sender;
 	}
 
 }

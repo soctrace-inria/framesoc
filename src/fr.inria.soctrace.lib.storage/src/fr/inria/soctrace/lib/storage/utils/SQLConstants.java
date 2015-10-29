@@ -71,7 +71,7 @@ public abstract class SQLConstants {
 	 * P R E P A R E D   S T A T E M E N T S   I N S E R T 
 	 */
 	
-	public final static String PREPARED_STATEMENT_TRACE_INSERT = "INSERT INTO " + FramesocTable.TRACE + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+	public final static String PREPARED_STATEMENT_TRACE_INSERT = "INSERT INTO " + FramesocTable.TRACE + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 	public final static String PREPARED_STATEMENT_TRACE_TYPE_INSERT = "INSERT INTO " + FramesocTable.TRACE_TYPE + " VALUES (?, ?);";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_TYPE_INSERT = "INSERT INTO " +FramesocTable.TRACE_PARAM_TYPE + " VALUES (?, ?, ?, ?);";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_INSERT = 	"INSERT INTO " + FramesocTable.TRACE_PARAM + " VALUES (?, ?, ?, ?);";
@@ -106,7 +106,7 @@ public abstract class SQLConstants {
 	 * P R E P A R E D   S T A T E M E N T S   U P D A T E 
 	 */
 	
-	public final static String PREPARED_STATEMENT_TRACE_UPDATE = "UPDATE " + FramesocTable.TRACE + " SET TRACE_TYPE_ID=?, TRACING_DATE=?, TRACED_APPLICATION=?, BOARD=?, OPERATING_SYSTEM=?, NUMBER_OF_CPUS=?, NUMBER_OF_EVENTS=?, OUTPUT_DEVICE=?, DESCRIPTION=?, PROCESSED=?, TRACE_DB_NAME=?, ALIAS=?, MIN_TIMESTAMP=?, MAX_TIMESTAMP=?, TIMEUNIT=? WHERE ID=?;";
+	public final static String PREPARED_STATEMENT_TRACE_UPDATE = "UPDATE " + FramesocTable.TRACE + " SET TRACE_TYPE_ID=?, TRACING_DATE=?, TRACED_APPLICATION=?, BOARD=?, OPERATING_SYSTEM=?, NUMBER_OF_CPUS=?, NUMBER_OF_EVENTS=?, OUTPUT_DEVICE=?, DESCRIPTION=?, PROCESSED=?, TRACE_DB_NAME=?, ALIAS=?, MIN_TIMESTAMP=?, MAX_TIMESTAMP=?, TIMEUNIT=?, NUMBER_OF_PRODUCERS=? WHERE ID=?;";
 	public final static String PREPARED_STATEMENT_TRACE_TYPE_UPDATE = "UPDATE " + FramesocTable.TRACE_TYPE + " SET NAME=? WHERE ID=?;";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_TYPE_UPDATE = "UPDATE " + FramesocTable.TRACE_PARAM_TYPE + " SET TRACE_TYPE_ID=?, NAME=?, TYPE=? WHERE ID=?;";
 	public final static String PREPARED_STATEMENT_TRACE_PARAM_UPDATE = 	"UPDATE " + FramesocTable.TRACE_PARAM + " SET TRACE_ID=?, TRACE_PARAM_TYPE_ID=?, VALUE=? WHERE ID=?;";
@@ -171,5 +171,4 @@ public abstract class SQLConstants {
 	public final static String PREPARED_STATEMENT_SEARCH_MAPPING_DELETE = "DELETE FROM " + FramesocTable.SEARCH_MAPPING + " WHERE ANALYSIS_RESULT_ID=?;";
 	
 	public final static String PREPARED_STATEMENT_PROCESSED_TRACE_DELETE = "DELETE FROM " + FramesocTable.PROCESSED_TRACE + " WHERE ANALYSIS_RESULT_ID=?;";
-
 }

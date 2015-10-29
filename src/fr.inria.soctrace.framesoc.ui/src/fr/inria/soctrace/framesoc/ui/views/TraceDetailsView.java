@@ -27,6 +27,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -63,7 +64,9 @@ import fr.inria.soctrace.framesoc.ui.model.TraceNode;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TraceSelection;
 import fr.inria.soctrace.lib.model.Trace;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 
 /**
  * View displaying trace metadata.
@@ -439,19 +442,32 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 	 */
 	private class ValueEditingSupport extends EditingSupport {
 
-		private ImageDescriptor imgSave;
-		private ImageDescriptor imgReset;
+		private final ImageDescriptor imgSave;
+		private final ImageDescriptor imgReset;
 		private Action saveAction;
 		private Action resetAction;
 		private boolean modified;
 		private boolean editable;
 		private final TableViewer viewer;
+		private final TextCellEditor textEditor;
+		private final ComboBoxCellEditor timeUnitEditor;
+		private final String[] UNITS;
 
 		public ValueEditingSupport(TableViewer viewer) {
 			super(viewer);
 			this.editable = true;
 			this.modified = false;
 			this.viewer = viewer;
+			this.textEditor = new TextCellEditor(viewer.getTable());
+		
+			// time unit
+			TimeUnit[] units = TimeUnit.values();
+			UNITS = new String[units.length];
+			for (int i = 0; i < units.length; i++) {
+				UNITS[i] = units[i].getLabel();
+			}
+			this.timeUnitEditor = new ComboBoxCellEditor(viewer.getTable(), UNITS, SWT.READ_ONLY);
+			// images
 			imgSave = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 					"icons/save.png");
 			imgReset = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
@@ -460,7 +476,11 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 		@Override
 		protected CellEditor getCellEditor(Object element) {
-			return new TextCellEditor(viewer.getTable());
+			if (isTimeUnit(element)) {
+				return timeUnitEditor;
+			} else {
+				return textEditor;
+			}
 		}
 
 		@Override
@@ -470,22 +490,35 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 		@Override
 		protected Object getValue(Object element) {
-			return ((DetailsTableRow) element).getValue();
+			String value = ((DetailsTableRow) element).getValue();
+			if (isTimeUnit(element)) {
+				return getIndex(value);
+			} else {
+				return value;
+			}
 		}
 
 		@Override
 		protected void setValue(Object element, Object value) {
-			if (String.valueOf(value).equals(((DetailsTableRow) element).getValue()))
+
+			DetailsTableRow row = ((DetailsTableRow) element);
+			if (String.valueOf(value).equals(row.getValue()))
 				return;
-			((DetailsTableRow) element).setValue(String.valueOf(value));
+
+			if (isTimeUnit(element)) {
+				row.setValue(UNITS[(Integer) value]);
+			} else {
+				row.setValue(String.valueOf(value));
+			}
 			viewer.update(element, null);
 			modified = true;
 			saveAction.setEnabled(true);
 			resetAction.setEnabled(true);
-			if (currentTraces.size() == 1)
+			if (currentTraces.size() == 1) {
 				setContentDescription("*Trace: " + currentTraces.iterator().next().getAlias());
-			else
+			} else {
 				setContentDescription("*" + MULTI_TRACE_SELECTION);
+			}
 		}
 
 		public boolean isModified() {
@@ -494,6 +527,7 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 
 		public void save() {
 			try {
+				printCurrentTraces();
 				traceDetailsLoader.store(currentTraces);
 			} catch (SoCTraceException e) {
 				MessageDialog.openError(getSite().getShell(), "Exception", e.getMessage());
@@ -521,6 +555,19 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 		}
 
 		// utilities
+
+		private int getIndex(String s) {
+			for (int i = 0; i < UNITS.length; i++) {
+				if (s.equals(UNITS[i]))
+					return i;
+			}
+			return -1;
+		}
+
+		private boolean isTimeUnit(Object element) {
+			DetailsTableRow row = (DetailsTableRow) element;
+			return row.getName().equals(TraceTableModel.TIMEUNIT.getDescription());
+		}
 
 		public Action createSaveAction() {
 			saveAction = new Action("Save changes") {
@@ -552,10 +599,15 @@ public class TraceDetailsView extends ViewPart implements IFramesocBusListener {
 				}
 			};
 			resetAction.setImageDescriptor(imgReset);
-			resetAction.setEnabled(false);
+			//resetAction.setEnabled(false);
 			return resetAction;
 		}
 
 	}
 
+	private void printCurrentTraces() {
+		for (Trace t : currentTraces) {
+			t.print(true);
+		}
+	}
 }

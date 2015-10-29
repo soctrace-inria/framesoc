@@ -41,7 +41,7 @@ public interface IPieChartLoader {
 	/*
 	 * Loader properties
 	 */
-	
+
 	/**
 	 * Return true if aggregation is performed.
 	 * 
@@ -70,10 +70,26 @@ public interface IPieChartLoader {
 	 * @return
 	 */
 	NumberFormat getFormat();
-	
+
 	/*
 	 * Loading data
 	 */
+
+	/**
+	 * Specify the list of event producer IDs that must be used in statistics computation.
+	 * By default, all producers are used if this method is not called.
+	 * 
+	 * @param producers list of Event Producer IDs
+	 */
+	void setEventProducerFilter(List<Long> producers);
+
+	/**
+	 * Specify the list of event type IDs that must be used in statistics computation.
+	 * By default, all types are used if this method is not called.
+	 * 
+	 * @param types list of Event Type IDs
+	 */
+	void setEventTypeFilter(List<Long> types);
 
 	/**
 	 * Load the statistics for the given trace and time interval into the passed map.

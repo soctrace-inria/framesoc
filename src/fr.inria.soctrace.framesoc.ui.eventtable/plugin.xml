@@ -28,6 +28,7 @@
             launchCommand="fr.inria.soctrace.framesoc.ui.eventtable.command.showEventTable"
             position="BOTTOM_RIGHT"
             priority="0"
+            show_default="true"
             viewId="fr.inria.soctrace.framesoc.ui.TABLE">
       </part>
    </extension>

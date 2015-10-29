@@ -41,6 +41,8 @@ public class WelcomePage extends WizardPage {
 		Text text = new Text(container, SWT.READ_ONLY | SWT.WRAP | SWT.MULTI);
 		text.setEnabled(false);
 		text.setText("You can reinitialize your installation at any time by selecting the menu item:\n"
-				   + "Framesoc > Management > Initialize System.");
+				   + "	Framesoc > Preferences\n\n"
+				   + "and then clicking on the button:\n"
+				   + "	Launch DBMS Configuration.");
 	}
 }

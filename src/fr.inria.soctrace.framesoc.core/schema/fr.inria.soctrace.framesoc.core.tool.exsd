@@ -98,7 +98,7 @@
          <attribute name="doc" type="string">
             <annotation>
                <documentation>
-                  Launching documentation: the list of arguments that should be passed to the tool. See IFramesocTool interface documentation for more details
+                  Launching documentation. Optional.
                </documentation>
             </annotation>
          </attribute>

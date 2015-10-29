@@ -23,7 +23,7 @@ public abstract class FramesocTool implements IFramesocTool {
 	 * The Tool object related to this plugin tool
 	 */
 	private Tool tool = null;
-	
+
 	@Override
 	public abstract void launch(IFramesocToolInput input);
 
@@ -33,18 +33,21 @@ public abstract class FramesocTool implements IFramesocTool {
 	}
 
 	/**
-	 * Set the Tool object related to this plugin tool
-	 * @param tool The Tool object related to this plugin tool
+	 * Set the Tool object related to this plugin tool. Method called by the
+	 * <code>ToolContributionManager</code> .
+	 * 
+	 * @param tool
+	 *            The Tool object related to this plugin tool
 	 */
 	public void setTool(Tool tool) {
 		this.tool = tool;
 	}
-	
+
 	/**
 	 * Return the Tool object related to this plugin tool
 	 */
 	public Tool getTool() {
 		return tool;
 	}
-	
+
 }

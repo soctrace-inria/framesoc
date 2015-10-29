@@ -275,7 +275,7 @@ public class VirtualImporter {
 		 * Trace metadata
 		 */
 
-		SystemDBObject sysDB = SystemDBObject.openNewIstance();
+		SystemDBObject sysDB = SystemDBObject.openNewInstance();
 		TraceType tt = new TraceType(TRACE_TYPE_ID);
 		tt.setName(TYPE_NAME_PREFIX + tt.getId());
 		for (int i = 0; i < NUMBER_OF_PARAMETERS; i++) {

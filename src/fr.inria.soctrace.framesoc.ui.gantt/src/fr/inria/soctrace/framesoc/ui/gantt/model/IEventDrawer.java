@@ -76,5 +76,4 @@ public interface IEventDrawer {
 	 * This method should be called when we are finished using the loader.
 	 */
 	void release();
-
 }

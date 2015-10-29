@@ -5,6 +5,7 @@ package fr.inria.soctrace.framesoc.ui.eventtable.loader;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.lib.model.Event;
 import fr.inria.soctrace.lib.model.Trace;
 
@@ -38,6 +39,8 @@ public interface IEventLoader {
 	 * The contract is that the loader must call either {@link LoaderQueue#setComplete()} or
 	 * {@link LoaderQueue#setStop()} at the end of its operations. This prevents any thread waiting
 	 * for data to wait indefinitely.
+	 * 
+	 * The events pushed into the queue are sorted by timestamp.
 	 * 
 	 * @param start
 	 *            start timestamp

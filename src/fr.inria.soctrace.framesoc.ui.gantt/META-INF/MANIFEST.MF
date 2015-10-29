@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gantt
 Bundle-SymbolicName: fr.inria.soctrace.framesoc.ui.gantt;singleton:=true
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.10.qualifier
 Bundle-Activator: fr.inria.soctrace.framesoc.ui.gantt.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -21,3 +21,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
+Export-Package: fr.inria.soctrace.framesoc.ui.gantt.loaders,
+ fr.inria.soctrace.framesoc.ui.gantt.model

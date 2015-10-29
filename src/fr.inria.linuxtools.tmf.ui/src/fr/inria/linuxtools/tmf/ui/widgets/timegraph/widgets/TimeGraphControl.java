@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.resource.JFaceResources;
@@ -65,6 +66,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
 
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.ITimeGraphColorListener;
@@ -172,6 +174,12 @@ public class TimeGraphControl extends TimeGraphBaseControl
 
     // @Framesoc
     private TimeUnit fTimeUnit = TimeUnit.UNKNOWN;
+    private TimestampFormat fFormatter = new TimestampFormat();
+    private boolean snapshot = false;
+    private Rectangle snapBounds;
+    private Menu contextMenu;
+    private MouseEvent rightClickEvent;
+
 
     private class MouseScrollNotifier extends Thread {
         private static final long DELAY = 400L;
@@ -318,6 +326,37 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public void setTimeGraphScale(TimeGraphScale timeGraphScale) {
         fTimeGraphScale = timeGraphScale;
+    }
+
+    /**
+     * Get the context menu
+     *
+     * @return the context menu
+     * @Framesoc
+     */
+    public Menu getContextMenu() {
+        return contextMenu;
+    }
+
+    /**
+     * Set the context menu variable
+     *
+     * @param contextMenu
+     *            the context menu to be assigned
+     * @Framesoc
+     */
+    public void setContextMenu(Menu contextMenu) {
+        this.contextMenu = contextMenu;
+    }
+
+    /**
+     * Get the right-click event when the context menu was called
+     *
+     * @return the right-click event
+     * @Framesoc
+     */
+    public MouseEvent getRightClickEvent() {
+        return rightClickEvent;
     }
 
     /**
@@ -1127,8 +1166,9 @@ public class TimeGraphControl extends TimeGraphBaseControl
      *            the y coordinate
      * @return the index of the item at the given location, of -1 if none.
      * @since 3.0
+     * @Framesoc - changed visibility from protected to public
      */
-    protected int getItemIndexAtY(int y) {
+    public int getItemIndexAtY(int y) {
         if (y < 0) {
             return -1;
         }
@@ -1210,9 +1250,19 @@ public class TimeGraphControl extends TimeGraphBaseControl
         long time0 = fTimeProvider.getTime0();
         long time1 = fTimeProvider.getTime1();
         int width = getCtrlSize().x;
+        // @Framesoc
+        if (snapshot) {
+            width = snapBounds.width - snapBounds.x;
+        }
+
         int nameSpace = fTimeProvider.getNameSpace();
         double pixelsPerNanoSec = (width - nameSpace <= RIGHT_MARGIN) ? 0 : (double) (width - nameSpace - RIGHT_MARGIN) / (time1 - time0);
-        int x = getBounds().x + nameSpace + (int) ((time - time0) * pixelsPerNanoSec);
+        int xBound = getBounds().x;
+        // @Framesoc
+        if (snapshot) {
+            xBound = snapBounds.x;
+        }
+        int x = xBound + nameSpace + (int) ((time - time0) * pixelsPerNanoSec);
         return x;
     }
 
@@ -1369,6 +1419,32 @@ public class TimeGraphControl extends TimeGraphBaseControl
         int y = bound.y + ySum;
         int height = fItemData.fExpandedItems[idx].fItemHeight;
         return new Rectangle(x, y, width, height);
+    }
+
+    @Override
+    public void takeSnapshot(Rectangle bounds, PaintEvent e, boolean fullHeight)
+    {
+        int oldTopIndex = fTopIndex;
+        snapshot = true;
+        snapBounds = bounds;
+
+        if (fullHeight) {
+            // Change top index in order to get the whole hierarchy
+            oldTopIndex = fTopIndex;
+            fTopIndex = 0;
+            int ySum = 0;
+
+            for (int i = fTopIndex; i < fItemData.fExpandedItems.length; i++) {
+                ySum += fItemData.fExpandedItems[i].fItemHeight;
+            }
+
+            bounds.height = ySum;
+            e.height = ySum;
+        }
+
+        paint(bounds, e);
+        fTopIndex = oldTopIndex;
+        snapshot = false;
     }
 
     @Override
@@ -1671,7 +1747,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             return false;
         }
 
-        int colorIdx = fTimeGraphProvider.getStateTableIndex(event);
+        Long colorIdx = fTimeGraphProvider.getStateTableIndex(event);
         if (colorIdx < 0) {
             return false;
         }
@@ -1846,7 +1922,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     protected boolean drawState(TimeGraphColorScheme colors, ITimeEvent event,
             Rectangle rect, GC gc, boolean selected, boolean timeSelected) {
 
-        int colorIdx = fTimeGraphProvider.getStateTableIndex(event);
+        Long colorIdx = fTimeGraphProvider.getStateTableIndex(event);
         if (colorIdx < 0 && colorIdx != ITimeGraphPresentationProvider.TRANSPARENT) {
             return false;
         }
@@ -2098,6 +2174,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     public void setTimeUnit(TimeUnit timeUnit) {
         this.fTimeUnit = timeUnit;
         this.fTimeGraphScale.setTimeUnit(timeUnit);
+        this.fFormatter.setTimeUnit(timeUnit);
     }
 
     /*
@@ -2105,7 +2182,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
      * instead.
      */
     private void updateStatusLine(int x) {
-        TimestampFormat formatter = new TimestampFormat(fTimeUnit);
+        fFormatter.setContext(fTimeProvider.getTime0(), fTimeProvider.getTime1());
         if (fStatusLineManager == null || null == fTimeProvider ||
                 fTimeProvider.getTime0() == fTimeProvider.getTime1()) {
             return;
@@ -2115,28 +2192,28 @@ public class TimeGraphControl extends TimeGraphBaseControl
             long time = getTimeAtX(x);
             if (time >= 0) {
                 message.append("T: "); //$NON-NLS-1$
-                message.append(formatter.format(time));
+                message.append(fFormatter.format(time));
                 message.append("     T1: "); //$NON-NLS-1$
                 long selectionBegin = fTimeProvider.getSelectionBegin();
                 long selectionEnd = fTimeProvider.getSelectionEnd();
-                message.append(formatter.format(Math.min(selectionBegin, selectionEnd)));
+                message.append(fFormatter.format(Math.min(selectionBegin, selectionEnd)));
                 if (selectionBegin != selectionEnd) {
                     message.append("     T2: "); //$NON-NLS-1$
-                    message.append(formatter.format(Math.max(selectionBegin, selectionEnd)));
+                    message.append(fFormatter.format(Math.max(selectionBegin, selectionEnd)));
                     message.append("     \u0394: "); //$NON-NLS-1$
-                    message.append(formatter.format(Math.abs(selectionBegin - selectionEnd)));
+                    message.append(fFormatter.format(Math.abs(selectionBegin - selectionEnd)));
                 }
             }
         } else if (fDragState == DRAG_SELECTION || fDragState == DRAG_ZOOM) {
             long time0 = fDragTime0;
             long time = getTimeAtX(fDragX);
             message.append("T1: "); //$NON-NLS-1$
-            message.append(formatter.format(Math.min(time, time0)));
+            message.append(fFormatter.format(Math.min(time, time0)));
             if (time != time0) {
                 message.append("     T2: "); //$NON-NLS-1$
-                message.append(formatter.format(Math.max(time, time0)));
+                message.append(fFormatter.format(Math.max(time, time0)));
                 message.append("     \u0394: "); //$NON-NLS-1$
-                message.append(formatter.format(Math.abs(time - time0)));
+                message.append(fFormatter.format(Math.abs(time - time0)));
             }
         }
         fStatusLineManager.setMessage(message.toString());
@@ -2219,6 +2296,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 getCtrlSize().x - fTimeProvider.getNameSpace() <= 0) {
             return;
         }
+        //@Framesoc
+        contextMenu.setVisible(false);
         int idx;
         if (1 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
             int nameSpace = fTimeProvider.getNameSpace();
@@ -2299,7 +2378,8 @@ public class TimeGraphControl extends TimeGraphBaseControl
                 fTime1bak = fTimeProvider.getTime1();
                 updateCursor(e.x, e.stateMask);
             }
-        } else if (3 == e.button) {
+            // @Framesoc
+        } else if (3 == e.button && (e.stateMask & SWT.MODIFIER_MASK) == SWT.CTRL) { // Right-click + ctrl
             setCapture(true);
             fDragX = Math.min(Math.max(e.x, fTimeProvider.getNameSpace()), getCtrlSize().x - RIGHT_MARGIN);
             fDragX0 = fDragX;
@@ -2308,6 +2388,13 @@ public class TimeGraphControl extends TimeGraphBaseControl
             redraw();
             updateCursor(e.x, e.stateMask);
             fTimeGraphScale.setDragRange(fDragX0, fDragX);
+            // @Framesoc
+        } else if (e.button == 3) // Just right-click
+        {
+            // Allow menu
+            contextMenu.setVisible(true);
+            // Save event
+            rightClickEvent = e;
         }
     }
 
@@ -2502,6 +2589,28 @@ public class TimeGraphControl extends TimeGraphBaseControl
         return fGlobalItemHeight;
     }
 
+
+    /**
+     * @Framesoc
+     *
+     * @param timeGraphEntry
+     *            the time graph entry for which we want the height
+     * @return The height of specific a item entry
+     */
+    public int getItemHeight(ITimeGraphEntry timeGraphEntry) {
+        return fItemData.findItem(timeGraphEntry).fItemHeight;
+    }
+
+    /**
+     * @Framesoc
+     * @param timeGraphEntry
+     *            the time graph entry for which we want the level
+     * @return The hierarchy level of specific a item entry
+     */
+    public int getItemLevel(ITimeGraphEntry timeGraphEntry) {
+        return fItemData.findItem(timeGraphEntry).fLevel;
+    }
+
     /**
      * Set the default height of regular item rows.
      *
@@ -2547,6 +2656,14 @@ public class TimeGraphControl extends TimeGraphBaseControl
      */
     public int getMinimumItemWidth() {
         return fMinimumItemWidth;
+    }
+
+    /**
+     * @return The set of the current entries
+     * @Framesoc
+     */
+    public Set<ITimeGraphEntry> getEntries() {
+        return fItemData.fItemMap.keySet();
     }
 
     /**

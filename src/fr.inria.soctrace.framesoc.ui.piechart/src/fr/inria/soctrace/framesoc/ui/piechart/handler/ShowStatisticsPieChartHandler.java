@@ -14,18 +14,21 @@ import fr.inria.soctrace.framesoc.ui.handlers.ShowTraceHandler;
 import fr.inria.soctrace.framesoc.ui.piechart.view.StatisticsPieChartView;
 
 /**
+ * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  * 
  */
-
-/**
- * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
- */
 public class ShowStatisticsPieChartHandler extends ShowTraceHandler {
+
+	private final static String VIEW_NAME = "Statistics Pie Chart";
 
 	@Override
 	public String getViewId() {
 		return StatisticsPieChartView.ID;
+	}
+
+	@Override
+	public String getViewName() {
+		return VIEW_NAME;
 	}
 
 }

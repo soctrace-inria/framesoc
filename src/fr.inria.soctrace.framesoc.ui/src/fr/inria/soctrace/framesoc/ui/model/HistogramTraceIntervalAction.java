@@ -9,6 +9,7 @@ import org.eclipse.wb.swt.ResourceManager;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 
@@ -24,7 +25,8 @@ public abstract class HistogramTraceIntervalAction extends TraceIntervalAction {
 		}
 	}
 	
-	public HistogramTraceIntervalAction() {
+	public HistogramTraceIntervalAction(FramesocPart part) {
+		super(part);
 		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/histogram.png");
 		this.setImageDescriptor(img);

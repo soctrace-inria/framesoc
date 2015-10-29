@@ -108,4 +108,10 @@ public class DetailsTableRow {
 		this.value = value;
 	}
 
+	@Override
+	public String toString() {
+		return "DetailsTableRow [isReadOnly=" + isReadOnly + ", isCustomParam=" + isCustomParam
+				+ ", name=" + name + ", value=" + value + "]";
+	}
+
 }

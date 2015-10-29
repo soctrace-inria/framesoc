@@ -15,6 +15,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -80,10 +82,15 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
 import fr.inria.soctrace.framesoc.ui.model.ColorsChangeDescriptor;
+import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
+import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.ITreeNode;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
@@ -93,25 +100,60 @@ import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItem;
 import fr.inria.soctrace.framesoc.ui.piechart.model.MergedItems;
 import fr.inria.soctrace.framesoc.ui.piechart.model.PieChartLoaderMap;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableColumn;
-import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableFolderRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRow;
 import fr.inria.soctrace.framesoc.ui.piechart.model.StatisticsTableRowFilter;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.StatisticsTableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.piechart.providers.ValueLabelProvider;
+import fr.inria.soctrace.framesoc.ui.piechart.snapshot.StatisticsPieChartSnapshotDialog;
 import fr.inria.soctrace.framesoc.ui.providers.TableRowLabelProvider;
 import fr.inria.soctrace.framesoc.ui.providers.TreeContentProvider;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDataManager;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimension;
+import fr.inria.soctrace.framesoc.ui.treefilter.FilterDimensionData;
+import fr.inria.soctrace.framesoc.ui.treefilter.ProducerFilterData;
+import fr.inria.soctrace.framesoc.ui.treefilter.TreeFilterDialog;
+import fr.inria.soctrace.framesoc.ui.treefilter.TypeFilterData;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
+import fr.inria.soctrace.lib.model.EventProducer;
+import fr.inria.soctrace.lib.model.EventType;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.query.EventProducerQuery;
+import fr.inria.soctrace.lib.query.EventTypeQuery;
+import fr.inria.soctrace.lib.storage.DBObject;
+import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.DeltaManager;
+import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
- * Statistics pie chart view
+ * Statistics pie chart view.
+ * 
+ * All the operators share the time selection, the event producer filtering and the event type
+ * filtering. When changing operator, if previously loaded data are not up to date with current
+ * selection/filtering, data are automatically reloaded.
  * 
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class StatisticsPieChartView extends FramesocPart {
+
+	private class PieFilterData extends FilterDataManager {
+
+		public PieFilterData(FilterDimensionData dimension) {
+			super(dimension);
+		}
+
+		@Override
+		public void reloadAfterChange() {
+			loadPieChart();
+		}
+	}
+
+	/**
+	 * Global filters data.
+	 */
+	private Map<FilterDimension, PieFilterData> globalFilters;
 
 	/**
 	 * Logger
@@ -153,9 +195,10 @@ public class StatisticsPieChartView extends FramesocPart {
 		public IPieChartLoader loader;
 		public PieChartLoaderMap map;
 		public TimeInterval interval;
+		public List<Object> checkedProducers = null;
+		public List<Object> checkedTypes = null;
 		public List<String> excluded;
 		public MergedItems merged;
-		public boolean dirty = false;
 
 		public LoaderDescriptor(IPieChartLoader loader) {
 			this.loader = loader;
@@ -165,14 +208,38 @@ public class StatisticsPieChartView extends FramesocPart {
 			this.merged = new MergedItems();
 		}
 
-		public boolean dataReady() {
-			return (map != null && map.isComplete());
+		/**
+		 * Check if some data has been loaded (either complete or cancel status).
+		 */
+		public boolean dataLoaded() {
+			return (map != null && (map.isStop() || map.isComplete()));
+		}
+
+		/**
+		 * Check if the current loaded data is in synch with the current global time selection,
+		 * producer selection and type selection.
+		 */
+		public boolean isAllOk() {
+			return intervalOk() && producersOk() && typesOk();
+		}
+
+		public boolean intervalOk() {
+			return interval.equals(globalLoadInterval);
+		}
+
+		public boolean producersOk() {
+			return globalFilters.get(FilterDimension.PRODUCERS).areCheckedEqual(checkedProducers);
+		}
+
+		public boolean typesOk() {
+			return globalFilters.get(FilterDimension.TYPE).areCheckedEqual(checkedTypes);
 		}
 
 		public void dispose() {
 			loader = null;
-			if (map != null)
+			if (map != null) {
 				map = null;
+			}
 		}
 
 		@Override
@@ -182,6 +249,11 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 
 	}
+
+	/**
+	 * Global loaded interval, shared among all operators.
+	 */
+	private TimeInterval globalLoadInterval = new TimeInterval(0, 0);
 
 	/**
 	 * Available loaders, read from the extension point. The i-th element of this array corresponds
@@ -239,11 +311,18 @@ public class StatisticsPieChartView extends FramesocPart {
 	 */
 	private StatisticsTableRowFilter nameFilter;
 
+	/**
+	 * Label providers for name column.
+	 */
+	private List<StatisticsTableRowLabelProvider> nameProviders = new ArrayList<>();
+
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
 			JFaceResources.getResources());
 	private org.eclipse.swt.graphics.Color grayColor;
 	private org.eclipse.swt.graphics.Color blackColor;
+
+	protected ChartComposite chartFrame;
 
 	/**
 	 * Constructor
@@ -257,6 +336,9 @@ public class StatisticsPieChartView extends FramesocPart {
 		for (IPieChartLoader loader : loaders) {
 			loaderDescriptors.add(new LoaderDescriptor(loader));
 		}
+		globalFilters = new HashMap<>();
+		globalFilters.put(FilterDimension.PRODUCERS, new PieFilterData(new ProducerFilterData()));
+		globalFilters.put(FilterDimension.TYPE, new PieFilterData(new TypeFilterData()));
 	}
 
 	/**
@@ -325,10 +407,19 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				boolean firstTime = true;
+				for (LoaderDescriptor d : loaderDescriptors) {
+					firstTime = firstTime && !d.dataLoaded();
+				}
+				if (firstTime) {
+					return;
+				}
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				cleanFilter();
-				refreshFilter();
-				refresh();
+				cleanTableFilter();
+				refreshTableFilter();
+				// use global load interval
+				timeBar.setSelection(globalLoadInterval);
+				loadPieChart();
 			}
 		});
 
@@ -359,14 +450,13 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		// filter
 		textFilter = new Text(compositeTable, SWT.BORDER);
-		cleanFilter();
 		textFilter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		textFilter.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
 				String filter = textFilter.getText().trim();
 				if (filter.isEmpty()) {
-					cleanFilter();
+					cleanTableFilter();
 				}
 			}
 
@@ -385,7 +475,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == SWT.CR || textFilter.getText().trim().isEmpty()) {
 					textFilter.setData(textFilter.getText());
-					refreshFilter();
+					refreshTableFilter();
 				}
 			}
 		});
@@ -429,40 +519,25 @@ public class StatisticsPieChartView extends FramesocPart {
 		// time manager
 		timeBar = new TimeBar(timeComposite, SWT.NONE, true, true);
 		timeBar.setEnabled(false);
+		combo.setEnabled(false);
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
-		timeBar.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				TimeInterval barInterval = timeBar.getSelection();
-				if (!barInterval.equals(currentDescriptor.interval)) {
-					timeBar.getLoadButton().setEnabled(true);
-					timeBar.getSynchButton().setEnabled(true);
-				} else {
-					timeBar.getLoadButton().setEnabled(false);
-					timeBar.getSynchButton().setEnabled(false);
-				}
-			}
-		});
 
 		// button to synch the timebar with the gantt
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (combo != null && timeBar != null && currentDescriptor != null) {
-					if (currentDescriptor.dirty) {
+					if (currentDescriptor.dataLoaded()) {
 						timeBar.setSelection(currentDescriptor.interval.startTimestamp,
 								currentDescriptor.interval.endTimestamp);
 					} else {
 						timeBar.setSelection(currentShownTrace.getMinTimestamp(),
 								currentShownTrace.getMaxTimestamp());
 					}
-					timeBar.getSynchButton().setEnabled(false);
-					timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
 				}
 			}
 		});
-		timeBar.getSynchButton().setToolTipText("Synch selection with Pie Chart");
 
 		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
@@ -471,33 +546,40 @@ public class StatisticsPieChartView extends FramesocPart {
 				if (combo.getSelectionIndex() == -1)
 					return;
 				currentDescriptor = loaderDescriptors.get(combo.getSelectionIndex());
-				cleanFilter();
-				refreshFilter();
+				cleanTableFilter();
+				refreshTableFilter();
 				loadPieChart();
 			}
 		});
-		timeBar.getLoadButton().setToolTipText("Load metric");
 
 		// ----------
 		// TOOL BAR
 		// ----------
 
+		// filters and actions
+		createFilterDialogs();
 		createActions();
 
 		// create SWT resources
 		createResources();
-
+		// clean the filter, after creating the font
+		cleanTableFilter();
 	}
 
 	private void createActions() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 
-		// Framesoc Actions
-		TableTraceIntervalAction.add(manager, createTableAction());
-		GanttTraceIntervalAction.add(manager, createGanttAction());
-		HistogramTraceIntervalAction.add(manager, createHistogramAction());
-
-		// Separator before other actions
+		// Filters actions
+		manager.add(globalFilters.get(FilterDimension.PRODUCERS).initFilterAction());
+		manager.add(globalFilters.get(FilterDimension.TYPE).initFilterAction());
+		
+		// Separator
+		manager.add(new Separator());
+		
+		// Snapshot
+		manager.add(createSnapshotAction());
+		
+		// Separator
 		manager.add(new Separator());
 
 		// Expand all action
@@ -512,7 +594,7 @@ public class StatisticsPieChartView extends FramesocPart {
 				Activator.PLUGIN_ID, "icons/expandall.gif"));
 		manager.add(expandAction);
 
-		// Create the collapse all action
+		// Collapse all action
 		Action collapseAction = new Action() {
 			public void run() {
 				tableTreeViewer.collapseAll();
@@ -524,15 +606,31 @@ public class StatisticsPieChartView extends FramesocPart {
 				Activator.PLUGIN_ID, "icons/collapseall.gif"));
 		manager.add(collapseAction);
 
+		// Separator
+		manager.add(new Separator());
+
+		// Framesoc Actions
+		TableTraceIntervalAction.add(manager, createTableAction());
+		GanttTraceIntervalAction.add(manager, createGanttAction());
+		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
+
+		// disable all actions
 		enableActions(false);
 	}
 
 	protected TraceIntervalDescriptor getIntervalDescriptor() {
-		if (currentShownTrace == null || !currentDescriptor.dirty)
+		if (currentShownTrace == null || !currentDescriptor.dataLoaded())
 			return null;
-		TraceIntervalDescriptor des = new TraceIntervalDescriptor();
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
 		des.setTrace(currentShownTrace);
 		des.setTimeInterval(currentDescriptor.interval);
+
+		// Set event type and event prod filter
+		des.setEventTypes(globalFilters.get(FilterDimension.TYPE).getChecked());
+		des.setEventProducers(globalFilters.get(FilterDimension.PRODUCERS)
+				.getChecked());
+		
 		return des;
 	}
 
@@ -546,6 +644,19 @@ public class StatisticsPieChartView extends FramesocPart {
 		}
 		return v;
 	}
+	
+	public ChartComposite getChartFrame() {
+		return chartFrame;
+	}
+	
+	public TreeViewer getTableTreeViewer() {
+		return tableTreeViewer;
+	}
+
+	public void setTableTreeViewer(TreeViewer tableTreeViewer) {
+		this.tableTreeViewer = tableTreeViewer;
+	}
+
 
 	// GUI creation
 
@@ -579,10 +690,10 @@ public class StatisticsPieChartView extends FramesocPart {
 					hide.addSelectionListener(new SelectionAdapter() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
-							currentDescriptor.excluded.addAll(rows);					
+							currentDescriptor.excluded.addAll(rows);
 							refresh();
-							refreshFilter();
-							tableTreeViewer.collapseAll();					
+							refreshTableFilter();
+							tableTreeViewer.collapseAll();
 						}
 					});
 				}
@@ -627,7 +738,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.merged.removeMergedItems(rows);
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -642,7 +753,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.excluded = new ArrayList<>();
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -657,7 +768,7 @@ public class StatisticsPieChartView extends FramesocPart {
 						public void widgetSelected(SelectionEvent e) {
 							currentDescriptor.merged.removeAllMergedItems();
 							refresh();
-							refreshFilter();
+							refreshTableFilter();
 							tableTreeViewer.collapseAll();
 						}
 					});
@@ -710,7 +821,7 @@ public class StatisticsPieChartView extends FramesocPart {
 
 	private String getStatus(int events, int matched) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Filter matched ");
+		sb.append("Name Filter matched ");
 		sb.append(matched);
 		sb.append(" of ");
 		sb.append(events);
@@ -734,7 +845,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				nameFilter = new StatisticsTableRowFilter(col);
 				tableTreeViewer.addFilter(nameFilter);
 				// the label provider puts also the image
-				elemsViewerCol.setLabelProvider(new StatisticsTableRowLabelProvider(col));
+				StatisticsTableRowLabelProvider p = new StatisticsTableRowLabelProvider(col);
+				nameProviders.add(p);
+				elemsViewerCol.setLabelProvider(p);
 			} else if (col.equals(StatisticsTableColumn.VALUE)) {
 				elemsViewerCol.setLabelProvider(new ValueLabelProvider(col, this));
 			} else {
@@ -786,8 +899,13 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		@Override
 		public void run() {
-			currentDescriptor.loader.load(currentShownTrace, loadInterval, currentDescriptor.map,
-					monitor);
+			IPieChartLoader l = currentDescriptor.loader;
+			// prepare producers to use
+			l.setEventProducerFilter(globalFilters.get(FilterDimension.PRODUCERS).getCheckedId());
+			// prepare types to use
+			l.setEventTypeFilter(globalFilters.get(FilterDimension.TYPE).getCheckedId());
+			// load pie
+			l.load(currentShownTrace, loadInterval, currentDescriptor.map, monitor);
 		}
 
 		public void cancel() {
@@ -844,6 +962,7 @@ public class StatisticsPieChartView extends FramesocPart {
 					// refresh at least once when there is no data.
 					refresh();
 				}
+
 				return Status.OK_STATUS;
 			} finally {
 				enableTimeBar(true);
@@ -865,6 +984,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			public void run() {
 				if (!timeBar.isDisposed()) {
 					timeBar.setEnabled(enable);
+					combo.setEnabled(enable);
 				}
 			}
 		});
@@ -878,10 +998,12 @@ public class StatisticsPieChartView extends FramesocPart {
 
 		final TimeInterval loadInterval = new TimeInterval(timeBar.getStartTimestamp(),
 				timeBar.getEndTimestamp());
+		timeBar.setDisplayInterval(loadInterval);
 
-		currentDescriptor.dirty = true;
+		// reset the global interval
+		globalLoadInterval.copy(loadInterval);
 
-		if (currentDescriptor.dataReady() && currentDescriptor.interval.equals(loadInterval)) {
+		if (currentDescriptor.dataLoaded() && currentDescriptor.isAllOk()) {
 			logger.debug("Data is ready. Nothing to do. Refresh only.");
 			refresh();
 			return;
@@ -893,22 +1015,25 @@ public class StatisticsPieChartView extends FramesocPart {
 		// reset the loaded interval in the descriptor
 		currentDescriptor.interval.startTimestamp = loadInterval.startTimestamp;
 		currentDescriptor.interval.endTimestamp = loadInterval.startTimestamp;
+		
+		// set the filters
+		currentDescriptor.checkedProducers = globalFilters.get(FilterDimension.PRODUCERS).getChecked();
+		currentDescriptor.checkedTypes = globalFilters.get(FilterDimension.TYPE).getChecked();
 
 		// create loader and drawer threads
 		LoaderThread loaderThread = new LoaderThread(loadInterval);
 		DrawerJob drawerJob = new DrawerJob("Pie Chart Drawer Job", loaderThread, loadInterval);
 		loaderThread.start();
 		drawerJob.schedule();
-
 	}
 
-	private void cleanFilter() {
+	private void cleanTableFilter() {
 		textFilter.setText(FILTER_HINT);
 		textFilter.setData("");
 		textFilter.setForeground(grayColor);
 	}
 
-	private void refreshFilter() {
+	private void refreshTableFilter() {
 		if (nameFilter == null || tableTreeViewer == null || statusText == null)
 			return;
 		if (currentDescriptor == null || currentDescriptor.map == null)
@@ -935,6 +1060,7 @@ public class StatisticsPieChartView extends FramesocPart {
 		// compute graphical elements
 		PieChartLoaderMap map = currentDescriptor.map;
 		final Map<String, Double> values = map.getSnapshot(currentDescriptor.interval);
+		globalLoadInterval.copy(currentDescriptor.interval);
 		final IPieChartLoader loader = currentDescriptor.loader;
 		loader.updateLabels(values, currentDescriptor.merged.getMergedItems());
 		final PieDataset dataset = loader.getPieDataset(values, currentDescriptor.excluded,
@@ -949,7 +1075,7 @@ public class StatisticsPieChartView extends FramesocPart {
 			@Override
 			public void run() {
 
-				if (currentDescriptor.dataReady() && values.isEmpty()) {
+				if (currentDescriptor.dataLoaded() && values.isEmpty()) {
 					// store the loaded interval in case of no data
 					currentDescriptor.interval.startTimestamp = timeBar.getStartTimestamp();
 					currentDescriptor.interval.endTimestamp = timeBar.getEndTimestamp();
@@ -961,9 +1087,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				}
 
 				// create new chart
-				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dirty);
+				JFreeChart chart = createChart(dataset, "", loader, currentDescriptor.dataLoaded());
 				compositePie.setText(title);
-				ChartComposite chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
+				chartFrame = new ChartComposite(compositePie, SWT.NONE, chart,
 						USE_BUFFER);
 
 				Point size = compositePie.getSize();
@@ -982,19 +1108,14 @@ public class StatisticsPieChartView extends FramesocPart {
 				} else {
 					tableTreeViewer.setInput(roots);
 				}
-				tableTreeViewer.expandAll();
-				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
-				timeBar.getLoadButton().setEnabled(!currentDescriptor.dirty);
-				timeBar.getSynchButton().setEnabled(false);
-				if (currentDescriptor.dirty) {
-					timeBar.setSelection(currentDescriptor.interval.startTimestamp,
-							currentDescriptor.interval.endTimestamp);
-				} else {
-					timeBar.setSelection(currentShownTrace.getMinTimestamp(),
-							currentShownTrace.getMaxTimestamp());
-				}
+				tableTreeViewer.collapseAll();
+				timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace
+						.getTimeUnit()));
+				timeBar.setSelection(currentDescriptor.interval.startTimestamp,
+						currentDescriptor.interval.endTimestamp);
+				timeBar.setDisplayInterval(currentDescriptor.interval);
 				statusText.setText(getStatus(valuesCount, valuesCount));
-				enableActions(currentDescriptor.dirty);
+				enableActions(currentDescriptor.dataLoaded());
 
 			}
 		});
@@ -1074,12 +1195,6 @@ public class StatisticsPieChartView extends FramesocPart {
 			StatisticsTableRow r1 = (StatisticsTableRow) e1;
 			StatisticsTableRow r2 = (StatisticsTableRow) e2;
 
-			// Aggregated rows at the end
-			if (r1 instanceof StatisticsTableFolderRow)
-				return +1;
-			if (r2 instanceof StatisticsTableFolderRow)
-				return -1;
-
 			int rc = 0;
 			try {
 				if (this.col.equals(StatisticsTableColumn.VALUE)) {
@@ -1121,6 +1236,9 @@ public class StatisticsPieChartView extends FramesocPart {
 				return;
 			ColorsChangeDescriptor des = (ColorsChangeDescriptor) data;
 			logger.debug("Colors changed: {}", des);
+			for (StatisticsTableRowLabelProvider p : nameProviders) {
+				p.disposeImages();
+			}
 			loadPieChart();
 		}
 	}
@@ -1135,23 +1253,53 @@ public class StatisticsPieChartView extends FramesocPart {
 		combo.setEnabled(true);
 		timeBar.setEnabled(true);
 		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
-		currentShownTrace = trace;
+		
+		if (currentShownTrace == null || !currentShownTrace.equals(trace)) {
+			currentShownTrace = trace;
+			initTypesAndProducers(trace);
+		}
 		if (data != null) {
 			TraceIntervalDescriptor intDes = (TraceIntervalDescriptor) data;
-			OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
-			if (operatorDialog.open() == Dialog.OK) {
-				if (operatorDialog.getSelectionIndex() != -1) {
-					combo.select(operatorDialog.getSelectionIndex());
-					currentDescriptor = loaderDescriptors.get(operatorDialog.getSelectionIndex());
-					timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
-					loadPieChart();
+			// propose operator selection only if there is no data loaded
+			if (!currentDescriptor.dataLoaded()) {
+				OperatorDialog operatorDialog = new OperatorDialog(getSite().getShell());
+				if (operatorDialog.open() == Dialog.OK) {
+					if (operatorDialog.getSelectionIndex() != -1) {
+						combo.select(operatorDialog.getSelectionIndex());
+						currentDescriptor = loaderDescriptors.get(operatorDialog
+								.getSelectionIndex());
+					}
 				}
 			}
+
+			if (data instanceof TraceConfigurationDescriptor) {
+				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) intDes;
+				if (!tcd.getEventTypes().isEmpty()
+						&& Boolean.valueOf(Configuration.getInstance().get(
+								SoCTraceProperty.type_filter_synchronization))) {
+					globalFilters.get(FilterDimension.TYPE).setChecked(
+							tcd.getEventTypes());
+				}
+				if (!tcd.getEventProducers().isEmpty()
+						&& Boolean
+								.valueOf(Configuration
+										.getInstance()
+										.get(SoCTraceProperty.producer_filter_synhronization))) {
+					globalFilters.get(FilterDimension.PRODUCERS).setChecked(
+							tcd.getEventProducers());
+				}
+			}
+			
+			timeBar.setSelection(intDes.getStartTimestamp(), intDes.getEndTimestamp());
+			globalLoadInterval.copy(intDes.getTimeInterval());
+			loadPieChart();
 		} else {
 			combo.select(0);
-			timeBar.getLoadButton().setEnabled(true);
 			timeBar.setSelection(trace.getMinTimestamp(), trace.getMaxTimestamp());
+			timeBar.setDisplayInterval(timeBar.getSelection());
 			txtDescription.setVisible(true);
+			globalLoadInterval.startTimestamp = trace.getMinTimestamp();
+			globalLoadInterval.endTimestamp = trace.getMaxTimestamp();
 		}
 	}
 
@@ -1187,7 +1335,118 @@ public class StatisticsPieChartView extends FramesocPart {
 		public int getSelectionIndex() {
 			return selectionIndex;
 		}
+	}
 
+	private void createFilterDialogs() {
+		for (PieFilterData data : globalFilters.values()) {
+			data.initFilterDialog(getSite().getShell());
+		}
+	}
+
+	private void initTypesAndProducers(Trace t) {
+		TraceDBObject traceDB = null;
+		try {
+			traceDB = TraceDBObject.openNewInstance(t.getDbName());
+			// types
+			EventTypeQuery tq = new EventTypeQuery(traceDB);
+			List<EventType> types = tq.getList();
+			ITreeNode[] typeHierarchy = TreeFilterDialog.getTypeHierarchy(types);
+			globalFilters.get(FilterDimension.TYPE).setFilterRoots(typeHierarchy);
+			// producers
+			EventProducerQuery pq = new EventProducerQuery(traceDB);
+			List<EventProducer> producers = pq.getList();
+			ITreeNode[] producerHierarchy = TreeFilterDialog.getProducerHierarchy(producers);
+			globalFilters.get(FilterDimension.PRODUCERS).setFilterRoots(producerHierarchy);
+			traceDB.close();
+		} catch (SoCTraceException e) {
+			e.printStackTrace();
+		} finally {
+			DBObject.finalClose(traceDB);
+		}
+	}
+	
+	/**
+	 * Initialize the snapshot action
+	 * 
+	 * @return the action
+	 */
+	public IAction createSnapshotAction() {
+		SnapshotAction snapshotAction = new SnapshotAction("",
+				IAction.AS_PUSH_BUTTON);
+		snapshotAction.pieView = this;
+		snapshotAction.setImageDescriptor(ResourceManager
+				.getPluginImageDescriptor(Activator.PLUGIN_ID,
+						"icons/snapshot.png"));
+		snapshotAction.setToolTipText("Take a snapshot");
+
+		return snapshotAction;
+	}
+	
+	private class SnapshotAction extends Action {
+		public StatisticsPieChartView pieView;
+
+		public SnapshotAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			new StatisticsPieChartSnapshotDialog(getSite().getShell(), pieView).open();
+		}
+	}
+	
+	public String getSnapshotInfo() {
+		StringBuffer output = new StringBuffer();
+		output.append("\nStatisitics operator: ");
+		output.append(getCurrentLoader().getStatName());
+		output.append("\nLoaded start timestamp: ");
+		output.append(globalLoadInterval.startTimestamp);
+		output.append("\nLoaded end timestamp: ");
+		output.append(globalLoadInterval.endTimestamp);
+
+		// Filtered types
+		String filteredTypes = "";
+		List<Object> filteredType = globalFilters.get(FilterDimension.TYPE).getChecked();
+		List<Object> allTypes = globalFilters.get(FilterDimension.TYPE).getAllElements();
+		for (Object typeObject : allTypes) {
+			if (!filteredType.contains(typeObject)) {
+				if (typeObject instanceof EventTypeNode) {
+					filteredTypes = filteredTypes
+							+ ((EventTypeNode) typeObject).getEventType().getName() + ", ";
+				}
+			}
+		}
+		
+		// If there was some filtered event producers
+		if (!filteredTypes.isEmpty()) {
+			// Remove last separator
+			filteredTypes = filteredTypes.substring(0, filteredTypes.length() - 2);
+			output.append("\nFiltered event types: ");
+			output.append(filteredTypes);
+		}
+	
+		// Filtered event producers
+		String filteredEP = "";
+		List<Object> filteredProducers = globalFilters.get(FilterDimension.PRODUCERS).getChecked();
+		List<Object> allProducers = globalFilters.get(FilterDimension.PRODUCERS).getAllElements();
+		for (Object producer : allProducers) {
+			if (!filteredProducers.contains(producer)) {
+				if (producer instanceof EventProducerNode) {
+					filteredEP = filteredEP
+							+ ((EventProducerNode) producer).getName() + ", ";
+				}
+			}
+		}
+
+		// If there was some filtered event producers
+		if (!filteredEP.isEmpty()) {
+			// Remove last separator
+			filteredEP = filteredEP.substring(0, filteredEP.length() - 2);
+			output.append("\nFiltered event producers: ");
+			output.append(filteredEP);
+		}
+		
+		return output.toString();
 	}
 
 }

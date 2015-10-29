@@ -91,8 +91,8 @@ public class TimeGraphPresentationProvider implements ITimeGraphPresentationProv
     }
 
     @Override
-    public int getStateTableIndex(ITimeEvent event) {
-        return 0;
+    public Long getStateTableIndex(ITimeEvent event) {
+        return 0l;
     }
 
     /**

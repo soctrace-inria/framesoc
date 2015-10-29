@@ -93,6 +93,13 @@ A small integer means a higher priority (the view is presented first in the Fram
                </documentation>
             </annotation>
          </attribute>
+         <attribute name="show_default" type="boolean" use="required">
+            <annotation>
+               <documentation>
+                  Show this view by default in the Framesoc perspective layout.
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 

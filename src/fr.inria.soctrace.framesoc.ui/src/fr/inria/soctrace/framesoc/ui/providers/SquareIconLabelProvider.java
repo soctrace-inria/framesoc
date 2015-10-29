@@ -38,11 +38,14 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 	 * References to the images (cache).
 	 */
 	private Map<String, Image> images = new HashMap<>();
+	
+	private static final int SPACE_BEFORE_SQUARE = 2;
 
 	/**
 	 * Get the item bounds.
 	 * 
-	 * @param event paint event
+	 * @param event
+	 *            paint event
 	 * @return the bounds, or null if the item is not a TreeItem or a TableItem
 	 */
 	private Rectangle getBounds(Event event) {
@@ -99,8 +102,8 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 			bounds.height = bounds.height / 2 - img.getBounds().height / 2;
 			int imgy = bounds.height > 0 ? bounds.y + bounds.height : bounds.y;
 			int texty = bounds.y + 3;
-			event.gc.drawText(text, bounds.x + img.getBounds().width + 5, texty, true);
-			event.gc.drawImage(img, bounds.x, imgy);
+			event.gc.drawText(text, bounds.x + img.getBounds().width + 5 + SPACE_BEFORE_SQUARE, texty, true);
+			event.gc.drawImage(img, bounds.x + SPACE_BEFORE_SQUARE, imgy);
 		} else {
 			event.gc.drawText(text, bounds.x + 2, bounds.y + 3, true);
 		}
@@ -114,11 +117,19 @@ public abstract class SquareIconLabelProvider extends OwnerDrawLabelProvider imp
 
 	@Override
 	public void dispose() {
+		disposeImages();
+		super.dispose();
+	}
+
+	/**
+	 * Dispose all the images in the cache. Call this method if colors have changed and you want to
+	 * force the loading of new colors.
+	 */
+	public void disposeImages() {
 		for (Image img : images.values()) {
 			img.dispose();
 		}
 		images = new HashMap<>();
-		super.dispose();
 	}
 
 	/**

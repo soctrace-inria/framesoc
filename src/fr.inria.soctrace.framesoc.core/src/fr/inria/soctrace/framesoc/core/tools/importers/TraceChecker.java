@@ -30,6 +30,7 @@ import fr.inria.soctrace.lib.query.TraceQuery;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.TraceDBObject;
+import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
@@ -53,15 +54,16 @@ public class TraceChecker {
 	private List<IChecker> checkers;
 
 	/**
-	 * Constructor. Initializes the service, loading the existing trace
-	 * metadata.
+	 * Constructor. Initializes the service, loading the existing trace metadata.
 	 */
 	public TraceChecker() {
 
 		// load checkers
 		checkers = new ArrayList<>();
-		checkers.add(new MinMaxChecker());
 		checkers.add(new IndexChecker());
+		checkers.add(new MinMaxChecker());
+		checkers.add(new EventNumberChecker());
+		checkers.add(new ProducerNumberChecker());
 
 		// load the traces, if a SystemDB exists
 		traces = new HashSet<Trace>();
@@ -69,7 +71,7 @@ public class TraceChecker {
 		try {
 			if (!FramesocManager.getInstance().isSystemDBExisting())
 				return;
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> tmp = tq.getList();
 			for (Trace t : tmp) {
@@ -87,8 +89,8 @@ public class TraceChecker {
 	 * Applies all the checking to the newly imported traces.
 	 * 
 	 * @param monitor
-	 *            Progress monitor. This method use it *only* to specify sub
-	 *            tasks. If it is null, a NullProgressMonitor is used.
+	 *            Progress monitor. This method use it *only* to specify sub tasks. If it is null, a
+	 *            NullProgressMonitor is used.
 	 */
 	public void checkTraces(IProgressMonitor monitor) {
 
@@ -100,7 +102,7 @@ public class TraceChecker {
 		try {
 			if (!FramesocManager.getInstance().isSystemDBExisting())
 				return;
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> tmp = tq.getList();
 			for (Trace t : tmp) {
@@ -116,6 +118,20 @@ public class TraceChecker {
 		} finally {
 			DBObject.finalClose(sysDB);
 		}
+	}
+
+	/**
+	 * Force to launch the checker on all the present traces.
+	 * 
+	 * @param monitor
+	 *            Progress monitor. This method use it *only* to specify sub
+	 *            tasks. If it is null, a NullProgressMonitor is used.
+	 */
+	public void checkAllTraces(IProgressMonitor monitor) {
+		// Delete the currently known trace
+		traces.clear();
+		// Launch trace checker
+		checkTraces(monitor);
 	}
 
 	/*
@@ -148,7 +164,7 @@ public class TraceChecker {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
 				if (t.getMinTimestamp() == Trace.UNKNOWN_INT) {
 					t.setMinTimestamp(traceDB.getMinTimestamp());
 					sysDB.update(t);
@@ -167,31 +183,101 @@ public class TraceChecker {
 	}
 
 	/**
-	 * Trace checker for timestamp index.
+	 * Trace checker for number of events trace metadata.
 	 */
-	private class IndexChecker implements IChecker {
+	private class EventNumberChecker implements IChecker {
 
-		private boolean enabled = true;
-		
-		public IndexChecker() {
-			enabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_indexing).equals("true");
-		}
-		
 		@Override
 		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
 
-			if (!enabled)
+			monitor.subTask("Number of events check on trace:  " + t.getAlias());
+
+			if (t.getNumberOfEvents() != Trace.UNKNOWN_INT)
 				return;
-				
-			monitor.subTask("Indexing trace: " + t.getAlias());
 
 			if (!isDBExisting(t.getDbName()))
 				return;
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(t.getDbName());
-				traceDB.createTimestampIndex();
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfEvents(traceDB.getNumberOf(FramesocTable.EVENT));
+				sysDB.update(t);
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(traceDB);
+			}
+		}
+
+	}
+
+	/**
+	 * Trace checker for number of producers trace metadata.
+	 */
+	private class ProducerNumberChecker implements IChecker {
+
+		@Override
+		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
+
+			monitor.subTask("Number of events check on trace:  " + t.getAlias());
+
+			if (t.getNumberOfProducers() != Trace.UNKNOWN_INT)
+				return;
+
+			if (!isDBExisting(t.getDbName()))
+				return;
+
+			TraceDBObject traceDB = null;
+			try {
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				t.setNumberOfProducers(traceDB.getNumberOf(FramesocTable.EVENT_PRODUCER));
+				sysDB.update(t);
+			} catch (SoCTraceException e) {
+				e.printStackTrace();
+			} finally {
+				DBObject.finalClose(traceDB);
+			}
+		}
+	}
+
+	/**
+	 * Trace checker for timestamp index.
+	 */
+	private class IndexChecker implements IChecker {
+
+		private boolean tsEnabled = true;
+		private boolean eidEnabled = true;
+
+		public IndexChecker() {
+			tsEnabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_ts_indexing)
+					.equals("true");
+			eidEnabled = Configuration.getInstance().get(SoCTraceProperty.trace_db_eid_indexing)
+					.equals("true");
+		}
+
+		@Override
+		public void checkTrace(Trace t, SystemDBObject sysDB, IProgressMonitor monitor) {
+
+			if (!tsEnabled && !eidEnabled) {
+				return;
+			}
+
+			if (!isDBExisting(t.getDbName())) {
+				return;
+			}
+
+			TraceDBObject traceDB = null;
+			try {
+				traceDB = TraceDBObject.openNewInstance(t.getDbName());
+				if (tsEnabled) {
+					monitor.subTask("Creating timestamp index on trace: " + t.getAlias());
+					traceDB.createTimestampIndex();
+				}
+				if (eidEnabled) {
+					monitor.subTask("Creating event param index on trace: " + t.getAlias());
+					traceDB.createEventParamIndex();
+				}
 			} catch (SoCTraceException e) {
 				e.printStackTrace();
 			} finally {

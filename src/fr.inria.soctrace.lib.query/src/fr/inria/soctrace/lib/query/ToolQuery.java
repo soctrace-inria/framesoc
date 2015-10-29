@@ -19,6 +19,7 @@ import java.util.List;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.ToolTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 
 /**
@@ -69,13 +70,13 @@ public class ToolQuery extends ElementQuery {
 			
 			List<Tool> tools = new LinkedList<Tool>();
 			while (rs.next()) {
-				Tool t = new Tool(rs.getLong(1));
-				t.setName(rs.getString(2));
-				t.setType(rs.getString(3));
-				t.setCommand(rs.getString(4));
-				t.setPlugin(rs.getBoolean(5));
-				t.setDoc(rs.getString(6));
-				t.setExtensionId(rs.getString(7));
+				Tool t = new Tool(rs.getInt(ToolTableModel.ID.getPosition()));
+				t.setName(rs.getString(ToolTableModel.NAME.getPosition()));
+				t.setType(rs.getString(ToolTableModel.TYPE.getPosition()));
+				t.setCommand(rs.getString(ToolTableModel.COMMAND.getPosition()));
+				t.setPlugin(rs.getBoolean(ToolTableModel.IS_PLUGIN.getPosition()));
+				t.setDoc(rs.getString(ToolTableModel.DOC.getPosition()));
+				t.setExtensionId(rs.getString(ToolTableModel.EXTENSION_ID.getPosition()));
 				tools.add(t);
 			}
 			stm.close();

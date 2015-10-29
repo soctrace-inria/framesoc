@@ -20,7 +20,12 @@ import fr.inria.soctrace.lib.model.TraceParamType;
 import fr.inria.soctrace.lib.model.TraceType;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.ToolTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceParamTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceParamTypeTableModel;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTypeTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.SoctraceUtils;
 
@@ -83,23 +88,24 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE);
 			psd.visited = true;
-			psd.statement.setLong(1, trace.getId());
-			psd.statement.setLong(2, trace.getType().getId());
+			psd.statement.setLong(TraceTableModel.ID.getPosition(), trace.getId());
+			psd.statement.setLong(TraceTableModel.TRACE_TYPE_ID.getPosition(), trace.getType().getId());
 			// XXX see note at the bottom of ModelVisitor.java
-			psd.statement.setString(3, SoctraceUtils.timestampToString(trace.getTracingDate()));
-			psd.statement.setString(4, trace.getTracedApplication());
-			psd.statement.setString(5, trace.getBoard());
-			psd.statement.setString(6, trace.getOperatingSystem());
-			psd.statement.setInt(7, trace.getNumberOfCpus());
-			psd.statement.setLong(8, trace.getNumberOfEvents());
-			psd.statement.setString(9, trace.getOutputDevice());
-			psd.statement.setString(10, trace.getDescription());
-			psd.statement.setBoolean(11, trace.isProcessed());
-			psd.statement.setString(12, trace.getDbName());
-			psd.statement.setString(13, trace.getAlias());
-			psd.statement.setLong(14, trace.getMinTimestamp());
-			psd.statement.setLong(15, trace.getMaxTimestamp());
-			psd.statement.setInt(16, trace.getTimeUnit());
+			psd.statement.setString(TraceTableModel.TRACING_DATE.getPosition(), SoctraceUtils.timestampToString(trace.getTracingDate()));
+			psd.statement.setString(TraceTableModel.TRACED_APPLICATION.getPosition(), trace.getTracedApplication());
+			psd.statement.setString(TraceTableModel.BOARD.getPosition(), trace.getBoard());
+			psd.statement.setString(TraceTableModel.OPERATING_SYSTEM.getPosition(), trace.getOperatingSystem());
+			psd.statement.setInt(TraceTableModel.NUMBER_OF_CPUS.getPosition(), trace.getNumberOfCpus());
+			psd.statement.setLong(TraceTableModel.NUMBER_OF_EVENTS.getPosition(), trace.getNumberOfEvents());
+			psd.statement.setString(TraceTableModel.OUTPUT_DEVICE.getPosition(), trace.getOutputDevice());
+			psd.statement.setString(TraceTableModel.DESCRIPTION.getPosition(), trace.getDescription());
+			psd.statement.setBoolean(TraceTableModel.PROCESSED.getPosition(), trace.isProcessed());
+			psd.statement.setString(TraceTableModel.TRACE_DB_NAME.getPosition(), trace.getDbName());
+			psd.statement.setString(TraceTableModel.ALIAS.getPosition(), trace.getAlias());
+			psd.statement.setLong(TraceTableModel.MIN_TIMESTAMP.getPosition(), trace.getMinTimestamp());
+			psd.statement.setLong(TraceTableModel.MAX_TIMESTAMP.getPosition(), trace.getMaxTimestamp());
+			psd.statement.setInt(TraceTableModel.TIMEUNIT.getPosition(), trace.getTimeUnit());
+			psd.statement.setInt(TraceTableModel.NUMBER_OF_PRODUCERS.getPosition(), trace.getNumberOfProducers());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -111,8 +117,8 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_TYPE);
 			psd.visited = true;
-			psd.statement.setLong(1, traceType.getId());
-			psd.statement.setString(2, traceType.getName());
+			psd.statement.setLong(TraceTypeTableModel.ID.getPosition(), traceType.getId());
+			psd.statement.setString(TraceTypeTableModel.NAME.getPosition(), traceType.getName());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().put(traceType);
 		} catch (SQLException e) {
@@ -125,10 +131,10 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM);
 			psd.visited = true;
-			psd.statement.setLong(1, traceParam.getId());
-			psd.statement.setLong(2, traceParam.getTrace().getId());
-			psd.statement.setLong(3, traceParam.getTraceParamType().getId());
-			psd.statement.setString(4, traceParam.getValue());
+			psd.statement.setLong(TraceParamTableModel.ID.getPosition(), traceParam.getId());
+			psd.statement.setLong(TraceParamTableModel.TRACE_ID.getPosition(), traceParam.getTrace().getId());
+			psd.statement.setLong(TraceParamTableModel.TRACE_PARAM_TYPE_ID.getPosition(), traceParam.getTraceParamType().getId());
+			psd.statement.setString(TraceParamTableModel.VALUE.getPosition(), traceParam.getValue());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -140,10 +146,10 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TRACE_PARAM_TYPE);
 			psd.visited = true;
-			psd.statement.setLong(1, traceParamType.getId());
-			psd.statement.setLong(2, traceParamType.getTraceType().getId());
-			psd.statement.setString(3, traceParamType.getName());
-			psd.statement.setString(4, traceParamType.getType());
+			psd.statement.setLong(TraceParamTypeTableModel.ID.getPosition(), traceParamType.getId());
+			psd.statement.setLong(TraceParamTypeTableModel.TRACE_TYPE_ID.getPosition(), traceParamType.getTraceType().getId());
+			psd.statement.setString(TraceParamTypeTableModel.NAME.getPosition(), traceParamType.getName());
+			psd.statement.setString(TraceParamTypeTableModel.TYPE.getPosition(), traceParamType.getType());
 			psd.statement.addBatch();
 			sysDB.getTraceTypeCache().put(traceParamType);
 		} catch (SQLException e) {
@@ -156,13 +162,13 @@ public class SystemDBSaveVisitor extends ModelVisitor {
 		try {
 			PreparedStatementDescriptor psd = getDescriptor(FramesocTable.TOOL);
 			psd.visited = true;
-			psd.statement.setLong(1, tool.getId());
-			psd.statement.setString(2, tool.getName());
-			psd.statement.setString(3, tool.getType());
-			psd.statement.setString(4, tool.getCommand());
-			psd.statement.setBoolean(5, tool.isPlugin());
-			psd.statement.setString(6, tool.getDoc());
-			psd.statement.setString(7, tool.getExtensionId());
+			psd.statement.setLong(ToolTableModel.ID.getPosition(), tool.getId());
+			psd.statement.setString(ToolTableModel.NAME.getPosition(), tool.getName());
+			psd.statement.setString(ToolTableModel.TYPE.getPosition(), tool.getType());
+			psd.statement.setString(ToolTableModel.COMMAND.getPosition(), tool.getCommand());
+			psd.statement.setBoolean(ToolTableModel.IS_PLUGIN.getPosition(), tool.isPlugin());
+			psd.statement.setString(ToolTableModel.DOC.getPosition(), tool.getDoc());
+			psd.statement.setString(ToolTableModel.EXTENSION_ID.getPosition(), tool.getExtensionId());
 			psd.statement.addBatch();
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);

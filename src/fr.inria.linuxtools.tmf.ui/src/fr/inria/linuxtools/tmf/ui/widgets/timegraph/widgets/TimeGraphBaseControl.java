@@ -112,4 +112,33 @@ public abstract class TimeGraphBaseControl extends Canvas implements PaintListen
     }
 
     abstract void paint(Rectangle bound, PaintEvent e);
+
+    /**
+     * @Framesoc
+     *
+     * @param bound
+     * @param e
+     * @param fullHeight
+     *            should the snapshot take the whole height of the gantt or only
+     *            what is displayed
+     */
+    void takeSnapshot(Rectangle bound, PaintEvent e, boolean fullHeight) {
+        paint(bound, e);
+    }
+
+    /**
+     * @Framesoc Take a snapshot of the current view
+     *
+     * @param e
+     *            PaintEvent containing the info to take the snapshot
+     * @param fullHeight
+     *            should the snapshot take the whole height of the gantt or only
+     *            what is displayed
+     */
+    public void takeSnapshot(PaintEvent e, boolean fullHeight) {
+        Rectangle bound = new Rectangle(e.x, e.y, e.width, e.height);
+        if (!bound.isEmpty()) {
+            takeSnapshot(bound, e, fullHeight);
+        }
+    }
 }

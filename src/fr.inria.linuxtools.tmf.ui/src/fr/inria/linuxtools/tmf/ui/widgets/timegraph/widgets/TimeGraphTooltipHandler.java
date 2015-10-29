@@ -39,6 +39,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
+import fr.inria.soctrace.lib.model.utils.TimestampFormat;
 
 /**
  * Handler for the tool tips in the generic time graph view.
@@ -50,6 +51,10 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
 public class TimeGraphTooltipHandler {
 
     private static final int OFFSET = 16;
+
+    // @Framesoc
+    private final TimestampFormat contextFormatter = new TimestampFormat();
+    private final TimestampFormat simpleFormatter = new TimestampFormat();
 
     private Shell fTipShell;
     private Composite fTipComposite;
@@ -143,7 +148,7 @@ public class TimeGraphTooltipHandler {
             }
 
             /*
-             * @Framesoc Using the Utils.formatTimestamp() method instead of the
+             * @Framesoc Using the Framesoc Timestamp formatter instead of
              * Utils.formatTime()
              */
             private void fillValues(Point pt, TimeGraphControl timeGraphControl, ITimeGraphEntry entry) {
@@ -223,17 +228,16 @@ public class TimeGraphTooltipHandler {
                                     : "?"); //$NON-NLS-1$
                         }
                         if (eventDuration > 0) {
+                            contextFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
+                            contextFormatter.setContext(eventStartTime, eventEndTime);
                             addItem(Messages.TmfTimeTipHandler_TRACE_START_TIME, eventStartTime > -1 ?
-                                    Utils.formatTimestamp(eventStartTime, fTimeGraphProvider.getTimeUnit())
-                                    : "?"); //$NON-NLS-1$
-
+                                    contextFormatter.format(eventStartTime) : "?"); //$NON-NLS-1$
                             addItem(Messages.TmfTimeTipHandler_TRACE_STOP_TIME, eventEndTime > -1 ?
-                                    Utils.formatTimestamp(eventEndTime, fTimeGraphProvider.getTimeUnit())
-                                    : "?"); //$NON-NLS-1$
+                                    contextFormatter.format(eventEndTime) : "?"); //$NON-NLS-1$
                         } else {
+                            simpleFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
                             addItem(Messages.TmfTimeTipHandler_TRACE_EVENT_TIME, eventStartTime > -1 ?
-                                    Utils.formatTimestamp(eventStartTime, fTimeGraphProvider.getTimeUnit())
-                                    : "?"); //$NON-NLS-1$
+                                    simpleFormatter.format(eventStartTime) : "?"); //$NON-NLS-1$
                         }
 
                         if (eventDuration > 0) {
@@ -241,16 +245,16 @@ public class TimeGraphTooltipHandler {
                             if (tf == TimeFormat.CALENDAR) {
                                 tf = TimeFormat.RELATIVE;
                             }
+                            simpleFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
                             addItem(Messages.TmfTimeTipHandler_DURATION, eventDuration > -1 ?
-                                    Utils.formatTimestamp(eventDuration, fTimeGraphProvider.getTimeUnit())
-                                    : "?"); //$NON-NLS-1$
+                                    simpleFormatter.format(eventDuration) : "?"); //$NON-NLS-1$
                         }
                     }
                 }
             }
 
             /*
-             * @Framesoc Using the Utils.formatTimestamp() method instead of the
+             * @Framesoc Using the Framesoc Timestamp formatter instead of
              * Utils.formatTime()
              */
             private void fillValues(ILinkEvent linkEvent) {
@@ -277,15 +281,19 @@ public class TimeGraphTooltipHandler {
                         addItem(Messages.TmfTimeTipHandler_TRACE_DATE, Utils.formatDate(sourceTime));
                     }
                     if (duration > 0) {
-                        addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, Utils.formatTimestamp(sourceTime, fTimeGraphProvider.getTimeUnit()));
-                        addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, Utils.formatTimestamp(targetTime, fTimeGraphProvider.getTimeUnit()));
+                        simpleFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
+                        contextFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
+                        contextFormatter.setContext(sourceTime, targetTime);
+                        addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, contextFormatter.format(sourceTime));
+                        addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, contextFormatter.format(targetTime));
                         // Duration in relative format in any case
                         if (tf == TimeFormat.CALENDAR) {
                             tf = TimeFormat.RELATIVE;
                         }
-                        addItem(Messages.TmfTimeTipHandler_DURATION, Utils.formatTimestamp(duration, fTimeGraphProvider.getTimeUnit()));
+                        addItem(Messages.TmfTimeTipHandler_DURATION, simpleFormatter.format(duration));
                     } else {
-                        addItem(Messages.TmfTimeTipHandler_LINK_TIME, Utils.formatTimestamp(sourceTime, fTimeGraphProvider.getTimeUnit()));
+                        simpleFormatter.setTimeUnit(fTimeGraphProvider.getTimeUnit());
+                        addItem(Messages.TmfTimeTipHandler_LINK_TIME, simpleFormatter.format(sourceTime));
                     }
                 }
             }

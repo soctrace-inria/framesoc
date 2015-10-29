@@ -13,7 +13,9 @@
  */
 package fr.inria.soctrace.framesoc.ui.eventtable.view;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -60,27 +62,35 @@ import org.slf4j.LoggerFactory;
 
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
+import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.eventtable.Activator;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.EventLoader;
 import fr.inria.soctrace.framesoc.ui.eventtable.loader.IEventLoader;
-import fr.inria.soctrace.framesoc.ui.eventtable.loader.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableColumn;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRow;
 import fr.inria.soctrace.framesoc.ui.eventtable.model.EventTableRowFilter;
+import fr.inria.soctrace.framesoc.ui.model.EventTableDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
+import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 import fr.inria.soctrace.framesoc.ui.utils.TimeBar;
 import fr.inria.soctrace.lib.model.Event;
+import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.Trace;
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.model.utils.ModelConstants.EventCategory;
 import fr.inria.soctrace.lib.model.utils.ModelConstants.TimeUnit;
+import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.query.EventProducerQuery;
+import fr.inria.soctrace.lib.storage.TraceDBObject;
 import fr.inria.soctrace.lib.utils.DeltaManager;
 
 /**
@@ -99,7 +109,7 @@ public final class EventTableView extends FramesocPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = FramesocViews.EVENT_TABLE_VIEW_ID;
-
+	
 	/**
 	 * Hint for filter row
 	 */
@@ -157,6 +167,16 @@ public final class EventTableView extends FramesocPart {
 	// Loading
 	private Job loaderJob;
 	private DrawerThread drawerThread;
+	
+	// Export
+	private CSVExport csvExport;
+	private final Object exportSyncObj = new Object();
+	private Map<EventTableColumn, Boolean> columnSelection;
+	private String exportFileName;
+	
+	// Focus on one event
+	private boolean focusOnEvent = false;
+	private EventTableDescriptor focusEventDescriptor = null;
 
 	/**
 	 * Keys for table data
@@ -249,6 +269,24 @@ public final class EventTableView extends FramesocPart {
 				event.doit = false;
 			}
 		});
+		
+		// Listener for double click
+		 table.addListener(SWT.MouseDoubleClick, new Listener() {
+			 
+			@Override
+			public void handleEvent(org.eclipse.swt.widgets.Event event) {
+				// Do not process if empty or multiple selection 
+				if(table.getSelection().length != 1)
+					return;
+
+				int index = table.getSelectionIndex() - 1; // -1 for the header row
+				// If header row, don't process
+				if(index < 0)
+					return;
+
+				switchToGantt(cache.get(index));
+			}
+		});
 
 		table.setItemCount(1); // only the header at the beginning
 
@@ -258,10 +296,12 @@ public final class EventTableView extends FramesocPart {
 
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		manager.add(createColumnAction());
+		manager.add(createCSVExportAction());
 		manager.add(new Separator());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
 		enableActions(false);
 
 		// -------------
@@ -296,15 +336,13 @@ public final class EventTableView extends FramesocPart {
 		IStatusLineManager statusLineManager = getViewSite().getActionBars().getStatusLineManager();
 		timeBar.setStatusLineManager(statusLineManager);
 		// button to synch the timeline with the table
-		timeBar.getSynchButton().setToolTipText("Synch with table");
 		timeBar.getSynchButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				timeBar.setSelection(startTimestamp, endTimestamp);
 			}
 		});
-		// draw button
-		timeBar.getLoadButton().setToolTipText("Draw current selection");
+		// load button
 		timeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -554,6 +592,38 @@ public final class EventTableView extends FramesocPart {
 		colAction.setToolTipText("Adjust column size to content");
 		return colAction;
 	}
+	
+	private IAction createCSVExportAction() {
+		CSVExportAction csvAction = new CSVExportAction("Export to CSV", Action.AS_PUSH_BUTTON);
+		csvAction.tableView = this;
+		csvAction.setImageDescriptor(ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
+				"icons/export.png"));
+		csvAction.setToolTipText("Export currently displayed events to CSV");
+		return csvAction;
+	}
+	
+	private class CSVExportAction extends Action {
+		public EventTableView tableView;
+
+		public CSVExportAction(String string, int asPushButton) {
+			super(string, asPushButton);
+		}
+
+		@Override
+		public void run() {
+			columnSelection = new HashMap<EventTableColumn, Boolean>();
+			
+			// Set a default file name
+			exportFileName = currentShownTrace.getAlias() + "_"
+					+ currentShownTrace.getId() + ".csv";
+			
+			CSVExportDialog csvExportDialog = new CSVExportDialog(getSite().getShell(), tableView);
+			
+			if (csvExportDialog.open() == Status.OK) {
+				startExport(exportFileName, columnSelection);
+			}
+		}
+	}
 
 	@Override
 	public void setFocus() {
@@ -566,6 +636,7 @@ public final class EventTableView extends FramesocPart {
 	public void dispose() {
 		stopFilterThread();
 		stopDrawerThread();
+		stopExport();
 		if (loaderJob != null)
 			loaderJob.cancel();
 		if (table != null)
@@ -583,6 +654,23 @@ public final class EventTableView extends FramesocPart {
 		return ID;
 	}
 
+	public Map<EventTableColumn, Boolean> getColumnSelection() {
+		return columnSelection;
+	}
+
+	public void setColumnSelection(Map<EventTableColumn, Boolean> columnSelection) {
+		this.columnSelection = columnSelection;
+	}
+
+	public String getExportFileName() {
+		return exportFileName;
+	}
+
+	public void setExportFileName(String exportFileName) {
+		this.exportFileName = exportFileName;
+	}
+
+	
 	/**
 	 * Show the trace.
 	 * 
@@ -596,6 +684,13 @@ public final class EventTableView extends FramesocPart {
 			showWindow(trace, trace.getMinTimestamp(), trace.getMaxTimestamp());
 		} else {
 			TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
+			
+			// Are we in the case where we should focus on an event
+			if (data instanceof EventTableDescriptor) {
+				focusOnEvent = true;
+				focusEventDescriptor = (EventTableDescriptor) data;
+			}
+			
 			showWindow(des.getTrace(), des.getStartTimestamp(), des.getEndTimestamp());
 		}
 	}
@@ -608,7 +703,6 @@ public final class EventTableView extends FramesocPart {
 	/*
 	 * Loading
 	 */
-
 	private void showWindow(Trace trace, long start, long end) {
 
 		if (trace == null) {
@@ -627,7 +721,9 @@ public final class EventTableView extends FramesocPart {
 		TimeInterval interval = new TimeInterval(start, end);
 		interval.startTimestamp = Math.max(trace.getMinTimestamp(), interval.startTimestamp);
 		interval.endTimestamp = Math.min(trace.getMaxTimestamp(), interval.endTimestamp);
-
+		timeBar.setExtrema(trace.getMinTimestamp(), trace.getMaxTimestamp());
+		timeBar.setDisplayInterval(interval);
+		
 		// clear the filters
 		clearFilters();
 
@@ -637,7 +733,14 @@ public final class EventTableView extends FramesocPart {
 			table.clearAll();
 			table.setItemCount(cache.getIndexedRowCount() + 1); // +1 for header
 			table.refresh();
-			table.setSelection(0);
+
+			if (!focusOnEvent) {
+				table.setSelection(0);
+			} else {
+				focusOnEvent = false;
+				table.setSelection(findEventIndex());
+			}
+
 			startTimestamp = interval.startTimestamp;
 			endTimestamp = interval.endTimestamp;
 			statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
@@ -758,6 +861,17 @@ public final class EventTableView extends FramesocPart {
 					closeView();
 				}
 			}
+			
+			// Do we set the focus on a specific event
+			if (focusOnEvent) {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						focusOnEvent = false;
+						table.setSelection(findEventIndex());
+					}
+				});
+			}
 
 			logger.debug(all.endMessage("Drawer Thread: visualizing everything"));
 			logger.debug("start: {}", startTimestamp);
@@ -799,6 +913,7 @@ public final class EventTableView extends FramesocPart {
 					table.refresh();
 					timeBar.setTimeUnit(TimeUnit.getTimeUnit(currentShownTrace.getTimeUnit()));
 					timeBar.setSelection(startTimestamp, endTimestamp);
+					timeBar.setDisplayInterval(startTimestamp, endTimestamp);
 					statusText.setText(getStatus(events, events));
 					synchronized (syncObj) {
 						refreshBusy = false;
@@ -973,5 +1088,172 @@ public final class EventTableView extends FramesocPart {
 		table.setSelection(0);
 		statusText.setText(getStatus(cache.getIndexedRowCount(), cache.getIndexedRowCount()));
 	}
+	
+	/**
+	 * Start the export
+	 */
+	private void startExport(String fileName,
+			Map<EventTableColumn, Boolean> exportColumn) {
+		synchronized (exportSyncObj) {
+			if (csvExport != null) {
+				csvExport.cancel();
+				csvExport = null;
+			}
 
+			csvExport = new CSVExport(fileName, exportColumn, this.cache);
+			csvExport.exportToCSV();
+		}
+	}
+
+	/**
+	 * Stop the export
+	 */
+	private void stopExport() {
+		synchronized (exportSyncObj) {
+			if (csvExport != null) {
+				csvExport.cancel();
+				csvExport = null;
+			}
+		}
+	}
+
+	/**
+	 * From a selected row of the table, open the Gantt chart and center on the
+	 * event of the selected row by loading at least 1% of the trace around it
+	 * 
+	 * @param row
+	 *            the selected row
+	 */
+	private void switchToGantt(EventTableRow row) {
+		if (row == null)
+			return;
+
+		long startTimestamp = row.getTimestamp();
+		long endTimestamp = startTimestamp;
+		EventProducer ep = null;
+
+		try {
+			String eventProducer = row.get(EventTableColumn.PRODUCER_NAME);
+			String cpu = row.get(EventTableColumn.CPU);
+			ep = findEventProducer(eventProducer, cpu);
+
+			int eventCat = EventCategory.stringToCategory(row
+					.get(EventTableColumn.CATEGORY));
+
+			switch (eventCat) {
+			case EventCategory.STATE:
+			case EventCategory.LINK:
+				// Get the end timestamp
+				String info = row.get(EventTableColumn.PARAMS);
+				String[] params = info.split(EventTableRow.PARAMETER_SEPARATOR);
+				String[] endTimestamps = params[0]
+						.split(EventTableRow.PARAMETER_VALUE_SEPARATOR);
+				endTimestamp = Long.valueOf(endTimestamps[1]
+						.split(EventTableRow.PARAMETER_VALUE_ESCAPE)[1]);
+				break;
+
+			default:
+				break;
+			}
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		long duration = endTimestamp - startTimestamp;
+		// Punctual event
+		if (duration == 0)
+			// Show only the minimum between MIN_TIME_UNIT_SHOWING time units around or one
+			// percent of the trace
+			duration = Math.min(TraceConfigurationDescriptor.MIN_TIME_UNIT_SHOWING,
+					(currentShownTrace.getMaxTimestamp() - currentShownTrace
+							.getMinTimestamp()) / 100);
+
+		TraceConfigurationDescriptor des = new TraceConfigurationDescriptor();
+		des.setTrace(currentShownTrace);
+		des.setStartTimestamp(startTimestamp - duration / 2);
+		des.setEndTimestamp(endTimestamp + duration / 2);
+		des.setEventProducer(ep);
+
+		FramesocBus.getInstance().send(
+				FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL, des);
+	}
+
+	/**
+	 * Find an event producer based on its name. Very error-prone in case of
+	 * multiple event producers with the same name but the table does not
+	 * provide more information on the producer than the name. TODO Study the
+	 * possibility to make more accurate the research based on CPU
+	 * 
+	 * @param eventProducerName
+	 *            the name of the event producer to be found
+	 * @param cpu
+	 *            the cpu it should belong to
+	 * @return the found event producer, null otherwise
+	 */
+	private EventProducer findEventProducer(String eventProducerName, String cpu) {
+		TraceDBObject traceDB;
+
+		try {
+			// Open the trace database
+			traceDB = TraceDBObject.openNewInstance(currentShownTrace
+					.getDbName());
+
+			// Get the producers
+			EventProducerQuery pq = new EventProducerQuery(traceDB);
+			List<EventProducer> producers = pq.getList();
+
+			for (EventProducer anEP : producers) {
+				// If one producer is found with the same name
+				if (anEP.getName().equals(eventProducerName))
+					return anEP;
+			}
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		logger.debug("No event producer with the name " + eventProducerName
+				+ " was found.");
+		return null;
+	}
+	
+	/**
+	 * Find the first event corresponding to the info given in the
+	 * EventTableDescriptor
+	 * 
+	 * @return the corresponding index if found, 0 (header) otherwise
+	 */
+	private int findEventIndex() {
+		int index = 0;
+		try {
+			for (int i = 0; i < cache.getIndexedRowCount(); i++) {
+				EventTableRow row = cache.get(i);
+
+				if (row.getTimestamp() != focusEventDescriptor
+						.getEventStartTimeStamp())
+					continue;
+				if (!row.get(EventTableColumn.TYPE_NAME).equals(
+						focusEventDescriptor.getTypeName()))
+					continue;
+
+				if (!row.get(EventTableColumn.PRODUCER_NAME).equals(
+						focusEventDescriptor.getEventProducerName()))
+					continue;
+
+				// Add +1 because of the header row
+				index = i + 1;
+				break;
+			}
+
+		} catch (SoCTraceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return index;
+	}
 }

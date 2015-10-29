@@ -3,6 +3,7 @@
  */
 package fr.inria.soctrace.framesoc.ui.dialogs;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -42,8 +43,10 @@ import org.eclipse.ui.themes.ColorUtil;
 
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.ColumnData;
 import fr.inria.linuxtools.tmf.ui.widgets.virtualtable.TmfVirtualTable;
+import fr.inria.soctrace.framesoc.ui.model.ITableColumn;
 import fr.inria.soctrace.framesoc.ui.tracetable.TraceTableCache;
 import fr.inria.soctrace.framesoc.ui.tracetable.TraceTableColumn;
+import fr.inria.soctrace.framesoc.ui.tracetable.TraceTableColumnEnum;
 import fr.inria.soctrace.framesoc.ui.tracetable.TraceTableRow;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -74,6 +77,7 @@ public class TraceFilterDialog extends Dialog {
 	private Set<Trace> fChecked;
 	private TableItem fFilterItem;
 	private int fNumTraces;
+	private List<TraceTableColumn> sortedColumns;
 
 	// SWT resources
 	private LocalResourceManager resourceManager = new LocalResourceManager(
@@ -295,9 +299,9 @@ public class TraceFilterDialog extends Dialog {
 	}
 
 	private String[] getItemStrings(TraceTableRow row) {
-		String values[] = new String[TraceTableColumn.values().length];
+		String values[] = new String[fCache.getTableColumns().values().size()];
 		int i = 0;
-		for (TraceTableColumn col : TraceTableColumn.values()) {
+		for (TraceTableColumn col : sortedColumns) {
 			try {
 				values[i] = row.get(col);
 			} catch (SoCTraceException e) {
@@ -336,14 +340,26 @@ public class TraceFilterDialog extends Dialog {
 	}
 
 	private void setColumnHeaders() {
-		ColumnData columnData[] = new ColumnData[TraceTableColumn.values().length];
+		ColumnData columnData[] = new ColumnData[fCache.getTableColumns().values().size()];
+
+		// Keep the same column order as enum and put custom param at the end
+		sortedColumns = new ArrayList<TraceTableColumn>();
+		for (TraceTableColumnEnum col : TraceTableColumnEnum.values()) {
+			sortedColumns.add(fCache.getTableColumns().get(col.getHeader()));
+		}
+		for (TraceTableColumn col : fCache.getTableColumns().values()) {
+			if (!sortedColumns.contains(col))
+				sortedColumns
+						.add(fCache.getTableColumns().get(col.getHeader()));
+		}
+		
 		int i = 0;
-		for (TraceTableColumn col : TraceTableColumn.values()) {
+		for (TraceTableColumn col : sortedColumns) {
 			columnData[i++] = new ColumnData(col.getShortName(), col.getWidth(), SWT.LEFT);
 		}
 		fTable.setColumnHeaders(columnData);
 		i = 0;
-		for (TraceTableColumn col : TraceTableColumn.values()) {
+		for (TraceTableColumn col : sortedColumns) {
 			fTable.getColumns()[i++].setData(Key.COLUMN_OBJ, col);
 		}
 	}
@@ -363,7 +379,7 @@ public class TraceFilterDialog extends Dialog {
 					dir = SWT.UP;
 				}
 				// sort the data based on column and direction
-				fCache.sort((TraceTableColumn)currentColumn.getData(Key.COLUMN_OBJ), dir);
+				fCache.sort((ITableColumn)currentColumn.getData(Key.COLUMN_OBJ), dir);
 				// update data displayed in table
 				fTable.setSortDirection(dir);
 				fTable.clearAll();
@@ -466,7 +482,7 @@ public class TraceFilterDialog extends Dialog {
 							tableEditor.getEditor().dispose();
 							return false;
 						}
-						TraceTableColumn col = (TraceTableColumn) column.getData(Key.COLUMN_OBJ);
+						ITableColumn col = (ITableColumn) column.getData(Key.COLUMN_OBJ);
 						fCache.setFilterText(col, regex);
 						column.setData(Key.FILTER_TXT, regex);
 					} catch (final PatternSyntaxException ex) {
@@ -481,7 +497,7 @@ public class TraceFilterDialog extends Dialog {
 						tableEditor.getEditor().dispose();
 						return false;
 					}
-					TraceTableColumn col = (TraceTableColumn) column.getData(Key.COLUMN_OBJ);
+					ITableColumn col = (ITableColumn) column.getData(Key.COLUMN_OBJ);
 					fCache.setFilterText(col, "");
 					column.setData(Key.FILTER_TXT, null);
 				}

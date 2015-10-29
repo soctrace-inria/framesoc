@@ -47,7 +47,7 @@ public class GanttContributionManager {
 		SystemDBObject sysDB = null;
 		try {
 			// get trace types
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			Map<Long, IModelElement> types = sysDB.getTraceTypeCache().getElementMap(
 					TraceType.class);
 			Map<String, Long> name2id = new HashMap<>();

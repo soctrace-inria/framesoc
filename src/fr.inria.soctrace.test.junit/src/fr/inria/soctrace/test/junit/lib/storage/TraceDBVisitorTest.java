@@ -400,7 +400,7 @@ public class TraceDBVisitorTest extends BaseTestClass {
 	public final void testVisitAnalysisResultTrace() throws SoCTraceException {
 
 		// 0. create
-		SystemDBObject sysDB = SystemDBObject.openNewIstance();
+		SystemDBObject sysDB = SystemDBObject.openNewInstance();
 		Tool virtualImporter = ResourceLoader.getVirtualImporterTool();
 		AnalysisResult ar = IModelFactory.INSTANCE.createTraceResult(new IdManager(), "description");
 		AnalysisResultProcessedTraceData data = (AnalysisResultProcessedTraceData)ar.getData();

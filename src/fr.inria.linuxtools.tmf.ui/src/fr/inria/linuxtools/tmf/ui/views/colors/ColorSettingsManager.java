@@ -49,7 +49,7 @@ public class ColorSettingsManager {
     /**
      * Special value for priority if unknown.
      */
-    public static final int PRIORITY_NONE = Integer.MAX_VALUE;
+    public static final Long PRIORITY_NONE = Long.MAX_VALUE;
 
     // The stored color settings
     private static ColorSetting[] fColorSettings = ColorSettingsXML.load(COLOR_SETTINGS_PATH_NAME);
@@ -102,8 +102,8 @@ public class ColorSettingsManager {
      * @param event A event the event to check
      * @return the priority defined for the filter else PRIORITY_NONE
      */
-    public static int getColorSettingPriority(ITmfEvent event) {
-        for (int i = 0; i < fColorSettings.length; i++) {
+    public static Long getColorSettingPriority(ITmfEvent event) {
+        for (Long i = 0l; i < fColorSettings.length; i++) {
             ColorSetting colorSetting = fColorSettings[i];
             if (colorSetting.getFilter() != null && colorSetting.getFilter().matches(event)) {
                 return i;

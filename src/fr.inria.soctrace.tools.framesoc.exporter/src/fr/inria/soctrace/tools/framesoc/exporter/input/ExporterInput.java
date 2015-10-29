@@ -14,6 +14,8 @@
 package fr.inria.soctrace.tools.framesoc.exporter.input;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.Trace;
@@ -26,7 +28,7 @@ public class ExporterInput implements IFramesocToolInput {
 	/**
 	 * The trace we want to export
 	 */
-	public Trace trace;
+	public List<Trace> traces = new ArrayList<Trace>();
 		
 	/**
 	 * Export directory
@@ -38,10 +40,10 @@ public class ExporterInput implements IFramesocToolInput {
 	 * @return true if all is OK
 	 */
 	public boolean check() {
-		if (trace==null)
+		if (traces == null || traces.isEmpty())
 			return false;
 		File dir = new File(directory);
-		if (directory==null || !dir.isDirectory())
+		if (directory == null || !dir.isDirectory() || !dir.canWrite())
 			return false;
 		return true;
 	}
@@ -50,8 +52,10 @@ public class ExporterInput implements IFramesocToolInput {
 	 * Debug print
 	 */
 	public void print() {
-		System.out.println("Trace");
-		trace.print();
+		System.out.println("Trace:");
+		for (Trace trace : traces) {
+			trace.print();
+		}
 		System.out.println("Directory");
 		System.out.println(directory);
 	}

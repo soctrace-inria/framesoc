@@ -167,7 +167,7 @@ public final class FramesocManager {
 			for (Trace t : traces) {
 				TraceDBObject traceDB = null;
 				try {
-					traceDB = TraceDBObject.openNewIstance(t.getDbName());
+					traceDB = TraceDBObject.openNewInstance(t.getDbName());
 					AnalysisResultQuery arq = new AnalysisResultQuery(traceDB);
 					arq.setElementWhere(new SimpleCondition("TOOL_ID", ComparisonOperation.EQ,
 							String.valueOf(tool.getId())));
@@ -249,10 +249,14 @@ public final class FramesocManager {
 
 			sysDB.close();
 
-			// delete the trace db
-			TraceDBObject traceDB = TraceDBObject.openNewIstance(trace.getDbName());
-			traceDB.dropDatabase();
-
+			// Check if the trace was already deleted on disk or in the DB ?
+			if (DBObject.isDBExisting(trace.getDbName())) {
+				// delete the trace db
+				TraceDBObject traceDB = TraceDBObject.openNewInstance(trace
+						.getDbName());
+				traceDB.dropDatabase();
+			}
+			
 			// notify the bus
 			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYNCH_TRACES_NEEDED, true);
 
@@ -293,7 +297,7 @@ public final class FramesocManager {
 
 		// get current date
 		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
+		sdf.setTimeZone(SimpleTimeZone.getDefault());
 		sdf.applyPattern("yyyyMMdd_HHmmss_z");
 		String date = sdf.format(new Date()).toString();
 
@@ -312,6 +316,16 @@ public final class FramesocManager {
 	 */
 	public boolean isSystemDBExisting() throws SoCTraceException {
 		return DBObject.isDBExisting(sysDbName);
+	}
+	
+	/**
+	 * Check whether the System DB are correct
+	 * 
+	 * @return true if the settings are correct, false otherwise
+	 * @throws SoCTraceException
+	 */
+	public boolean isSystemDBParameterCorrect() throws SoCTraceException {
+		return DBObject.checkSettings(sysDbName);
 	}
 
 	/**

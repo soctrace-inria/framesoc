@@ -64,6 +64,21 @@ public class ModelConstants {
 				return "Unknown";
 			}
 		}
+		
+		public static int stringToCategory(String categoryName) {
+			switch (categoryName) {
+			case "Punctual Event":
+				return PUNCTUAL_EVENT;
+			case "State":
+				return STATE;
+			case "Link":
+				return LINK;
+			case "Variable":
+				return VARIABLE;
+			default:
+				return -1;
+			}
+		}
 	}
 	
 	public static enum TimeUnit {		
@@ -90,13 +105,13 @@ public class ModelConstants {
 		private String name;
 		
 		/**
-		 * Exponent to give to 10 in order to have the value in seconds.
-		 * It may have special value, to identify things that are not 
-		 * seconds (e.g. ticks).
+		 * Exponent to give to 10 in order to have the value in seconds. It may
+		 * have special value, to identify things that are not seconds (e.g.
+		 * ticks).
 		 */
 		private int exp;
-		
-		private TimeUnit(String name, int exp){
+
+		private TimeUnit(String name, int exp) {
 			this.name = name;
 			this.exp = exp;
 		}
@@ -110,19 +125,26 @@ public class ModelConstants {
 		}
 		
 		public static String getLabel(int exp) {
-			for (TimeUnit t: TimeUnit.values())
-				if (t.getInt()==exp)
+			for (TimeUnit t : TimeUnit.values())
+				if (t.getInt() == exp)
 					return t.getLabel();
-			return " x 10^"+String.valueOf(exp)+" s";
+			return " x 10^" + String.valueOf(exp) + " s";
 		}
-		
+
 		public static TimeUnit getTimeUnit(int exp) {
-			for (TimeUnit t: TimeUnit.values())
-				if (t.getInt()==exp)
+			for (TimeUnit t : TimeUnit.values())
+				if (t.getInt() == exp)
 					return t;
 			return UNKNOWN;
 		}
-		
+
+		public static int getInt(String label) {
+			for (TimeUnit t : TimeUnit.values())
+				if (t.getLabel().equals(label))
+					return t.getInt();
+			return TimeUnit.UNKNOWN.getInt();
+		}
+
 		@Override
 		public String toString() {
 			return getLabel();

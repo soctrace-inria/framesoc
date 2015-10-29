@@ -15,13 +15,20 @@ import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 
 /**
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
- *
+ * 
  */
 public class ShowEventDensityHandler extends ShowTraceHandler {
+
+	private final static String VIEW_NAME = "Event Density Chart";
 
 	@Override
 	public String getViewId() {
 		return FramesocViews.HISTOGRAM_VIEW_ID;
+	}
+
+	@Override
+	public String getViewName() {
+		return VIEW_NAME;
 	}
 
 }

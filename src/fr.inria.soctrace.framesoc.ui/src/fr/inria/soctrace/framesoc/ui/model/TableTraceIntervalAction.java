@@ -9,6 +9,7 @@ import org.eclipse.wb.swt.ResourceManager;
 
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.ui.Activator;
+import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocViews;
 
@@ -24,7 +25,8 @@ public abstract class TableTraceIntervalAction extends TraceIntervalAction {
 		}
 	}
 	
-	public TableTraceIntervalAction() {
+	public TableTraceIntervalAction(FramesocPart part) {
+		super(part);
 		ImageDescriptor img = ResourceManager.getPluginImageDescriptor(Activator.PLUGIN_ID,
 				"icons/table.png");
 		this.setImageDescriptor(img);

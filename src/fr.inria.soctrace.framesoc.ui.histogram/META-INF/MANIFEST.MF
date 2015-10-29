@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Histogram
 Bundle-SymbolicName: fr.inria.soctrace.framesoc.ui.histogram;singleton:=true
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.10.qualifier
 Bundle-Activator: fr.inria.soctrace.framesoc.ui.histogram.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -17,3 +17,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: INRIA
 Import-Package: fr.inria.linuxtools.tmf.ui.widgets.timegraph.dialogs
+Export-Package: fr.inria.soctrace.framesoc.ui.histogram.loaders

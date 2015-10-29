@@ -33,6 +33,7 @@ import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -125,7 +126,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 					getViewSite().getPage().hideView(FramesocPart.this);
 					// open the same view our way
 					logger.debug("Create the view with a secondary ID.");
-					FramesocPartManager.getInstance().getPartInstance(getId(), null);
+					FramesocPartManager.getInstance().getPartInstance(getId(), null, false);
 				}
 			});
 			// return now as we're done with the non-secondary-id view
@@ -213,17 +214,35 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 		});
 	}
 
+	/**
+	 * @deprecated Use {@link #highlightTitle(boolean)} instead
+	 */
 	public void higlightTitle(boolean highlight) {
+		highlightTitle(highlight);
+	}
+
+	public void highlightTitle(boolean highlight) {
 		if (currentShownTrace != null) {
 			String name = currentShownTrace.getAlias();
 			logger.trace("Name before: '" + name + "'");
 			if (highlight) {
-				this.setPartName(HIGHLIGHT_START + name);
+				this.setPartName(HIGHLIGHT_START + getGroupString() + name);
 			} else {
-				this.setPartName(name);
+				this.setPartName(getGroupString() + name);
 			}
 			logger.trace("Name after: '" + name + "'");
 		}
+	}
+
+	private String getGroupString() {
+		int group = FramesocPartManager.getInstance().getPartGroup(currentShownTrace, this);
+		if (group == FramesocPartManager.NO_GROUP) {
+			return "";
+		}
+		if (FramesocPartManager.getInstance().isUniqueGroup(currentShownTrace, group)) {
+			return "";
+		}
+		return "(" + (group + 1) + ") ";
 	}
 
 	@Override
@@ -237,10 +256,12 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 
 	/**
 	 * Handle the topics related to trace update/delete/selection.
-	 * 
-	 * - TOPIC_UI_REFRESH_TRACES_NEEDED: the view title is updated - TOPIC_UI_TRACES_SYNCHRONIZED:
-	 * updated or deleted shown trace is managed - TOPIC_UI_SYSTEM_INITIALIZED: shown trace no more
-	 * existing is managed
+	 * <ul>
+	 * <li>TOPIC_UI_REFRESH_TRACES_NEEDED: the view title is updated
+	 * <li>TOPIC_UI_TRACES_SYNCHRONIZED: updated or deleted shown trace
+	 * <li>TOPIC_UI_SYSTEM_INITIALIZED: shown trace no more existing
+	 * <li>TOPIC_UI_FOCUSED_TRACE: focused trace has changed
+	 * </ul>
 	 * 
 	 * @param topic
 	 *            bus topic
@@ -266,7 +287,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			SystemDBObject sysDB = null;
 			boolean hide = false;
 			try {
-				sysDB = SystemDBObject.openNewIstance();
+				sysDB = SystemDBObject.openNewInstance();
 				TraceQuery tq = new TraceQuery(sysDB);
 				tq.setElementWhere(new SimpleCondition("ID", ComparisonOperation.EQ, String
 						.valueOf(t.getId())));
@@ -290,10 +311,10 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			logger.debug("Updating titles after TOPIC_UI_FOCUSED_TRACE");
 			if (currentShownTrace.equals((Trace) data)) {
 				logger.debug("Highlight " + getPartName());
-				higlightTitle(true);
+				highlightTitle(true);
 			} else {
 				logger.debug("Unhighlight " + getPartName());
-				higlightTitle(false);
+				highlightTitle(false);
 			}
 		}
 	}
@@ -315,7 +336,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createTableAction() {
-		return new TableTraceIntervalAction() {
+		return new TableTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -324,7 +345,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createGanttAction() {
-		return new GanttTraceIntervalAction() {
+		return new GanttTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -333,7 +354,7 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createPieAction() {
-		return new PieTraceIntervalAction() {
+		return new PieTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
@@ -342,13 +363,23 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 	}
 
 	protected TraceIntervalAction createHistogramAction() {
-		return new HistogramTraceIntervalAction() {
+		return new HistogramTraceIntervalAction(this) {
 			@Override
 			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
 				return getIntervalDescriptor();
 			}
 		};
 	}
+	
+	protected TraceIntervalAction createSynchronizeAction() {
+		return new SynchronizeTraceIntervalAction(this) {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
 
 	/**
 	 * Return the trace interval descriptor corresponding to the current shown interval. The base

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Framesoc UI
 Bundle-SymbolicName: fr.inria.soctrace.framesoc.ui;singleton:=true
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.10.qualifier
 Bundle-Activator: fr.inria.soctrace.framesoc.ui.Activator
 Bundle-Vendor: INRIA
 Require-Bundle: org.eclipse.ui,
@@ -24,10 +24,10 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  swing2swt.jar,
- lib/jfreechart-swt-linux-1.2.0-inria.jar,
- lib/jfreechart-1.0.14.jar,
- lib/jcommon-1.0.17.jar,
- lib/opal-0.9.5.2.jar
+ lib/opal-0.9.5.2.jar,
+ lib/jcommon-1.0.23.jar,
+ lib/jfreechart-1.0.19-swt.jar,
+ lib/jfreechart-1.0.19.jar
 Export-Package: fr.inria.soctrace.framesoc.ui,
  fr.inria.soctrace.framesoc.ui.colors,
  fr.inria.soctrace.framesoc.ui.dialogs,
@@ -40,6 +40,7 @@ Export-Package: fr.inria.soctrace.framesoc.ui,
  fr.inria.soctrace.framesoc.ui.model,
  fr.inria.soctrace.framesoc.ui.perspective,
  fr.inria.soctrace.framesoc.ui.providers,
+ fr.inria.soctrace.framesoc.ui.treefilter,
  fr.inria.soctrace.framesoc.ui.utils,
  org.eclipse.wb.swt,
  org.jfree.chart,
@@ -48,11 +49,15 @@ Export-Package: fr.inria.soctrace.framesoc.ui,
  org.jfree.chart.event,
  org.jfree.chart.labels,
  org.jfree.chart.plot,
+ org.jfree.chart.renderer,
+ org.jfree.chart.renderer.category,
  org.jfree.chart.renderer.xy,
  org.jfree.chart.title,
  org.jfree.data,
+ org.jfree.data.category,
  org.jfree.data.general,
  org.jfree.data.statistics,
  org.jfree.data.xy,
  org.jfree.experimental.chart.swt,
- org.jfree.ui
+ org.jfree.ui,
+ org.jfree.util

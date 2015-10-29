@@ -10,6 +10,8 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.perspective;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,7 +49,8 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * <p>
  * This manager provides the following functionalities:
  * <ul>
- * <li>create of Framesoc analysis views, ensuring correct secondary ID management
+ * <li>create Framesoc analysis views, ensuring correct secondary ID management
+ * <li>manage Framesoc analysis views groups, for a given trace
  * <li>clean the Framesoc perspective
  * <li>handle inter-view communication topics
  * <li>enable disposal of Framesoc analysis views
@@ -58,6 +61,12 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * 
  */
 public final class FramesocPartManager implements IFramesocBusListener {
+
+	public final static int NO_GROUP = -1;
+
+	public final static int NEW_GROUP = -2;
+	
+	private final int MaxViewInstancesDefault = 5;
 
 	/**
 	 * Logger
@@ -89,21 +98,24 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 */
 	private class ViewDesc {
 
-		public final int maxInstances;
+		public int maxInstances;
 		public int instances;
 		public List<FramesocPart> openParts;
+		public Map<Trace, Map<FramesocPart, Integer>> partToGroup;
 
 		public ViewDesc(int maxInstances) {
 			this.maxInstances = maxInstances;
 			this.instances = 0;
 			this.openParts = new LinkedList<>();
+			this.partToGroup = new HashMap<>();
 		}
 
 		@Override
 		public String toString() {
 			return "ViewDesc [maxInstances=" + maxInstances + ", instances=" + instances
-					+ ", openParts=" + openParts + "]";
+					+ ", openParts=" + openParts + ", partToGroup=" + partToGroup + "]";
 		}
+
 	}
 
 	/**
@@ -112,7 +124,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	private static FramesocPartManager instance = null;
 
 	/**
-	 * Map of view descriptors for Framesoc view types
+	 * Map of view descriptors for Framesoc view types: ID -> descriptor.
 	 */
 	private Map<String, ViewDesc> viewDescMap;
 
@@ -127,10 +139,6 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		return instance;
 	}
 
-	/*
-	 * Public methods
-	 */
-
 	/**
 	 * Get an instance for the given Framesoc analysis view ID.
 	 * 
@@ -142,40 +150,48 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 *            view ID corresponding to an existing Framesoc analysis view
 	 * @param trace
 	 *            the trace we want to load, or null if we need an empty view
-	 * 
+	 * @param forceNew
+	 *            forces the creation of another view for the passed ID, even if one is already
+	 *            existing
 	 * @return a view, or null if the passed ID does not correspond to a Framesoc view, if the
 	 *         maximum number of instances for the view has been reached, if PartInitException is
 	 *         launched.
 	 */
-	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace) {
+	public OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean allowNew) {
+		return getPartInstance(viewID, trace, allowNew, NO_GROUP);
+	}
+
+	/**
+	 * Get an instance for the given Framesoc analysis view ID, specifying the view group.
+	 * 
+	 * <p>
+	 * If an empty view corresponding to this ID is present, it is used. Otherwise a new one is
+	 * created and activated, if the maximum number of instance has not been reached yet.
+	 * 
+	 * @param viewID
+	 *            view ID corresponding to an existing Framesoc analysis view
+	 * @param trace
+	 *            the trace we want to load, or null if we need an empty view
+	 * 
+	 * @param forceNew
+	 *            forces the creation of another view for the passed ID, even if one is already
+	 *            existing
+	 * @param group
+	 *            group id requested for the new view. It is ignored if <code>forceNew</code> is
+	 *            false. If it is set to <code>NO_GROUP</code> or <code>NEW_GROUP</code> the value
+	 *            is automatically assigned, according to the view ID and the trace.
+	 * @return a view, or null if the passed ID does not correspond to a Framesoc view, if the
+	 *         maximum number of instances for the view has been reached, if PartInitException is
+	 *         launched.
+	 */
+	protected OpenFramesocPartStatus getPartInstance(String viewID, Trace trace, boolean forceNew,
+			int group) {
 
 		OpenFramesocPartStatus status = new OpenFramesocPartStatus();
 		status.message = "View loaded.";
 
-		// see if the trace is already loaded in a view
-		if (trace != null) {
-			logger.debug("see if the trace is already loaded");
-			FramesocPart part = searchAlreadyLoaded(viewID, trace);
-			if (part != null) {
-				part.activateView();
-				status.part = part;
-				return status;
-			}
-		}
-
-		// try to reuse an empty view, if any
-		logger.debug("try to reuse an empty view");
-		FramesocPart part = searchEmpty(viewID);
-		if (part != null) {
-			part.activateView();
-			status.part = part;
-			return status;
-		}
-
-		// create a new view, if possible
-		logger.debug("create a new view if possible");
+		// check if it is a valid Framesoc part id
 		ViewDesc desc = viewDescMap.get(viewID);
-
 		if (desc == null) {
 			status.part = null;
 			status.message = "View '" + viewID + "' is not a Framesoc view.";
@@ -183,13 +199,43 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			return status;
 		}
 
-		if (desc.instances >= desc.maxInstances) {
+		// see if the trace is already loaded in a view with the same group id
+		if (trace != null && !forceNew) {
+			logger.debug("see if the trace is already loaded");
+			FramesocPart part = searchAlreadyLoaded(viewID, trace, group);
+			if (part != null) {
+				part.activateView();
+				status.part = part;
+				return status;
+			}
+		}
+
+		// try to reuse an empty view, if any, setting the group
+		logger.debug("try to reuse an empty view");
+		FramesocPart part = searchEmpty(viewID);
+		if (part != null) {
+			part.activateView();
+			status.part = part;
+			desc.instances = 1; // there can be only one empty view
+			setGroup(part, trace, desc, group);
+			return status;
+		}
+
+		// create a new view, if possible
+		logger.debug("create a new view if possible");
+
+		// check if max instances reached
+		if (desc.maxInstances != Configuration.INFINITE_VIEWS
+				&& desc.instances >= desc.maxInstances) {
 			status.part = null;
-			status.message = "Maximum number of instances reached for view '" + viewID + "'.";
+			status.message = "Maximum number of instances ("
+					+ desc.maxInstances + ") reached for view '" + viewID
+					+ "'.";
 			logger.error(status.message);
 			return status;
 		}
 
+		// new view creation
 		FramesocPart v = createNewView(viewID);
 		if (v == null) {
 			status.part = null;
@@ -197,17 +243,40 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			logger.error(status.message);
 			return status;
 		}
-
 		desc.instances++;
 		desc.openParts.add(v);
+		setGroup(v, trace, desc, group);
 		status.part = v;
 		v.activateView();
 
 		return status;
 	}
 
+	private void setGroup(FramesocPart part, Trace trace, ViewDesc desc, int group) {
+		if (trace == null) {
+			// do not create object in the part to group map for null traces
+			return;
+		}
+		if (!desc.partToGroup.containsKey(trace)) {
+			desc.partToGroup.put(trace, new HashMap<FramesocPart, Integer>());
+		}
+		Map<FramesocPart, Integer> p2g = desc.partToGroup.get(trace);
+		if (group == NO_GROUP || group == NEW_GROUP) {
+			group = getNextGroupId(p2g);
+		}
+		p2g.put(part, group);
+	}
+
+	private int getNextGroupId(Map<FramesocPart, Integer> p2g) {
+		if (p2g.values().isEmpty())
+			return 0;
+		return Collections.max(p2g.values()) + 1;
+	}
+
 	/**
 	 * Close all the instances (except one) for the open Framesoc views.
+	 * 
+	 * This method must be called only at the beginning.
 	 */
 	public void cleanFramesocParts() {
 
@@ -218,13 +287,13 @@ public final class FramesocPartManager implements IFramesocBusListener {
 				logger.debug("Before clean");
 				printDescriptors();
 
-				final List<IViewReference> framesocRefs = new LinkedList<IViewReference>();
 				final IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
 
 				// clean desc
 				for (ViewDesc desc : viewDescMap.values()) {
 					desc.instances = 0;
 					desc.openParts.clear();
+					desc.partToGroup.clear();
 				}
 
 				logger.debug("After clean");
@@ -249,9 +318,9 @@ public final class FramesocPartManager implements IFramesocBusListener {
 							if (desc != null) {
 								logger.debug("found desc name: {}, sec id: {}",
 										viewRef.getPartName(), viewRef.getSecondaryId());
-								framesocRefs.add(viewRef);
+								FramesocPart part = (FramesocPart) viewRef.getPart(true);
 								desc.instances++;
-								desc.openParts.add((FramesocPart) viewRef.getPart(true));
+								desc.openParts.add(part);
 							} else {
 								logger.debug("not found desc name: {}, sec id: {}",
 										viewRef.getPartName(), viewRef.getSecondaryId());
@@ -304,6 +373,11 @@ public final class FramesocPartManager implements IFramesocBusListener {
 				&& data != null) {
 			logger.debug("Topic pie interval");
 			displayFramesocView(FramesocViews.STATISTICS_PIE_CHART_VIEW_ID, data);
+		} else if (topic
+				.equals(FramesocBusTopic.TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER)
+				&& data != null) {
+			logger.debug("Topic synchronize all the group view");
+			synchAllGroupView(data);
 		}
 	}
 
@@ -317,10 +391,10 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 */
 	private void displayFramesocView(String viewId, Object data) {
 		TraceIntervalDescriptor des = (TraceIntervalDescriptor) data;
-		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace());
+		OpenFramesocPartStatus status = getPartInstance(viewId, des.getTrace(), false,
+				des.getGroup());
 		if (status.part == null) {
-			MessageDialog.openError(Display.getDefault().getActiveShell(),
-					"Error", status.message);
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Error", status.message);
 			return;
 		}
 		status.part.showTrace(des.getTrace(), des);
@@ -348,10 +422,10 @@ public final class FramesocPartManager implements IFramesocBusListener {
 					for (FramesocPart fp : desc.openParts) {
 						if (trace.equals(fp.getCurrentShownTrace())) {
 							logger.debug("Highlight " + fp.getPartName());
-							fp.higlightTitle(true);
+							fp.highlightTitle(true);
 						} else {
 							logger.debug("Unhighlight " + fp.getPartName());
-							fp.higlightTitle(false);
+							fp.highlightTitle(false);
 						}
 					}
 				}
@@ -369,12 +443,16 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	public void disposeFramesocPart(FramesocPart framesocPart) {
 		ViewDesc desc = viewDescMap.get(framesocPart.getId());
 		if (desc != null) {
-			desc.instances--;
-			Iterator<FramesocPart> it = desc.openParts.iterator();
-			while (it.hasNext()) {
-				FramesocPart part = it.next();
-				if (framesocPart.equals(part))
-					it.remove();
+			desc.instances = Math.max(0, desc.instances - 1);
+			desc.openParts.remove(framesocPart);
+			Trace t = framesocPart.getCurrentShownTrace();
+			if (t != null) {
+				Map<FramesocPart, Integer> parts = desc.partToGroup.get(t);
+				if (parts != null) {
+					parts.remove(framesocPart);
+				}
+				// update also titles (possibly remove numbers)
+				updateTitlesHighlight(t);
 			}
 		}
 	}
@@ -404,6 +482,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_TABLE_DISPLAY_TIME_INTERVAL);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_GANTT_DISPLAY_TIME_INTERVAL);
 		topics.addTopic(FramesocBusTopic.TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL);
+		topics.addTopic(FramesocBusTopic.TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER);
 		topics.registerAll();
 
 		// register the selection listener
@@ -448,7 +527,7 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 * Load constants in view descriptor map.
 	 */
 	private void loadDescMap() {
-		int max = 5;
+		int max = MaxViewInstancesDefault;
 		try {
 			max = Integer.valueOf(Configuration.getInstance().get(
 					SoCTraceProperty.max_view_instances));
@@ -477,16 +556,20 @@ public final class FramesocPartManager implements IFramesocBusListener {
 	 * 
 	 * @param viewId
 	 *            view ID
+	 * @param group
 	 * @return the part, or null if not found
 	 */
-	private FramesocPart searchAlreadyLoaded(String viewId, Trace trace) {
+	private FramesocPart searchAlreadyLoaded(String viewId, Trace trace, int group) {
+		if (group == NEW_GROUP)
+			return null;
 		ViewDesc desc = viewDescMap.get(viewId);
 		if (desc != null) {
 			for (FramesocPart part : desc.openParts) {
 				Trace t = part.getCurrentShownTrace();
-				if (t != null) {
-					if (trace.equals(t))
+				if (t != null && trace.equals(t)) {
+					if (group == NO_GROUP || desc.partToGroup.get(trace).get(part) == group) {
 						return part;
+					}
 				}
 			}
 		}
@@ -511,6 +594,76 @@ public final class FramesocPartManager implements IFramesocBusListener {
 		return null;
 	}
 
+	/**
+	 * Check if a view part corresponding to a given view id is already open for a given trace.
+	 * 
+	 * @param viewId
+	 *            Framesoc part id
+	 * @param trace
+	 *            trace
+	 * @return true, if the trace is already loaded in a view corresponding to a given ID.
+	 */
+	public boolean isAlreadyLoaded(String viewId, Trace trace) {
+		ViewDesc desc = viewDescMap.get(viewId);
+		if (desc != null) {
+			for (FramesocPart part : desc.openParts) {
+				Trace t = part.getCurrentShownTrace();
+				if (t != null) {
+					if (trace.equals(t)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Return the group corresponding to the given view for the given trace.
+	 * 
+	 * Note that a view part can store only a single trace. The parameter is passed only to avoid
+	 * iterating over all open traces to find the passed part reference.
+	 * 
+	 * @param trace
+	 *            the trace
+	 * @param part
+	 *            the view part
+	 * @return the group corresponding to the view part, or <code>NO_GROUP</code> if the view part
+	 *         is not found.
+	 */
+	public int getPartGroup(Trace trace, FramesocPart part) {
+		ViewDesc desc = viewDescMap.get(part.getId());
+		if (desc == null || !desc.partToGroup.containsKey(trace)) {
+			return NO_GROUP;
+		}
+		if (!desc.partToGroup.get(trace).containsKey(part)) {
+			return NO_GROUP;
+		}
+		return desc.partToGroup.get(trace).get(part);
+	}
+
+	/**
+	 * Check if for the given trace there are only views for a given group.
+	 * 
+	 * @param trace
+	 *            trace
+	 * @param group
+	 *            group of views
+	 * @return true, if for the given trace, there are only views for the given group
+	 */
+	public boolean isUniqueGroup(Trace trace, int group) {
+		for (ViewDesc desc : viewDescMap.values()) {
+			if (desc.partToGroup.containsKey(trace)) {
+				for (Integer g : desc.partToGroup.get(trace).values()) {
+					if (g != group) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	// debug
 
 	private void printDescriptors() {
@@ -521,4 +674,58 @@ public final class FramesocPartManager implements IFramesocBusListener {
 			logger.debug("Descriptor: {}", e.getValue());
 		}
 	}
+	
+	/**
+	 * Change the value of max instance of a view with the current value in
+	 * configuration
+	 */
+	public void updateMaxInstances() {
+		Integer max = MaxViewInstancesDefault;
+		
+		try {
+			max = Integer.valueOf(Configuration.getInstance().get(
+					SoCTraceProperty.max_view_instances));
+		} catch (NumberFormatException e) {
+			logger.error(SoCTraceProperty.max_view_instances.toString()
+					+ " is not an integer, using " + max + " instead.");
+		}
+		
+		for (ViewDesc viewDesc : viewDescMap.values()) {
+			viewDesc.maxInstances = max;
+		}
+	}
+
+	/**
+	 * Synchronize all the views of a given group with the current view on time
+	 * interval and producer and type filters
+	 * 
+	 * @param data
+	 *            a TraceIntervalDescriptor containing the synchronization
+	 *            elements
+	 */
+	private void synchAllGroupView(Object data) {
+		// Get trace
+		TraceIntervalDescriptor desc = (TraceIntervalDescriptor) data;
+		Trace trace = desc.getTrace();
+		List<FramesocPart> parts = new ArrayList<FramesocPart>();
+
+		// Get all parts of the group
+		for (ViewDesc viewDesc : viewDescMap.values()) {
+			if (viewDesc.partToGroup.containsKey(trace)) {
+				for (FramesocPart fPart : viewDesc.partToGroup.get(trace)
+						.keySet()) {
+					if (viewDesc.partToGroup.get(trace).get(fPart) == desc
+							.getGroup() && fPart != desc.getSender())
+						parts.add(fPart);
+				}
+			}
+		}
+
+		// Update them all
+		for (FramesocPart fPart : parts) {
+			fPart.showTrace(trace, desc);
+		}
+	}
+	
+
 }

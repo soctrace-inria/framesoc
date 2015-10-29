@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.lib.storage.dbmanager;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -18,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
+import fr.inria.soctrace.lib.storage.SystemDBObject;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.Configuration;
@@ -32,6 +34,12 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class MySqlDBManager extends DBManager {
+	
+	/**
+	 * Index of the column containing the names of column of table when returning
+	 * from a query of type "DESC"
+	 */
+	private static final int NAME_COLUMN_INDEX = 1;
 
 	public MySqlDBManager(String dbName) throws SoCTraceException {
 		super(dbName);
@@ -52,7 +60,7 @@ public class MySqlDBManager extends DBManager {
 			String dbBaseUrl = Configuration.getInstance().get(SoCTraceProperty.mysql_base_db_jdbc_url);
 			String dbUser = Configuration.getInstance().get(SoCTraceProperty.mysql_db_user);
 			String dbPassword = Configuration.getInstance().get(SoCTraceProperty.mysql_db_password);
-	    	Class.forName("com.mysql.jdbc.Driver").newInstance();    	  
+	    	Class.forName("com.mysql.jdbc.Driver").newInstance();   	    	
 	    	connection = DriverManager.getConnection(dbBaseUrl, dbUser, dbPassword);
 			connection.setAutoCommit(false); // for efficiency	
 			
@@ -70,12 +78,18 @@ public class MySqlDBManager extends DBManager {
 			ResultSet rs = meta.getCatalogs();
 			while (rs.next()) {
 				String n = rs.getString("TABLE_CAT");
-				if( n.equals(dbName) ) return true;
+				if (n.equals(dbName))
+					return true;
 			}
 			return false;
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
+	}
+	
+	@Override
+	public boolean checkSettings() throws SoCTraceException {
+		return true;
 	}
 
 	@Override
@@ -108,7 +122,7 @@ public class MySqlDBManager extends DBManager {
 	public void dropDB() throws SoCTraceException {
     	try {
     		Statement stm = getConnection().createStatement();
-    		stm.executeUpdate("DROP DATABASE "+dbName);
+			stm.executeUpdate("DROP DATABASE " + dbName);
     		stm.close();
 		    getConnection().commit();
 		    closeConnection();
@@ -146,13 +160,15 @@ public class MySqlDBManager extends DBManager {
 		String[] createCmd;
 		String[] executeCmd;
 		if (!password.trim().equals("")) {
-			createCmd = new String[]{"mysqladmin", "--user=" + user, "--password=" + password, 
-					"create", dbName};;
-			executeCmd = new String[]{"mysql", "--user=" + user, "--password=" + password, 
-					dbName, "-e", "source "+path};
+			createCmd = new String[] { "mysqladmin", "--user=" + user,
+					"--password=" + password, "create", dbName };
+			executeCmd = new String[] { "mysql", "--user=" + user,
+					"--password=" + password, dbName, "-e", "source " + path };
 		} else {
-			createCmd = new String[]{"mysqladmin", "--user=" + user, "create", dbName};;
-			executeCmd = new String[]{"mysql", "--user=" + user, dbName, "-e", "source "+path};
+			createCmd = new String[] { "mysqladmin", "--user=" + user,
+					"create", dbName };
+			executeCmd = new String[] { "mysql", "--user=" + user, dbName,
+					"-e", "source " + path };
 		}
 		 
         Process runtimeProcess;
@@ -209,10 +225,13 @@ public class MySqlDBManager extends DBManager {
 	}
 
 	/**
-	 * Check if operation completed 
-	 * @param operation operation name
-	 * @param complete complete flag
-	 * @throws SoCTraceException 
+	 * Check if operation completed
+	 * 
+	 * @param operation
+	 *            operation name
+	 * @param complete
+	 *            complete flag
+	 * @throws SoCTraceException
 	 */
 	private void checkComplete(String operation, int complete) throws SoCTraceException {
         if (complete == 0) {
@@ -248,7 +267,8 @@ public class MySqlDBManager extends DBManager {
 					"ALIAS TEXT COLLATE latin1_general_cs, " +
 					"MIN_TIMESTAMP BIGINT, " +
 					"MAX_TIMESTAMP BIGINT, " +
-					"TIMEUNIT INTEGER)");
+					"TIMEUNIT INTEGER, " +
+					"NUMBER_OF_PRODUCERS INTEGER)");
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -309,7 +329,8 @@ public class MySqlDBManager extends DBManager {
 					"TYPE TEXT COLLATE latin1_general_cs, " +
 					"COMMAND TEXT COLLATE latin1_general_cs, " +
 					"IS_PLUGIN BOOLEAN, " +
-					"DOC TEXT COLLATE latin1_general_cs)");
+					"DOC TEXT COLLATE latin1_general_cs, " + 
+					"EXTENSION_ID TEXT COLLATE latin1_general_cs)");
 
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -518,6 +539,81 @@ public class MySqlDBManager extends DBManager {
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
 		}
+	}
+
+	@Override
+	public String getTableInfoQuery(FramesocTable framesocTable) {
+		return "DESC " + framesocTable.name();
+	}
+
+	@Override
+	public void replaceDB(String oldBDName, String newDBName) throws SoCTraceException {
+		// Temp path to get the dump the DB
+		String dbDumpFile = System.getProperty("user.home") + "/" + oldBDName
+				+ ".sql";
+		
+		// Export the new database
+		DBManager.getDBManager(newDBName).exportDB(dbDumpFile);
+
+		// Delete the old one
+		dropDB();
+		
+		// Import the new one with the old name
+		importDB(dbDumpFile);
+
+		// Set the correct DB version
+		setDBVersion(SystemDBObject.SYSTEM_DB_OBJECT_VERSION);
+		
+        //Delete the temp file
+        File tmpDB = new File(dbDumpFile);
+        if(tmpDB.exists())
+        	tmpDB.delete();
+	}
+
+	@Override
+	public void setDBVersion(int databaseVersion) throws SoCTraceException {
+		try {
+			// Delete previous function if already existing
+			Statement stm = getConnection().createStatement();
+			stm.execute("DROP FUNCTION IF EXISTS " + dbName + ".DB_VERSION;");
+			stm.close();
+
+			// Update the function with the value
+			stm = getConnection().createStatement();
+			stm.execute("CREATE FUNCTION " + dbName
+					+ ".DB_VERSION() RETURNS INTEGER(15) RETURN '"
+					+ databaseVersion + "';");
+			stm.close();
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
+
+	@Override
+	public int getDBVersion() throws SoCTraceException {
+		try {
+			Statement stm = getConnection().createStatement();
+			ResultSet rs = stm.executeQuery("SELECT " + dbName
+					+ ".DB_VERSION();");
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				// Function does not exist (or error); assume old DB model
+				return 0;
+			}
+		} catch (SQLException e) {
+			// Function does not exist (or error); assume old DB model
+			if (e.getMessage().equals(
+					"FUNCTION " + dbName + ".DB_VERSION does not exist"))
+				return 0;
+
+			throw new SoCTraceException(e);
+		}
+	}
+
+	@Override
+	public int getColumnNameIndex() {
+		return NAME_COLUMN_INDEX;
 	}
 
 	// Default is OK

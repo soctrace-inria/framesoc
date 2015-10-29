@@ -419,7 +419,7 @@ public class TimeChartView extends TmfView implements ITimeGraphRangeListener, I
             // itemized events
             Iterator<ITimeEvent> iterator = timeAnalysisEntry.getTimeEventsIterator(0, Long.MAX_VALUE, Long.MAX_VALUE);
             TimeChartEvent event = null;
-            int entryPriority = ColorSettingsManager.PRIORITY_NONE;
+            Long entryPriority = ColorSettingsManager.PRIORITY_NONE;
             boolean entryIsBookmarked = false;
             boolean entryIsVisible = false;
             boolean entryIsSearchMatch = false;
@@ -459,7 +459,7 @@ public class TimeChartView extends TmfView implements ITimeGraphRangeListener, I
             // TODO possible concurrency problem here with ItemizeJob
             TimeChartAnalysisEntry timeAnalysisEntry = (TimeChartAnalysisEntry) timeChartEvent.getEntry();
             ITmfTrace trace = timeAnalysisEntry.getTrace();
-            int priority = ColorSettingsManager.PRIORITY_NONE;
+            Long priority = ColorSettingsManager.PRIORITY_NONE;
             boolean isBookmarked = false;
             boolean isVisible = false;
             boolean isSearchMatch = false;

@@ -51,7 +51,7 @@ public class TraceDBObject extends DBObject {
 	 * @return a new trace db object  
 	 * @throws SoCTraceException
 	 */
-	public static TraceDBObject openNewIstance(String dbName) throws SoCTraceException {
+	public static TraceDBObject openNewInstance(String dbName) throws SoCTraceException {
 		return new TraceDBObject(dbName, DBMode.DB_OPEN);
 	}
 
@@ -162,6 +162,31 @@ public class TraceDBObject extends DBObject {
 		updateVisitor = new TraceDBUpdateVisitor(this);
 	}
 
+	/**
+	 * Get the number of type entity in the trace.
+	 * 
+	 * @param entityType
+	 *            the type of entity that must be retireved
+	 * @return the number of type entity in the trace
+	 * @throws SoCTraceException
+	 */
+	public int getNumberOf(FramesocTable entityType) throws SoCTraceException {
+		Statement stm;
+		ResultSet rs;
+		int value = 0;
+		try {
+			stm = dbManager.getConnection().createStatement();
+			rs = stm.executeQuery("SELECT COUNT(*) FROM " + entityType);
+			while (rs.next()) {
+				value = rs.getInt(1);
+			}
+			stm.close();
+			return value;
+		} catch (SQLException e) {
+			throw new SoCTraceException(e);
+		}
+	}
+	
 	public long getMinPage() throws SoCTraceException {
 		return getValue("MIN", "PAGE", FramesocTable.EVENT);
 	}

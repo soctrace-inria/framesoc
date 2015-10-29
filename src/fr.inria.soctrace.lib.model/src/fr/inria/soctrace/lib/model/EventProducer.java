@@ -20,7 +20,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
  */
 public class EventProducer implements IModelElement, ISearchable {
 	
-	public static final int NO_PARENT_ID = -1;
+	public static final Long NO_PARENT_ID = -1l;
 	
 	private final long id;
 	private String type;

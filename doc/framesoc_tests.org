@@ -1,0 +1,25 @@
+* System Setup
+** Reinitialize the system
+- Delete the Framesoc configuration file (=<eclipse_dir>/configuration/fr.inria.soctrace.lib.utils/soctrace.conf=)
+- Relaunch Framesoc
+- Follow the wizard
+** Import a trace 
+- Import the traces available on the Framesoc website (http://soctrace-inria.github.io/framesoc/)
+- Check that the traces were successfully imported
+* Tests
+** Release 1.0.7 (SET 1.5) 20/05/2015
+*** Configuration settings
+- Change one or several of the simpler settings and check that the configuration file is saved
+- For each settings test that are taken into account  
+  - db indexes are correctly created
+  - change the maximum number of instances and check that it is taken into account
+  - enable/disable the multiple instances and check that the Framesoc behavior goes accordingly
+  - color changes are taken into account
+  - add a tool in the database; fill all the fields; close the settings dialog by clicking OK, relaunch it and check thtat the added tool is still here
+  - edit the added tool and check tha t the changes are saved
+  - remove the added tool and check that it is removed 
+*** Configuration file location and write permissions
+- Check that if the write permission is not set in the Eclipse directory, the home directory is used to store the configuration file.
+*** Gantt CPU drawer  
+- Check that there is no longer any bug when performing the scenario described in issue #119
+

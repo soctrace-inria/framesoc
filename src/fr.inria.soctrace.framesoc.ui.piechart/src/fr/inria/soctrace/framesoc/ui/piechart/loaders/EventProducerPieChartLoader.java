@@ -64,9 +64,17 @@ public class EventProducerPieChartLoader extends EventPieChartLoader {
 
 		// execute query
 		ComparisonOperation lastComp = last ? ComparisonOperation.LE : ComparisonOperation.LT;
-		String query = "SELECT EVENT_PRODUCER_ID, COUNT(*) AS NUMBER FROM EVENT "
-				+ " WHERE TIMESTAMP >= " + t0 + " AND TIMESTAMP " + lastComp + " " + t1
-				+ " GROUP BY EVENT_PRODUCER_ID ";
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT EVENT_PRODUCER_ID, COUNT(*) AS NUMBER FROM EVENT ");
+		sb.append(" WHERE TIMESTAMP >= ");
+		sb.append(t0);
+		sb.append(" AND TIMESTAMP ");
+		sb.append(lastComp.toString());
+		sb.append(" ");
+		sb.append(t1);
+		addFiltersToQuery(sb);
+		sb.append(" GROUP BY EVENT_PRODUCER_ID ");
+		String query = sb.toString();
 		logger.debug(query);
 		int results = 0;
 		try {

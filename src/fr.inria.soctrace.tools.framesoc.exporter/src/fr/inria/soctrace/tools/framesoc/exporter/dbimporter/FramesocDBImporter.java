@@ -164,7 +164,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 			try {
 				// Open the System DB
-				sysDB = SystemDBObject.openNewIstance();
+				sysDB = SystemDBObject.openNewInstance();
 				IdManager idManager = new IdManager();
 				idManager.setNextId(sysDB.getMaxId(FramesocTable.TRACE.toString(), "ID") + 1);
 
@@ -298,7 +298,7 @@ public class FramesocDBImporter extends FramesocTool {
 
 			TraceDBObject traceDB = null;
 			try {
-				traceDB = TraceDBObject.openNewIstance(metadata.trace.getDbName());
+				traceDB = TraceDBObject.openNewInstance(metadata.trace.getDbName());
 				AnalysisResultQuery arq = new AnalysisResultQuery(traceDB);
 				List<AnalysisResult> arl = arq.getList();
 				if (arl.size() > 0) {

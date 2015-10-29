@@ -46,7 +46,8 @@ public class FramesocDBExporter extends FramesocTool {
 		if (exporterInput.directory == null) {
 			status.valid = false;
 			status.message = "Specify a directory";
-		} else if (exporterInput.trace == null) {
+		} else if (exporterInput.traces == null
+				|| exporterInput.traces.isEmpty()) {
 			status.valid = false;
 			status.message = "Select a trace";
 		} else {
@@ -57,6 +58,10 @@ public class FramesocDBExporter extends FramesocTool {
 			} else if (!dir.isDirectory()) {
 				status.valid = false;
 				status.message = exporterInput.directory + " is not a directory";
+			} else if (!dir.canWrite()) {
+				status.valid = false;
+				status.message = "Does not have write permission for "
+						+ exporterInput.directory + " directory";
 			}
 		}
 		return status;

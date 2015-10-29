@@ -24,9 +24,15 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
  * @author "Generoso Pagano <generoso.pagano@inria.fr>"
  */
 public class GanttEntry extends TimeGraphEntry {
-
-	public GanttEntry(String name) {
+	
+	// Id of the event producer corresponding to the one
+	private long eventProducerID = -1;
+	
+	private boolean producingEvent = false;
+	
+	public GanttEntry(String name, long eventProducerID) {
 		super(name, Long.MAX_VALUE, Long.MIN_VALUE);
+		this.eventProducerID = eventProducerID;
 	}
 
 	public void debug(Logger logger) {
@@ -48,6 +54,22 @@ public class GanttEntry extends TimeGraphEntry {
 		for (TimeGraphEntry e: entry.getChildren()) {
 			debugEntry(logger, e, space + " ");
 		}
+	}
+
+	public long getEventProducerID() {
+		return eventProducerID;
+	}
+
+	public void setEventProducerID(long eventProducerID) {
+		this.eventProducerID = eventProducerID;
+	}
+
+	public boolean isProducingEvent() {
+		return producingEvent;
+	}
+
+	public void setProducingEvent(boolean producingEvent) {
+		this.producingEvent = producingEvent;
 	}
 
 }

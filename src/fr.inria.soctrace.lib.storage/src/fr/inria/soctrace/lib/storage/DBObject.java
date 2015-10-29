@@ -23,6 +23,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.storage.dbmanager.DBManager;
 import fr.inria.soctrace.lib.storage.dbmanager.MySqlDBManager;
 import fr.inria.soctrace.lib.storage.dbmanager.SQLiteDBManager;
+import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.storage.visitors.ModelVisitor;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.DBMS;
@@ -90,6 +91,19 @@ public abstract class DBObject {
 	public static boolean isDBExisting(String name) throws SoCTraceException {
 		DBManager dbm = getDBManager(name);
 		return dbm.isDBExisting();
+	}
+	
+	/**
+	 * Check if the settings for a database are correct
+	 * 
+	 * @param name
+	 *            database name
+	 * @return true if the settings are correct
+	 * @throws SoCTraceException
+	 */
+	public static boolean checkSettings(String name) throws SoCTraceException {
+		DBManager dbm = getDBManager(name);
+		return dbm.checkSettings();
 	}
 	
 	/**
@@ -203,6 +217,17 @@ public abstract class DBObject {
 	 */
 	public String getDBName() {
 		return dbManager.getDBName();
+	}
+
+	/**
+	 * Get table info query
+	 * 
+	 * @param framesocTable
+	 *            the name of the table
+	 * @return the query
+	 */
+	public String getTraceInfoQuery(FramesocTable framesocTable) {
+		return dbManager.getTableInfoQuery(framesocTable);
 	}
 		
 	/** 

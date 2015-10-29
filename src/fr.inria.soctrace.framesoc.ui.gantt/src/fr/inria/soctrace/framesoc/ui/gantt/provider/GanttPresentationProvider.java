@@ -90,7 +90,7 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
     }
 
     @Override
-    public int getStateTableIndex(ITimeEvent event) {
+    public long getStateTableIndex(ITimeEvent event) {
         if (event instanceof TimeEvent && ((TimeEvent) event).hasValue()) {
             int type = ((TimeEvent) event).getValue();
             if (filteredTypes.contains(type)) {
@@ -103,14 +103,14 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
         return TRANSPARENT;
     }
 
-    @Override
-    public String getEventName(ITimeEvent event) {
+	@Override
+	public String getEventName(ITimeEvent event) {
 
-    	int index = getStateTableIndex(event);
-    	if (index >=0 && index < stateTable.length) {
-    		return stateTable[index].getStateString();
-    	}
-        return "unknown";
-    }	
+		long index = getStateTableIndex(event);
+		if (index >= 0 && index < stateTable.length) {
+			return stateTable[index].getStateString();
+		}
+		return "unknown";
+	}
     
 }

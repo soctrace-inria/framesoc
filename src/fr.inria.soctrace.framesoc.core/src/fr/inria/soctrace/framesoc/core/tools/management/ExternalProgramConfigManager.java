@@ -68,7 +68,7 @@ public abstract class ExternalProgramConfigManager {
 		try {
 			// executable path
 			String defaultExePath = getDefaultExePath();
-
+			
 			if (!file.exists()) {
 				logger.debug("Configuration file not found. Create it: {}", confFilePath);
 				System.err.println("Configuration file '" + confFilePath
@@ -91,6 +91,14 @@ public abstract class ExternalProgramConfigManager {
 				br.close();
 				defaultExePath = line;
 			}
+			
+			// Check for executable permission, since they are not set by
+			// default when installed from update site
+			File exeFile = new File(defaultExePath);
+			if (exeFile.exists() && !exeFile.canExecute()) {
+				exeFile.setExecutable(true);
+			}
+			
 			return defaultExePath;
 		} catch (IOException e) {
 			logger.error(e.getMessage());

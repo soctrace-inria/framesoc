@@ -68,22 +68,22 @@ public class TraceDBObjectTest extends BaseTraceDBTest {
 		traceDB.close();
 		
 		// create non existing index
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		traceDB.createTimestampIndex();
 		traceDB.close();
 		
 		// create existing index
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		traceDB.createTimestampIndex();
 		traceDB.close();
 		
 		// drop existing index
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 		traceDB.dropTimestampIndex();
 		traceDB.close();
 		
 		// reopen for other tests
-		traceDB = TraceDBObject.openNewIstance(VirtualImporter.DB_NAME);
+		traceDB = TraceDBObject.openNewInstance(VirtualImporter.DB_NAME);
 	}
 
 }

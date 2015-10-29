@@ -33,6 +33,11 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 public class SystemDBObject extends DBObject {
 	
 	/**
+	 * Current version number of the system database model. Must be an integer.
+	 */
+	public final static int SYSTEM_DB_OBJECT_VERSION = 1;
+
+	/**
 	 * Trace format (type and param types) cache
 	 */
 	private ModelElementCache traceTypeCache = null;
@@ -52,7 +57,7 @@ public class SystemDBObject extends DBObject {
 	 * @return a new system db object  
 	 * @throws SoCTraceException
 	 */
-	public static SystemDBObject openNewIstance() throws SoCTraceException { // TODO: check this name
+	public static SystemDBObject openNewInstance() throws SoCTraceException { // TODO: check this name
 		return new SystemDBObject(Configuration.getInstance().get(SoCTraceProperty.soctrace_db_name), 
 				DBMode.DB_OPEN);
 	}
@@ -60,20 +65,21 @@ public class SystemDBObject extends DBObject {
 	@Override
 	protected void createDB() throws SoCTraceException {	
 
-		if ( dbManager.isDBExisting() )
-			throw new SoCTraceException("Database "+dbManager.getDBName()+" already present");
-		
+		if (dbManager.isDBExisting())
+			throw new SoCTraceException("Database " + dbManager.getDBName()
+					+ " already present");
+
 		// create the DB and the tables
 		dbManager.createDB();
-		
 		dbManager.createTableStatement();
+		dbManager.setDBVersion(SYSTEM_DB_OBJECT_VERSION);
 		dbManager.initTrace();
 		dbManager.initTraceType();
 		dbManager.initTraceParam();
 		dbManager.initTraceParamType();
 		dbManager.initTool();
 		dbManager.closeTableStatement();
-		
+
 		// commit
 		commit();
 	}
@@ -196,4 +202,25 @@ public class SystemDBObject extends DBObject {
 		updateVisitor = new SystemDBUpdateVisitor(this);
 	}
 		
+	/**
+	 * Check that the database has the same version number as the current model
+	 * version
+	 * 
+	 * @return true if they are the same, false otherwise
+	 * @throws SoCTraceException
+	 */
+	public boolean checkDBVersion() throws SoCTraceException {
+		return dbManager.getDBVersion() == SYSTEM_DB_OBJECT_VERSION;
+	}
+	
+	/**
+	 * Get the the index of the column giving the name of the column in table in
+	 * the table description
+	 * 
+	 * @return the index of the column
+	 */
+	public int getColumnNameIndex() {
+		return dbManager.getColumnNameIndex();
+	}
+	
 }

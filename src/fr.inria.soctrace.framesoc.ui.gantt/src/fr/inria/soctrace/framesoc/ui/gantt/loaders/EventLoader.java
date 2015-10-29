@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.inria.soctrace.framesoc.ui.gantt.model.IEventLoader;
-import fr.inria.soctrace.framesoc.ui.gantt.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.gantt.model.ReducedEvent;
 import fr.inria.soctrace.framesoc.ui.loaders.LoaderUtils;
+import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.lib.model.EventProducer;
 import fr.inria.soctrace.lib.model.EventType;
@@ -301,7 +301,7 @@ public class EventLoader implements IEventLoader {
 	private TraceDBObject getTraceDB() throws SoCTraceException {
 		if (fTraceDB == null) {
 			Assert.isNotNull(fTrace, "Null trace in event loader");
-			fTraceDB = TraceDBObject.openNewIstance(fTrace.getDbName());
+			fTraceDB = TraceDBObject.openNewInstance(fTrace.getDbName());
 		}
 		return fTraceDB;
 	}

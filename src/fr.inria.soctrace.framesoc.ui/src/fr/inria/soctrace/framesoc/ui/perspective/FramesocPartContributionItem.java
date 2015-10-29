@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.action.IContributionItem;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.menus.CommandContributionItem;
@@ -56,12 +55,9 @@ public class FramesocPartContributionItem extends CompoundContributionItem {
 			sortedIds.get(des.position).add(des);
 		}
 
-		boolean separator = (sortedIds.containsKey(FramesocPerspective.TOP_RIGHT) && sortedIds
-				.containsKey(FramesocPerspective.BOTTOM_RIGHT));
-
 		int i = 0;
 
-		IContributionItem[] list = new IContributionItem[parts.size() + (separator ? 1 : 0)];
+		IContributionItem[] list = new IContributionItem[parts.size()];
 
 		if (sortedIds.containsKey(FramesocPerspective.TOP_RIGHT)) {
 			sortDescriptors(sortedIds.get(FramesocPerspective.TOP_RIGHT));
@@ -72,10 +68,6 @@ public class FramesocPartContributionItem extends CompoundContributionItem {
 				param.icon = des.icon;
 				list[i++] = new CommandContributionItem(param);
 			}
-		}
-
-		if (separator) {
-			list[i++] = new Separator();
 		}
 
 		if (sortedIds.containsKey(FramesocPerspective.BOTTOM_RIGHT)) {

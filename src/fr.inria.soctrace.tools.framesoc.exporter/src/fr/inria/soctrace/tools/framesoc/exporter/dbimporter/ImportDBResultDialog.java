@@ -83,7 +83,7 @@ public class ImportDBResultDialog extends Dialog {
 		});
 
 		return composite;
-	}	
+	}
 
 	protected Point getInitialSize() {
 		return new Point(556, 423);

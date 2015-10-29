@@ -27,7 +27,7 @@ public class BaseSystemDBTest extends BaseTestClass {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		BaseTestClass.setUpBeforeClass();
-		sysDB = SystemDBObject.openNewIstance();
+		sysDB = SystemDBObject.openNewInstance();
 	}
 
 	@AfterClass

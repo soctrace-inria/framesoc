@@ -10,7 +10,8 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
- fr.inria.linuxtools.statesystem.core;visibility:=reexport
+ fr.inria.linuxtools.statesystem.core;visibility:=reexport,
+ org.eclipse.jdt.annotation;bundle-version="[1.1.0,2.0.0)";resolution:=optional
 Export-Package: fr.inria.linuxtools.internal.tmf.core;x-friends:="fr.inria.linuxtools.tmf.core.tests",
  fr.inria.linuxtools.internal.tmf.core.analysis;x-friends:="fr.inria.linuxtools.tmf.core.tests",
  fr.inria.linuxtools.internal.tmf.core.component;x-friends:="fr.inria.linuxtools.tmf.core.tests",

@@ -24,7 +24,7 @@ public enum FramesocBusTopic {
 	 * currently focused view.
 	 * Note that, when the handle method is called in the bus listener after this event
 	 * is fired, the value of the bus variables containing the selected trace is NOT
-	 * valid, since is one of the handle (the TraceTreeView.handl()) that set it.
+	 * valid, since it is one of the handle (the TraceTreeView.handle()) that set it.
 	 */
 	TOPIC_UI_FOCUSED_TRACE,
 	
@@ -89,6 +89,13 @@ public enum FramesocBusTopic {
 	 * The Pie Chart should handle the statistics operator selection in 
 	 * a convenient way (e.g., proposing a dialog to the user).
 	 */	
-	TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL;
+	TOPIC_UI_PIE_DISPLAY_TIME_INTERVAL,
 	
+	/**
+	 * Event fired by the user to synchronize all the open views of a given
+	 * trace group. The synchronization will occur on the time interval and,
+	 * depending on the enabled options, the event type and event producer
+	 * filters.
+	 */
+	TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER;
 }

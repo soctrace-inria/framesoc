@@ -52,5 +52,10 @@ public class FramesocConstants {
 			return ANALYSIS; // default
 		}
 	}	
+	
+	/**
+	 * CSV Separator
+	 */
+	public static final String CSV_SEPARATOR = ",";
 
 }

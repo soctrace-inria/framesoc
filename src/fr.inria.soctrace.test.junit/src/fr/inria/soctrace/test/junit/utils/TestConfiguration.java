@@ -40,8 +40,12 @@ public class TestConfiguration {
 		config.setProperty(SoCTraceProperty.soctrace_dbms.toString(), DBMS.SQLITE.toString());
 		config.setProperty(SoCTraceProperty.soctrace_db_name.toString(), "SOCTRACE_SYSTEM_DB_TEST");
 		config.setProperty(SoCTraceProperty.max_view_instances.toString(), "5");
-		config.setProperty(SoCTraceProperty.trace_db_indexing.toString(), "true");
+		config.setProperty(SoCTraceProperty.trace_db_ts_indexing.toString(), "true");
+		config.setProperty(SoCTraceProperty.trace_db_eid_indexing.toString(), "false");
 		config.setProperty(SoCTraceProperty.ask_for_tool_removal.toString(), "false");
+		config.setProperty(SoCTraceProperty.allow_view_replication.toString(), "true");
+		config.setProperty(SoCTraceProperty.type_filter_synchronization.toString(), "true");
+		config.setProperty(SoCTraceProperty.producer_filter_synhronization.toString(), "true");
 
 		// MySQL
 		config.setProperty(SoCTraceProperty.mysql_base_db_jdbc_url.toString(),

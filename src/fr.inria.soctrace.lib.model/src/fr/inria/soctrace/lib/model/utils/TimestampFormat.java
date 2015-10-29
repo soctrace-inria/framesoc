@@ -31,20 +31,74 @@ public class TimestampFormat extends NumberFormat {
 	 */
 	private static final long serialVersionUID = -5615549237196509700L;
 
+	/**
+	 * Default number of decimalss
+	 */
+	private static final int DEFAULT_DECIMALS = 3;
+
+	/**
+	 * Constant for not set engineering notation exponent
+	 */
+	private static final int ENG_NOT_SET = -1;
+
+	/**
+	 * Maximum number of decimal digits
+	 */
+	private static final int MAX_DECIMALS = 9;
+
+	/**
+	 * Decimal format without exponent part
+	 */
+	private final DecimalFormat noExpFormat = new DecimalFormat("###.#");
+
+	/**
+	 * Decimal format with exponent part
+	 */
+	private final DecimalFormat expFormat = new DecimalFormat("###.#E0");
+
+	/**
+	 * Number of fraction digits
+	 */
+	private int decimals = DEFAULT_DECIMALS;
+
+	/**
+	 * Time unit
+	 */
 	private TimeUnit unit;
 
+	/**
+	 * Engineering notation exponent to be used
+	 */
+	private int eng = ENG_NOT_SET;
+
+	/**
+	 * Create a timestamp format with a <code>TimeUnit.UNKNOWN</code> time unit.
+	 */
 	public TimestampFormat() {
 		this.unit = TimeUnit.UNKNOWN;
 	}
 
+	/**
+	 * Create a timestamp format with the passed time unit
+	 * 
+	 * @param unit
+	 *            time unit
+	 */
 	public TimestampFormat(TimeUnit unit) {
 		this.unit = unit;
 	}
 
+	/**
+	 * @param unit
+	 *            the time unit to set
+	 */
 	public void setTimeUnit(TimeUnit unit) {
 		this.unit = unit;
 	}
 
+	/**
+	 * @return the time unit
+	 */
 	public TimeUnit getTimeUnit() {
 		return unit;
 	}
@@ -59,50 +113,15 @@ public class TimestampFormat extends NumberFormat {
 		case UNKNOWN:
 		case CYCLE:
 		case TICK:
-			DecimalFormat df = new DecimalFormat("###.E0");
-			df.setMaximumIntegerDigits(3);
-			toAppendTo.append(df.format(number));
+			expFormat.setMaximumIntegerDigits(3);
+			noExpFormat.setMaximumFractionDigits(1);
+			toAppendTo.append(expFormat.format(number));
 			return toAppendTo;
 		default:
 			break;
 		}
-		// return formatCompact(number, toAppendTo);
-		return formatCompact(number, toAppendTo);
-	}
 
-	private StringBuffer formatCompact(double number, StringBuffer toAppendTo) {
-		// find the lowest exponent in engineering notation
-		int eng = 0;
-		Double tmp = number;
-		while (tmp.longValue() > 1000) {
-			tmp /= 1000.0;
-			eng++;
-		}
-		// compute the real exponent, when expressing the number in seconds
-		int realExp = eng * 3 + unit.getInt();
-		if (realExp > 0) {
-			// number is more than seconds
-			tmp *= Math.pow(10, realExp);
-			if (realExp < 3) {
-				DecimalFormat df = new DecimalFormat("###.#");
-				df.setMaximumFractionDigits(3);
-				toAppendTo.append(df.format(tmp));
-			} else {
-				DecimalFormat df = new DecimalFormat("###.#E0");
-				df.setMaximumFractionDigits(2);
-				df.setMaximumIntegerDigits(3);
-				toAppendTo.append(df.format(tmp));
-			}
-			toAppendTo.append(" s");
-		} else {
-			// number is seconds or less
-			DecimalFormat df = new DecimalFormat("###.#");
-			df.setMaximumFractionDigits(3);
-			toAppendTo.append(df.format(tmp));
-			toAppendTo.append(" ");
-			toAppendTo.append(TimeUnit.getLabel(realExp));
-		}
-		return toAppendTo;
+		return formatCompact(number, toAppendTo);
 	}
 
 	/**
@@ -121,59 +140,182 @@ public class TimestampFormat extends NumberFormat {
 		return Double.valueOf(text);
 	}
 
-	/*
-	 * Test code
+	/**
+	 * Computes the good number of decimal digits to see a difference between numbers contained
+	 * between the two numbers passed. This number is limited at {@value #MAX_DECIMALS}.
+	 * 
+	 * @param t1
+	 *            lowest displayed timestamp
+	 * @param t2
+	 *            highest displayed timestamp
 	 */
+	public void setContext(long t1, long t2) {
+		int e1 = getEngExp(t1);
+		int e2 = getEngExp(t2);
+		eng = Math.max(e1, e2);
 
-	// private final static long MS_IN_DAY = 86400000;
-	// private final static long MS_IN_HOUR = 3600000;
-	// private final static long MS_IN_MIN = 60000;
-	// private final static long MS_IN_SEC = 1000;
-	// private static final long NS_IN_SEC = 1000000000;
-	//
-	// private StringBuffer formatAbsolute(double number, StringBuffer toAppendTo) {
-	//
-	// Double msNumber = number * Math.pow(10, unit.getInt() + 3);
-	// Double nsNumber = number * Math.pow(10, unit.getInt() + 9);
-	//
-	// String format = "";
-	// if (msNumber >= MS_IN_DAY) {
-	// long days = msNumber.longValue() / MS_IN_DAY;
-	// toAppendTo.append(days);
-	// toAppendTo.append("d:");
-	// format = "H:m:s";
-	// } else if (msNumber >= MS_IN_HOUR) {
-	// format = "H:m:s";
-	// } else if (msNumber >= MS_IN_MIN) {
-	// format = "m:s";
-	// } else if (msNumber >= MS_IN_SEC) {
-	// format = "s";
-	// }
-	//
-	// SimpleDateFormat timeFormat = new SimpleDateFormat(format);
-	// timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-	// toAppendTo.append(timeFormat.format(new Date(msNumber.longValue())));
-	// toAppendTo.append(".");
-	// toAppendTo.append(formatNs(nsNumber.longValue()));
-	// toAppendTo.append(" s");
-	// return toAppendTo;
-	// }
-	//
-	// private String formatNs(long srcTime) {
-	// StringBuffer str = new StringBuffer();
-	// long ns = Math.abs(srcTime % NS_IN_SEC);
-	// String nanos = Long.toString(ns);
-	//        str.append("000000000".substring(nanos.length())); //$NON-NLS-1$
-	// str.append(nanos);
-	//
-	// if (unit == TimeUnit.MILLISECONDS) {
-	// return str.substring(0, 3);
-	// } else if (unit == TimeUnit.MICROSECONDS) {
-	// return str.substring(0, 6);
-	// } else if (unit == TimeUnit.NANOSECONDS) {
-	// return str.substring(0, 9);
-	// }
-	// return "";
-	// }
+		StringBuffer sb1 = new StringBuffer();
+		StringBuffer sb2 = new StringBuffer();
+		decimals = 1;
+		for (; decimals < MAX_DECIMALS; decimals++) {
+			sb1.setLength(0);
+			sb2.setLength(0);
+			formatCompact(t1, sb1);
+			formatCompact(t2, sb2);
+			if (!sb1.toString().equals(sb2.toString()))
+				break;
+		}
+		decimals = Math.min(decimals + 1, MAX_DECIMALS);
+	}
+
+	/**
+	 * Get the engineering notation exponent
+	 * 
+	 * @param number
+	 *            timestamp
+	 * @return the smallest engineering notation exponent
+	 */
+	private int getEngExp(long number) {
+		int eng = 0;
+		while (number > 1000) {
+			number /= 1000.0;
+			eng++;
+		}
+		return eng;
+	}
+
+	/**
+	 * Format the number using the default settings or the ones computed when setting the context.
+	 * 
+	 * @param number
+	 *            timestamp
+	 * @param toAppendTo
+	 *            output string buffer
+	 * @return string buffer containing the formatted value
+	 */
+	private StringBuffer formatCompact(double number, StringBuffer toAppendTo) {
+
+		// compute an exponent in engineering notation, or use the one set by the context
+		// transforming the number accordingly
+		int usedEng = 0;
+		Double tmp = number;
+		if (eng == -1) {
+			// a fixed context has not been set, find the lowest exponent in engineering notation
+			while (tmp.longValue() > 1000) {
+				tmp /= 1000.0;
+				usedEng++;
+			}
+		} else {
+			// a fixed context has been set, divide by 1000 according to the context
+			for (int i = 0; i < eng; i++) {
+				tmp /= 1000.0;
+			}
+			usedEng = eng;
+		}
+
+		// compute the real exponent, when expressing the number in seconds
+		int realExp = usedEng * 3 + unit.getInt();
+		if (realExp > 0) {
+			// number is more than seconds
+			tmp *= Math.pow(10, realExp);
+			if (realExp < 3) {
+				noExpFormat.setMaximumFractionDigits(decimals);
+				toAppendTo.append(noExpFormat.format(tmp));
+			} else {
+				expFormat.setMaximumFractionDigits(Math.max(1, decimals - 2));
+				toAppendTo.append(expFormat.format(tmp));
+			}
+			toAppendTo.append(" s");
+		} else {
+			// number is seconds or less
+			noExpFormat.setMaximumFractionDigits(decimals);
+			toAppendTo.append(noExpFormat.format(tmp));
+			toAppendTo.append(" ");
+			toAppendTo.append(TimeUnit.getLabel(realExp));
+		}
+		return toAppendTo;
+	}
+
+	/**
+	 * Compute a GradDescriptor to be used in timebar displaying.
+	 * 
+	 * This method implements the following algorithm.
+	 * 
+	 * <pre>
+	 * Input: t0, t1, # of ticks hint (N) 
+	 * Output: first tick (t0') and delta (D) 
+	 * Algorithm:
+	 * - compute step: (t1-t0)/(N+1) 
+	 * - let D be the most significant digit in step 
+	 * - in t0, consider only the digit up to the one in D position, obtaining t0' (rounded) 
+	 * - the first tick is (t0')*10^(position of D in step) if this is bigger than t0,
+	 *   otherwise we sum D*10^(position of D in step)
+	 * - to get the others, always sum D*10^(position of D in step)
+	 * 
+	 * E.g.: 
+	 * - t0: 5129, t1: 7259, N: 9
+	 * - step: 213 
+	 * - D = 2 (2|13) 
+	 * - position of D in step: 2nd position
+	 * - t0'=51 (51|29) 
+	 * - first tick: 
+	 *   - 51 * 10^2 = 5100 is less than t0 so we add 2 * 10^2: 5300
+	 * - second tick: 5300 * 10^2 = 5500 
+	 * - other ticks: 5700, 5900, ....
+	 * 
+	 * </pre>
+	 * 
+	 * @param t0
+	 *            minimum value
+	 * @param t1
+	 *            max value
+	 * @param numberOfTicksHint
+	 *            hint on the desired number of ticks
+	 * @return
+	 */
+	public TickDescriptor getTickDescriptor(long t0, long t1, int numberOfTicksHint) {
+		TickDescriptor des = new TickDescriptor();
+
+		des.delta = (t1 - t0) / (numberOfTicksHint + 1);
+		des.first = t0;
+
+		int exp = 0;
+		long step = des.delta;
+		while (step > 0) {
+			step /= 10;
+			exp++;
+		}
+		exp--;
+		long factor = (long) Math.pow(10, exp);
+		if (factor == 0) {
+			return des;
+		}
+
+		des.delta /= factor;
+		des.delta *= factor;
+		des.first /= factor;
+		des.first *= factor;
+		if (des.first < t0) {
+			des.first += des.delta;
+		}
+
+		return des;
+	}
+
+	/**
+	 * Tick Descriptor for time bar displaying.
+	 */
+	public static class TickDescriptor {
+
+		/**
+		 * First timestamp to display
+		 */
+		public long first;
+
+		/**
+		 * Delta between timestamps
+		 */
+		public long delta;
+	}
 
 }

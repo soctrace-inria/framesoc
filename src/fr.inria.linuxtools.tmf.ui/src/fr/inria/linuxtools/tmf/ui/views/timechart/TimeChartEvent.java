@@ -37,7 +37,7 @@ public class TimeChartEvent implements ITimeEvent {
     private long fLastRank;
     private final RankRangeList fRankRangeList;
     private long fNbEvents;
-    private int fColorSettingPriority;
+    private Long fColorSettingPriority;
     private boolean fIsBookmark;
     private boolean fIsVisible;
     private boolean fIsSearchMatch;
@@ -164,7 +164,7 @@ public class TimeChartEvent implements ITimeEvent {
      *
      * @return The priority
      */
-    public int getColorSettingPriority() {
+    public Long getColorSettingPriority() {
         return fColorSettingPriority;
     }
 
@@ -174,7 +174,7 @@ public class TimeChartEvent implements ITimeEvent {
      * @param priority
      *            The priority to set
      */
-    public void setColorSettingPriority(int priority) {
+    public void setColorSettingPriority(Long priority) {
         fColorSettingPriority = priority;
     }
 

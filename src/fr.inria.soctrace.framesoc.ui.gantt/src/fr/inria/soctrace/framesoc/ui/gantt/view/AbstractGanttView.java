@@ -26,7 +26,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -108,7 +107,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	private ITimeGraphWrapper fTimeGraphWrapper;
 
 	/** The timegraph entry list */
-	private List<TimeGraphEntry> fEntryList;
+	protected List<TimeGraphEntry> fEntryList;
 
 	/** The start time */
 	private long fStartTime;
@@ -284,10 +283,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		TreeViewer getTreeViewer() {
 			return combo.getTreeViewer();
-		}
-
-		IAction getShowFilterAction() {
-			return combo.getShowFilterAction();
 		}
 	}
 
@@ -701,6 +696,14 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected String getPrevTooltip() {
 		return "Previous";
 	}
+	
+	public boolean isfUserChangedTimeRange() {
+		return fUserChangedTimeRange;
+	}
+
+	public void setfUserChangedTimeRange(boolean fUserChangedTimeRange) {
+		this.fUserChangedTimeRange = fUserChangedTimeRange;
+	}
 
 	// ------------------------------------------------------------------------
 	// ViewPart
@@ -718,7 +721,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 
 		arrowPercentageLabel = new Label(parent, SWT.NONE);
 		setArrowPercentage(0.0);
-
+		
 		// -------------------------------
 		// TYPE FILTER DIALOG
 		// -------------------------------
@@ -726,6 +729,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 		fTypeFilterDialog.setColumnNames(new String[] { "Event Type" });
 		fTypeFilterDialog.setContentProvider(new TreeContentProvider());
 		fTypeFilterDialog.setLabelProvider(new EventTypeTreeLabelProvider());
+
 
 		// -------------------------------
 		// COMBO VIEWER
@@ -940,7 +944,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 				}
 			}
 		});
-		fTimeBar.getSynchButton().setToolTipText("Synch selection with Gantt");
 		// draw button
 		fTimeBar.getLoadButton().addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -954,8 +957,9 @@ public abstract class AbstractGanttView extends FramesocPart {
 				showTrace(currentShownTrace, des);
 			}
 		});
-		fTimeBar.getLoadButton().setToolTipText("Draw current selection");
 
+		createContextMenu();
+		
 		// -------------------------------
 		// TOOL BAR
 		// -------------------------------
@@ -964,7 +968,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 		makeActions();
 		contributeToActionBars();
 		enableActions(false);
-
 	}
 
 	@Override
@@ -1071,7 +1074,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 					fTimeGraphWrapper.getTimeGraphViewer().setSelectionRange(0, 0);
 					fTimeBar.setSelection(fStartTime, fEndTime);
 				}
-
+				fTimeBar.setDisplayInterval(fStartTime, fEndTime);
 				if (fTimeGraphWrapper instanceof TimeGraphComboWrapper && !fPackDone) {
 					for (TreeColumn column : ((TimeGraphComboWrapper) fTimeGraphWrapper)
 							.getTreeViewer().getTree().getColumns()) {
@@ -1088,7 +1091,6 @@ public abstract class AbstractGanttView extends FramesocPart {
 					startZoomThread(fStartTime, fEndTime);
 				}
 			}
-
 		});
 	}
 
@@ -1161,22 +1163,16 @@ public abstract class AbstractGanttView extends FramesocPart {
 	 * @param manager
 	 *            the tool bar manager
 	 */
-	protected void fillLocalToolBar(IToolBarManager manager) {
-		if (fFilterColumns != null && fFilterLabelProvider != null && fFilterColumns.length > 0) {
-			manager.add(((TimeGraphComboWrapper) fTimeGraphWrapper).getShowFilterAction());
-		}
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getShowLegendAction());
-		manager.add(new Separator());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getResetScaleAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getPreviousEventAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getNextEventAction());
-		manager.add(fPreviousResourceAction);
-		manager.add(fNextResourceAction);
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getZoomInAction());
-		manager.add(fTimeGraphWrapper.getTimeGraphViewer().getZoomOutAction());
-		manager.add(new Separator());
-	}
+	protected abstract void fillLocalToolBar(IToolBarManager manager);
 
+	protected IAction getPreviousResourceAction() {
+		return fPreviousResourceAction;
+	}
+	
+	protected IAction getNextResourceAction() {
+		return fNextResourceAction;
+	}
+	
 	/**
 	 * Recursively sort the entries
 	 * 
@@ -1217,5 +1213,7 @@ public abstract class AbstractGanttView extends FramesocPart {
 	protected TimeGraphFilterDialog getTypeFilterDialog() {
 		return fTypeFilterDialog;
 	}
+	
+	public abstract void createContextMenu();
 
 }

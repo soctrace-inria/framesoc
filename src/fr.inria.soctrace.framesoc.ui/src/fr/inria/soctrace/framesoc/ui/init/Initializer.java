@@ -29,6 +29,7 @@ import fr.inria.soctrace.framesoc.core.bus.FramesocBus;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusTopic;
 import fr.inria.soctrace.framesoc.core.bus.FramesocBusVariable;
 import fr.inria.soctrace.framesoc.core.tools.management.ToolContributionManager;
+import fr.inria.soctrace.framesoc.ui.utils.UpdateAssistant;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.Trace;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
@@ -52,12 +53,16 @@ public enum Initializer {
 
 	public boolean initializeSystem(Shell shell, boolean firstime) {
 
+		boolean done = false;
+
 		try {
 
 			InitWizard wizard = new InitWizard(firstime);
 			WizardDialog dialog = new WizardDialog(shell, wizard);
-			if (dialog.open() == Window.CANCEL)
+			if (dialog.open() != Window.OK)
 				return false;
+
+			done = true;
 
 			InitProperties properties = wizard.getInitProperties();
 
@@ -91,17 +96,18 @@ public enum Initializer {
 			MessageDialog.openInformation(shell, "SoC-Trace Manager", sb.toString());
 
 			return true;
-
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(shell, "Error creating the system DB", e.getMessage());
 			return false;
 		} finally {
-			// refresh Traces view and Trace Details
-			FramesocBus.getInstance().setVariable(FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE,
-					null);
-			FramesocBus.getInstance().setVariable(
-					FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
-			FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			if (done) {
+				// refresh Traces view and Trace Details
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_SELECTED_TRACE, null);
+				FramesocBus.getInstance().setVariable(
+						FramesocBusVariable.TRACE_VIEW_CURRENT_TRACE_SELECTION, null);
+				FramesocBus.getInstance().send(FramesocBusTopic.TOPIC_UI_SYSTEM_INITIALIZED, null);
+			}
 		}
 	}
 
@@ -113,7 +119,7 @@ public enum Initializer {
 
 		SystemDBObject sysDB = null;
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
 			ToolQuery tq = new ToolQuery(sysDB);
 			List<Tool> registeredTools = tq.getList();
 			List<Tool> runtimeTools = ToolContributionManager.getPluginTools(new IdManager());
@@ -167,14 +173,23 @@ public enum Initializer {
 	}
 
 	/**
-	 * Check if all the registered TraceDBs are still existing, removing them if it is not the case.
+	 * Check if the existing system DB is similar and if all the registered
+	 * TraceDBs are still existing, removing them if it is not the case.
 	 */
 	public void manageDatabases() {
-
 		SystemDBObject sysDB = null;
-
+		
 		try {
-			sysDB = SystemDBObject.openNewIstance();
+			sysDB = SystemDBObject.openNewInstance();
+			
+			// Check that the db version is correct
+			if (!UpdateAssistant.checkDB()) {
+				// If db was updated, close the current connection
+				sysDB.close();
+				// and open a new connection on the updated DB
+				sysDB = SystemDBObject.openNewInstance();
+			}
+						
 			TraceQuery tq = new TraceQuery(sysDB);
 			List<Trace> registeredTraces = tq.getList();
 

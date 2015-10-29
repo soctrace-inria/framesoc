@@ -9,6 +9,7 @@
  *     Generoso Pagano - initial API and implementation
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.histogram.model;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -42,8 +43,10 @@ public class HistogramLoaderDataset {
 	public synchronized void setSnapshot(double[] snapshot, TimeInterval interval) {
 		fDataset = new HistogramDataset();
 		fDataset.setType(DensityHistogramLoader.HISTOGRAM_TYPE);
-		fDataset.addSeries(DensityHistogramLoader.DATASET_NAME, snapshot,
-				DensityHistogramLoader.NUMBER_OF_BINS);
+		if (snapshot.length > 0) {
+			fDataset.addSeries(DensityHistogramLoader.DATASET_NAME, snapshot,
+					DensityHistogramLoader.NUMBER_OF_BINS);
+		}
 		fInterval.copy(interval);
 		fDirty = true;
 	}

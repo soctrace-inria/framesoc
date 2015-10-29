@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -413,13 +414,13 @@ public class TimeGraphCombo extends Composite {
                 IStructuredSelection selection = (IStructuredSelection) event.getSelection();
                 ITimeGraphEntry node = (ITimeGraphEntry) selection.getFirstElement();
                 if (node.hasChildren()) {
-                	boolean expanded = fTreeViewer.getExpandedState(node);
+                    boolean expanded = fTreeViewer.getExpandedState(node);
                     fTreeViewer.setExpandedState(node, !expanded);
-                	if (expanded) {
-                		collapseTimeGraphTree(node);
-                	} else {
-                		expandTimeGraphTree(node);
-                	}
+                    if (expanded) {
+                        collapseTimeGraphTree(node);
+                    } else {
+                        expandTimeGraphTree(node);
+                    }
                 }
             }
         });
@@ -620,11 +621,9 @@ public class TimeGraphCombo extends Composite {
         });
 
         // The filler rows are required to ensure alignment when the tree does
-        // not have a
-        // visible horizontal scroll bar. The tree does not allow its top item
-        // to be set
-        // to a value that would cause blank space to be drawn at the bottom of
-        // the tree.
+        // not have a visible horizontal scroll bar. The tree does not allow its
+        // top item to be set to a value that would cause blank space to be
+        // drawn at the bottom of the tree.
         fNumFillerRows = Display.getDefault().getBounds().height / getItemHeight(tree);
 
         sash.setWeights(weights);
@@ -688,6 +687,14 @@ public class TimeGraphCombo extends Composite {
     }
 
     /**
+     * @Framesoc Returns this time graph producer filter dialog
+     * @return the time graph producer filter dialog
+     */
+    public TimeGraphFilterDialog getFilterDialog() {
+        return fFilterDialog;
+    }
+
+    /**
      * Callback for the show filter action
      *
      * @since 2.0
@@ -708,15 +715,24 @@ public class TimeGraphCombo extends Composite {
                 fFilterDialog.setInitialElementSelections(allElements);
             }
             fFilterDialog.create();
+
+            // reset checked status, managed manually @Framesoc
+            showFilterAction.setChecked(!showFilterAction.isChecked());
+
             fFilterDialog.open();
             // Process selected elements
             if (fFilterDialog.getResult() != null) {
                 fInhibitTreeSelection = true;
+
                 if (fFilterDialog.getResult().length != allElements.size()) {
+                    // @Framesoc
+                    checkProducerFilter(true);
                     ArrayList<Object> filteredElements = new ArrayList<Object>(allElements);
                     filteredElements.removeAll(Arrays.asList(fFilterDialog.getResult()));
                     fFilter.setFiltered(filteredElements);
                 } else {
+                    // @Framesoc
+                    checkProducerFilter(false);
                     fFilter.setFiltered(null);
                 }
                 fTreeViewer.refresh();
@@ -729,6 +745,17 @@ public class TimeGraphCombo extends Composite {
                     setSelection(null);
                 }
             }
+        }
+    }
+
+    // @Framesoc
+    private void checkProducerFilter(boolean check) {
+        if (check) {
+            showFilterAction.setChecked(true);
+            showFilterAction.setToolTipText(Messages.TmfTimeGraphCombo_FilterActionToolTipText
+                    + " (filter applied)"); //$NON-NLS-1$
+        } else {
+            showFilterAction.setChecked(false);
         }
     }
 
@@ -750,6 +777,7 @@ public class TimeGraphCombo extends Composite {
      * @Framesoc
      */
     public void setFilteredEntries(List<Object> filtered) {
+        checkProducerFilter(!filtered.isEmpty());
         fFilter.setFiltered(filtered);
     }
 
@@ -786,6 +814,7 @@ public class TimeGraphCombo extends Composite {
         for (ITimeGraphEntry e : entry.getChildren()) {
             addFiltered(e);
         }
+        checkProducerFilter(true);
     }
 
     /**
@@ -797,7 +826,7 @@ public class TimeGraphCombo extends Composite {
     public Action getShowFilterAction() {
         if (showFilterAction == null) {
             // showFilter
-            showFilterAction = new Action() {
+            showFilterAction = new Action("", IAction.AS_CHECK_BOX) { // @Framesoc //$NON-NLS-1$
                 @Override
                 public void run() {
                     showFilterDialog();
@@ -935,6 +964,7 @@ public class TimeGraphCombo extends Composite {
         fInhibitTreeSelection = false;
         fTreeViewer.getTree().getVerticalBar().setEnabled(false);
         fTreeViewer.getTree().getVerticalBar().setVisible(false);
+
         fTimeGraphViewer.setItemHeight(getItemHeight(fTreeViewer.getTree()));
         fTimeGraphViewer.setInput(input);
         // queue the alignment update because in Linux the item bounds are not
@@ -1208,7 +1238,10 @@ public class TimeGraphCombo extends Composite {
             if (itemHeight > 0 && !itemHeight.equals(item.getData(ITEM_HEIGHT))) {
                 ITimeGraphEntry entry = (ITimeGraphEntry) item.getData();
                 if (fTimeGraphViewer.getTimeGraphControl().setItemHeight(entry, itemHeight)) {
-                    item.setData(ITEM_HEIGHT, itemHeight);
+                    // @Framesoc: with this line uncommented we get alignment
+                    // issues on Ubuntu
+                    // XXX Investigate
+                    // item.setData(ITEM_HEIGHT, itemHeight);
                 }
             }
             index++;

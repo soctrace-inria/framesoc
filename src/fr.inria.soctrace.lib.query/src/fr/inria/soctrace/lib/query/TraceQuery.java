@@ -26,6 +26,7 @@ import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.query.conditions.ICondition;
 import fr.inria.soctrace.lib.storage.DBObject;
 import fr.inria.soctrace.lib.storage.SystemDBObject;
+import fr.inria.soctrace.lib.storage.utils.DBModelConstants.TraceTableModel;
 import fr.inria.soctrace.lib.storage.utils.SQLConstants.FramesocTable;
 import fr.inria.soctrace.lib.utils.SoctraceUtils;
 
@@ -42,7 +43,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * The constructor.
-	 * @param sysDB System DB object where the query is performed.
+	 * 
+	 * @param sysDB
+	 *            System DB object where the query is performed.
 	 */
 	public TraceQuery(SystemDBObject sysDB) {
 		super(sysDB);
@@ -77,7 +80,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * Set the condition to be put in the WHERE clause of TRACE_TYPE table.
-	 * @param typeCondition condition to be applied to the trace type table
+	 * 
+	 * @param typeCondition
+	 *            condition to be applied to the trace type table
 	 */
 	public void setTypeWhere(ICondition typeCondition) {
 		where = true;
@@ -85,11 +90,11 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	}
 	
 	/**
-	 * Builds a list of Trace respecting the condition specified by
-	 * elementWhere AND typeWhere AND parametersConditions.
-	 * The different parameter conditions are evaluated in OR,
-	 * since they refer to different trace types so it makes no sense
-	 * having an AND.
+	 * Builds a list of Trace respecting the condition specified by elementWhere
+	 * AND typeWhere AND parametersConditions. The different parameter
+	 * conditions are evaluated in OR, since they refer to different trace types
+	 * so it makes no sense having an AND.
+	 * 
 	 * @return the Trace list.
 	 * @throws SoCTraceException
 	 */
@@ -152,7 +157,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 
 	/**
 	 * Return the list of Trace having the specified IDs.
-	 * @param ids list of trace IDs
+	 * 
+	 * @param ids
+	 *            list of trace IDs
 	 * @return the list of Trace
 	 * @throws SoCTraceException
 	 */
@@ -162,11 +169,11 @@ public class TraceQuery extends SelfDefiningElementQuery {
 			for (Integer i: ids) {
 				vls.addValue(i.toString());
 			}			
-			if (vls.size()==0)
+			if (vls.size() == 0)
 				return new LinkedList<Trace>();
 			
 			Statement stm = dbObj.getConnection().createStatement();
-			ResultSet rs = stm.executeQuery("SELECT * FROM " + FramesocTable.TRACE+ 
+			ResultSet rs = stm.executeQuery("SELECT * FROM " + FramesocTable.TRACE +
 					" WHERE ID IN " + vls.getValueString());
 			
 			return getTraces(rs);		
@@ -183,15 +190,16 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	
 	/**
 	 * Rebuilds the traces corresponding to the result set.
-	 * @param rs Result set corresponding to a SELECT * FROM TRACE ...
+	 * 
+	 * @param rs
+	 *            Result set corresponding to a SELECT * FROM TRACE ...
 	 * @return a list of Trace
 	 * @throws SoCTraceException
 	 */
 	private List<Trace> getTraces(ResultSet rs) throws SoCTraceException {
-		
 		ValueListString vls = new ValueListString();
 		List<Trace> list = new LinkedList<Trace>();
-		Map<Long, Trace> tmp = new HashMap<>();
+		Map<Long, Trace> tmp = new HashMap<Long, Trace>();
 		try {
 			while (rs.next()) {
 				Trace t = rebuildTrace(rs);
@@ -202,7 +210,7 @@ public class TraceQuery extends SelfDefiningElementQuery {
 				vls.addValue(String.valueOf(t.getId()));
 			}
 
-			if (vls.size()==0)
+			if (vls.size() == 0)
 				return list;
 			
 			Statement stm = dbObj.getConnection().createStatement();
@@ -220,7 +228,9 @@ public class TraceQuery extends SelfDefiningElementQuery {
 
 	/**
 	 * Get the trace type ID given the trace type name.
-	 * @param name trace type name
+	 * 
+	 * @param name
+	 *            trace type name
 	 * @return the corresponding trace type ID or -1 if not found
 	 * @throws SoCTraceException
 	 */
@@ -239,12 +249,15 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	}
 	
 	/**
-	 * Get the trace param type with the given name, for the trace type 
-	 * whose ID is passed.
+	 * Get the trace param type with the given name, for the trace type whose ID
+	 * is passed.
 	 * 
 	 * TODO: this can be optimized with the type cache
-	 * @param name the trace param type name
-	 * @param traceTypeId the trace type ID 
+	 * 
+	 * @param name
+	 *            the trace param type name
+	 * @param traceTypeId
+	 *            the trace type ID
 	 * @return the corresponding trace param type or null if not found
 	 * @throws SoCTraceException
 	 */
@@ -267,42 +280,46 @@ public class TraceQuery extends SelfDefiningElementQuery {
 	/**
 	 * Rebuild a Trace, given the corresponding TRACE table row.
 	 * 
-	 * @param rs TRACE table row
+	 * @param rs
+	 *            TRACE table row
 	 * @return the Trace
 	 * @throws SQLException
 	 * @throws SoCTraceException
 	 */
 	private Trace rebuildTrace(ResultSet rs) throws SQLException, SoCTraceException {
-		Trace t = new Trace(rs.getLong(1));
+		Trace t = new Trace(rs.getLong(TraceTableModel.ID.getPosition()));
 		SystemDBObject sysDB = (SystemDBObject)dbObj;
-		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getLong(2));
+		TraceType tt = sysDB.getTraceTypeCache().get(TraceType.class, rs.getLong(TraceTableModel.TRACE_TYPE_ID.getPosition()));
 		t.setType(tt);
 		// XXX see note at the bottom of ModelVisitor.java
-		t.setTracingDate(SoctraceUtils.stringToTimestamp(rs.getString(3)));
-		t.setTracedApplication(rs.getString(4));
-		t.setBoard(rs.getString(5));
-		t.setOperatingSystem(rs.getString(6));
-		t.setNumberOfCpus(rs.getInt(7));
-		t.setNumberOfEvents(rs.getLong(8));
-		t.setOutputDevice(rs.getString(9));
-		t.setDescription(rs.getString(10));
-		t.setProcessed(rs.getBoolean(11));
-		t.setDbName(rs.getString(12));
-		t.setAlias(rs.getString(13));
-		t.setMinTimestamp(rs.getLong(14));
-		t.setMaxTimestamp(rs.getLong(15));
-		t.setTimeUnit(rs.getInt(16));
+		t.setTracingDate(SoctraceUtils.stringToTimestamp(rs.getString(TraceTableModel.TRACING_DATE.getPosition())));
+		t.setTracedApplication(rs.getString(TraceTableModel.TRACED_APPLICATION.getPosition()));
+		t.setBoard(rs.getString(TraceTableModel.BOARD.getPosition()));
+		t.setOperatingSystem(rs.getString(TraceTableModel.OPERATING_SYSTEM.getPosition()));
+		t.setNumberOfCpus(rs.getInt(TraceTableModel.NUMBER_OF_CPUS.getPosition()));
+		t.setNumberOfEvents(rs.getLong(TraceTableModel.NUMBER_OF_EVENTS.getPosition()));
+		t.setOutputDevice(rs.getString(TraceTableModel.OUTPUT_DEVICE.getPosition()));
+		t.setDescription(rs.getString(TraceTableModel.DESCRIPTION.getPosition()));
+		t.setProcessed(rs.getBoolean(TraceTableModel.PROCESSED.getPosition()));
+		t.setDbName(rs.getString(TraceTableModel.TRACE_DB_NAME.getPosition()));
+		t.setAlias(rs.getString(TraceTableModel.ALIAS.getPosition()));
+		t.setMinTimestamp(rs.getLong(TraceTableModel.MIN_TIMESTAMP.getPosition()));
+		t.setMaxTimestamp(rs.getLong(TraceTableModel.MAX_TIMESTAMP.getPosition()));
+		t.setTimeUnit(rs.getInt(TraceTableModel.TIMEUNIT.getPosition()));
+		t.setNumberOfProducers(rs.getInt(TraceTableModel.NUMBER_OF_PRODUCERS.getPosition()));
 		return t;
 	}
 	
 	/**
 	 * Rebuild a TraceParam, given the corresponding TRACE_PARAM table row.
 	 * 
-	 * @param prs TRACE_PARAM table row
-	 * @param tmp map containing the Traces returned by the query
+	 * @param prs
+	 *            TRACE_PARAM table row
+	 * @param tmp
+	 *            map containing the Traces returned by the query
 	 * @return the TraceParam
 	 * @throws SQLException
-	 * @throws SoCTraceException 
+	 * @throws SoCTraceException
 	 */
 	private TraceParam rebuildTraceParam(ResultSet prs, Map<Long, Trace> tmp) 
 			throws SQLException, SoCTraceException {
