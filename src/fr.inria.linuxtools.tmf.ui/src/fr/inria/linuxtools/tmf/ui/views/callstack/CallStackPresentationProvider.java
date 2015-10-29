@@ -91,14 +91,14 @@ public class CallStackPresentationProvider extends TimeGraphPresentationProvider
     }
 
     @Override
-    public Long getStateTableIndex(ITimeEvent event) {
+    public int getStateTableIndex(ITimeEvent event) {
         if (event instanceof CallStackEvent) {
             CallStackEvent callStackEvent = (CallStackEvent) event;
-            return callStackEvent.getValue() + 1l;
+            return callStackEvent.getValue() + 1;
         } else if (event instanceof NullTimeEvent) {
             return INVISIBLE;
         }
-        return (long) State.MULTIPLE.ordinal();
+        return State.MULTIPLE.ordinal();
     }
 
     @Override

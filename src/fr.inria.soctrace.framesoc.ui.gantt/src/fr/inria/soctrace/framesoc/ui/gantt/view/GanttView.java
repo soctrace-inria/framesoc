@@ -1358,7 +1358,7 @@ public class GanttView extends AbstractGanttView {
 
 						// Get the current color
 						Color c = getTimeGraphViewer().getTimeGraphControl()
-								.getEventColorMap()[fPresentationProvider
+								.getEventColorMap()[(int)fPresentationProvider
 								.getStateTableIndex(selectedEvent)];
 						ColorDialog colorDialog = new ColorDialog(Display
 								.getDefault().getActiveShell());
@@ -1375,12 +1375,12 @@ public class GanttView extends AbstractGanttView {
 									rgb.green, rgb.blue);
 
 							// Change the color
-							fPresentationProvider.getStateTable()[fPresentationProvider
+							fPresentationProvider.getStateTable()[(int)fPresentationProvider
 									.getStateTableIndex(selectedEvent)]
 									.setStateColor(rgb);
 
 							getTimeGraphViewer().getTimeGraphControl()
-									.getEventColorMap()[fPresentationProvider
+									.getEventColorMap()[(int)fPresentationProvider
 									.getStateTableIndex(selectedEvent)] = newColor;
 
 							// Save it in the general settings

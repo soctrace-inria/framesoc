@@ -33,12 +33,12 @@ public interface ITimeGraphPresentationProvider {
     /** State table index for an invisible event
      * @since 2.0
      */
-    final Long INVISIBLE = -1l;
+    final int INVISIBLE = -1;
 
     /** State table index for a transparent event (only borders drawn)
      * @since 2.0
      */
-    final Long TRANSPARENT = -2l;
+    final int TRANSPARENT = -2;
 
     /**
      * Returns the name of state types.
@@ -81,7 +81,7 @@ public interface ITimeGraphPresentationProvider {
      * @see #TRANSPARENT
      * @see #INVISIBLE
      */
-    Long getStateTableIndex(ITimeEvent event);
+    int getStateTableIndex(ITimeEvent event);
 
     /**
      * Called after drawing the control

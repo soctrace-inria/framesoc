@@ -1747,7 +1747,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             return false;
         }
 
-        Long colorIdx = fTimeGraphProvider.getStateTableIndex(event);
+        int colorIdx = fTimeGraphProvider.getStateTableIndex(event);
         if (colorIdx < 0) {
             return false;
         }
@@ -1922,7 +1922,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
     protected boolean drawState(TimeGraphColorScheme colors, ITimeEvent event,
             Rectangle rect, GC gc, boolean selected, boolean timeSelected) {
 
-        Long colorIdx = fTimeGraphProvider.getStateTableIndex(event);
+        int colorIdx = fTimeGraphProvider.getStateTableIndex(event);
         if (colorIdx < 0 && colorIdx != ITimeGraphPresentationProvider.TRANSPARENT) {
             return false;
         }

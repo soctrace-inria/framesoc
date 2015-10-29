@@ -103,10 +103,10 @@ public class ColorSettingsManager {
      * @return the priority defined for the filter else PRIORITY_NONE
      */
     public static Long getColorSettingPriority(ITmfEvent event) {
-        for (Long i = 0l; i < fColorSettings.length; i++) {
+        for (int i = 0; i < fColorSettings.length; i++) {
             ColorSetting colorSetting = fColorSettings[i];
             if (colorSetting.getFilter() != null && colorSetting.getFilter().matches(event)) {
-                return i;
+                return (long) i;
             }
         }
         return PRIORITY_NONE;

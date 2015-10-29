@@ -59,7 +59,7 @@ public class Link extends Event {
 	 */
 	public void setEndProducer(EventProducer ep) {
 		this.endEventProducer = ep;
-		setDoublePar(((long) ep.getId()).doubleValue());
+		setDoublePar(((Long) ep.getId()).doubleValue());
 	}
 
 	@Override

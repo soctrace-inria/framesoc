@@ -39,7 +39,7 @@ public class TimeChartAnalysisProvider extends TimeGraphPresentationProvider {
 
     private int lastX = Integer.MIN_VALUE;
     private int currX = Integer.MIN_VALUE;
-    private Long lastPriority;
+    private int lastPriority;
     private int lastBookmarkX = Integer.MIN_VALUE;
 
     @Override
@@ -54,11 +54,11 @@ public class TimeChartAnalysisProvider extends TimeGraphPresentationProvider {
     }
 
     @Override
-    public Long getStateTableIndex(ITimeEvent event) {
+    public int getStateTableIndex(ITimeEvent event) {
         if (! ((TimeChartEvent) event).isVisible()) {
             return ITimeGraphPresentationProvider.INVISIBLE;
         }
-        Long priority = ((TimeChartEvent) event).getColorSettingPriority();
+        int priority = ((TimeChartEvent) event).getColorSettingPriority().intValue();
         if (currX == lastX) {
             priority = Math.min(priority, lastPriority);
         }
