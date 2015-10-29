@@ -92,7 +92,7 @@ public class GanttPresentationProvider extends TimeGraphPresentationProvider {
     @Override
     public int getStateTableIndex(ITimeEvent event) {
         if (event instanceof TimeEvent && ((TimeEvent) event).hasValue()) {
-            int type = ((TimeEvent) event).getValue();
+            long type = ((TimeEvent) event).getValue();
             if (filteredTypes.contains(type)) {
             	return INVISIBLE;
             }

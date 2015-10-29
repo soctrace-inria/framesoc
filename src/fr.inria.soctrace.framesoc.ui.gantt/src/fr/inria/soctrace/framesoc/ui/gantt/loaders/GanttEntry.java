@@ -26,7 +26,7 @@ import fr.inria.linuxtools.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 public class GanttEntry extends TimeGraphEntry {
 	
 	// Id of the event producer corresponding to the one
-	private long eventProducerID = -1;
+	private long eventProducerID = -1l;
 	
 	private boolean producingEvent = false;
 	
