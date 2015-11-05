@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Framesoc Headless
+Bundle-SymbolicName: fr.inria.soctrace.framesoc.headless;singleton:=true
+Bundle-Version: 1.0.10.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.10.0",
+ fr.inria.soctrace.framesoc.core;bundle-version="1.0.10",
+ fr.inria.soctrace.lib.model,
+ fr.inria.soctrace.lib.cli;bundle-version="1.0.10"
+Import-Package: fr.inria.soctrace.framesoc.ui,
+ fr.inria.soctrace.lib.query,
+ fr.inria.soctrace.lib.storage,
+ fr.inria.soctrace.lib.utils,
+ org.slf4j
+Export-Package: fr.inria.soctrace.framesoc.headless.launcher

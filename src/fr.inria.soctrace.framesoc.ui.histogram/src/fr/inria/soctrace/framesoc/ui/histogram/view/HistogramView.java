@@ -407,7 +407,7 @@ public class HistogramView extends FramesocPart {
 							tcd.getEventTypes());
 					reload = true;
 				}
-				if ( !tcd.getEventProducers().isEmpty()
+				if (!tcd.getEventProducers().isEmpty()
 						&& Boolean
 								.valueOf(Configuration
 										.getInstance()
