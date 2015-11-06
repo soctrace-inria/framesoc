@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="fr.inria.soctrace.framesoc.headless.command" name="headless" schema="schema/fr.inria.soctrace.framesoc.headless.command.exsd"/>
+   <extension
+         id="framesocHeadless"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            cardinality="singleton-global"
+            thread="main"
+            visible="true">
+         <run
+               class="fr.inria.soctrace.framesoc.headless.FramesocApplication">
+         </run>
+      </application>
+   </extension>
+   <extension
+         id="pajedumpImporter"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="fr.inria.soctrace.framesoc.headless.framesocHeadless"
+            description="Headless version of Framesoc"
+            name="Framesoc Headless">
+         <property
+               name="appName"
+               value="Framesoc">
+         </property>
+      </product>
+   </extension>
+   <extension
+         id="framesoc"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="fr.inria.soctrace.framesoc.headless.framesocHeadless"
+            name="Framesoc">
+         <property
+               name="appName"
+               value="Framesoc">
+         </property>
+      </product>
+   </extension>
+
+
+</plugin>

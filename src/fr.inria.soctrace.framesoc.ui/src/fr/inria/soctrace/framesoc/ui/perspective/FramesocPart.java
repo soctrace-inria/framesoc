@@ -33,6 +33,7 @@ import fr.inria.soctrace.framesoc.ui.loaders.TraceLoader.TraceChange;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -213,7 +214,14 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 		});
 	}
 
+	/**
+	 * @deprecated Use {@link #highlightTitle(boolean)} instead
+	 */
 	public void higlightTitle(boolean highlight) {
+		highlightTitle(highlight);
+	}
+
+	public void highlightTitle(boolean highlight) {
 		if (currentShownTrace != null) {
 			String name = currentShownTrace.getAlias();
 			logger.trace("Name before: '" + name + "'");
@@ -303,10 +311,10 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			logger.debug("Updating titles after TOPIC_UI_FOCUSED_TRACE");
 			if (currentShownTrace.equals((Trace) data)) {
 				logger.debug("Highlight " + getPartName());
-				higlightTitle(true);
+				highlightTitle(true);
 			} else {
 				logger.debug("Unhighlight " + getPartName());
-				higlightTitle(false);
+				highlightTitle(false);
 			}
 		}
 	}
@@ -362,6 +370,16 @@ public abstract class FramesocPart extends ViewPart implements IFramesocBusListe
 			}
 		};
 	}
+	
+	protected TraceIntervalAction createSynchronizeAction() {
+		return new SynchronizeTraceIntervalAction(this) {
+			@Override
+			public TraceIntervalDescriptor getTraceIntervalDescriptor() {
+				return getIntervalDescriptor();
+			}
+		};
+	}
+
 
 	/**
 	 * Return the trace interval descriptor corresponding to the current shown interval. The base

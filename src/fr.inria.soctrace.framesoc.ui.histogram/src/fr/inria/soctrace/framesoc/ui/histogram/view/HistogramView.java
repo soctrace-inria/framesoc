@@ -79,6 +79,7 @@ import fr.inria.soctrace.framesoc.ui.model.EventProducerNode;
 import fr.inria.soctrace.framesoc.ui.model.EventTypeNode;
 import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TableTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
@@ -327,6 +328,7 @@ public class HistogramView extends FramesocPart {
 		TableTraceIntervalAction.add(manager, createTableAction());
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
 
 		// disable all actions
 		enableActions(false);
@@ -365,12 +367,15 @@ public class HistogramView extends FramesocPart {
 
 	@Override
 	public void showTrace(final Trace trace, Object data) {
-
+		boolean reload = false;
+		
 		if (trace == null)
 			return;
-
-		initFilterData(trace);
-
+		
+		if (currentShownTrace == null || !currentShownTrace.equals(trace)) {
+			initFilterData(trace);
+		}
+		
 		if (data == null) {
 			// called after right click on trace tree menu
 			loadHistogram(trace, new TimeInterval(trace.getMinTimestamp(), trace.getMaxTimestamp()));
@@ -395,27 +400,25 @@ public class HistogramView extends FramesocPart {
 			// Check if we apply event producers and event types filters
 			if (des instanceof TraceConfigurationDescriptor) {
 				TraceConfigurationDescriptor tcd = (TraceConfigurationDescriptor) des;
-				if (tcd.getEventTypes().size() != filterMap
-						.get(FilterDimension.TYPE).getAllElements().size()
-						&& !tcd.getEventTypes().isEmpty()
+				if (!tcd.getEventTypes().isEmpty()
 						&& Boolean.valueOf(Configuration.getInstance().get(
 								SoCTraceProperty.type_filter_synchronization))) {
 					filterMap.get(FilterDimension.TYPE).setChecked(
 							tcd.getEventTypes());
+					reload = true;
 				}
-				if (tcd.getEventProducers().size() != filterMap
-						.get(FilterDimension.PRODUCERS).getAllElements().size()
-						&& !tcd.getEventProducers().isEmpty()
+				if (!tcd.getEventProducers().isEmpty()
 						&& Boolean
 								.valueOf(Configuration
 										.getInstance()
 										.get(SoCTraceProperty.producer_filter_synhronization))) {
 					filterMap.get(FilterDimension.PRODUCERS).setChecked(
 							tcd.getEventProducers());
+					reload = true;
 				}
 			}
 
-			if (loadedInterval == null || (!loadedInterval.equals(desInterval))) {
+			if (loadedInterval == null || (!loadedInterval.equals(desInterval)) || reload) {
 				loadHistogram(des.getTrace(), desInterval);
 			}
 		}

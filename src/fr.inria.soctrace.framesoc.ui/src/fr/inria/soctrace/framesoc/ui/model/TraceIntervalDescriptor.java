@@ -10,6 +10,7 @@
  ******************************************************************************/
 package fr.inria.soctrace.framesoc.ui.model;
 
+import fr.inria.soctrace.framesoc.ui.perspective.FramesocPart;
 import fr.inria.soctrace.lib.model.Trace;
 
 /**
@@ -41,6 +42,12 @@ public class TraceIntervalDescriptor {
 	 * synchronize over the Pub/Sub.
 	 */
 	private int group;
+	
+	/**
+	 * Sender of the data (used to avoid reloading the same trace when
+	 * synchronizing)
+	 */
+	private FramesocPart sender = null;
 
 	/**
 	 * @return the trace
@@ -126,6 +133,14 @@ public class TraceIntervalDescriptor {
 	public String toString() {
 		return "TraceIntervalDescriptor [trace=" + trace + ", startTimestamp=" + startTimestamp
 				+ ", endTimestamp=" + endTimestamp + ", group=" + group + "]";
+	}
+
+	public FramesocPart getSender() {
+		return sender;
+	}
+
+	public void setSender(FramesocPart sender) {
+		this.sender = sender;
 	}
 
 }

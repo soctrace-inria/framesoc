@@ -75,6 +75,7 @@ import fr.inria.soctrace.framesoc.ui.model.GanttTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.HistogramTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.LoaderQueue;
 import fr.inria.soctrace.framesoc.ui.model.PieTraceIntervalAction;
+import fr.inria.soctrace.framesoc.ui.model.SynchronizeTraceIntervalAction;
 import fr.inria.soctrace.framesoc.ui.model.TimeInterval;
 import fr.inria.soctrace.framesoc.ui.model.TraceConfigurationDescriptor;
 import fr.inria.soctrace.framesoc.ui.model.TraceIntervalDescriptor;
@@ -300,6 +301,7 @@ public final class EventTableView extends FramesocPart {
 		GanttTraceIntervalAction.add(manager, createGanttAction());
 		PieTraceIntervalAction.add(manager, createPieAction());
 		HistogramTraceIntervalAction.add(manager, createHistogramAction());
+		SynchronizeTraceIntervalAction.add(manager, createSynchronizeAction()); 
 		enableActions(false);
 
 		// -------------

@@ -84,6 +84,7 @@
 					<excludes>
 						<plugin id="fr.inria.soctrace.lib.slf4j" />
 						<plugin id="fr.inria.soctrace.framesoc.brand" />
+						<plugin id="fr.inria.soctrace.lib.cli" />
 					</excludes>
 				</configuration>
 			</plugin>
@@ -147,6 +148,8 @@
 		<!-- Branding -->
 		<module>../fr.inria.soctrace.framesoc.brand</module>
 
+		<module>../fr.inria.soctrace.framesoc.headless</module>
+		<module>../fr.inria.soctrace.lib.cli</module>
 	</modules>
 
 </project>

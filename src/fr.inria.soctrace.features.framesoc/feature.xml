@@ -100,6 +100,9 @@ Java and all Java-based trademarks are trademarks of Oracle Corporation in the U
       <import plugin="org.eclipse.emf.common"/>
       <import plugin="org.eclipse.emf.ecore"/>
       <import plugin="org.eclipse.wb.core.lib"/>
+      <import plugin="org.eclipse.core.runtime" version="3.10.0" match="greaterOrEqual"/>
+      <import plugin="fr.inria.soctrace.framesoc.core" version="1.0.10" match="greaterOrEqual"/>
+      <import plugin="fr.inria.soctrace.lib.cli" version="1.0.10" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -220,5 +223,18 @@ Java and all Java-based trademarks are trademarks of Oracle Corporation in the U
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="fr.inria.soctrace.framesoc.headless"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.inria.soctrace.lib.cli"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>

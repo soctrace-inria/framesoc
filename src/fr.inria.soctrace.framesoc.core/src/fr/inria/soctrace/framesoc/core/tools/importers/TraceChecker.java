@@ -239,7 +239,6 @@ public class TraceChecker {
 				DBObject.finalClose(traceDB);
 			}
 		}
-
 	}
 
 	/**

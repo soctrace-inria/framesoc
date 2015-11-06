@@ -98,7 +98,7 @@ public abstract class FilterDataManager {
 	 */
 	public void setFilterRoots(ITreeNode[] rootNodes) {
 		roots = rootNodes;
-		checked = TreeFilterDialog.listAllInputs(Arrays.asList(roots));
+		checked = TreeFilterDialog.listAllInputs(new ArrayList<ITreeNode>(Arrays.asList(roots)));
 		allElements = new ArrayList<>(checked);
 		filterAction.setChecked(false);
 	}
@@ -128,13 +128,26 @@ public abstract class FilterDataManager {
 	public List<Object> getChecked() {
 		return new ArrayList<Object>(checked);
 	}
-	
+
+	/**
+	 * Set the element of the filters that are not filtered out
+	 * 
+	 * @param elements
+	 *            the list of elements (should be ITreeNode) that are not
+	 *            filtered
+	 */
 	public void setChecked(List<Object> elements) {
 		checked.clear();
 		checked.addAll(elements);
-		filterAction.setChecked(true);
+		
+		// Set the state of the filter button
+		filterAction.setChecked(elements.size() != allElements.size());
 	}
 	
+	/**
+	 * 
+	 * @return A list of all the elements in the tree
+	 */
 	public List<Object> getAllElements() {
 		return allElements;
 	}
@@ -178,7 +191,7 @@ public abstract class FilterDataManager {
 
 			// Process selected elements
 			if (filterDialog.getResult() != null) {
-				List<Object> currentChecked = Arrays.asList(filterDialog.getResult());
+				List<Object> currentChecked = new ArrayList<Object>(Arrays.asList(filterDialog.getResult()));
 				if (areListsEqual(allElements, currentChecked)) {
 					// all checked
 					if (areListsEqual(allElements, checked)) {

@@ -97,7 +97,7 @@ public class FramesocUiStartup implements IStartup {
 	 * 
 	 * @return true if the file is valid, false otherwise
 	 */
-	private boolean validateConfFile(boolean show) {
+	public boolean validateConfFile(boolean show) {
 		// check valid DBMS
 		DBMS dbms = DBMS.toDbms(Configuration.getInstance().get(SoCTraceProperty.soctrace_dbms));
 		if (dbms.equals(DBMS.UNKNOWN)) {
