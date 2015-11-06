@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/fr.inria.soctrace.features.framesoc_1.0.10.qualifier.jar" id="fr.inria.soctrace.features.framesoc" version="1.0.10.qualifier">
+   <feature url="features/fr.inria.soctrace.features.framesoc_1.0.11.qualifier.jar" id="fr.inria.soctrace.features.framesoc" version="1.0.11.qualifier">
       <category name="soctrace-inria"/>
    </feature>
-   <feature url="features/fr.inria.soctrace.features.framesoc.source_1.0.10.qualifier.jar" id="fr.inria.soctrace.features.framesoc.source" version="1.0.10.qualifier">
+   <feature url="features/fr.inria.soctrace.features.framesoc.source_1.0.11.qualifier.jar" id="fr.inria.soctrace.features.framesoc.source" version="1.0.11.qualifier">
       <category name="soctrace-inria"/>
    </feature>
    <category-def name="soctrace-inria" label="SoC-Trace Inria"/>
