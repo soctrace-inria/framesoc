@@ -56,11 +56,10 @@ public class PrintTracesLauncher extends HeadlessPluginLauncher {
 
 	private void printTraceDetail() {
 		loadTraces();
-		System.out.format("%5s%35s%25s\n", "ID", "NAME", "DATE");
+		System.out.format("%5s%25s%35s\n", "ID", "DATE", "NAME");
 		System.out.format("-----------------------------------------------------------------\n");
 		for(Trace trace: traces){
-			System.out.format("%5s%35s%25s\n", trace.getId(), trace.getAlias(), trace.getTracingDate());
-			//System.out.println(trace.getId() + ", " + trace.getAlias() + ", " + trace.getTracingDate());
+			System.out.format("%5s%25s%35s\n", trace.getId(), trace.getTracingDate(), trace.getAlias());
 		}
 		
 	}
@@ -69,7 +68,7 @@ public class PrintTracesLauncher extends HeadlessPluginLauncher {
 	public void printUsage() {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("print_traces [OPTION]\n"
-				+ "Print detail about the traces in the database.",
+				+ "Print details about the traces contained in the database.",
 				options);
 	}
 	

@@ -27,10 +27,13 @@ Framesoc source code is available on [GitHub](https://github.com/soctrace-inria/
 If you want to setup a development environment to hack the code, follow 
 [this procedure](https://github.com/soctrace-inria/framesoc/wiki/Framesoc-development-environment-setup).
 
-## User and Developer Guide
+## User and Developer Guides
 The Framesoc User Guide can be downloaded [here](https://github.com/soctrace-inria/framesoc/blob/master/src/fr.inria.soctrace.maven.repository/archive/doc/framesoc_user_guide.pdf?raw=true).
 
 The Framesoc GitHub wiki pages are available [here](https://github.com/soctrace-inria/framesoc/wiki/).
+
+### Tutorials
+For the developers, several tutorials are also available [here](https://github.com/soctrace-inria/framesoc.tutorials).
 
 ## Supported Trace Formats
 
