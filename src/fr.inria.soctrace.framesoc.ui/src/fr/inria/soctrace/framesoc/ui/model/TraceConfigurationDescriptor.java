@@ -26,14 +26,24 @@ import fr.inria.soctrace.lib.model.EventProducer;
  */
 public class TraceConfigurationDescriptor extends TraceIntervalDescriptor {
 
-	// List of filtered event producers (is typed as object since the views use
-	// EventProducerNode --- except Gantt Chart)
+	/**
+	 * List of filtered event producers (is typed as object since the views use
+	 * EventProducerNode --- except Gantt Chart)
+	 */
 	private List<Object> eventProducers = new ArrayList<Object>();
 
-	// List of filtered event types (is typed as object since the views use
-	// EventTypeNode)
+	/**
+	 * List of filtered event types (is typed as object since the views use
+	 * EventTypeNode)
+	 */
 	private List<Object> eventTypes = new ArrayList<Object>();
-	
+
+	/**
+	 * Can be used to specify the ID of the tool that is concerned by the
+	 * message
+	 */
+	private String toolID = "";
+
 	/**
 	 * The minimum amount of time unit to show around an event when focusing on
 	 * it in the Gantt chart
@@ -83,6 +93,14 @@ public class TraceConfigurationDescriptor extends TraceIntervalDescriptor {
 
 	public void setFocusOnEvent(boolean focusOnEvent) {
 		this.focusOnEvent = focusOnEvent;
+	}
+
+	public String getToolID() {
+		return toolID;
+	}
+
+	public void setToolID(String toolID) {
+		this.toolID = toolID;
 	}
 	
 }

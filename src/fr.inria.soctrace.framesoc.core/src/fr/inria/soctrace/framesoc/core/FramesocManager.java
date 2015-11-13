@@ -199,11 +199,11 @@ public final class FramesocManager {
 	 *            arguments
 	 * @throws SoCTraceException
 	 */
-	public void launchTool(Tool tool, IFramesocToolInput input) throws SoCTraceException {
 
+	public void launchTool(Tool tool, IFramesocToolInput input) throws SoCTraceException {
 		// plugin tools
 		if (tool.isPlugin()) {
-			logger.debug("Launcing plugin " + tool.getName());
+			logger.debug("Launching plugin " + tool.getName());
 			ToolContributionManager.executePluginTool(tool, input);
 			return;
 		}

@@ -55,7 +55,6 @@ public class LaunchAnalysisToolHandler extends AbstractHandler {
 			}
 			
 			launchTool(window.getShell(), tools);
-
 		} catch (SoCTraceException e) {
 			MessageDialog.openError(window.getShell(), "Error during the analysis", e.getMessage());
 		} finally {

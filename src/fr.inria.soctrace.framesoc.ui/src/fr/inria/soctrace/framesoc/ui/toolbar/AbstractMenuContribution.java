@@ -48,12 +48,18 @@ public abstract class AbstractMenuContribution extends ExtensionContributionFact
 	/**
 	 * Given a tool type, create a menu contribution for each tool of this type.
 	 * Such contribution is added to the passed contribution root.
-	 * @param serviceLocator the service locator
-	 * @param additions the contribution root
-	 * @param type the Framesoc tool type
+	 * 
+	 * @param serviceLocator
+	 *            the service locator
+	 * @param additions
+	 *            the contribution root
+	 * @param type
+	 *            the Framesoc tool type
+	 * @param menuName
+	 *            name of the menu where the it was called from
 	 */
 	@SuppressWarnings("unchecked")
-	protected void createToolsItems(IServiceLocator serviceLocator, IContributionRoot additions, FramesocToolType type) {
+	protected void createToolsItems(IServiceLocator serviceLocator, IContributionRoot additions, FramesocToolType type, String menuName) {
 		List<Tool> tools = getTools(type);		
 		Collections.sort(tools, new Comparator<Tool>() {
 			@Override
@@ -66,6 +72,7 @@ public abstract class AbstractMenuContribution extends ExtensionContributionFact
 					serviceLocator, "", "fr.inria.soctrace.framesoc.ui.commands.dropdown", SWT.PUSH);
 			p.parameters = new HashMap<String, String>();
 			p.parameters.put("fr.inria.soctrace.framesoc.ui.commands.dropdown.toolName", tool.getName());
+			p.parameters.put("fr.inria.soctrace.framesoc.ui.commands.dropdown.menuName", menuName);
 	        p.label = tool.getName();
 			CommandContributionItem item = new CommandContributionItem(p);
 			item.setVisible(true);
@@ -92,5 +99,9 @@ public abstract class AbstractMenuContribution extends ExtensionContributionFact
 		}
 		return null;
 	}
-
+	
+	protected void createToolsItems(IServiceLocator serviceLocator,
+			IContributionRoot additions, FramesocToolType type) {
+		createToolsItems(serviceLocator, additions, type, "");
+	}
 }

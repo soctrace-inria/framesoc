@@ -30,6 +30,7 @@ import fr.inria.soctrace.framesoc.ui.colors.FramesocColorService;
 import fr.inria.soctrace.framesoc.ui.init.Initializer;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPartManager;
 import fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective;
+import fr.inria.soctrace.framesoc.ui.utils.FramesocToolManager;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 import fr.inria.soctrace.lib.utils.Configuration;
 import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
@@ -54,7 +55,9 @@ public class FramesocUiStartup implements IStartup {
 
 		// Clean Framesoc views
 		FramesocPartManager.getInstance().cleanFramesocParts(); // asyncExec
-
+		// Instantiate the FramesocToolManager singleton
+		FramesocToolManager.getInstance();
+		
 		// Check configuration file
 		if (!Configuration.getInstance().fileExists()) {
 			logger.debug("No configuration file found");

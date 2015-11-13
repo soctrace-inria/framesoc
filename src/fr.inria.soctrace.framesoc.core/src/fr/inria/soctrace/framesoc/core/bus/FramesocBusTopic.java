@@ -97,5 +97,25 @@ public enum FramesocBusTopic {
 	 * depending on the enabled options, the event type and event producer
 	 * filters.
 	 */
-	TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER;
+	TOPIC_UI_SYNCHRONIZE_TIME_AND_FILTER,
+	
+	/**
+	 * Event fired when the user is requesting the launching of a tool.
+	 * The event body should be the current active trace.
+	 * 
+	 * The event body should be of the type ToolDescriptor
+	 */
+	TOPIC_UI_LAUNCH_TOOL,
+
+	/**
+	 * Event fired when a tool required synchronization with another tool.
+	 * Synchronization can occur on the trace, the time interval and/or the
+	 * event type/producer filters.
+	 * 
+	 * The event body should be an instance of
+	 * {@link TraceConfigurationDescriptor} containing the concerned tool (given
+	 * as the tool activator ID) and the elements needed for synchronization
+	 */
+	TOPIC_UI_SYNCH_TOOL;
+	
 }

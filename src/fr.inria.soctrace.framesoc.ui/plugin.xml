@@ -104,11 +104,21 @@
                name="toolName"
                optional="false">
          </commandParameter>
+         <commandParameter
+               id="fr.inria.soctrace.framesoc.ui.commands.dropdown.menuName"
+               name="menuName"
+               optional="true">
+         </commandParameter>
       </command>
       <command
             defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.HighlightTraceHandler"
             id="fr.inria.soctrace.framesoc.ui.commands.switch_highlight"
             name="Switch highlight">
+      </command>
+      <command
+            defaultHandler="fr.inria.soctrace.framesoc.ui.handlers.LaunchTraceToolHandler"
+            id="fr.inria.soctrace.framesoc.ui.commands.LaunchTool"
+            name="Launch Tool">
       </command>      
    </extension>
    <extension
@@ -249,7 +259,25 @@
             <command
                   commandId="fr.inria.soctrace.framesoc.ui.commands.Configuration"
                   icon="icons/manage_tools.png"
+                  label="Framesoc Configuration"
                   style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeWorkbenchWindow.activePerspective">
+                     <equals
+                           value="fr.inria.soctrace.framesoc.ui.perspective.FramesocPerspective">
+                     </equals>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="fr.inria.soctrace.framesoc.ui.commands.LaunchTool"
+                  icon="icons/load.png"
+                  id="launcher"
+                  style="pulldown"
+                  label="Launch Tool with current trace"
+                  tooltip="Launch Tool with current trace">
                <visibleWhen
                      checkEnabled="false">
                   <with
@@ -276,6 +304,11 @@
             allPopups="false"
             class="fr.inria.soctrace.framesoc.ui.toolbar.ExportersMenuContribution"
             locationURI="menu:exporters">
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            class="fr.inria.soctrace.framesoc.ui.toolbar.LaunchToolMenuContribution"
+            locationURI="menu:launcher">
       </menuContribution>
       
       

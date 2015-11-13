@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import fr.inria.soctrace.framesoc.core.FramesocConstants.FramesocToolType;
 import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.ui.toolbar.AbstractMenuContribution;
+import fr.inria.soctrace.framesoc.ui.toolbar.LaunchToolMenuContribution;
 import fr.inria.soctrace.lib.model.Tool;
 import fr.inria.soctrace.lib.model.utils.SoCTraceException;
 
@@ -50,15 +51,17 @@ public class DropDownLaunchHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		// Name of the tool
+		String toolName = event.getParameter("fr.inria.soctrace.framesoc.ui.commands.dropdown.toolName");
+		// Name of the menu sending the event
+		String menuName = event.getParameter("fr.inria.soctrace.framesoc.ui.commands.dropdown.menuName");
 		
-		String par = event.getParameter("fr.inria.soctrace.framesoc.ui.commands.dropdown.toolName");
-		logger.debug("Parameter value: {}", par);
-		if (par == null)
+		logger.debug("Parameter value: {}", toolName, menuName);
+		if (toolName == null)
 			return null;
 				
 		try {
-			
-			Tool tool = FramesocManager.getInstance().getTool(par);
+			Tool tool = FramesocManager.getInstance().getTool(toolName);
 			logger.debug("Tool: {}", tool);
 			if (tool == null)
 				return null;	
@@ -69,14 +72,21 @@ public class DropDownLaunchHandler extends AbstractHandler {
 				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 				ImportTraceHandler.launchImporter(window.getShell(), tools);
 			} else {
-				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-				LaunchAnalysisToolHandler.launchTool(window.getShell(), tools);
+				// Check which menu sent the command
+				if (menuName != null
+						&& menuName
+								.equals(LaunchToolMenuContribution.LAUNCH_MENU_NAME)) {
+					LaunchTraceToolHandler.launchTool(tools);
+				} else {
+					IWorkbenchWindow window = HandlerUtil
+							.getActiveWorkbenchWindowChecked(event);
+					LaunchAnalysisToolHandler.launchTool(window.getShell(),
+							tools);
+				}
 			}
-			
 		} catch (SoCTraceException e) {
 			e.printStackTrace();
 		}
-				
 		return null;
 	}
 
