@@ -14,11 +14,18 @@ import fr.inria.soctrace.framesoc.core.tools.model.IFramesocToolInput;
 import fr.inria.soctrace.lib.model.Tool;
 
 /**
- * This class extends TraceIntervalDescriptor in order to transmit more
- * information for synchronization between views.
+ * This class allows to launch a tool if it is present in the database.
+ * Currently it is made to be use only with the message TOPIC_UI_LAUNCH_TOOL,
+ * which is only handled by the {@link FramesocToolManager}.
  * 
- * This include the list of filtered event producers, or event types and if
- * a particular event should be focused on.
+ * It is possible to specify the tool to launch in several ways: 
+ *  - Specify the tool as an instance of the tool itself (setTool()) 
+ *  - Specify the toolname (setToolName())
+ * 
+ * It also provides the possibility to specify some input parameters by
+ * providing an instance of IFramesocToolInput. It is the responsibility of the
+ * sender to make sure that the correct version of the input is provided. If no
+ * input is specified, {@link EmptyInput} will be used.
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
  */

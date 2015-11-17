@@ -19,8 +19,8 @@ import fr.inria.soctrace.lib.model.EventProducer;
  * This class extends TraceIntervalDescriptor in order to transmit more
  * information for synchronization between views.
  * 
- * This include the list of filtered event producers, or event types and if
- * a particular event should be focused on.
+ * Additional information include the list of filtered event producers, or event
+ * types and if a particular event should be focused on.
  * 
  * @author "Youenn Corre <youenn.corre@inria.fr>"
  */
@@ -28,35 +28,35 @@ public class TraceConfigurationDescriptor extends TraceIntervalDescriptor {
 
 	/**
 	 * List of filtered event producers (is typed as object since the views use
-	 * EventProducerNode --- except Gantt Chart)
+	 * EventProducerNode --- except Gantt Chart).
 	 */
 	private List<Object> eventProducers = new ArrayList<Object>();
 
 	/**
 	 * List of filtered event types (is typed as object since the views use
-	 * EventTypeNode)
+	 * EventTypeNode).
 	 */
 	private List<Object> eventTypes = new ArrayList<Object>();
 
 	/**
 	 * Can be used to specify the ID of the tool that is concerned by the
-	 * message
+	 * message.
 	 */
 	private String toolID = "";
 
 	/**
 	 * The minimum amount of time unit to show around an event when focusing on
-	 * it in the Gantt chart
+	 * it in the Gantt chart.
 	 */
 	public static final int MIN_TIME_UNIT_SHOWING = 200;
 	
 	/**
-	 * Should we focus on a particular event
+	 * Should we focus on a particular event.
 	 */
 	private boolean focusOnEvent = false;
 	
 	/**
-	 * An event producer on which the focus should be on
+	 * An event producer on which the focus should be on.
 	 */
 	private EventProducer eventProducer = null;
 

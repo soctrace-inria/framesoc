@@ -19,12 +19,8 @@ import java.util.Scanner;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 
-import fr.inria.soctrace.framesoc.core.FramesocManager;
 import fr.inria.soctrace.framesoc.headless.launcher.HeadlessPluginLauncher;
 import fr.inria.soctrace.framesoc.ui.FramesocUiStartup;
-import fr.inria.soctrace.lib.model.utils.SoCTraceException;
-import fr.inria.soctrace.lib.utils.Configuration;
-import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
 
 /**
  * This class allows to launch Framesoc in command line.
@@ -33,10 +29,6 @@ import fr.inria.soctrace.lib.utils.Configuration.SoCTraceProperty;
  */
 public class FramesocApplication implements IApplication {
 
-	// Configuration options
-	private static final int PATH_TO_EXISTING_DB_OPTION = 1;
-	private static final int CREATE_NEW_SYSTEM_DB_OPTION = 2;
-	private static final int CREATE_NEW_SYSTEM_DB_AT_OPTION = 3;
 
 	// Scanner for user input
 	private Scanner scanner;
@@ -128,78 +120,15 @@ public class FramesocApplication implements IApplication {
 	 */
 	private boolean performBasicCheck() {
 		FramesocUiStartup startup = new FramesocUiStartup();
+		HeadlessSetup setup = new HeadlessSetup(scanner);
 
 		// Check that database is correct
-		if (!startup.validateConfFile(false)) {
+		while (!startup.validateConfFile(false)) {
 			System.out.println("Invalid path to database system provided.");
-			launchSetup();
+			setup.launchSetup();
 		}
 
 		return true;
-	}
-
-	/**
-	 * Allow to setup the system database.
-	 */
-	private void launchSetup() {
-		Configuration.getInstance().get(SoCTraceProperty.soctrace_dbms);
-		String currentDbPath = Configuration.getInstance().get(
-				SoCTraceProperty.sqlite_db_directory);
-		String path;
-
-		System.out.println("Current path is " + currentDbPath);
-		System.out.println("Your choices are:\n"
-				+ " 1. Provide a path to an existing database.\n"
-				+ " 2. Create a new system database at the current path.\n"
-				+ " 3. Provide a new path and create a system database.");
-
-		int choice = scanner.nextInt();
-		switch (choice) {
-
-		case PATH_TO_EXISTING_DB_OPTION:
-			System.out
-					.println("Please provide a path to the directory of an existing database:");
-			path = scanner.next();
-			setDatabasePath(path);
-			break;
-
-		case CREATE_NEW_SYSTEM_DB_OPTION:
-			createDatabase();
-			break;
-
-		case CREATE_NEW_SYSTEM_DB_AT_OPTION:
-			System.out
-					.println("Please provide a path to an existing directory:");
-			path = scanner.next();
-			setDatabasePath(path);
-			createDatabase();
-			break;
-
-		default:
-			System.out.println("Invalid option selected: " + choice);
-			launchSetup();
-		}
-
-		// Check that database is correct
-		performBasicCheck();
-	}
-
-	private void setDatabasePath(String path) {
-		Configuration.getInstance().set(SoCTraceProperty.sqlite_db_directory,
-				path);
-		Configuration.getInstance().saveOnFile();
-	}
-
-	private void createDatabase() {
-		try {
-			FramesocManager.getInstance().createSystemDB();
-		} catch (SoCTraceException e) {
-			System.out
-					.println("Error: Failed to create a new system database at "
-							+ Configuration.getInstance().get(
-									SoCTraceProperty.sqlite_db_directory));
-			e.printStackTrace();
-		}
 	}
 	
 	private HeadlessPluginLauncher getLauncher(String command) {

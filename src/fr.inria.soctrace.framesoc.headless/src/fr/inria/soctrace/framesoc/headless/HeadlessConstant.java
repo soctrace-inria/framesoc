@@ -27,6 +27,7 @@ public class HeadlessConstant {
 	// Available programs
 	// Utils
 	public final static String TRACE_DETAILS = "print_traces";
+	public final static String SETUP_DATABASE = "setup_database";
 
 	/**
 	 * Create the map use to make the correspondence between the command line
