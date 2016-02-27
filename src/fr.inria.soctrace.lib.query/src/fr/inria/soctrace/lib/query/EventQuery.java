@@ -249,6 +249,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 			while (prs.next()) {
 				rebuildEventParam(prs, tmp);
 			}
+			stm.close();
 		} catch(SQLException e) {
 			throw new SoCTraceException(e);
 		}
@@ -332,8 +333,10 @@ public class EventQuery extends SelfDefiningElementQuery {
 				eventProducer.setName(rs.getString("NAME"));
 				eventProducer.setParentId(rs.getInt("PARENT_ID"));
 				eventProducerCache.put(eventProducer);
+				stm.close();
 				return eventProducer;
 			}
+			stm.close();
 			return null;
 		} catch (SQLException e) {
 			throw new SoCTraceException(e);
@@ -377,6 +380,7 @@ public class EventQuery extends SelfDefiningElementQuery {
 					rebuildEventParam(prs, tmp);
 				}
 				logger.debug(dm.endMessage("Rebuild parameters and link to events"));
+				stm.close();
 			}
 			return list;
 		} catch (SQLException e) {
