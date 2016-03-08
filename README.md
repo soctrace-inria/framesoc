@@ -10,7 +10,7 @@ Framesoc is a generic trace management and analysis infrastructure.
 
 To easily start playing with Framesoc, you can install its Eclipse plugin version.
 
-- First, [download](https://www.eclipse.org/downloads/) and extract Eclipse (**version 4.3 or higher**).
+- First, [download](https://www.eclipse.org/downloads/) and extract Eclipse (**version 4.4 or higher**).
 - Then, launch Eclipse and go to *Help > Install New Software*. 
 - In the new dialog, put the following URL in the field *Work with*:
   http://soctrace-inria.github.io/updatesite/
