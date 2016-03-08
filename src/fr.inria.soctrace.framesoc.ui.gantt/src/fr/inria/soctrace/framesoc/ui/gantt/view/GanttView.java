@@ -529,9 +529,6 @@ public class GanttView extends AbstractGanttView {
 												getStartTime()));
 						long newEnd = Math.min(requestedInterval.endTimestamp,
 								Math.max(partial.endTimestamp, getEndTime()));
-						boolean needRefresh = drawer.needRefresh()
-								|| (newEnd > getEndTime())
-								|| newStart < getStartTime();
 
 						// update start time
 						setStartTime(newStart);
@@ -539,10 +536,12 @@ public class GanttView extends AbstractGanttView {
 						setEndTime(newEnd);
 						// update entry list
 						addToEntryList(drawer.getNewRootEntries());
-						mergeEntries();
-
 						// copy the list for concurrent access
 						links = sortLinks(new ArrayList<>(drawer.getLinks()));
+						
+						boolean needRefresh = drawer.needRefresh()
+								|| (newEnd > getEndTime())
+								|| newStart < getStartTime();
 
 						if (needRefresh) {
 							refresh();
@@ -557,6 +556,11 @@ public class GanttView extends AbstractGanttView {
 					}
 				}
 
+				// Merge entries only at the end to avoid a bug where some
+				// producers are not shown
+				mergeEntries();
+				refresh();
+				
 				TimeInterval queueInterval = queue.getTimeInterval();
 				if (queue.isComplete()) {
 					// the whole requested interval has been loaded
