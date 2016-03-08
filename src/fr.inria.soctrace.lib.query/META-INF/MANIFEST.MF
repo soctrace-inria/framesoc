@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Query
 Bundle-SymbolicName: fr.inria.soctrace.lib.query
-Bundle-Version: 1.0.11.qualifier
+Bundle-Version: 1.0.12.qualifier
 Bundle-Activator: fr.inria.soctrace.lib.query.Activator
 Bundle-Vendor: INRIA
 Require-Bundle: org.eclipse.core.runtime,
