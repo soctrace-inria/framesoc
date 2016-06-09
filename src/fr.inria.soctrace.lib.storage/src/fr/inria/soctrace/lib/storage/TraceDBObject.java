@@ -54,6 +54,10 @@ public class TraceDBObject extends DBObject {
 	public static TraceDBObject openNewInstance(String dbName) throws SoCTraceException {
 		return new TraceDBObject(dbName, DBMode.DB_OPEN);
 	}
+	
+	public static TraceDBObject openNewIstance(String dbName) throws SoCTraceException {
+		return TraceDBObject.openNewInstance(dbName);
+	}
 
 	@Override
 	protected void createDB() throws SoCTraceException {

@@ -61,6 +61,10 @@ public class SystemDBObject extends DBObject {
 		return new SystemDBObject(Configuration.getInstance().get(SoCTraceProperty.soctrace_db_name), 
 				DBMode.DB_OPEN);
 	}
+	
+	public static SystemDBObject openNewIstance() throws SoCTraceException {
+		return SystemDBObject.openNewInstance();
+	}
 
 	@Override
 	protected void createDB() throws SoCTraceException {	
